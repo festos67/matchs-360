@@ -237,6 +237,70 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          club_id: string | null
+          coach_role: Database["public"]["Enums"]["coach_type"] | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          intended_role: Database["public"]["Enums"]["app_role"]
+          invited_by: string | null
+          status: string
+          team_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          club_id?: string | null
+          coach_role?: Database["public"]["Enums"]["coach_type"] | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          intended_role: Database["public"]["Enums"]["app_role"]
+          invited_by?: string | null
+          status?: string
+          team_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          club_id?: string | null
+          coach_role?: Database["public"]["Enums"]["coach_type"] | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          intended_role?: Database["public"]["Enums"]["app_role"]
+          invited_by?: string | null
+          status?: string
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           club_id: string | null
@@ -523,6 +587,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_club_ids: { Args: { _user_id: string }; Returns: string[] }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -533,6 +598,22 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_club_admin: {
         Args: { _club_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_coach_of_team: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_player_in_team: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_referent_coach_of_team: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_supporter_of_player: {
+        Args: { _player_id: string; _supporter_id: string }
         Returns: boolean
       }
     }

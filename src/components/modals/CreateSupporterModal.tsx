@@ -1,0 +1,270 @@
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Heart, Check } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+const supporterSchema = z.object({
+  firstName: z.string().min(1, "Prénom requis").max(50),
+  lastName: z.string().min(1, "Nom requis").max(50),
+  email: z.string().email("Email invalide").max(255),
+  playerIds: z.array(z.string()).min(1, "Sélectionnez au moins un joueur"),
+});
+
+type SupporterFormData = z.infer<typeof supporterSchema>;
+
+interface Player {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  nickname: string | null;
+  team_name?: string;
+}
+
+interface CreateSupporterModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  clubId: string;
+  onSuccess?: () => void;
+}
+
+export const CreateSupporterModal = ({
+  open,
+  onOpenChange,
+  clubId,
+  onSuccess,
+}: CreateSupporterModalProps) => {
+  const [loading, setLoading] = useState(false);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<SupporterFormData>({
+    resolver: zodResolver(supporterSchema),
+    defaultValues: {
+      playerIds: [],
+    },
+  });
+
+  useEffect(() => {
+    if (open && clubId) {
+      fetchPlayers();
+    }
+  }, [open, clubId]);
+
+  useEffect(() => {
+    setValue("playerIds", selectedPlayers);
+  }, [selectedPlayers, setValue]);
+
+  const fetchPlayers = async () => {
+    const { data } = await supabase
+      .from("team_members")
+      .select(`
+        user_id,
+        profile:profiles(id, first_name, last_name, nickname),
+        team:teams(name)
+      `)
+      .eq("member_type", "player")
+      .eq("is_active", true);
+
+    if (data) {
+      const formattedPlayers: Player[] = data.map((item: any) => ({
+        id: item.profile.id,
+        first_name: item.profile.first_name,
+        last_name: item.profile.last_name,
+        nickname: item.profile.nickname,
+        team_name: item.team?.name,
+      }));
+      setPlayers(formattedPlayers);
+    }
+  };
+
+  const togglePlayer = (playerId: string) => {
+    setSelectedPlayers((prev) =>
+      prev.includes(playerId)
+        ? prev.filter((id) => id !== playerId)
+        : [...prev, playerId]
+    );
+  };
+
+  const getPlayerName = (player: Player) => {
+    if (player.nickname) return player.nickname;
+    if (player.first_name && player.last_name) {
+      return `${player.first_name} ${player.last_name}`;
+    }
+    return player.first_name || player.last_name || "Joueur";
+  };
+
+  const onSubmit = async (data: SupporterFormData) => {
+    setLoading(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("send-invitation", {
+        body: {
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          clubId,
+          intendedRole: "supporter",
+          playerIds: data.playerIds,
+        },
+      });
+
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+
+      toast.success(`Supporter invité avec succès !`, {
+        description: `Une invitation a été envoyée à ${data.email}`,
+      });
+
+      reset();
+      setSelectedPlayers([]);
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error: any) {
+      console.error("Error inviting supporter:", error);
+      toast.error("Erreur lors de l'invitation", {
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Heart className="w-5 h-5 text-primary" />
+            </div>
+            Ajouter un Supporter
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Prénom</Label>
+              <Input
+                id="firstName"
+                placeholder="Marie"
+                {...register("firstName")}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-destructive">{errors.firstName.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Nom</Label>
+              <Input
+                id="lastName"
+                placeholder="Martin"
+                {...register("lastName")}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-destructive">{errors.lastName.message}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="parent@exemple.com"
+              {...register("email")}
+            />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>
+              Joueurs suivis ({selectedPlayers.length} sélectionné
+              {selectedPlayers.length > 1 ? "s" : ""})
+            </Label>
+            <ScrollArea className="h-48 rounded-lg border border-border p-2">
+              {players.length > 0 ? (
+                <div className="space-y-2">
+                  {players.map((player) => (
+                    <div
+                      key={player.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        selectedPlayers.includes(player.id)
+                          ? "bg-primary/10 border border-primary/30"
+                          : "bg-muted/30 hover:bg-muted/50"
+                      }`}
+                      onClick={() => togglePlayer(player.id)}
+                    >
+                      <Checkbox
+                        checked={selectedPlayers.includes(player.id)}
+                        onCheckedChange={() => togglePlayer(player.id)}
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium">{getPlayerName(player)}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {player.team_name}
+                        </p>
+                      </div>
+                      {selectedPlayers.includes(player.id) && (
+                        <Check className="w-4 h-4 text-primary" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  Aucun joueur disponible
+                </p>
+              )}
+            </ScrollArea>
+            {errors.playerIds && (
+              <p className="text-sm text-destructive">{errors.playerIds.message}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Un supporter peut suivre plusieurs joueurs de différentes équipes
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Annuler
+            </Button>
+            <Button type="submit" disabled={loading || selectedPlayers.length === 0}>
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                "Inviter le supporter"
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};

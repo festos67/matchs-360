@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CreateClubModal } from "@/components/modals/CreateClubModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ export default function Clubs() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -77,24 +79,21 @@ export default function Clubs() {
 
   return (
     <AppLayout>
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-display font-bold">Clubs</h1>
           <p className="text-muted-foreground mt-1">
-            {clubs.length} organisation{clubs.length > 1 ? "s" : ""} enregistrée
-            {clubs.length > 1 ? "s" : ""}
+            {clubs.length} organisation{clubs.length > 1 ? "s" : ""} enregistrée{clubs.length > 1 ? "s" : ""}
           </p>
         </div>
         {isAdmin && (
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
             <Plus className="w-4 h-4" />
             Nouveau club
           </Button>
         )}
       </div>
 
-      {/* Search */}
       <div className="relative max-w-md mb-8">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -105,7 +104,6 @@ export default function Clubs() {
         />
       </div>
 
-      {/* Clubs Grid */}
       {filteredClubs.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {filteredClubs.map((club, index) => (
@@ -116,9 +114,7 @@ export default function Clubs() {
             >
               <CircleAvatar
                 name={club.name}
-                subtitle={`${club.teams_count || 0} équipe${
-                  (club.teams_count || 0) > 1 ? "s" : ""
-                }`}
+                subtitle={`${club.teams_count || 0} équipe${(club.teams_count || 0) > 1 ? "s" : ""}`}
                 imageUrl={club.logo_url}
                 color={club.primary_color}
                 size="lg"
@@ -134,18 +130,18 @@ export default function Clubs() {
             {searchQuery ? "Aucun club trouvé" : "Aucun club enregistré"}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {searchQuery
-              ? "Essayez avec un autre terme de recherche"
-              : "Commencez par créer votre premier club"}
+            {searchQuery ? "Essayez avec un autre terme de recherche" : "Commencez par créer votre premier club"}
           </p>
           {isAdmin && !searchQuery && (
-            <Button className="mt-4 gap-2">
+            <Button className="mt-4 gap-2" onClick={() => setShowCreateModal(true)}>
               <Plus className="w-4 h-4" />
               Créer un club
             </Button>
           )}
         </div>
       )}
+
+      <CreateClubModal open={showCreateModal} onOpenChange={setShowCreateModal} onSuccess={fetchClubs} />
     </AppLayout>
   );
 }
