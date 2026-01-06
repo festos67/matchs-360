@@ -17,6 +17,7 @@ export type Database = {
       clubs: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
           logo_url: string | null
           name: string
@@ -28,6 +29,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -39,6 +41,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -305,6 +308,7 @@ export type Database = {
         Row: {
           club_id: string | null
           created_at: string
+          deleted_at: string | null
           email: string
           first_name: string | null
           id: string
@@ -316,6 +320,7 @@ export type Database = {
         Insert: {
           club_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           email: string
           first_name?: string | null
           id: string
@@ -327,6 +332,7 @@ export type Database = {
         Update: {
           club_id?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string
           first_name?: string | null
           id?: string
@@ -418,6 +424,7 @@ export type Database = {
       }
       team_members: {
         Row: {
+          archived_reason: string | null
           coach_role: Database["public"]["Enums"]["coach_type"] | null
           created_at: string
           id: string
@@ -429,6 +436,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          archived_reason?: string | null
           coach_role?: Database["public"]["Enums"]["coach_type"] | null
           created_at?: string
           id?: string
@@ -440,6 +448,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          archived_reason?: string | null
           coach_role?: Database["public"]["Enums"]["coach_type"] | null
           created_at?: string
           id?: string
@@ -472,6 +481,7 @@ export type Database = {
           club_id: string
           color: string | null
           created_at: string
+          deleted_at: string | null
           description: string | null
           id: string
           name: string
@@ -482,6 +492,7 @@ export type Database = {
           club_id: string
           color?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           name: string
@@ -492,6 +503,7 @@ export type Database = {
           club_id?: string
           color?: string | null
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           name?: string

@@ -23,18 +23,23 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   roles: UserRole[];
+  currentRole: UserRole | null;
   loading: boolean;
   isAdmin: boolean;
   signOut: () => Promise<void>;
+  setCurrentRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const CURRENT_ROLE_KEY = "matchs360_current_role";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
+  const [currentRole, setCurrentRoleState] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -56,8 +61,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .eq("user_id", userId);
     
     if (data) {
-      setRoles(data as UserRole[]);
+      const userRoles = data as UserRole[];
+      setRoles(userRoles);
+      
+      // Restore saved role or use first role
+      const savedRoleId = localStorage.getItem(CURRENT_ROLE_KEY);
+      const savedRole = userRoles.find(r => r.id === savedRoleId);
+      if (savedRole) {
+        setCurrentRoleState(savedRole);
+      } else if (userRoles.length > 0) {
+        setCurrentRoleState(userRoles[0]);
+      }
     }
+  };
+
+  const setCurrentRole = (role: UserRole) => {
+    setCurrentRoleState(role);
+    localStorage.setItem(CURRENT_ROLE_KEY, role.id);
   };
 
   useEffect(() => {
@@ -76,6 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
           setRoles([]);
+          setCurrentRoleState(null);
+          localStorage.removeItem(CURRENT_ROLE_KEY);
         }
         setLoading(false);
       }
@@ -102,6 +124,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setProfile(null);
     setRoles([]);
+    setCurrentRoleState(null);
+    localStorage.removeItem(CURRENT_ROLE_KEY);
   };
 
   const isAdmin = roles.some((r) => r.role === "admin");
@@ -113,9 +137,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         profile,
         roles,
+        currentRole,
         loading,
         isAdmin,
         signOut,
+        setCurrentRole,
       }}
     >
       {children}
