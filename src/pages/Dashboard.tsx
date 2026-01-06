@@ -1,0 +1,197 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Building2, Users, Trophy, TrendingUp, Calendar, Activity } from "lucide-react";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { StatsCard } from "@/components/shared/StatsCard";
+import { RadarChart } from "@/components/shared/RadarChart";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+
+// Mock data for demo
+const mockRadarData = [
+  { skill: "Technique", score: 4, fullMark: 5 },
+  { skill: "Tactique", score: 3, fullMark: 5 },
+  { skill: "Physique", score: 5, fullMark: 5 },
+  { skill: "Mental", score: 4, fullMark: 5 },
+  { skill: "Communication", score: 3, fullMark: 5 },
+  { skill: "Leadership", score: 4, fullMark: 5 },
+];
+
+const recentEvaluations = [
+  { player: "Thomas Martin", team: "U15 A", date: "Il y a 2 heures", score: 4.2 },
+  { player: "Lucas Bernard", team: "U17 B", date: "Il y a 5 heures", score: 3.8 },
+  { player: "Emma Dubois", team: "U15 A", date: "Hier", score: 4.5 },
+];
+
+export default function Dashboard() {
+  const { user, profile, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <AppLayout>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-display font-bold">
+          Bonjour, {profile?.first_name || "Coach"} 👋
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Voici un aperçu de votre activité
+        </p>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatsCard
+          title="Clubs"
+          value="3"
+          subtitle="Organisations actives"
+          icon={Building2}
+          color="primary"
+        />
+        <StatsCard
+          title="Équipes"
+          value="12"
+          subtitle="Réparties sur 3 clubs"
+          icon={Users}
+          trend={{ value: 8, label: "ce mois" }}
+          color="success"
+        />
+        <StatsCard
+          title="Évaluations"
+          value="156"
+          subtitle="Total cette saison"
+          icon={Trophy}
+          trend={{ value: 23, label: "vs mois dernier" }}
+          color="warning"
+        />
+        <StatsCard
+          title="Progression"
+          value="+18%"
+          subtitle="Moyenne des joueurs"
+          icon={TrendingUp}
+          color="success"
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Radar Chart */}
+        <div className="lg:col-span-2 glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-display font-semibold">
+                Analyse des compétences
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Moyenne de l'équipe U15 A
+              </p>
+            </div>
+            <Button variant="outline" size="sm">
+              <Calendar className="w-4 h-4 mr-2" />
+              Cette saison
+            </Button>
+          </div>
+          <RadarChart data={mockRadarData} />
+        </div>
+
+        {/* Recent Evaluations */}
+        <div className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-display font-semibold">
+              Évaluations récentes
+            </h2>
+            <Button variant="ghost" size="sm" className="text-primary">
+              Voir tout
+            </Button>
+          </div>
+          
+          <div className="space-y-4">
+            {recentEvaluations.map((evaluation, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Activity className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{evaluation.player}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {evaluation.team} • {evaluation.date}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="font-display font-bold text-lg">
+                    {evaluation.score}
+                  </p>
+                  <p className="text-xs text-muted-foreground">/5</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Button className="w-full mt-6" variant="outline">
+            Nouvelle évaluation
+          </Button>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Button
+          variant="outline"
+          className="h-auto p-6 flex flex-col items-start gap-2 hover:border-primary/50"
+          onClick={() => navigate("/clubs")}
+        >
+          <Building2 className="w-6 h-6 text-primary" />
+          <div className="text-left">
+            <p className="font-medium">Gérer les clubs</p>
+            <p className="text-sm text-muted-foreground">
+              Ajouter ou modifier vos organisations
+            </p>
+          </div>
+        </Button>
+        <Button
+          variant="outline"
+          className="h-auto p-6 flex flex-col items-start gap-2 hover:border-primary/50"
+          onClick={() => navigate("/teams")}
+        >
+          <Users className="w-6 h-6 text-primary" />
+          <div className="text-left">
+            <p className="font-medium">Voir les équipes</p>
+            <p className="text-sm text-muted-foreground">
+              Accéder aux joueurs et coachs
+            </p>
+          </div>
+        </Button>
+        <Button
+          variant="outline"
+          className="h-auto p-6 flex flex-col items-start gap-2 hover:border-primary/50"
+          onClick={() => navigate("/evaluations")}
+        >
+          <Trophy className="w-6 h-6 text-primary" />
+          <div className="text-left">
+            <p className="font-medium">Évaluer un joueur</p>
+            <p className="text-sm text-muted-foreground">
+              Créer une nouvelle évaluation
+            </p>
+          </div>
+        </Button>
+      </div>
+    </AppLayout>
+  );
+}
