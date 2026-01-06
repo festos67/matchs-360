@@ -13,6 +13,8 @@ import TeamDetail from "./pages/TeamDetail";
 import PlayerDetail from "./pages/PlayerDetail";
 import FrameworkEditor from "./pages/FrameworkEditor";
 import Evaluations from "./pages/Evaluations";
+import PendingApproval from "./pages/PendingApproval";
+import RoleApprovals from "./pages/RoleApprovals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="/evaluations" element={<Evaluations />} />
+            <Route path="/pending-approval" element={<PendingApproval />} />
+            <Route path="/role-approvals" element={<RoleApprovals />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
