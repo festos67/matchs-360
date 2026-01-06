@@ -1,4 +1,6 @@
-import { Bell, Search, User } from "lucide-react";
+import { useState } from "react";
+import { Bell, Search, User, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,10 +11,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 
 export const TopBar = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, roles, currentRole, setCurrentRole, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <header className="h-16 border-b border-border bg-card/50 backdrop-blur-xl px-6 flex items-center justify-between">
@@ -27,6 +36,13 @@ export const TopBar = () => {
 
       {/* Actions */}
       <div className="flex items-center gap-4">
+        {/* Role Switcher - only shows if multiple roles */}
+        <RoleSwitcher
+          roles={roles}
+          currentRole={currentRole}
+          onRoleChange={setCurrentRole}
+        />
+
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="w-5 h-5" />
@@ -64,7 +80,8 @@ export const TopBar = () => {
             <DropdownMenuItem>Profil</DropdownMenuItem>
             <DropdownMenuItem>Préférences</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
               Déconnexion
             </DropdownMenuItem>
           </DropdownMenuContent>

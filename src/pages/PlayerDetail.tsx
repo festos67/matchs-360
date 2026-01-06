@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
+import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,6 +91,8 @@ export default function PlayerDetail() {
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [loading, setLoading] = useState(true);
   const [canEvaluate, setCanEvaluate] = useState(false);
+  const [canMutate, setCanMutate] = useState(false);
+  const [showMutationModal, setShowMutationModal] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
@@ -146,6 +149,7 @@ export default function PlayerDetail() {
 
         const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === membership.team?.club_id);
         setCanEvaluate(isAdmin || isClubAdmin || !!coachMembership);
+        setCanMutate(isAdmin || isClubAdmin);
 
         // Fetch framework
         const { data: framework } = await supabase
@@ -416,12 +420,32 @@ export default function PlayerDetail() {
                 Évaluer
               </Button>
             )}
+            {canMutate && teamMembership && (
+              <Button variant="outline" className="gap-2" onClick={() => setShowMutationModal(true)}>
+                <ArrowRightLeft className="w-4 h-4" />
+                Mutation
+              </Button>
+            )}
             <Button variant="outline" size="icon">
               <Edit className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Mutation Modal */}
+      {teamMembership && (
+        <PlayerMutationModal
+          open={showMutationModal}
+          onOpenChange={setShowMutationModal}
+          playerId={id!}
+          playerName={getPlayerName()}
+          currentTeamId={teamMembership.team_id}
+          currentTeamName={teamMembership.team.name}
+          clubId={teamMembership.team.club_id}
+          onSuccess={fetchPlayerData}
+        />
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
