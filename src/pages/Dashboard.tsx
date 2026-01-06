@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Building2, Users, Trophy, TrendingUp, Calendar, Activity, Mail, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { Building2, Users, Trophy, TrendingUp, Calendar, Activity, Mail, Clock, FileText, ExternalLink } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { RadarChart } from "@/components/shared/RadarChart";
@@ -29,6 +29,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
+  const [hasPendingRequest, setHasPendingRequest] = useState(false);
 
   const hasNoAccess = !isDemo && user && roles.length === 0;
 
@@ -37,6 +38,24 @@ export default function Dashboard() {
       navigate("/auth");
     }
   }, [user, loading, navigate, isDemo]);
+
+  // Check for pending role request
+  useEffect(() => {
+    const checkPendingRequest = async () => {
+      if (!user || roles.length > 0) return;
+      
+      const { data } = await supabase
+        .from("role_requests")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+      
+      setHasPendingRequest(!!data);
+    };
+    
+    checkPendingRequest();
+  }, [user, roles]);
 
   if (loading) {
     return (
@@ -55,20 +74,47 @@ export default function Dashboard() {
             <Clock className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-display font-bold mb-4">
-            En attente d'invitation
+            {hasPendingRequest ? "Demande en cours de validation" : "En attente d'invitation"}
           </h1>
           <p className="text-muted-foreground max-w-md mb-8">
-            Votre compte a été créé avec succès ! Pour accéder à l'application,
-            vous devez être invité par un administrateur de club ou un coach.
+            {hasPendingRequest 
+              ? "Votre demande de rôle est en attente de validation par un administrateur."
+              : "Votre compte a été créé avec succès ! Pour accéder à l'application, vous devez être invité par un administrateur de club ou un coach."}
           </p>
-          <div className="glass-card p-6 max-w-sm w-full">
-            <div className="flex items-center gap-3 mb-4">
-              <Mail className="w-5 h-5 text-primary" />
-              <p className="font-medium">Vérifiez votre boîte email</p>
+          
+          {hasPendingRequest ? (
+            <Button asChild className="mb-4">
+              <Link to="/pending-approval">
+                <FileText className="w-4 h-4 mr-2" />
+                Voir ma demande
+              </Link>
+            </Button>
+          ) : (
+            <div className="glass-card p-6 max-w-sm w-full mb-4">
+              <div className="flex items-center gap-3 mb-4">
+                <Mail className="w-5 h-5 text-primary" />
+                <p className="font-medium">Vérifiez votre boîte email</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Vous recevrez un email d'invitation lorsqu'un club vous ajoutera à son équipe.
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Vous recevrez un email d'invitation lorsqu'un club vous ajoutera
-              à son équipe.
+          )}
+          
+          <p className="text-sm text-muted-foreground">
+            Connecté en tant que: <span className="font-medium text-foreground">{profile?.email}</span>
+          </p>
+          <Button 
+            variant="ghost" 
+            className="mt-4"
+            onClick={() => supabase.auth.signOut().then(() => navigate("/"))}
+          >
+            Se déconnecter
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
             </p>
           </div>
           <p className="text-sm text-muted-foreground mt-8">
