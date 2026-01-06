@@ -115,22 +115,6 @@ export default function Dashboard() {
       </AppLayout>
     );
   }
-            </p>
-          </div>
-          <p className="text-sm text-muted-foreground mt-8">
-            Connecté en tant que: <span className="font-medium text-foreground">{profile?.email}</span>
-          </p>
-          <Button 
-            variant="ghost" 
-            className="mt-4"
-            onClick={() => supabase.auth.signOut().then(() => navigate("/"))}
-          >
-            Se déconnecter
-          </Button>
-        </div>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>
