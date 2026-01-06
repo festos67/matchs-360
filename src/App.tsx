@@ -11,6 +11,7 @@ import Clubs from "./pages/Clubs";
 import ClubDetail from "./pages/ClubDetail";
 import TeamDetail from "./pages/TeamDetail";
 import PlayerDetail from "./pages/PlayerDetail";
+import FrameworkEditor from "./pages/FrameworkEditor";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/clubs/:id" element={<ClubDetail />} />
             <Route path="/teams" element={<Navigate to="/clubs" replace />} />
             <Route path="/teams/:id" element={<TeamDetail />} />
+            <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -93,7 +93,15 @@ export default function TeamDetail() {
             <div className="flex items-center gap-3"><h1 className="text-3xl font-display font-bold">{team.name}</h1><Badge variant="secondary">{team.season}</Badge></div>
             <p className="text-muted-foreground mt-1">{team.club?.name} • {players.length} joueur{players.length > 1 ? "s" : ""} • {coaches.length} coach{coaches.length > 1 ? "es" : ""}</p>
           </div>
-          <div className="flex gap-2"><Button variant="outline" className="gap-2"><FileText className="w-4 h-4" />Référentiel</Button><Button variant="outline" size="icon"><Settings className="w-4 h-4" /></Button></div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
+              <FileText className="w-4 h-4" />
+              Référentiel
+            </Button>
+            <Button variant="outline" size="icon">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
