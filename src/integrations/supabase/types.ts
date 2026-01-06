@@ -14,16 +14,531 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clubs: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          primary_color: string
+          referent_email: string | null
+          referent_name: string | null
+          secondary_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          primary_color?: string
+          referent_email?: string | null
+          referent_name?: string | null
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string
+          referent_email?: string | null
+          referent_name?: string | null
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      competence_frameworks: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          id: string
+          is_template: boolean
+          name: string
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          id?: string
+          is_template?: boolean
+          name: string
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          id?: string
+          is_template?: boolean
+          name?: string
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competence_frameworks_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competence_frameworks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_objectives: {
+        Row: {
+          content: string
+          created_at: string
+          deadline: string | null
+          evaluation_id: string
+          id: string
+          theme_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          deadline?: string | null
+          evaluation_id: string
+          id?: string
+          theme_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          deadline?: string | null
+          evaluation_id?: string
+          id?: string
+          theme_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_objectives_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_objectives_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_scores: {
+        Row: {
+          comment: string | null
+          created_at: string
+          evaluation_id: string
+          id: string
+          is_not_observed: boolean
+          score: number | null
+          skill_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          evaluation_id: string
+          id?: string
+          is_not_observed?: boolean
+          score?: number | null
+          skill_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          evaluation_id?: string
+          id?: string
+          is_not_observed?: boolean
+          score?: number | null
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_scores_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_scores_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluations: {
+        Row: {
+          coach_id: string
+          created_at: string
+          date: string
+          framework_id: string
+          id: string
+          name: string
+          notes: string | null
+          player_id: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          date?: string
+          framework_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          player_id: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          date?: string
+          framework_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "competence_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          nickname: string | null
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          nickname?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          nickname?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skills: {
+        Row: {
+          created_at: string
+          definition: string | null
+          id: string
+          name: string
+          order_index: number
+          theme_id: string
+        }
+        Insert: {
+          created_at?: string
+          definition?: string | null
+          id?: string
+          name: string
+          order_index?: number
+          theme_id: string
+        }
+        Update: {
+          created_at?: string
+          definition?: string | null
+          id?: string
+          name?: string
+          order_index?: number
+          theme_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_theme_id_fkey"
+            columns: ["theme_id"]
+            isOneToOne: false
+            referencedRelation: "themes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supporters_link: {
+        Row: {
+          created_at: string
+          id: string
+          player_id: string
+          supporter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_id: string
+          supporter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_id?: string
+          supporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supporters_link_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporters_link_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          coach_role: Database["public"]["Enums"]["coach_type"] | null
+          created_at: string
+          id: string
+          is_active: boolean
+          joined_at: string
+          left_at: string | null
+          member_type: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          coach_role?: Database["public"]["Enums"]["coach_type"] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          joined_at?: string
+          left_at?: string | null
+          member_type: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          coach_role?: Database["public"]["Enums"]["coach_type"] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          joined_at?: string
+          left_at?: string | null
+          member_type?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          club_id: string
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          season: string | null
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          season?: string | null
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          season?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      themes: {
+        Row: {
+          color: string | null
+          created_at: string
+          framework_id: string
+          id: string
+          name: string
+          order_index: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          framework_id: string
+          id?: string
+          name: string
+          order_index?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          framework_id?: string
+          id?: string
+          name?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "themes_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "competence_frameworks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          club_id: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_club_admin: {
+        Args: { _club_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
+      coach_type: "referent" | "assistant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +665,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "club_admin", "coach", "player", "supporter"],
+      coach_type: ["referent", "assistant"],
+    },
   },
 } as const
