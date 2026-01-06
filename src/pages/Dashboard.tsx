@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Building2, Users, Trophy, TrendingUp, Calendar, Activity } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
@@ -26,12 +26,14 @@ const recentEvaluations = [
 export default function Dashboard() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isDemo = searchParams.get("demo") === "true";
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isDemo) {
       navigate("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isDemo]);
 
   if (loading) {
     return (
@@ -45,11 +47,21 @@ export default function Dashboard() {
     <AppLayout>
       {/* Header */}
       <div className="mb-8">
+        {isDemo && (
+          <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-between">
+            <p className="text-sm text-primary">
+              🎯 Mode démo - Données fictives pour découvrir l'application
+            </p>
+            <Button size="sm" onClick={() => navigate("/auth")}>
+              Créer un compte
+            </Button>
+          </div>
+        )}
         <h1 className="text-3xl font-display font-bold">
-          Bonjour, {profile?.first_name || "Coach"} 👋
+          Bonjour, {isDemo ? "Visiteur" : (profile?.first_name || "Coach")} 👋
         </h1>
         <p className="text-muted-foreground mt-1">
-          Voici un aperçu de votre activité
+          {isDemo ? "Découvrez les fonctionnalités de MATCHS360" : "Voici un aperçu de votre activité"}
         </p>
       </div>
 
