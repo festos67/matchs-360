@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Building2, Users, Trophy, TrendingUp, Calendar, Activity } from "lucide-react";
+import { Building2, Users, Trophy, TrendingUp, Calendar, Activity, Mail, Clock } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { RadarChart } from "@/components/shared/RadarChart";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mock data for demo
 const mockRadarData = [
@@ -24,10 +25,12 @@ const recentEvaluations = [
 ];
 
 export default function Dashboard() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, roles, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isDemo = searchParams.get("demo") === "true";
+
+  const hasNoAccess = !isDemo && user && roles.length === 0;
 
   useEffect(() => {
     if (!loading && !user && !isDemo) {
@@ -40,6 +43,46 @@ export default function Dashboard() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
       </div>
+    );
+  }
+
+  // Show waiting screen for users without any role
+  if (hasNoAccess) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+            <Clock className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-3xl font-display font-bold mb-4">
+            En attente d'invitation
+          </h1>
+          <p className="text-muted-foreground max-w-md mb-8">
+            Votre compte a été créé avec succès ! Pour accéder à l'application,
+            vous devez être invité par un administrateur de club ou un coach.
+          </p>
+          <div className="glass-card p-6 max-w-sm w-full">
+            <div className="flex items-center gap-3 mb-4">
+              <Mail className="w-5 h-5 text-primary" />
+              <p className="font-medium">Vérifiez votre boîte email</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Vous recevrez un email d'invitation lorsqu'un club vous ajoutera
+              à son équipe.
+            </p>
+          </div>
+          <p className="text-sm text-muted-foreground mt-8">
+            Connecté en tant que: <span className="font-medium text-foreground">{profile?.email}</span>
+          </p>
+          <Button 
+            variant="ghost" 
+            className="mt-4"
+            onClick={() => supabase.auth.signOut().then(() => navigate("/"))}
+          >
+            Se déconnecter
+          </Button>
+        </div>
+      </AppLayout>
     );
   }
 
