@@ -55,23 +55,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchRoles = async (userId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_roles")
       .select("id, role, club_id")
       .eq("user_id", userId);
     
-    if (data) {
-      const userRoles = data as UserRole[];
-      setRoles(userRoles);
-      
-      // Restore saved role or use first role
-      const savedRoleId = localStorage.getItem(CURRENT_ROLE_KEY);
-      const savedRole = userRoles.find(r => r.id === savedRoleId);
-      if (savedRole) {
-        setCurrentRoleState(savedRole);
-      } else if (userRoles.length > 0) {
-        setCurrentRoleState(userRoles[0]);
-      }
+    if (error) {
+      console.error("Error fetching user roles:", error);
+      // Don't clear roles on error - might be a temporary issue
+      return;
+    }
+    
+    const userRoles = (data || []) as UserRole[];
+    setRoles(userRoles);
+    
+    // Restore saved role or use first role
+    const savedRoleId = localStorage.getItem(CURRENT_ROLE_KEY);
+    const savedRole = userRoles.find(r => r.id === savedRoleId);
+    if (savedRole) {
+      setCurrentRoleState(savedRole);
+    } else if (userRoles.length > 0) {
+      setCurrentRoleState(userRoles[0]);
+    } else {
+      setCurrentRoleState(null);
+    }
+  };
+
+  // Expose a refetch function for roles
+  const refetchRoles = async () => {
+    if (user) {
+      await fetchRoles(user.id);
     }
   };
 
