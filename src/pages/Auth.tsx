@@ -79,7 +79,9 @@ export default function Auth() {
           return;
         }
 
-        toast.success("Compte créé avec succès !");
+        toast.success("Compte créé ! Vous devez être invité dans un club pour accéder à l'application.", {
+          duration: 5000,
+        });
         navigate("/dashboard");
       }
     } catch (err) {
