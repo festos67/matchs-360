@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, Clock, CheckCircle2, XCircle, LogOut } from "lucide-react";
+import { Activity, Clock, CheckCircle2, XCircle, LogOut, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const roleLabels: Record<string, string> = {
   club_admin: "Admin Club",
@@ -21,8 +22,10 @@ export default function PendingApproval() {
     status: string;
     requested_role: string;
     rejection_reason?: string;
+    created_at?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -44,7 +47,7 @@ export default function PendingApproval() {
 
     const { data, error } = await supabase
       .from("role_requests")
-      .select("status, requested_role, rejection_reason")
+      .select("status, requested_role, rejection_reason, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -56,6 +59,30 @@ export default function PendingApproval() {
 
     setRoleRequest(data);
     setLoading(false);
+  };
+
+  const handleResendRequest = async () => {
+    if (!user || !roleRequest) return;
+    
+    setResending(true);
+    try {
+      // Update the created_at to bump it in the queue
+      const { error } = await supabase
+        .from("role_requests")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .eq("status", "pending");
+
+      if (error) throw error;
+
+      toast.success("Demande renvoyée avec succès");
+      fetchRoleRequest();
+    } catch (error) {
+      console.error("Error resending request:", error);
+      toast.error("Erreur lors du renvoi de la demande");
+    } finally {
+      setResending(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -111,10 +138,25 @@ export default function PendingApproval() {
               </div>
 
               {roleRequest.status === "pending" && (
-                <p className="text-center text-muted-foreground text-sm">
-                  Votre demande est en cours d'examen par un administrateur. 
-                  Vous recevrez une notification une fois votre compte validé.
-                </p>
+                <div className="space-y-4">
+                  <p className="text-center text-muted-foreground text-sm">
+                    Votre demande est en cours d'examen par un administrateur. 
+                    Vous recevrez une notification une fois votre compte validé.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={handleResendRequest}
+                    disabled={resending}
+                  >
+                    {resending ? (
+                      <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin mr-2" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                    )}
+                    Renvoyer la demande
+                  </Button>
+                </div>
               )}
 
               {roleRequest.status === "rejected" && roleRequest.rejection_reason && (
