@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Search, Calendar, User, ChevronRight } from "lucide-react";
+import { Trophy, Search, Calendar, User, ChevronRight, Plus } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 
 interface Evaluation {
   id: string;
@@ -24,11 +25,14 @@ interface Evaluation {
 }
 
 export default function Evaluations() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, roles } = useAuth();
   const navigate = useNavigate();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const canCreate = roles.some(r => ["admin", "club_admin", "coach"].includes(r.role));
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -95,6 +99,12 @@ export default function Evaluations() {
             Historique des évaluations de joueurs
           </p>
         </div>
+        {canCreate && (
+          <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Nouvelle évaluation
+          </Button>
+        )}
       </div>
 
       {/* Search */}
@@ -159,6 +169,12 @@ export default function Evaluations() {
           })}
         </div>
       )}
+
+      <CreateEvaluationModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSuccess={fetchEvaluations}
+      />
     </AppLayout>
   );
 }
