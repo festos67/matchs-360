@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { cn } from "@/lib/utils";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -16,7 +17,19 @@ const authSchema = z.object({
 const signUpSchema = authSchema.extend({
   firstName: z.string().min(1, "Prénom requis"),
   lastName: z.string().min(1, "Nom requis"),
+  requestedRole: z.enum(["club_admin", "coach", "player", "supporter"], {
+    required_error: "Veuillez choisir un rôle",
+  }),
 });
+
+type RequestedRole = "club_admin" | "coach" | "player" | "supporter";
+
+const roleOptions: { value: RequestedRole; label: string; description: string; icon: React.ElementType }[] = [
+  { value: "club_admin", label: "Admin Club", description: "Gérer un club et ses équipes", icon: Shield },
+  { value: "coach", label: "Coach", description: "Évaluer et suivre les joueurs", icon: Dumbbell },
+  { value: "player", label: "Joueur", description: "Consulter mes évaluations", icon: Users },
+  { value: "supporter", label: "Supporter", description: "Suivre un joueur (parent, etc.)", icon: Heart },
+];
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,6 +38,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,11 +68,11 @@ export default function Auth() {
         navigate("/dashboard");
       } else {
         // Validate signup
-        signUpSchema.parse({ email, password, firstName, lastName });
+        signUpSchema.parse({ email, password, firstName, lastName, requestedRole });
 
         const redirectUrl = `${window.location.origin}/dashboard`;
 
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -66,6 +80,7 @@ export default function Auth() {
             data: {
               first_name: firstName,
               last_name: lastName,
+              requested_role: requestedRole,
             },
           },
         });
@@ -79,10 +94,25 @@ export default function Auth() {
           return;
         }
 
-        toast.success("Compte créé ! Vous devez être invité dans un club pour accéder à l'application.", {
-          duration: 5000,
-        });
-        navigate("/dashboard");
+        // Create role request after signup
+        if (signUpData.user && requestedRole) {
+          const { error: roleRequestError } = await supabase
+            .from("role_requests")
+            .insert({
+              user_id: signUpData.user.id,
+              requested_role: requestedRole,
+            });
+
+          if (roleRequestError) {
+            console.error("Error creating role request:", roleRequestError);
+          }
+        }
+
+        toast.success(
+          "Compte créé ! Votre demande de rôle est en attente de validation par un administrateur.",
+          { duration: 6000 }
+        );
+        navigate("/pending-approval");
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -124,30 +154,66 @@ export default function Auth() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">Prénom</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Prénom</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="firstName"
+                        placeholder="Jean"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Nom</Label>
                     <Input
-                      id="firstName"
-                      placeholder="Jean"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="pl-10"
+                      id="lastName"
+                      placeholder="Dupont"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Nom</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Dupont"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
+
+                {/* Role selection */}
+                <div className="space-y-3">
+                  <Label>Je m'inscris en tant que</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {roleOptions.map((role) => {
+                      const Icon = role.icon;
+                      const isSelected = requestedRole === role.value;
+                      return (
+                        <button
+                          key={role.value}
+                          type="button"
+                          onClick={() => setRequestedRole(role.value)}
+                          className={cn(
+                            "flex flex-col items-start gap-1 p-3 rounded-lg border-2 transition-all text-left",
+                            isSelected
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/50"
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className={cn("w-4 h-4", isSelected ? "text-primary" : "text-muted-foreground")} />
+                            <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                              {role.label}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {role.description}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             <div className="space-y-2">
