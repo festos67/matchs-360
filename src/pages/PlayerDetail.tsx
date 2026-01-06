@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
+import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
+import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +30,7 @@ interface TeamMembership {
     id: string;
     name: string;
     club_id: string;
-    club: { name: string; primary_color: string };
+    club: { name: string; primary_color: string; logo_url?: string | null };
   };
 }
 
@@ -63,10 +66,19 @@ interface Evaluation {
   }>;
 }
 
+// Predefined colors for comparison
+const COMPARISON_COLORS = [
+  "#6B7280", // Gray
+  "#F97316", // Orange
+  "#06B6D4", // Cyan
+  "#8B5CF6", // Purple
+];
+
 export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const printRef = useRef<HTMLDivElement>(null);
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
@@ -74,9 +86,16 @@ export default function PlayerDetail() {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
+  const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [loading, setLoading] = useState(true);
   const [canEvaluate, setCanEvaluate] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
+  });
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -106,7 +125,7 @@ export default function PlayerDetail() {
       // Fetch team membership
       const { data: membership } = await supabase
         .from("team_members")
-        .select("team_id, team:teams(id, name, club_id, club:clubs(name, primary_color))")
+        .select("team_id, team:teams(id, name, club_id, club:clubs(name, primary_color, logo_url))")
         .eq("user_id", id)
         .eq("member_type", "player")
         .eq("is_active", true)
@@ -191,15 +210,15 @@ export default function PlayerDetail() {
   };
 
   // Calculate radar data from selected evaluation
-  const getRadarDataFromEvaluation = (): ThemeScores[] => {
-    if (!selectedEvaluation || themes.length === 0) return [];
+  const getRadarDataFromEvaluation = (evaluation: Evaluation | null): ThemeScores[] => {
+    if (!evaluation || themes.length === 0) return [];
     
     return themes.map(theme => ({
       theme_id: theme.id,
       theme_name: theme.name,
       theme_color: theme.color,
       skills: theme.skills.map(skill => {
-        const score = selectedEvaluation.scores.find(s => s.skill_id === skill.id);
+        const score = evaluation.scores.find(s => s.skill_id === skill.id);
         return {
           skill_id: skill.id,
           score: score?.score ?? null,
@@ -207,12 +226,82 @@ export default function PlayerDetail() {
           comment: score?.comment ?? null,
         };
       }),
-      objective: selectedEvaluation.objectives.find(o => o.theme_id === theme.id)?.content ?? null,
+      objective: evaluation.objectives.find(o => o.theme_id === theme.id)?.content ?? null,
     }));
   };
 
-  const radarData = calculateRadarData(getRadarDataFromEvaluation());
-  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation());
+  const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
+  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(selectedEvaluation));
+
+  // Build comparison datasets
+  const getComparisonDatasets = () => {
+    const datasets: Array<{
+      id: string;
+      label: string;
+      date: string;
+      data: ReturnType<typeof calculateRadarData>;
+      color: string;
+      isCurrent?: boolean;
+    }> = [];
+
+    // Add current/selected evaluation
+    if (selectedEvaluation) {
+      const data = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
+      datasets.push({
+        id: selectedEvaluation.id,
+        label: selectedEvaluation.name,
+        date: selectedEvaluation.date,
+        data,
+        color: teamMembership?.team?.club?.primary_color || "#3B82F6",
+        isCurrent: true,
+      });
+    }
+
+    // Add comparison evaluations
+    comparisonIds.forEach((evalId, index) => {
+      const evaluation = evaluations.find(e => e.id === evalId);
+      if (evaluation && evaluation.id !== selectedEvaluation?.id) {
+        const data = calculateRadarData(getRadarDataFromEvaluation(evaluation));
+        datasets.push({
+          id: evaluation.id,
+          label: evaluation.name,
+          date: evaluation.date,
+          data,
+          color: COMPARISON_COLORS[index % COMPARISON_COLORS.length],
+          isCurrent: false,
+        });
+      }
+    });
+
+    return datasets;
+  };
+
+  const toggleComparison = (evalId: string) => {
+    setComparisonIds(prev => {
+      if (prev.includes(evalId)) {
+        return prev.filter(id => id !== evalId);
+      }
+      if (prev.length >= 3) {
+        toast.error("Maximum 3 évaluations en comparaison");
+        return prev;
+      }
+      return [...prev, evalId];
+    });
+  };
+
+  const handleViewEvaluation = (evaluation: Evaluation) => {
+    setSelectedEvaluation(evaluation);
+    setIsViewingHistory(evaluation.id !== evaluations[0]?.id);
+    setActiveTab("radar");
+  };
+
+  const handleReturnToCurrent = () => {
+    if (evaluations.length > 0) {
+      setSelectedEvaluation(evaluations[0]);
+      setIsViewingHistory(false);
+      setComparisonIds([]);
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -227,14 +316,47 @@ export default function PlayerDetail() {
   if (!player) return null;
 
   const teamColor = teamMembership?.team?.club?.primary_color || "#3B82F6";
+  const comparisonDatasets = getComparisonDatasets();
+  const showComparison = comparisonIds.length > 0;
 
   return (
     <AppLayout>
+      {/* Hidden printable component */}
+      <div className="hidden">
+        {selectedEvaluation && teamMembership && (
+          <PrintablePlayerSheet
+            ref={printRef}
+            player={player}
+            club={{
+              name: teamMembership.team.club?.name || "",
+              logo_url: teamMembership.team.club?.logo_url,
+              primary_color: teamColor,
+            }}
+            team={{ name: teamMembership.team.name }}
+            evaluation={selectedEvaluation}
+            themes={themes}
+          />
+        )}
+      </div>
+
       {/* Back Button */}
       <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
         <ArrowLeft className="w-4 h-4 mr-2" />
         Retour
       </Button>
+
+      {/* History viewing banner */}
+      {isViewingHistory && (
+        <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
+          <span className="text-sm text-warning">
+            📜 Vous consultez une évaluation passée: <strong>{selectedEvaluation?.name}</strong>
+          </span>
+          <Button size="sm" variant="outline" onClick={handleReturnToCurrent} className="gap-2">
+            <RotateCcw className="w-4 h-4" />
+            Retour à la version actuelle
+          </Button>
+        </div>
+      )}
 
       {/* Player Header */}
       <div className="glass-card p-8 mb-8">
@@ -282,7 +404,13 @@ export default function PlayerDetail() {
           </div>
 
           <div className="flex gap-2">
-            {canEvaluate && frameworkId && (
+            {selectedEvaluation && (
+              <Button variant="outline" className="gap-2" onClick={() => handlePrint()}>
+                <Download className="w-4 h-4" />
+                Télécharger PDF
+              </Button>
+            )}
+            {canEvaluate && frameworkId && !isViewingHistory && (
               <Button className="gap-2" onClick={() => setActiveTab("evaluation")}>
                 <Plus className="w-4 h-4" />
                 Évaluer
@@ -299,7 +427,7 @@ export default function PlayerDetail() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="radar">Vue Radar</TabsTrigger>
-          <TabsTrigger value="evaluation">
+          <TabsTrigger value="evaluation" disabled={isViewingHistory}>
             <ClipboardList className="w-4 h-4 mr-2" />
             Évaluation
           </TabsTrigger>
@@ -316,17 +444,25 @@ export default function PlayerDetail() {
                   <h2 className="text-xl font-display font-semibold">Analyse des compétences</h2>
                   <p className="text-sm text-muted-foreground mt-1">
                     {selectedEvaluation ? selectedEvaluation.name : "Aucune évaluation"}
+                    {showComparison && ` + ${comparisonIds.length} comparaison(s)`}
                   </p>
                 </div>
-                {evaluations.length > 1 && (
-                  <Button variant="outline" size="sm">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Comparer
+                {showComparison && (
+                  <Button variant="outline" size="sm" onClick={() => setComparisonIds([])}>
+                    Effacer comparaison
                   </Button>
                 )}
               </div>
+              
               {radarData.length > 0 ? (
-                <EvaluationRadar data={radarData} primaryColor={teamColor} />
+                showComparison ? (
+                  <ComparisonRadar 
+                    datasets={comparisonDatasets} 
+                    primaryColor={teamColor}
+                  />
+                ) : (
+                  <EvaluationRadar data={radarData} primaryColor={teamColor} />
+                )
               ) : (
                 <div className="h-[350px] flex items-center justify-center text-muted-foreground">
                   Aucune évaluation disponible
@@ -376,7 +512,7 @@ export default function PlayerDetail() {
               themes={themes}
               existingEvaluation={selectedEvaluation}
               onSaved={fetchPlayerData}
-              readOnly={!canEvaluate}
+              readOnly={!canEvaluate || isViewingHistory}
             />
           ) : (
             <div className="glass-card p-12 text-center">
@@ -397,61 +533,129 @@ export default function PlayerDetail() {
         {/* History Tab */}
         <TabsContent value="history">
           <div className="glass-card p-6">
-            <h2 className="text-xl font-display font-semibold mb-6">Historique des évaluations</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-display font-semibold">Historique des évaluations</h2>
+              {comparisonIds.length > 0 && (
+                <Badge variant="secondary" className="gap-2">
+                  <Calendar className="w-3 h-3" />
+                  {comparisonIds.length} sélectionnée(s) pour comparaison
+                </Badge>
+              )}
+            </div>
+            
             {evaluations.length > 0 ? (
               <div className="space-y-4">
-                {evaluations.map((evaluation) => (
-                  <div
-                    key={evaluation.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg cursor-pointer transition-colors ${
-                      selectedEvaluation?.id === evaluation.id
-                        ? "bg-primary/10 border border-primary/30"
-                        : "bg-muted/30 hover:bg-muted/50"
-                    }`}
-                    onClick={() => {
-                      setSelectedEvaluation(evaluation);
-                      setActiveTab("radar");
-                    }}
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-primary" />
+                {evaluations.map((evaluation, index) => {
+                  const isSelected = selectedEvaluation?.id === evaluation.id;
+                  const isCompared = comparisonIds.includes(evaluation.id);
+                  const isCurrent = index === 0;
+
+                  return (
+                    <div
+                      key={evaluation.id}
+                      className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
+                        isSelected
+                          ? "bg-primary/10 border border-primary/30"
+                          : isCompared
+                          ? "bg-warning/10 border border-warning/30"
+                          : "bg-muted/30 hover:bg-muted/50"
+                      }`}
+                    >
+                      {/* Comparison checkbox */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleComparison(evaluation.id);
+                        }}
+                        className="shrink-0"
+                        disabled={isSelected}
+                      >
+                        {isCompared ? (
+                          <CheckSquare className="w-5 h-5 text-warning" />
+                        ) : (
+                          <Square className={`w-5 h-5 ${isSelected ? "text-muted-foreground/30" : "text-muted-foreground hover:text-foreground"}`} />
+                        )}
+                      </button>
+
+                      <div
+                        className="flex-1 flex items-center gap-4 cursor-pointer"
+                        onClick={() => handleViewEvaluation(evaluation)}
+                      >
+                        <div
+                          className="w-12 h-12 rounded-xl flex items-center justify-center"
+                          style={{
+                            backgroundColor: isCompared
+                              ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length] + "20"
+                              : isSelected
+                              ? `${teamColor}20`
+                              : "hsl(var(--primary) / 0.2)",
+                          }}
+                        >
+                          <TrendingUp
+                            className="w-6 h-6"
+                            style={{
+                              color: isCompared
+                                ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length]
+                                : "hsl(var(--primary))",
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{evaluation.name}</p>
+                            {isCurrent && (
+                              <Badge variant="secondary" className="text-xs">Actuelle</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Par {evaluation.coach?.first_name} {evaluation.coach?.last_name} •{" "}
+                            {new Date(evaluation.date).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric"
+                            })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="font-display font-bold text-lg">
+                          {(() => {
+                            const themeScores = themes.map(theme => ({
+                              theme_id: theme.id,
+                              theme_name: theme.name,
+                              theme_color: theme.color,
+                              skills: theme.skills.map(skill => {
+                                const score = evaluation.scores.find(s => s.skill_id === skill.id);
+                                return {
+                                  skill_id: skill.id,
+                                  score: score?.score ?? null,
+                                  is_not_observed: score?.is_not_observed ?? false,
+                                  comment: null,
+                                };
+                              }),
+                              objective: null,
+                            }));
+                            return formatAverage(calculateOverallAverage(themeScores));
+                          })()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">/5</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{evaluation.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Par {evaluation.coach?.first_name} {evaluation.coach?.last_name} •{" "}
-                        {new Date(evaluation.date).toLocaleDateString("fr-FR")}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-display font-bold text-lg">
-                        {(() => {
-                          const themeScores = themes.map(theme => ({
-                            theme_id: theme.id,
-                            theme_name: theme.name,
-                            theme_color: theme.color,
-                            skills: theme.skills.map(skill => {
-                              const score = evaluation.scores.find(s => s.skill_id === skill.id);
-                              return {
-                                skill_id: skill.id,
-                                score: score?.score ?? null,
-                                is_not_observed: score?.is_not_observed ?? false,
-                                comment: null,
-                              };
-                            }),
-                            objective: null,
-                          }));
-                          return formatAverage(calculateOverallAverage(themeScores));
-                        })()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">/5</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 Aucune évaluation enregistrée
+              </div>
+            )}
+
+            {evaluations.length > 1 && (
+              <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  💡 <strong>Astuce:</strong> Cochez les évaluations que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
+                </p>
               </div>
             )}
           </div>
