@@ -635,6 +635,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_club_admin_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_club_ids: { Args: { _user_id: string }; Returns: string[] }
       has_role: {
         Args: {
