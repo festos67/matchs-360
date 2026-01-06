@@ -157,7 +157,7 @@ export default function Index() {
                 size="lg" 
                 variant="outline" 
                 className="h-14 px-8 text-lg"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/dashboard?demo=true")}
               >
                 Voir la démo
               </Button>
