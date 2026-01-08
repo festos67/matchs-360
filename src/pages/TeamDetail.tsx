@@ -72,7 +72,7 @@ export default function TeamDetail() {
       if (!teamData) { toast.error("Équipe non trouvée"); navigate("/clubs"); return; }
       setTeam(teamData);
 
-      const { data: membersData, error: membersError } = await supabase.from("team_members").select("id, member_type, coach_role, profile:profiles(id, first_name, last_name, nickname, photo_url)").eq("team_id", id).eq("is_active", true);
+      const { data: membersData, error: membersError } = await supabase.from("team_members").select("id, member_type, coach_role, profile:profiles!inner(id, first_name, last_name, nickname, photo_url, deleted_at)").eq("team_id", id).eq("is_active", true).is("profile.deleted_at", null);
       if (membersError) throw membersError;
       setMembers(membersData as TeamMember[]);
 
