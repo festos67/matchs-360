@@ -134,7 +134,7 @@ export default function ClubDetail() {
       )}
 
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
-      <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} teams={teams} onSuccess={fetchClubData} />
+      <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
       <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={club.id} onSuccess={fetchClubData} />
     </AppLayout>
   );

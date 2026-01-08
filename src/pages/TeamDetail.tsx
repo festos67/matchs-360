@@ -273,7 +273,7 @@ export default function TeamDetail() {
       </Tabs>
 
       <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={fetchTeamData} />
-      <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} onSuccess={fetchTeamData} />
+      <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} onSuccess={fetchTeamData} />
     </AppLayout>
   );
 }
