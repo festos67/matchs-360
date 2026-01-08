@@ -194,15 +194,35 @@ const handler = async (req: Request): Promise<Response> => {
       // Wait a moment for the trigger to create the profile
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Update profile with additional info
-      await supabaseAdmin
+      // Check if profile exists and update or insert
+      const { data: existingProfile } = await supabaseAdmin
         .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          club_id: clubId,
-        })
-        .eq("id", userId);
+        .select("id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Update existing profile
+        await supabaseAdmin
+          .from("profiles")
+          .update({
+            first_name: firstName,
+            last_name: lastName,
+            club_id: clubId,
+          })
+          .eq("id", userId);
+      } else {
+        // Insert profile if trigger hasn't created it yet
+        await supabaseAdmin
+          .from("profiles")
+          .insert({
+            id: userId,
+            email: email.toLowerCase(),
+            first_name: firstName,
+            last_name: lastName,
+            club_id: clubId,
+          });
+      }
     }
 
     // Add the role

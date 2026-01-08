@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -318,6 +319,130 @@ Deno.serve(async (req) => {
           .eq("id", userId);
 
         return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Resend invitation
+      if (action === "resend-invitation") {
+        const { userId, email, clubId } = body;
+        
+        if (!userId || !email) {
+          return new Response(JSON.stringify({ error: "userId and email required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const origin = req.headers.get("origin") || "https://lovable.dev";
+        
+        // Generate new invite link
+        const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'invite',
+          email: email.toLowerCase(),
+          options: {
+            redirectTo: `${origin}/invite/accept`,
+          },
+        });
+
+        if (inviteError) {
+          throw new Error(`Erreur lors de la génération du lien: ${inviteError.message}`);
+        }
+
+        // Send email via Resend
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        let emailSent = false;
+
+        if (resendApiKey) {
+          const resend = new Resend(resendApiKey);
+          const inviteLink = inviteData.properties.action_link;
+
+          // Get club name if available
+          let clubName = "MATCHS360";
+          if (clubId) {
+            const { data: club } = await supabaseAdmin
+              .from("clubs")
+              .select("name")
+              .eq("id", clubId)
+              .single();
+            if (club) clubName = club.name;
+          }
+
+          // Get user's roles for context
+          const { data: userRoles } = await supabaseAdmin
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId);
+
+          const roleLabels: Record<string, string> = {
+            admin: "Administrateur",
+            club_admin: "Administrateur de club",
+            coach: "Coach",
+            player: "Joueur",
+            supporter: "Supporter",
+          };
+
+          const rolesText = userRoles && userRoles.length > 0
+            ? userRoles.map(r => roleLabels[r.role] || r.role).join(", ")
+            : "";
+
+          try {
+            await resend.emails.send({
+              from: "MATCHS360 <onboarding@resend.dev>",
+              to: [email.toLowerCase()],
+              subject: `Rappel: Invitation à rejoindre ${clubName}`,
+              html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                </head>
+                <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
+                  <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="text-align: center; margin-bottom: 32px;">
+                      <h1 style="color: #18181b; font-size: 24px; margin: 0;">MATCHS360</h1>
+                      <p style="color: #71717a; font-size: 14px; margin-top: 8px;">Sports Analytics Platform</p>
+                    </div>
+                    
+                    <h2 style="color: #18181b; font-size: 20px; margin-bottom: 16px;">Rappel d'invitation</h2>
+                    
+                    <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
+                      Bonjour,<br><br>
+                      Vous avez été invité(e) à rejoindre <strong>${clubName}</strong>${rolesText ? ` en tant que <strong>${rolesText}</strong>` : ""}.
+                      <br><br>
+                      Ceci est un rappel de votre invitation en attente.
+                    </p>
+                    
+                    <a href="${inviteLink}" style="display: block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 24px;">
+                      Accepter l'invitation
+                    </a>
+                    
+                    <p style="color: #71717a; font-size: 12px; line-height: 1.6;">
+                      Ou copiez ce lien dans votre navigateur :<br>
+                      <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${inviteLink}</a>
+                    </p>
+                    
+                    <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 32px 0;">
+                    
+                    <p style="color: #a1a1aa; font-size: 12px; text-align: center;">
+                      Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.
+                    </p>
+                  </div>
+                </body>
+                </html>
+              `,
+            });
+            emailSent = true;
+            console.log("Resend invitation email sent to:", email);
+          } catch (emailError) {
+            console.error("Failed to send email via Resend:", emailError);
+          }
+        } else {
+          console.warn("Resend API key not configured");
+        }
+
+        return new Response(JSON.stringify({ success: true, emailSent }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
