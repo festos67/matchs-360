@@ -239,7 +239,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Erreur lors de l'attribution du rôle");
     }
 
-    // If coach, add to team_members
+    // If coach with teamId, add to team_members (for backward compatibility)
+    // Note: The new workflow creates coaches without team assignment
+    // Team assignment now happens when creating a team
     if (intendedRole === "coach" && teamId) {
       // Check if already a referent coach exists
       if (coachRole === "referent") {
@@ -266,6 +268,7 @@ const handler = async (req: Request): Promise<Response> => {
           coach_role: coachRole || "assistant",
         });
     }
+    // Coach without teamId: just role is assigned, no team_members entry yet
 
     // If player, add to team_members
     if (intendedRole === "player" && teamId) {

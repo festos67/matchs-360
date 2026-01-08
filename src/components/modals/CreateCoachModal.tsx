@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { UserCog, Star } from "lucide-react";
+import { UserCog } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,14 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -27,22 +19,14 @@ const coachSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
   lastName: z.string().min(1, "Nom requis").max(50),
   email: z.string().email("Email invalide").max(255),
-  teamId: z.string().min(1, "Équipe requise"),
-  isReferent: z.boolean(),
 });
 
 type CoachFormData = z.infer<typeof coachSchema>;
-
-interface Team {
-  id: string;
-  name: string;
-}
 
 interface CreateCoachModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   clubId: string;
-  teams?: Team[];
   onSuccess?: () => void;
 }
 
@@ -50,41 +34,18 @@ export const CreateCoachModal = ({
   open,
   onOpenChange,
   clubId,
-  teams: propTeams,
   onSuccess,
 }: CreateCoachModalProps) => {
   const [loading, setLoading] = useState(false);
-  const [teams, setTeams] = useState<Team[]>(propTeams || []);
 
   const {
     register,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm<CoachFormData>({
     resolver: zodResolver(coachSchema),
-    defaultValues: {
-      isReferent: false,
-    },
   });
-
-  useEffect(() => {
-    if (!propTeams && open && clubId) {
-      fetchTeams();
-    }
-  }, [open, clubId, propTeams]);
-
-  const fetchTeams = async () => {
-    const { data } = await supabase
-      .from("teams")
-      .select("id, name")
-      .eq("club_id", clubId)
-      .order("name");
-    
-    if (data) setTeams(data);
-  };
 
   const onSubmit = async (data: CoachFormData) => {
     setLoading(true);
@@ -96,8 +57,8 @@ export const CreateCoachModal = ({
           lastName: data.lastName,
           clubId,
           intendedRole: "coach",
-          teamId: data.teamId,
-          coachRole: data.isReferent ? "referent" : "assistant",
+          // Note: teamId et coachRole ne sont plus envoyés ici
+          // Le rattachement à une équipe se fait lors de la création de l'équipe
         },
       });
 
@@ -105,7 +66,7 @@ export const CreateCoachModal = ({
       if (result?.error) throw new Error(result.error);
 
       toast.success(`Coach invité avec succès !`, {
-        description: `Une invitation a été envoyée à ${data.email}`,
+        description: `Une invitation a été envoyée à ${data.email}. Le coach pourra être rattaché à une équipe ultérieurement.`,
       });
       
       reset();
@@ -120,8 +81,6 @@ export const CreateCoachModal = ({
       setLoading(false);
     }
   };
-
-  const isReferent = watch("isReferent");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -174,44 +133,11 @@ export const CreateCoachModal = ({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>Équipe</Label>
-            <Select onValueChange={(value) => setValue("teamId", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une équipe" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.teamId && (
-              <p className="text-sm text-destructive">{errors.teamId.message}</p>
-            )}
-          </div>
-
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
-            <Checkbox
-              id="isReferent"
-              checked={isReferent}
-              onCheckedChange={(checked) => setValue("isReferent", !!checked)}
-            />
-            <div className="flex-1">
-              <Label
-                htmlFor="isReferent"
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <Star className="w-4 h-4 text-warning" />
-                Coach Référent
-              </Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                Peut éditer le référentiel de compétences de l'équipe. Un seul
-                coach référent par équipe.
-              </p>
-            </div>
+          <div className="p-4 rounded-lg bg-muted/30 text-sm text-muted-foreground">
+            <p>
+              Le coach sera rattaché au club. L'assignation à une équipe se fera 
+              lors de la création de l'équipe ou via la gestion du staff.
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
