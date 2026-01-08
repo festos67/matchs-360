@@ -28,7 +28,50 @@ export default function InviteAccept() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        // Check if we have an active session from the invite link
+        // First, check if there's a hash fragment with tokens (from Supabase email link)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        const type = hashParams.get("type");
+
+        // If we have tokens in the URL hash, set the session
+        if (accessToken && refreshToken) {
+          console.log("Found tokens in URL hash, setting session...");
+          const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (setSessionError) {
+            console.error("Set session error:", setSessionError);
+            setError("Lien d'invitation invalide ou expiré");
+            setChecking(false);
+            return;
+          }
+
+          // Clear the hash from URL for security
+          window.history.replaceState(null, "", window.location.pathname);
+
+          // Check if password already set
+          if (sessionData?.user?.user_metadata?.password_set) {
+            navigate("/dashboard");
+            return;
+          }
+
+          setChecking(false);
+          return;
+        }
+
+        // Check for error in hash (e.g., expired link)
+        const errorDescription = hashParams.get("error_description");
+        if (errorDescription) {
+          console.error("Auth error from URL:", errorDescription);
+          setError(errorDescription);
+          setChecking(false);
+          return;
+        }
+
+        // Check if we have an existing session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
