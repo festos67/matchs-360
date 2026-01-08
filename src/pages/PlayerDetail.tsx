@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -475,11 +475,24 @@ export default function PlayerDetail() {
                     {showComparison && ` + ${comparisonIds.length} comparaison(s)`}
                   </p>
                 </div>
-                {showComparison && (
-                  <Button variant="outline" size="sm" onClick={() => setComparisonIds([])}>
-                    Effacer comparaison
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {teamMembership && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-2 text-muted-foreground hover:text-foreground"
+                      onClick={() => navigate(`/teams/${teamMembership.team_id}/framework`)}
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      Voir le référentiel
+                    </Button>
+                  )}
+                  {showComparison && (
+                    <Button variant="outline" size="sm" onClick={() => setComparisonIds([])}>
+                      Effacer comparaison
+                    </Button>
+                  )}
+                </div>
               </div>
               
               {radarData.length > 0 ? (
