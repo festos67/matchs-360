@@ -169,39 +169,77 @@ Deno.serve(async (req) => {
       if (action === "add-role") {
         const { userId, role, clubId, teamId, playerId, coachRole } = body;
 
-        // Insert into user_roles
-        const { error: roleError } = await supabaseAdmin
+        // Check if role already exists
+        const { data: existingRole } = await supabaseAdmin
           .from("user_roles")
-          .upsert({ user_id: userId, role, club_id: clubId }, { onConflict: "user_id,role" });
+          .select("id")
+          .eq("user_id", userId)
+          .eq("role", role)
+          .maybeSingle();
 
-        if (roleError) throw roleError;
+        if (!existingRole) {
+          const { error: roleError } = await supabaseAdmin
+            .from("user_roles")
+            .insert({ user_id: userId, role, club_id: clubId });
+
+          if (roleError) throw roleError;
+        }
 
         // If coach or player, also add to team_members
         if ((role === "coach" || role === "player") && teamId) {
-          const memberData: Record<string, unknown> = {
-            user_id: userId,
-            team_id: teamId,
-            member_type: role,
-            is_active: true,
-          };
-          if (role === "coach" && coachRole) {
-            memberData.coach_role = coachRole;
-          }
-
-          const { error: memberError } = await supabaseAdmin
+          // Check if membership already exists
+          const { data: existingMember } = await supabaseAdmin
             .from("team_members")
-            .upsert(memberData, { onConflict: "user_id,team_id" });
+            .select("id")
+            .eq("user_id", userId)
+            .eq("team_id", teamId)
+            .maybeSingle();
 
-          if (memberError) throw memberError;
+          if (!existingMember) {
+            const memberData: Record<string, unknown> = {
+              user_id: userId,
+              team_id: teamId,
+              member_type: role,
+              is_active: true,
+            };
+            if (role === "coach" && coachRole) {
+              memberData.coach_role = coachRole;
+            }
+
+            const { error: memberError } = await supabaseAdmin
+              .from("team_members")
+              .insert(memberData);
+
+            if (memberError) throw memberError;
+          } else {
+            // Update existing membership
+            const updateData: Record<string, unknown> = { is_active: true, left_at: null };
+            if (role === "coach" && coachRole) {
+              updateData.coach_role = coachRole;
+            }
+            await supabaseAdmin
+              .from("team_members")
+              .update(updateData)
+              .eq("id", existingMember.id);
+          }
         }
 
         // If supporter, add to supporters_link
         if (role === "supporter" && playerId) {
-          const { error: supporterError } = await supabaseAdmin
+          const { data: existingLink } = await supabaseAdmin
             .from("supporters_link")
-            .upsert({ supporter_id: userId, player_id: playerId }, { onConflict: "supporter_id,player_id" });
+            .select("id")
+            .eq("supporter_id", userId)
+            .eq("player_id", playerId)
+            .maybeSingle();
 
-          if (supporterError) throw supporterError;
+          if (!existingLink) {
+            const { error: supporterError } = await supabaseAdmin
+              .from("supporters_link")
+              .insert({ supporter_id: userId, player_id: playerId });
+
+            if (supporterError) throw supporterError;
+          }
         }
 
         return new Response(JSON.stringify({ success: true }), {
