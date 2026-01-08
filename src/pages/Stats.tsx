@@ -32,12 +32,11 @@ const Stats = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      // Fetch total players (active team members with member_type = 'player')
+      // Fetch total players (users with role = 'player')
       const { count: playersCount } = await supabase
-        .from("team_members")
-        .select("user_id", { count: "exact", head: true })
-        .eq("member_type", "player")
-        .eq("is_active", true);
+        .from("user_roles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "player");
 
       // Fetch total evaluations
       const { count: evaluationsCount } = await supabase
