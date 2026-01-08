@@ -11,6 +11,7 @@ import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
+import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,6 +95,7 @@ export default function PlayerDetail() {
   const [canEvaluate, setCanEvaluate] = useState(false);
   const [canMutate, setCanMutate] = useState(false);
   const [showMutationModal, setShowMutationModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
@@ -430,9 +432,11 @@ export default function PlayerDetail() {
                 Mutation
               </Button>
             )}
-            <Button variant="outline" size="icon">
-              <Edit className="w-4 h-4" />
-            </Button>
+            {canMutate && (
+              <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
+                <Edit className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -447,6 +451,16 @@ export default function PlayerDetail() {
           currentTeamId={teamMembership.team_id}
           currentTeamName={teamMembership.team.name}
           clubId={teamMembership.team.club_id}
+          onSuccess={fetchPlayerData}
+        />
+      )}
+
+      {/* Edit Player Modal */}
+      {player && (
+        <EditPlayerModal
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          player={player}
           onSuccess={fetchPlayerData}
         />
       )}
