@@ -25,6 +25,8 @@ import {
   Edit,
   RefreshCw,
   RotateCcw,
+  Mail,
+  MailWarning,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -208,6 +210,27 @@ export default function AdminUsers() {
     }
   };
 
+  const handleResendInvitation = async (user: AdminUser) => {
+    try {
+      setActionLoading(user.id);
+      const result = await callAdminAction("resend-invitation", { 
+        userId: user.id, 
+        email: user.email,
+        clubId: user.club_id 
+      });
+      if (result.emailSent) {
+        toast.success(`Invitation renvoyée à ${user.email}`);
+      } else {
+        toast.warning("Invitation générée mais l'email n'a pas pu être envoyé");
+      }
+      fetchUsers();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors du renvoi de l'invitation");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
     return (
@@ -299,6 +322,7 @@ export default function AdminUsers() {
               <TableRow>
                 <TableHead>Identité</TableHead>
                 <TableHead>Rôles</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -354,6 +378,19 @@ export default function AdminUsers() {
                     </div>
                   </TableCell>
                   <TableCell>
+                    {user.email_confirmed_at ? (
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" variant="secondary">
+                        <Mail className="w-3 h-3 mr-1" />
+                        Confirmé
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" variant="secondary">
+                        <MailWarning className="w-3 h-3 mr-1" />
+                        En attente
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <Badge className={statusColors[user.status]} variant="secondary">
                       {user.status}
                     </Badge>
@@ -364,19 +401,33 @@ export default function AdminUsers() {
                         size="sm"
                         variant="ghost"
                         onClick={() => setEditingUser(user)}
+                        title="Modifier"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       {user.status === "Invité" && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-green-600 hover:text-green-700"
-                          onClick={() => handleForceValidate(user)}
-                          disabled={actionLoading === user.id}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => handleResendInvitation(user)}
+                            disabled={actionLoading === user.id}
+                            title="Renvoyer l'invitation"
+                          >
+                            <Mail className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-green-600 hover:text-green-700"
+                            onClick={() => handleForceValidate(user)}
+                            disabled={actionLoading === user.id}
+                            title="Valider manuellement"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                        </>
                       )}
                       {user.status === "Suspendu" ? (
                         <Button
@@ -385,6 +436,7 @@ export default function AdminUsers() {
                           className="text-blue-600 hover:text-blue-700"
                           onClick={() => handleRestore(user)}
                           disabled={actionLoading === user.id}
+                          title="Réactiver"
                         >
                           <RotateCcw className="w-4 h-4" />
                         </Button>
@@ -395,6 +447,7 @@ export default function AdminUsers() {
                           className="text-destructive hover:text-destructive"
                           onClick={() => setDeleteConfirm(user)}
                           disabled={actionLoading === user.id}
+                          title="Suspendre"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -405,7 +458,7 @@ export default function AdminUsers() {
               ))}
               {filteredUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     <p className="text-muted-foreground">Aucun utilisateur trouvé</p>
                   </TableCell>
                 </TableRow>

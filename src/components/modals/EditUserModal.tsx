@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
-import { X, Plus, CheckCircle, RotateCcw } from "lucide-react";
+import { X, Plus, CheckCircle, RotateCcw, Mail } from "lucide-react";
 
 interface UserRole {
   id: string;
@@ -307,6 +307,24 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     }
   };
 
+  const handleResendInvitation = async () => {
+    try {
+      const result = await callAdminAction("resend-invitation", { 
+        userId: user.id, 
+        email: user.email,
+        clubId: user.club_id 
+      });
+      if (result.emailSent) {
+        toast.success(`Invitation renvoyée à ${user.email}`);
+      } else {
+        toast.warning("Invitation générée mais l'email n'a pas pu être envoyé");
+      }
+      onUpdate();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors du renvoi de l'invitation");
+    }
+  };
+
   const needsClubSelection = newRole === "club_admin" || newRole === "coach" || newRole === "player";
   const needsTeamSelection = newRole === "coach" || newRole === "player";
   const needsPlayerSelection = newRole === "supporter";
@@ -333,17 +351,28 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
         <div className="space-y-6">
           {/* Quick Actions */}
           {(user.status === "Invité" || user.status === "Suspendu") && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {user.status === "Invité" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleForceValidate}
-                  className="text-green-600"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Valider manuellement
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResendInvitation}
+                    className="text-blue-600"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Renvoyer l'invitation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleForceValidate}
+                    className="text-green-600"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Valider manuellement
+                  </Button>
+                </>
               )}
               {user.status === "Suspendu" && (
                 <Button
