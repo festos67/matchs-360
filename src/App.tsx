@@ -6,7 +6,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
+import { DashboardRedirect } from "./components/routing/DashboardRedirect";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ClubDashboard from "./pages/club/ClubDashboard";
+import CoachDashboard from "./pages/coach/CoachDashboard";
+import PlayerDashboard from "./pages/player/PlayerDashboard";
 import Clubs from "./pages/Clubs";
 import ClubDetail from "./pages/ClubDetail";
 import TeamDetail from "./pages/TeamDetail";
@@ -32,7 +36,14 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
+            
+            {/* Role-based dashboards */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/club/dashboard" element={<ClubDashboard />} />
+            <Route path="/coach/dashboard" element={<CoachDashboard />} />
+            <Route path="/player/dashboard" element={<PlayerDashboard />} />
+            
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubDetail />} />
             <Route path="/teams" element={<Navigate to="/clubs" replace />} />
