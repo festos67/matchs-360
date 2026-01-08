@@ -89,6 +89,7 @@ export default function PlayerDetail() {
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [loading, setLoading] = useState(true);
   const [canEvaluate, setCanEvaluate] = useState(false);
   const [canMutate, setCanMutate] = useState(false);
@@ -415,9 +416,12 @@ export default function PlayerDetail() {
               </Button>
             )}
             {canEvaluate && frameworkId && !isViewingHistory && (
-              <Button className="gap-2" onClick={() => setActiveTab("evaluation")}>
+              <Button className="gap-2" onClick={() => {
+                setIsCreatingNew(true);
+                setActiveTab("evaluation");
+              }}>
                 <Plus className="w-4 h-4" />
-                Évaluer
+                Nouvelle évaluation
               </Button>
             )}
             {canMutate && teamMembership && (
@@ -527,6 +531,29 @@ export default function PlayerDetail() {
 
         {/* Evaluation Tab */}
         <TabsContent value="evaluation">
+          {/* Mode indicator */}
+          {isCreatingNew && (
+            <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-lg flex items-center justify-between">
+              <span className="text-sm text-success">
+                ✨ <strong>Nouvelle évaluation</strong> - Les données seront enregistrées séparément
+              </span>
+              <Button size="sm" variant="outline" onClick={() => setIsCreatingNew(false)}>
+                Annuler
+              </Button>
+            </div>
+          )}
+          {!isCreatingNew && selectedEvaluation && !isViewingHistory && (
+            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg flex items-center justify-between">
+              <span className="text-sm text-blue-600 dark:text-blue-400">
+                📝 Modification de: <strong>{selectedEvaluation.name}</strong>
+              </span>
+              <Button size="sm" variant="outline" onClick={() => setIsCreatingNew(true)}>
+                <Plus className="w-4 h-4 mr-1" />
+                Créer une nouvelle
+              </Button>
+            </div>
+          )}
+          
           {frameworkId && themes.length > 0 ? (
             <EvaluationForm
               playerId={player.id}
@@ -534,8 +561,11 @@ export default function PlayerDetail() {
               teamId={teamMembership?.team_id || ""}
               frameworkId={frameworkId}
               themes={themes}
-              existingEvaluation={selectedEvaluation}
-              onSaved={fetchPlayerData}
+              existingEvaluation={isCreatingNew ? null : selectedEvaluation}
+              onSaved={() => {
+                setIsCreatingNew(false);
+                fetchPlayerData();
+              }}
               readOnly={!canEvaluate || isViewingHistory}
             />
           ) : (
@@ -642,28 +672,46 @@ export default function PlayerDetail() {
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <p className="font-display font-bold text-lg">
-                          {(() => {
-                            const themeScores = themes.map(theme => ({
-                              theme_id: theme.id,
-                              theme_name: theme.name,
-                              theme_color: theme.color,
-                              skills: theme.skills.map(skill => {
-                                const score = evaluation.scores.find(s => s.skill_id === skill.id);
-                                return {
-                                  skill_id: skill.id,
-                                  score: score?.score ?? null,
-                                  is_not_observed: score?.is_not_observed ?? false,
-                                  comment: null,
-                                };
-                              }),
-                              objective: null,
-                            }));
-                            return formatAverage(calculateOverallAverage(themeScores));
-                          })()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">/5</p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="font-display font-bold text-lg">
+                            {(() => {
+                              const themeScores = themes.map(theme => ({
+                                theme_id: theme.id,
+                                theme_name: theme.name,
+                                theme_color: theme.color,
+                                skills: theme.skills.map(skill => {
+                                  const score = evaluation.scores.find(s => s.skill_id === skill.id);
+                                  return {
+                                    skill_id: skill.id,
+                                    score: score?.score ?? null,
+                                    is_not_observed: score?.is_not_observed ?? false,
+                                    comment: null,
+                                  };
+                                }),
+                                objective: null,
+                              }));
+                              return formatAverage(calculateOverallAverage(themeScores));
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground">/5</p>
+                        </div>
+                        {canEvaluate && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedEvaluation(evaluation);
+                              setIsCreatingNew(false);
+                              setIsViewingHistory(false);
+                              setActiveTab("evaluation");
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Modifier
+                          </Button>
+                        )}
                       </div>
                     </div>
                   );
