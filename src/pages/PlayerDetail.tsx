@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -436,6 +437,47 @@ export default function PlayerDetail() {
               <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
                 <Edit className="w-4 h-4" />
               </Button>
+            )}
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="icon">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que toutes ses évaluations et données associées. Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={async () => {
+                        try {
+                          const { error } = await supabase
+                            .from("profiles")
+                            .update({ deleted_at: new Date().toISOString() })
+                            .eq("id", id);
+                          
+                          if (error) throw error;
+                          
+                          toast.success("Joueur supprimé avec succès");
+                          navigate(-1);
+                        } catch (error: unknown) {
+                          console.error("Error deleting player:", error);
+                          toast.error("Erreur lors de la suppression");
+                        }
+                      }} 
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
