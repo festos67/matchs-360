@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,25 @@ export default function TeamDetail() {
 
   const totalSkills = framework?.themes.reduce((acc, theme) => acc + theme.skills.length, 0) || 0;
 
+  const handleDeleteFramework = async () => {
+    if (!framework) return;
+    try {
+      // Delete the framework (cascade will delete themes and skills)
+      const { error } = await supabase
+        .from("competence_frameworks")
+        .delete()
+        .eq("id", framework.id);
+      
+      if (error) throw error;
+      
+      setFramework(null);
+      toast.success("Référentiel supprimé avec succès");
+    } catch (error: any) {
+      console.error("Error deleting framework:", error);
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
   if (authLoading || loading) return <AppLayout><div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div></AppLayout>;
   if (!team) return null;
 
@@ -202,12 +222,37 @@ export default function TeamDetail() {
                       {framework.themes.length} thème{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
                     </p>
                   </div>
-                  {canEditFramework && (
-                    <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
-                      <FileText className="w-4 h-4" />
-                      Éditer le référentiel
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    {canEditFramework && (
+                      <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
+                        <FileText className="w-4 h-4" />
+                        Éditer le référentiel
+                      </Button>
+                    )}
+                    {isAdmin && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="icon">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer le référentiel ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action supprimera définitivement le référentiel ainsi que toutes ses thématiques et compétences. Cette action est irréversible.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
                 </div>
 
                 {/* Themes grid */}
