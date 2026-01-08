@@ -18,6 +18,7 @@ import RoleApprovals from "./pages/RoleApprovals";
 import InviteAccept from "./pages/InviteAccept";
 import NotFound from "./pages/NotFound";
 import Stats from "./pages/Stats";
+import AdminUsers from "./pages/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/role-approvals" element={<RoleApprovals />} />
             <Route path="/invite/accept" element={<InviteAccept />} />
             <Route path="/stats" element={<Stats />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

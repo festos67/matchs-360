@@ -6,11 +6,13 @@ import {
   Trophy, 
   Settings, 
   LogOut,
-  Activity
+  Activity,
+  Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -23,6 +25,7 @@ const navItems = [
 export const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -62,6 +65,25 @@ export const Sidebar = () => {
             </Link>
           );
         })}
+        
+        {/* Admin Section */}
+        {isAdmin && (
+          <div className="pt-4 mt-4 border-t border-sidebar-border">
+            <span className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Administration
+            </span>
+            <Link
+              to="/admin/users"
+              className={cn(
+                "nav-item mt-2",
+                location.pathname === "/admin/users" && "active"
+              )}
+            >
+              <Shield className="w-5 h-5" />
+              <span className="font-medium">Gestion Utilisateurs</span>
+            </Link>
+          </div>
+        )}
       </nav>
 
       {/* Bottom Actions */}
