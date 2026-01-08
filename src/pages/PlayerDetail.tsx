@@ -457,12 +457,21 @@ export default function PlayerDetail() {
                     <AlertDialogAction 
                       onClick={async () => {
                         try {
-                          const { error } = await supabase
+                          // Soft delete du profil
+                          const { error: profileError } = await supabase
                             .from("profiles")
                             .update({ deleted_at: new Date().toISOString() })
                             .eq("id", id);
                           
-                          if (error) throw error;
+                          if (profileError) throw profileError;
+
+                          // Désactiver aussi les team_members associés
+                          const { error: memberError } = await supabase
+                            .from("team_members")
+                            .update({ is_active: false, left_at: new Date().toISOString() })
+                            .eq("user_id", id);
+                          
+                          if (memberError) throw memberError;
                           
                           toast.success("Joueur supprimé avec succès");
                           navigate(-1);
@@ -470,7 +479,7 @@ export default function PlayerDetail() {
                           console.error("Error deleting player:", error);
                           toast.error("Erreur lors de la suppression");
                         }
-                      }} 
+                      }}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Supprimer
