@@ -74,9 +74,18 @@ export const CreateCoachModal = ({
       onSuccess?.();
     } catch (error: any) {
       console.error("Error inviting coach:", error);
-      toast.error("Erreur lors de l'invitation", {
-        description: error.message,
-      });
+      const errorMessage = error.message || "Une erreur est survenue";
+      
+      // Message plus clair pour les erreurs courantes
+      if (errorMessage.includes("déjà ce rôle")) {
+        toast.error("Coach déjà existant", {
+          description: "Cet utilisateur est déjà coach dans ce club.",
+        });
+      } else {
+        toast.error("Erreur lors de l'invitation", {
+          description: errorMessage,
+        });
+      }
     } finally {
       setLoading(false);
     }
