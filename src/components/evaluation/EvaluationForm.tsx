@@ -266,7 +266,7 @@ export const EvaluationForm = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       {/* Header with radar and summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Radar Chart */}
@@ -340,24 +340,6 @@ export const EvaluationForm = ({
               </div>
             </div>
           </div>
-
-          {/* Actions */}
-          {!readOnly && (
-            <div className="flex gap-3 mt-6 pt-4 border-t border-border">
-              <Button variant="outline" onClick={handleReset} disabled={saving}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Réinitialiser
-              </Button>
-              <Button onClick={handleSave} disabled={saving} className="flex-1">
-                {saving ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                Enregistrer
-              </Button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -365,7 +347,7 @@ export const EvaluationForm = ({
       <div className="space-y-4">
         <h3 className="font-display font-semibold text-lg">Évaluation des compétences</h3>
         
-        {themeScores.map((themeScore, index) => {
+        {themeScores.map((themeScore) => {
           const theme = themes.find((t) => t.id === themeScore.theme_id);
           if (!theme) return null;
 
@@ -390,11 +372,31 @@ export const EvaluationForm = ({
                 handleObjectiveChange(theme.id, objective)
               }
               disabled={readOnly}
-              defaultOpen={index === 0}
+              defaultOpen={true}
             />
           );
         })}
       </div>
+
+      {/* Sticky Footer */}
+      {!readOnly && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-50">
+          <div className="container max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
+            <Button variant="outline" onClick={handleReset} disabled={saving}>
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Réinitialiser
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              Enregistrer
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
