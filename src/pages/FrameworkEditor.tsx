@@ -398,26 +398,97 @@ export default function FrameworkEditor() {
 
   return (
     <AppLayout>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" className="-ml-2" onClick={() => navigate(`/teams/${teamId}`)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour
-          </Button>
-          <div>
-            <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-              <FileText className="w-6 h-6 text-primary" />
-              {framework?.name || "Référentiel"}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {team.name} • {team.club?.name}
-            </p>
+      <div className="pb-20">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" className="-ml-2" onClick={() => navigate(`/teams/${teamId}`)}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
+            <div>
+              <h1 className="text-2xl font-display font-bold flex items-center gap-2">
+                <FileText className="w-6 h-6 text-primary" />
+                {framework?.name || "Référentiel"}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {team.name} • {team.club?.name}
+              </p>
+            </div>
           </div>
         </div>
 
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="glass-card p-4">
+            <p className="text-3xl font-display font-bold text-primary">{themes.length}</p>
+            <p className="text-sm text-muted-foreground">Thématiques</p>
+          </div>
+          <div className="glass-card p-4">
+            <p className="text-3xl font-display font-bold">
+              {themes.reduce((acc, t) => acc + t.skills.length, 0)}
+            </p>
+            <p className="text-sm text-muted-foreground">Compétences</p>
+          </div>
+          <div className="glass-card p-4">
+            <p className="text-3xl font-display font-bold text-success">
+              {hasChanges ? "Non sauvegardé" : "À jour"}
+            </p>
+            <p className="text-sm text-muted-foreground">Statut</p>
+          </div>
+        </div>
+
+        {/* Themes List */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={themes.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-4">
+              {themes.map((theme, index) => (
+                <SortableTheme
+                  key={theme.id}
+                  theme={theme}
+                  canEdit={canEdit}
+                  isLast={index === themes.length - 1}
+                  inputRef={theme.isNew ? newThemeInputRef : undefined}
+                  skillInputRefs={newSkillInputRefs}
+                  onUpdate={(updates) => handleUpdateTheme(theme.id, updates)}
+                  onDelete={() => handleDeleteTheme(theme.id)}
+                  onAddSkill={() => handleAddSkill(theme.id)}
+                  onUpdateSkill={(skillId, updates) => handleUpdateSkill(theme.id, skillId, updates)}
+                  onDeleteSkill={(skillId) => handleDeleteSkill(theme.id, skillId)}
+                  onReorderSkills={(oldIndex, newIndex) => handleReorderSkills(theme.id, oldIndex, newIndex)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+
+        {/* Add Theme Button */}
         {canEdit && (
-          <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="w-full mt-6 h-14 border-dashed"
+            onClick={handleAddTheme}
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Ajouter une Thématique
+          </Button>
+        )}
+
+        {themes.length === 0 && !canEdit && (
+          <div className="flex flex-col items-center justify-center h-48 glass-card">
+            <FileQuestion className="w-12 h-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground">Référentiel vide</h3>
+            <p className="text-sm text-muted-foreground">
+              Le coach référent doit configurer le référentiel
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Sticky Footer */}
+      {canEdit && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-50">
+          <div className="container max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
             <Button variant="outline" onClick={handleReset} disabled={saving}>
               <RotateCcw className="w-4 h-4 mr-2" />
               Réinitialiser
@@ -431,72 +502,6 @@ export default function FrameworkEditor() {
               Sauvegarder
             </Button>
           </div>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-4">
-          <p className="text-3xl font-display font-bold text-primary">{themes.length}</p>
-          <p className="text-sm text-muted-foreground">Thématiques</p>
-        </div>
-        <div className="glass-card p-4">
-          <p className="text-3xl font-display font-bold">
-            {themes.reduce((acc, t) => acc + t.skills.length, 0)}
-          </p>
-          <p className="text-sm text-muted-foreground">Compétences</p>
-        </div>
-        <div className="glass-card p-4">
-          <p className="text-3xl font-display font-bold text-success">
-            {hasChanges ? "Non sauvegardé" : "À jour"}
-          </p>
-          <p className="text-sm text-muted-foreground">Statut</p>
-        </div>
-      </div>
-
-      {/* Themes List */}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={themes.map(t => t.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-4">
-            {themes.map((theme, index) => (
-              <SortableTheme
-                key={theme.id}
-                theme={theme}
-                canEdit={canEdit}
-                isLast={index === themes.length - 1}
-                inputRef={theme.isNew ? newThemeInputRef : undefined}
-                skillInputRefs={newSkillInputRefs}
-                onUpdate={(updates) => handleUpdateTheme(theme.id, updates)}
-                onDelete={() => handleDeleteTheme(theme.id)}
-                onAddSkill={() => handleAddSkill(theme.id)}
-                onUpdateSkill={(skillId, updates) => handleUpdateSkill(theme.id, skillId, updates)}
-                onDeleteSkill={(skillId) => handleDeleteSkill(theme.id, skillId)}
-                onReorderSkills={(oldIndex, newIndex) => handleReorderSkills(theme.id, oldIndex, newIndex)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {/* Add Theme Button */}
-      {canEdit && (
-        <Button
-          variant="outline"
-          className="w-full mt-6 h-14 border-dashed"
-          onClick={handleAddTheme}
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Ajouter une Thématique
-        </Button>
-      )}
-
-      {themes.length === 0 && !canEdit && (
-        <div className="flex flex-col items-center justify-center h-48 glass-card">
-          <FileQuestion className="w-12 h-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-medium text-muted-foreground">Référentiel vide</h3>
-          <p className="text-sm text-muted-foreground">
-            Le coach référent doit configurer le référentiel
-          </p>
         </div>
       )}
     </AppLayout>
