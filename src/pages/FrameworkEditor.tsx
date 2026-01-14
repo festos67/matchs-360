@@ -332,6 +332,22 @@ export default function FrameworkEditor() {
                 .eq("id", skill.id);
             }
           }
+
+          // Delete removed skills from this theme
+          const currentSkillIds = theme.skills.filter(s => !s.isNew).map(s => s.id);
+          if (currentSkillIds.length > 0) {
+            await supabase
+              .from("skills")
+              .delete()
+              .eq("theme_id", theme.id)
+              .not("id", "in", `(${currentSkillIds.join(",")})`);
+          } else {
+            // If all skills are new or none exist, delete all existing skills for this theme
+            await supabase
+              .from("skills")
+              .delete()
+              .eq("theme_id", theme.id);
+          }
         }
       }
 
