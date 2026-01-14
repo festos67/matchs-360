@@ -380,8 +380,8 @@ export const EvaluationForm = ({
 
       {/* Sticky Footer */}
       {!readOnly && (
-        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-50">
-          <div className="container max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
+        <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
+          <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
             <Button variant="outline" onClick={handleReset} disabled={saving}>
               <RotateCcw className="w-4 h-4 mr-2" />
               Réinitialiser
