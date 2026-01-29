@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, Heart } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditTeamModal } from "@/components/modals/EditTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
+import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,6 +52,7 @@ export default function TeamDetail() {
   const [loading, setLoading] = useState(true);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
+  const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showTeamSettings, setShowTeamSettings] = useState(false);
 
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
@@ -154,6 +156,15 @@ export default function TeamDetail() {
           </div>
           {(isAdmin || isClubAdmin || isReferentCoach) && (
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowSupporterModal(true)}
+              >
+                <Heart className="w-4 h-4" />
+                Supporter
+              </Button>
               <Button 
                 variant="outline" 
                 size="icon"
@@ -327,6 +338,7 @@ export default function TeamDetail() {
 
       <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={fetchTeamData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} onSuccess={fetchTeamData} />
+      <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={team.club_id} onSuccess={fetchTeamData} />
       <EditTeamModal open={showTeamSettings} onOpenChange={setShowTeamSettings} team={team} onSuccess={fetchTeamData} />
     </AppLayout>
   );
