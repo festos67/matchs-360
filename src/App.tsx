@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
+import Teams from "./pages/Teams";
 import Auth from "./pages/Auth";
 import { DashboardRedirect } from "./components/routing/DashboardRedirect";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -46,7 +47,7 @@ const App = () => (
             
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubDetail />} />
-            <Route path="/teams" element={<Navigate to="/clubs" replace />} />
+            <Route path="/teams" element={<Teams />} />
             <Route path="/teams/:id" element={<TeamDetail />} />
             <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
