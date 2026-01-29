@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Heart } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
-import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,7 +36,6 @@ export default function ClubDetail() {
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
-  const [showSupporterModal, setShowSupporterModal] = useState(false);
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
@@ -103,7 +101,6 @@ export default function ClubDetail() {
           {canManageClub && (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><UserCog className="w-4 h-4" />Coach</Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowSupporterModal(true)}><Heart className="w-4 h-4" />Supporter</Button>
               <Button variant="outline" size="icon"><Settings className="w-4 h-4" /></Button>
               <Button variant="outline" size="icon"><Edit className="w-4 h-4" /></Button>
             </div>
@@ -135,7 +132,6 @@ export default function ClubDetail() {
 
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
-      <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={club.id} onSuccess={fetchClubData} />
     </AppLayout>
   );
 }
