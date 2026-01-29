@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
+import { EditTeamModal } from "@/components/modals/EditTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,7 @@ export default function TeamDetail() {
   const [loading, setLoading] = useState(true);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
+  const [showTeamSettings, setShowTeamSettings] = useState(false);
 
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
@@ -155,7 +157,7 @@ export default function TeamDetail() {
               <Button 
                 variant="outline" 
                 size="icon"
-                onClick={() => toast.info("Paramètres de l'équipe à venir")}
+                onClick={() => setShowTeamSettings(true)}
               >
                 <Settings className="w-4 h-4" />
               </Button>
@@ -325,6 +327,7 @@ export default function TeamDetail() {
 
       <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={fetchTeamData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} onSuccess={fetchTeamData} />
+      <EditTeamModal open={showTeamSettings} onOpenChange={setShowTeamSettings} team={team} onSuccess={fetchTeamData} />
     </AppLayout>
   );
 }
