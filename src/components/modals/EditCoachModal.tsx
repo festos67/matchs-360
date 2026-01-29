@@ -189,17 +189,42 @@ export const EditCoachModal = ({
         if (error) throw error;
       }
 
-      // Ajouter les nouvelles affectations
+      // Ajouter les nouvelles affectations (ou réactiver si existante)
       for (const assignment of toAdd) {
-        const { error } = await supabase.from("team_members").insert({
-          user_id: coach.id,
-          team_id: assignment.teamId,
-          member_type: "coach",
-          coach_role: assignment.role,
-          is_active: true,
-        });
+        // Vérifier s'il existe déjà une entrée inactive
+        const { data: existing } = await supabase
+          .from("team_members")
+          .select("id")
+          .eq("user_id", coach.id)
+          .eq("team_id", assignment.teamId)
+          .eq("member_type", "coach")
+          .maybeSingle();
 
-        if (error) throw error;
+        if (existing) {
+          // Réactiver l'entrée existante
+          const { error } = await supabase
+            .from("team_members")
+            .update({
+              is_active: true,
+              coach_role: assignment.role,
+              left_at: null,
+              joined_at: new Date().toISOString(),
+            })
+            .eq("id", existing.id);
+
+          if (error) throw error;
+        } else {
+          // Créer une nouvelle entrée
+          const { error } = await supabase.from("team_members").insert({
+            user_id: coach.id,
+            team_id: assignment.teamId,
+            member_type: "coach",
+            coach_role: assignment.role,
+            is_active: true,
+          });
+
+          if (error) throw error;
+        }
       }
 
       // Mettre à jour les rôles modifiés
