@@ -9,7 +9,8 @@ import {
   Activity,
   Shield,
   ClipboardList,
-  User
+  User,
+  UserCog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
       { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
       { icon: Building2, label: "Clubs", path: "/clubs" },
       { icon: Users, label: "Équipes", path: "/teams" },
+      { icon: UserCog, label: "Coachs", path: "/coaches" },
       { icon: Trophy, label: "Évaluations", path: "/evaluations" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
@@ -35,6 +37,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: LayoutDashboard, label: "Dashboard", path: "/club/dashboard" },
         { icon: Building2, label: "Mon Club", path: "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
+        { icon: UserCog, label: "Coachs", path: "/coaches" },
         { icon: Trophy, label: "Évaluations", path: "/evaluations" },
       ];
     case "coach":
