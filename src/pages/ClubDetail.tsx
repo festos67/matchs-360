@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +38,7 @@ interface Team {
   name: string;
   season: string | null;
   color: string | null;
+  deleted_at: string | null;
 }
 
 export default function ClubDetail() {
@@ -43,11 +47,14 @@ export default function ClubDetail() {
   const navigate = useNavigate();
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [archivedTeams, setArchivedTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
@@ -75,6 +82,7 @@ export default function ClubDetail() {
       }
       setClub(clubData);
 
+      // Fetch active teams
       const { data: teamsData, error: teamsError } = await supabase
         .from("teams")
         .select("*")
@@ -83,6 +91,18 @@ export default function ClubDetail() {
         .order("name");
       if (teamsError) throw teamsError;
       setTeams(teamsData || []);
+
+      // Fetch archived teams (only for admins)
+      if (isAdmin) {
+        const { data: archivedData, error: archivedError } = await supabase
+          .from("teams")
+          .select("*")
+          .eq("club_id", id)
+          .not("deleted_at", "is", null)
+          .order("name");
+        if (archivedError) throw archivedError;
+        setArchivedTeams(archivedData || []);
+      }
     } catch (error: any) {
       console.error("Error fetching club:", error);
       toast.error("Erreur lors du chargement du club");
@@ -114,11 +134,34 @@ export default function ClubDetail() {
     }
   };
 
+  const handleRestoreTeam = async (teamId: string, teamName: string) => {
+    setIsRestoring(true);
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .update({ deleted_at: null })
+        .eq("id", teamId);
+      
+      if (error) throw error;
+      
+      toast.success(`L'équipe "${teamName}" a été restaurée et est de nouveau visible par le club et le coach.`);
+      fetchClubData();
+    } catch (error: any) {
+      console.error("Error restoring team:", error);
+      toast.error("Erreur lors de la restauration de l'équipe");
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   if (authLoading || loading) {
     return <AppLayout><div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div></AppLayout>;
   }
 
   if (!club) return null;
+
+  const displayedTeams = showArchived ? archivedTeams : teams;
+  const activeTeamsCount = teams.length;
 
   return (
     <AppLayout>
@@ -134,7 +177,7 @@ export default function ClubDetail() {
           <div className="flex-1">
             <h1 className="text-3xl font-display font-bold">{club.name}</h1>
             <div className="flex items-center gap-4 mt-2 text-muted-foreground">
-              <span className="flex items-center gap-2"><Users className="w-4 h-4" />{teams.length} équipe{teams.length > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-2"><Users className="w-4 h-4" />{activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
               {club.referent_name && <span>• Référent: {club.referent_name}</span>}
             </div>
           </div>
@@ -148,31 +191,99 @@ export default function ClubDetail() {
         </div>
       </div>
 
+      {/* Admin Toggle for Archived Teams */}
+      {isAdmin && archivedTeams.length > 0 && (
+        <div className="flex items-center space-x-3 p-4 rounded-lg border border-border bg-muted/30 mb-6">
+          <Switch
+            id="show-archived-club"
+            checked={showArchived}
+            onCheckedChange={setShowArchived}
+          />
+          <Label htmlFor="show-archived-club" className="flex items-center gap-2 cursor-pointer">
+            <Archive className="w-4 h-4 text-muted-foreground" />
+            Afficher les équipes archivées ({archivedTeams.length})
+          </Label>
+          {showArchived && (
+            <Badge variant="secondary" className="ml-2">
+              Mode archivage
+            </Badge>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-display font-semibold">Équipes</h2>
-        {canManageClub && <Button className="gap-2" onClick={() => setShowTeamModal(true)}><Plus className="w-4 h-4" />Nouvelle équipe</Button>}
+        <h2 className="text-xl font-display font-semibold">
+          {showArchived ? "Équipes archivées" : "Équipes"}
+        </h2>
+        {canManageClub && !showArchived && (
+          <Button className="gap-2" onClick={() => setShowTeamModal(true)}>
+            <Plus className="w-4 h-4" />Nouvelle équipe
+          </Button>
+        )}
       </div>
 
-      {teams.length > 0 ? (
+      {displayedTeams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-          {teams.map((team, index) => (
+          {displayedTeams.map((team, index) => (
             <div key={team.id} className="animate-fade-in-up opacity-0 relative group" style={{ animationDelay: `${index * 0.1}s` }}>
-              <CircleAvatar name={team.name} subtitle={team.season || ""} color={team.color || club.primary_color} size="lg" onClick={() => navigate(`/teams/${team.id}`)} />
-              {canManageClub && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-border"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTeamToDelete({ id: team.id, name: team.name });
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+              {showArchived ? (
+                // Archived team display
+                <div className="flex flex-col items-center">
+                  <div 
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-display font-bold opacity-50 border-2 border-dashed border-muted-foreground/30"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${team.color || club.primary_color}40 0%, ${team.color || club.primary_color}20 100%)`,
+                      color: team.color || club.primary_color
+                    }}
+                  >
+                    {team.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-muted-foreground line-through">{team.name}</p>
+                  <p className="text-xs text-muted-foreground/60">{team.season}</p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 gap-1.5 text-primary hover:text-primary"
+                    onClick={() => handleRestoreTeam(team.id, team.name)}
+                    disabled={isRestoring}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Restaurer
+                  </Button>
+                </div>
+              ) : (
+                // Active team display
+                <>
+                  <CircleAvatar 
+                    name={team.name} 
+                    subtitle={team.season || ""} 
+                    color={team.color || club.primary_color} 
+                    size="lg" 
+                    onClick={() => navigate(`/teams/${team.id}`)} 
+                  />
+                  {canManageClub && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-border"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTeamToDelete({ id: team.id, name: team.name });
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           ))}
+        </div>
+      ) : showArchived ? (
+        <div className="flex flex-col items-center justify-center h-48 glass-card">
+          <Archive className="w-12 h-12 text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">Aucune équipe archivée</h3>
+          <p className="text-sm text-muted-foreground mt-1">Toutes les équipes sont actives</p>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center h-48 glass-card">
@@ -193,7 +304,7 @@ export default function ClubDetail() {
             <AlertDialogTitle>Supprimer l'équipe</AlertDialogTitle>
             <AlertDialogDescription>
               Êtes-vous sûr de vouloir supprimer l'équipe "{teamToDelete?.name}" ? 
-              Cette action désactivera l'équipe mais conservera les données.
+              Cette action archivera l'équipe. Un administrateur pourra la restaurer ultérieurement.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
