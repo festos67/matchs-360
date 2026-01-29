@@ -12,22 +12,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const coachSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
   lastName: z.string().min(1, "Nom requis").max(50),
   email: z.string().email("Email invalide").max(255),
-  teamId: z.string().optional(),
-  coachRole: z.enum(["referent", "assistant"]).optional(),
 });
 
 type CoachFormData = z.infer<typeof coachSchema>;
@@ -36,6 +29,12 @@ interface Team {
   id: string;
   name: string;
   season: string | null;
+}
+
+interface TeamAssignment {
+  teamId: string;
+  assigned: boolean;
+  role: "referent" | "assistant";
 }
 
 interface CreateCoachModalProps {
@@ -54,8 +53,7 @@ export const CreateCoachModal = ({
   const [loading, setLoading] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
-  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
-  const [selectedCoachRole, setSelectedCoachRole] = useState<string>("");
+  const [teamAssignments, setTeamAssignments] = useState<TeamAssignment[]>([]);
 
   const {
     register,
@@ -71,6 +69,19 @@ export const CreateCoachModal = ({
       fetchTeams();
     }
   }, [open, clubId]);
+
+  useEffect(() => {
+    // Initialize assignments when teams are loaded
+    if (teams.length > 0) {
+      setTeamAssignments(
+        teams.map((team) => ({
+          teamId: team.id,
+          assigned: false,
+          role: "assistant" as const,
+        }))
+      );
+    }
+  }, [teams]);
 
   const fetchTeams = async () => {
     setLoadingTeams(true);
@@ -91,9 +102,33 @@ export const CreateCoachModal = ({
     }
   };
 
+  const toggleTeamAssignment = (teamId: string) => {
+    setTeamAssignments((prev) =>
+      prev.map((assignment) =>
+        assignment.teamId === teamId
+          ? { ...assignment, assigned: !assignment.assigned }
+          : assignment
+      )
+    );
+  };
+
+  const setTeamRole = (teamId: string, role: "referent" | "assistant") => {
+    setTeamAssignments((prev) =>
+      prev.map((assignment) =>
+        assignment.teamId === teamId ? { ...assignment, role } : assignment
+      )
+    );
+  };
+
+  const getAssignedTeams = () => {
+    return teamAssignments.filter((a) => a.assigned);
+  };
+
   const onSubmit = async (data: CoachFormData) => {
     setLoading(true);
     try {
+      const assignedTeams = getAssignedTeams();
+
       const payload: any = {
         email: data.email,
         firstName: data.firstName,
@@ -102,10 +137,15 @@ export const CreateCoachModal = ({
         intendedRole: "coach",
       };
 
-      // Ajouter l'équipe et le rôle si sélectionnés
-      if (selectedTeamId) {
-        payload.teamId = selectedTeamId;
-        payload.coachRole = selectedCoachRole || "assistant";
+      // Si des équipes sont assignées, on envoie la liste
+      if (assignedTeams.length > 0) {
+        payload.teamAssignments = assignedTeams.map((a) => ({
+          teamId: a.teamId,
+          coachRole: a.role,
+        }));
+        // Pour la compatibilité avec l'ancien format, on envoie aussi la première équipe
+        payload.teamId = assignedTeams[0].teamId;
+        payload.coachRole = assignedTeams[0].role;
       }
 
       const { data: result, error } = await supabase.functions.invoke("send-invitation", {
@@ -115,25 +155,25 @@ export const CreateCoachModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
-      const teamName = selectedTeamId 
-        ? teams.find(t => t.id === selectedTeamId)?.name 
-        : null;
+      const assignedTeamNames = assignedTeams
+        .map((a) => teams.find((t) => t.id === a.teamId)?.name)
+        .filter(Boolean);
 
       toast.success(`Coach invité avec succès !`, {
-        description: teamName 
-          ? `Une invitation a été envoyée à ${data.email}. Le coach sera rattaché à l'équipe "${teamName}".`
-          : `Une invitation a été envoyée à ${data.email}. Le coach pourra être rattaché à une équipe ultérieurement.`,
+        description:
+          assignedTeamNames.length > 0
+            ? `Une invitation a été envoyée à ${data.email}. Le coach sera rattaché à : ${assignedTeamNames.join(", ")}.`
+            : `Une invitation a été envoyée à ${data.email}. Le coach pourra être rattaché à une équipe ultérieurement.`,
       });
-      
+
       reset();
-      setSelectedTeamId("");
-      setSelectedCoachRole("");
+      setTeamAssignments([]);
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
       console.error("Error inviting coach:", error);
       const errorMessage = error.message || "Une erreur est survenue";
-      
+
       if (errorMessage.includes("déjà ce rôle")) {
         toast.error("Coach déjà existant", {
           description: "Cet utilisateur est déjà coach dans ce club.",
@@ -151,15 +191,16 @@ export const CreateCoachModal = ({
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       reset();
-      setSelectedTeamId("");
-      setSelectedCoachRole("");
+      setTeamAssignments([]);
     }
     onOpenChange(isOpen);
   };
 
+  const assignedCount = getAssignedTeams().length;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -208,50 +249,95 @@ export const CreateCoachModal = ({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="team">Équipe (optionnel)</Label>
-            <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
-              <SelectTrigger>
-                <SelectValue placeholder={loadingTeams ? "Chargement..." : "Sélectionner une équipe"} />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name} {team.season && `(${team.season})`}
-                  </SelectItem>
-                ))}
-                {teams.length === 0 && !loadingTeams && (
-                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    Aucune équipe disponible
-                  </div>
-                )}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Laissez vide pour rattacher le coach à une équipe ultérieurement
-            </p>
-          </div>
-
-          {selectedTeamId && (
-            <div className="space-y-2">
-              <Label htmlFor="coachRole">Rôle dans l'équipe</Label>
-              <Select value={selectedCoachRole} onValueChange={setSelectedCoachRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un rôle" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="referent">Coach référent</SelectItem>
-                  <SelectItem value="assistant">Coach assistant</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Matrice d'équipes */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Équipes du club</Label>
+              {assignedCount > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {assignedCount} équipe{assignedCount > 1 ? "s" : ""} sélectionnée{assignedCount > 1 ? "s" : ""}
+                </span>
+              )}
             </div>
-          )}
 
-          <div className="p-4 rounded-lg bg-muted/30 text-sm text-muted-foreground">
-            <p>
-              {selectedTeamId 
-                ? "Le coach sera automatiquement rattaché à l'équipe sélectionnée dès l'acceptation de l'invitation."
-                : "Le coach sera rattaché au club. L'assignation à une équipe se fera lors de la création de l'équipe ou via la gestion du staff."}
+            {loadingTeams ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              </div>
+            ) : teams.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground text-sm border border-dashed rounded-lg">
+                Aucune équipe disponible dans ce club
+              </div>
+            ) : (
+              <div className="border rounded-lg divide-y">
+                {teams.map((team) => {
+                  const assignment = teamAssignments.find((a) => a.teamId === team.id);
+                  const isAssigned = assignment?.assigned || false;
+                  const role = assignment?.role || "assistant";
+
+                  return (
+                    <div
+                      key={team.id}
+                      className={cn(
+                        "p-3 transition-colors",
+                        isAssigned ? "bg-primary/5" : "bg-background"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        {/* Nom de l'équipe + Switch */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Switch
+                            checked={isAssigned}
+                            onCheckedChange={() => toggleTeamAssignment(team.id)}
+                          />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate">{team.name}</p>
+                            {team.season && (
+                              <p className="text-xs text-muted-foreground">{team.season}</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Sélecteur de rôle */}
+                        <div
+                          className={cn(
+                            "flex rounded-lg border overflow-hidden transition-opacity",
+                            !isAssigned && "opacity-40 pointer-events-none"
+                          )}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setTeamRole(team.id, "assistant")}
+                            className={cn(
+                              "px-3 py-1.5 text-xs font-medium transition-colors",
+                              role === "assistant"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background hover:bg-muted"
+                            )}
+                          >
+                            Assistant
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTeamRole(team.id, "referent")}
+                            className={cn(
+                              "px-3 py-1.5 text-xs font-medium transition-colors border-l",
+                              role === "referent"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-background hover:bg-muted"
+                            )}
+                          >
+                            Référent
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Activez les équipes auxquelles rattacher le coach et choisissez son rôle. Laissez tout désactivé pour rattacher ultérieurement.
             </p>
           </div>
 
