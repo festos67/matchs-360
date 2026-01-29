@@ -8,7 +8,8 @@ const corsHeaders = {
 
 interface ImportTemplateRequest {
   sourceFrameworkId: string;
-  targetTeamId: string;
+  targetTeamId?: string;
+  targetClubId?: string;
   frameworkName: string;
 }
 
@@ -40,16 +41,30 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: ImportTemplateRequest = await req.json();
-    const { sourceFrameworkId, targetTeamId, frameworkName } = body;
+    const { sourceFrameworkId, targetTeamId, targetClubId, frameworkName } = body;
 
-    console.log(`Importing framework ${sourceFrameworkId} to team ${targetTeamId}`);
+    // Determine if we're importing to a team or a club
+    const isClubImport = !!targetClubId && !targetTeamId;
+    const targetId = isClubImport ? targetClubId : targetTeamId;
+    const targetType = isClubImport ? "club" : "team";
 
-    // Check if team already has a framework
-    const { data: existingFramework } = await supabaseAdmin
+    console.log(`Importing framework ${sourceFrameworkId} to ${targetType} ${targetId}`);
+
+    // Check if target already has a framework
+    let existingFrameworkQuery = supabaseAdmin
       .from("competence_frameworks")
-      .select("id")
-      .eq("team_id", targetTeamId)
-      .maybeSingle();
+      .select("id");
+    
+    if (isClubImport) {
+      existingFrameworkQuery = existingFrameworkQuery
+        .eq("club_id", targetClubId)
+        .eq("is_template", true);
+    } else {
+      existingFrameworkQuery = existingFrameworkQuery
+        .eq("team_id", targetTeamId);
+    }
+    
+    const { data: existingFramework } = await existingFrameworkQuery.maybeSingle();
 
     let newFrameworkId: string;
 
@@ -68,14 +83,22 @@ const handler = async (req: Request): Promise<Response> => {
         .update({ name: frameworkName })
         .eq("id", existingFramework.id);
     } else {
-      // Create new framework for the team
+      // Create new framework
+      const insertData: any = {
+        name: frameworkName,
+        is_template: isClubImport,
+      };
+      
+      if (isClubImport) {
+        insertData.club_id = targetClubId;
+        insertData.team_id = null;
+      } else {
+        insertData.team_id = targetTeamId;
+      }
+
       const { data: newFramework, error: createError } = await supabaseAdmin
         .from("competence_frameworks")
-        .insert({
-          team_id: targetTeamId,
-          name: frameworkName,
-          is_template: false,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -126,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    console.log(`Successfully imported framework to team ${targetTeamId}`);
+    console.log(`Successfully imported framework to ${targetType} ${targetId}`);
 
     return new Response(
       JSON.stringify({ 
