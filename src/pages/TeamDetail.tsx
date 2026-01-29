@@ -150,11 +150,17 @@ export default function TeamDetail() {
             <div className="flex items-center gap-3"><h1 className="text-3xl font-display font-bold">{team.name}</h1><Badge variant="secondary">{team.season}</Badge></div>
             <p className="text-muted-foreground mt-1">{team.club?.name} • {players.length} joueur{players.length > 1 ? "s" : ""} • {coaches.length} coach{coaches.length > 1 ? "es" : ""}</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
+          {(isAdmin || isClubAdmin || isReferentCoach) && (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => toast.info("Paramètres de l'équipe à venir")}
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
