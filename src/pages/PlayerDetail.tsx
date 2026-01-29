@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -13,6 +13,7 @@ import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
+import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,6 +98,7 @@ export default function PlayerDetail() {
   const [canMutate, setCanMutate] = useState(false);
   const [showMutationModal, setShowMutationModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSupportersModal, setShowSupportersModal] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
@@ -433,6 +435,12 @@ export default function PlayerDetail() {
                 Mutation
               </Button>
             )}
+            {canEvaluate && teamMembership && (
+              <Button variant="outline" className="gap-2" onClick={() => setShowSupportersModal(true)}>
+                <Heart className="w-4 h-4" />
+                Supporters
+              </Button>
+            )}
             {canMutate && (
               <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
                 <Edit className="w-4 h-4" />
@@ -501,6 +509,18 @@ export default function PlayerDetail() {
           playerName={getPlayerName()}
           currentTeamId={teamMembership.team_id}
           currentTeamName={teamMembership.team.name}
+          clubId={teamMembership.team.club_id}
+          onSuccess={fetchPlayerData}
+        />
+      )}
+
+      {/* Supporters Modal */}
+      {player && teamMembership && (
+        <ManageSupportersModal
+          open={showSupportersModal}
+          onOpenChange={setShowSupportersModal}
+          playerId={id!}
+          playerName={getPlayerName()}
           clubId={teamMembership.team.club_id}
           onSuccess={fetchPlayerData}
         />
