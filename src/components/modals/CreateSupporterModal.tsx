@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Heart, Check } from "lucide-react";
+import { Heart } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -97,20 +96,8 @@ export const CreateSupporterModal = ({
     }
   };
 
-  const togglePlayer = (playerId: string) => {
-    setSelectedPlayers((prev) =>
-      prev.includes(playerId)
-        ? prev.filter((id) => id !== playerId)
-        : [...prev, playerId]
-    );
-  };
-
-  const getPlayerName = (player: Player) => {
-    if (player.nickname) return player.nickname;
-    if (player.first_name && player.last_name) {
-      return `${player.first_name} ${player.last_name}`;
-    }
-    return player.first_name || player.last_name || "Joueur";
+  const handleSelectionChange = (playerIds: string[]) => {
+    setSelectedPlayers(playerIds);
   };
 
   const onSubmit = async (data: SupporterFormData) => {
@@ -204,41 +191,13 @@ export const CreateSupporterModal = ({
               Joueurs suivis ({selectedPlayers.length} sélectionné
               {selectedPlayers.length > 1 ? "s" : ""})
             </Label>
-            <ScrollArea className="h-48 rounded-lg border border-border p-2">
-              {players.length > 0 ? (
-                <div className="space-y-2">
-                  {players.map((player) => (
-                    <div
-                      key={player.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                        selectedPlayers.includes(player.id)
-                          ? "bg-primary/10 border border-primary/30"
-                          : "bg-muted/30 hover:bg-muted/50"
-                      }`}
-                      onClick={() => togglePlayer(player.id)}
-                    >
-                      <Checkbox
-                        checked={selectedPlayers.includes(player.id)}
-                        onCheckedChange={() => togglePlayer(player.id)}
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium">{getPlayerName(player)}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {player.team_name}
-                        </p>
-                      </div>
-                      {selectedPlayers.includes(player.id) && (
-                        <Check className="w-4 h-4 text-primary" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  Aucun joueur disponible
-                </p>
-              )}
-            </ScrollArea>
+            <PlayerSelector
+              players={players}
+              selectedPlayerIds={selectedPlayers}
+              onSelectionChange={handleSelectionChange}
+              placeholder="Rechercher un joueur..."
+              emptyMessage="Aucun joueur disponible"
+            />
             {errors.playerIds && (
               <p className="text-sm text-destructive">{errors.playerIds.message}</p>
             )}
