@@ -179,6 +179,8 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
         prev.map((c) => (c.id === coach.id ? { ...c, coachRole: newRole } : c))
       );
       toast.success("Rôle mis à jour");
+      // Appeler onSuccess pour rafraîchir la page parente
+      onSuccess();
     } catch (error: any) {
       console.error("Error updating role:", error);
       toast.error("Erreur lors de la mise à jour du rôle");
@@ -200,6 +202,8 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
         { id: coach.id, firstName: coach.firstName, lastName: coach.lastName, nickname: coach.nickname },
       ]);
       toast.success("Coach retiré de l'équipe");
+      // Appeler onSuccess pour rafraîchir la page parente immédiatement
+      onSuccess();
     } catch (error: any) {
       console.error("Error removing coach:", error);
       toast.error("Erreur lors du retrait du coach");
@@ -241,6 +245,8 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
       await fetchCoaches();
       setAvailableCoaches((prev) => prev.filter((c) => c.id !== coachId));
       toast.success("Coach ajouté à l'équipe");
+      // Appeler onSuccess pour rafraîchir la page parente
+      onSuccess();
     } catch (error: any) {
       console.error("Error adding coach:", error);
       toast.error("Erreur lors de l'ajout du coach");
