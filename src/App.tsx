@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Teams from "./pages/Teams";
+import Coaches from "./pages/Coaches";
 import Auth from "./pages/Auth";
 import { DashboardRedirect } from "./components/routing/DashboardRedirect";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/teams" element={<Teams />} />
             <Route path="/teams/:id" element={<TeamDetail />} />
             <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />
+            <Route path="/coaches" element={<Coaches />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="/evaluations" element={<Evaluations />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
