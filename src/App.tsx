@@ -18,6 +18,7 @@ import ClubDetail from "./pages/ClubDetail";
 import TeamDetail from "./pages/TeamDetail";
 import PlayerDetail from "./pages/PlayerDetail";
 import FrameworkEditor from "./pages/FrameworkEditor";
+import ClubFrameworkEditor from "./pages/ClubFrameworkEditor";
 import Evaluations from "./pages/Evaluations";
 import PendingApproval from "./pages/PendingApproval";
 import RoleApprovals from "./pages/RoleApprovals";
@@ -48,6 +49,7 @@ const App = () => (
             
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubDetail />} />
+            <Route path="/clubs/:clubId/framework" element={<ClubFrameworkEditor />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/teams/:id" element={<TeamDetail />} />
             <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />

@@ -227,7 +227,10 @@ export default function ClubDetail() {
           </div>
           
           {clubFramework ? (
-            <Card className="border-primary/20 bg-primary/5">
+            <Card 
+              className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
+              onClick={() => navigate(`/clubs/${club.id}/framework`)}
+            >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -245,9 +248,13 @@ export default function ClubDetail() {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => setShowFrameworkModal(true)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/clubs/${club.id}/framework`);
+                      }}
                     >
-                      Modifier
+                      <Edit className="w-4 h-4 mr-2" />
+                      Consulter / Modifier
                     </Button>
                   </div>
                 </div>
