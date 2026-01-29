@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,16 @@ import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Club {
   id: string;
@@ -36,6 +46,8 @@ export default function ClubDetail() {
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
@@ -63,7 +75,12 @@ export default function ClubDetail() {
       }
       setClub(clubData);
 
-      const { data: teamsData, error: teamsError } = await supabase.from("teams").select("*").eq("club_id", id).order("name");
+      const { data: teamsData, error: teamsError } = await supabase
+        .from("teams")
+        .select("*")
+        .eq("club_id", id)
+        .is("deleted_at", null)
+        .order("name");
       if (teamsError) throw teamsError;
       setTeams(teamsData || []);
     } catch (error: any) {
@@ -71,6 +88,29 @@ export default function ClubDetail() {
       toast.error("Erreur lors du chargement du club");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteTeam = async () => {
+    if (!teamToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", teamToDelete.id);
+      
+      if (error) throw error;
+      
+      toast.success(`Équipe "${teamToDelete.name}" supprimée`);
+      fetchClubData();
+    } catch (error: any) {
+      console.error("Error deleting team:", error);
+      toast.error("Erreur lors de la suppression de l'équipe");
+    } finally {
+      setIsDeleting(false);
+      setTeamToDelete(null);
     }
   };
 
@@ -116,8 +156,21 @@ export default function ClubDetail() {
       {teams.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {teams.map((team, index) => (
-            <div key={team.id} className="animate-fade-in-up opacity-0" style={{ animationDelay: `${index * 0.1}s` }}>
+            <div key={team.id} className="animate-fade-in-up opacity-0 relative group" style={{ animationDelay: `${index * 0.1}s` }}>
               <CircleAvatar name={team.name} subtitle={team.season || ""} color={team.color || club.primary_color} size="lg" onClick={() => navigate(`/teams/${team.id}`)} />
+              {canManageClub && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 border border-border"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTeamToDelete({ id: team.id, name: team.name });
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           ))}
         </div>
@@ -132,6 +185,29 @@ export default function ClubDetail() {
 
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer l'équipe</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'équipe "{teamToDelete?.name}" ? 
+              Cette action désactivera l'équipe mais conservera les données.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTeam}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
