@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
+import { CreateClubFrameworkModal } from "@/components/modals/CreateClubFrameworkModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -41,6 +43,12 @@ interface Team {
   deleted_at: string | null;
 }
 
+interface ClubFramework {
+  id: string;
+  name: string;
+  themes_count: number;
+}
+
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, isAdmin, roles } = useAuth();
@@ -48,9 +56,11 @@ export default function ClubDetail() {
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [archivedTeams, setArchivedTeams] = useState<Team[]>([]);
+  const [clubFramework, setClubFramework] = useState<ClubFramework | null>(null);
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
+  const [showFrameworkModal, setShowFrameworkModal] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -102,6 +112,24 @@ export default function ClubDetail() {
           .order("name");
         if (archivedError) throw archivedError;
         setArchivedTeams(archivedData || []);
+      }
+
+      // Fetch club framework
+      const { data: frameworkData } = await supabase
+        .from("competence_frameworks")
+        .select("id, name, themes:themes(count)")
+        .eq("club_id", id)
+        .eq("is_template", true)
+        .maybeSingle();
+      
+      if (frameworkData) {
+        setClubFramework({
+          id: frameworkData.id,
+          name: frameworkData.name,
+          themes_count: (frameworkData.themes as any)?.[0]?.count || 0,
+        });
+      } else {
+        setClubFramework(null);
       }
     } catch (error: any) {
       console.error("Error fetching club:", error);
@@ -190,6 +218,60 @@ export default function ClubDetail() {
           )}
         </div>
       </div>
+
+      {/* Club Framework Section */}
+      {canManageClub && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-display font-semibold">Référentiel du Club</h2>
+          </div>
+          
+          {clubFramework ? (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{clubFramework.name}</CardTitle>
+                      <CardDescription>
+                        {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowFrameworkModal(true)}
+                    >
+                      Modifier
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <BookOpen className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium mb-1">Aucun référentiel</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Créez un référentiel de compétences pour le club
+                </p>
+                <Button className="gap-2" onClick={() => setShowFrameworkModal(true)}>
+                  <Plus className="w-4 h-4" />
+                  Créer le référentiel
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Admin Toggle for Archived Teams */}
       {isAdmin && archivedTeams.length > 0 && (
@@ -296,6 +378,7 @@ export default function ClubDetail() {
 
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
+      <CreateClubFrameworkModal open={showFrameworkModal} onOpenChange={setShowFrameworkModal} clubId={club.id} onSuccess={fetchClubData} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
