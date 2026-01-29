@@ -21,6 +21,8 @@ interface Team {
   id: string;
   name: string;
   season: string | null;
+  hasReferent: boolean; // true si un autre coach est déjà référent
+  referentName?: string; // nom du référent actuel
 }
 
 interface TeamAssignment {
@@ -97,14 +99,48 @@ export const EditCoachModal = ({
         query = query.eq("club_id", clubId);
       }
 
-      const { data, error } = await query;
+      const { data: teamsData, error } = await query;
 
       if (error) throw error;
 
-      setTeams(data || []);
+      // Récupérer les coachs référents actuels pour chaque équipe (sauf le coach en cours d'édition)
+      const teamIds = (teamsData || []).map((t) => t.id);
+      
+      let referentsMap: Record<string, string> = {};
+      
+      if (teamIds.length > 0) {
+        const { data: referents } = await supabase
+          .from("team_members")
+          .select(`
+            team_id,
+            profiles:user_id (first_name, last_name)
+          `)
+          .in("team_id", teamIds)
+          .eq("member_type", "coach")
+          .eq("coach_role", "referent")
+          .eq("is_active", true)
+          .neq("user_id", coach.id); // Exclure le coach en cours d'édition
+
+        if (referents) {
+          referents.forEach((r) => {
+            const profile = r.profiles as any;
+            if (profile) {
+              referentsMap[r.team_id] = `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || "Un autre coach";
+            }
+          });
+        }
+      }
+
+      const teamsWithReferents: Team[] = (teamsData || []).map((team) => ({
+        ...team,
+        hasReferent: !!referentsMap[team.id],
+        referentName: referentsMap[team.id],
+      }));
+
+      setTeams(teamsWithReferents);
 
       // Initialiser les assignments avec l'état actuel
-      const assignments: TeamAssignment[] = (data || []).map((team) => {
+      const assignments: TeamAssignment[] = teamsWithReferents.map((team) => {
         const existingAssignment = coach.assignments.find(
           (a) => a.team_id === team.id
         );
@@ -417,17 +453,26 @@ export const EditCoachModal = ({
                           </button>
                           <button
                             type="button"
-                            onClick={() => setTeamRole(team.id, "referent")}
+                            onClick={() => !team.hasReferent && setTeamRole(team.id, "referent")}
+                            disabled={team.hasReferent}
+                            title={team.hasReferent ? `Référent actuel : ${team.referentName}` : undefined}
                             className={cn(
                               "px-3 py-1.5 text-xs font-medium transition-colors border-l",
                               role === "referent"
                                 ? "bg-primary text-primary-foreground"
+                                : team.hasReferent
+                                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
                                 : "bg-background hover:bg-muted"
                             )}
                           >
                             Référent
                           </button>
                         </div>
+                        {team.hasReferent && isAssigned && role === "assistant" && (
+                          <span className="text-[10px] text-muted-foreground ml-1 whitespace-nowrap">
+                            Réf: {team.referentName}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
