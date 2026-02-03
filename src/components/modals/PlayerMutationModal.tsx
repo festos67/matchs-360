@@ -110,18 +110,43 @@ export const PlayerMutationModal = ({
 
       if (archiveError) throw archiveError;
 
-      // 3. Create new team membership
-      const { error: createError } = await supabase
+      // 3. Check if there's an existing archived membership in destination team
+      const { data: existingMembership } = await supabase
         .from("team_members")
-        .insert({
-          user_id: playerId,
-          team_id: selectedTeamId,
-          member_type: "player",
-          is_active: true,
-          joined_at: new Date().toISOString(),
-        });
+        .select("id")
+        .eq("user_id", playerId)
+        .eq("team_id", selectedTeamId)
+        .eq("member_type", "player")
+        .eq("is_active", false)
+        .maybeSingle();
 
-      if (createError) throw createError;
+      if (existingMembership) {
+        // Reactivate existing membership
+        const { error: reactivateError } = await supabase
+          .from("team_members")
+          .update({
+            is_active: true,
+            left_at: null,
+            archived_reason: null,
+            joined_at: new Date().toISOString(),
+          })
+          .eq("id", existingMembership.id);
+
+        if (reactivateError) throw reactivateError;
+      } else {
+        // Create new team membership
+        const { error: createError } = await supabase
+          .from("team_members")
+          .insert({
+            user_id: playerId,
+            team_id: selectedTeamId,
+            member_type: "player",
+            is_active: true,
+            joined_at: new Date().toISOString(),
+          });
+
+        if (createError) throw createError;
+      }
 
       const newTeam = teams.find((t) => t.id === selectedTeamId);
       toast.success(`${playerName} a été muté vers ${newTeam?.name}`, {
