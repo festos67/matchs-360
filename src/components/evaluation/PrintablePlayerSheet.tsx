@@ -67,6 +67,30 @@ const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
   5: { icon: Sparkles, label: "Expert" },
 };
 
+// Affiche juste l'icône smiley (pour les moyennes)
+const AverageIcon = ({ score, size = "md" }: { score: number | null; size?: "sm" | "md" | "lg" }) => {
+  const value = score ? Math.round(score) : 0;
+  
+  if (value === 0) {
+    return <span className="text-gray-400">-</span>;
+  }
+  
+  const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
+  const IconComponent = levelData.icon;
+  
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-10 h-10",
+  };
+  
+  return (
+    <div className="flex items-center justify-center" title={levelData.label}>
+      <IconComponent className={`${sizeClasses[size]} text-slate-700`} strokeWidth={1.5} />
+    </div>
+  );
+};
+
 // Affiche les étoiles + icône smiley (sans chiffres)
 const StarDisplay = ({ score }: { score: number | null }) => {
   const value = score ? Math.round(score) : 0;
@@ -190,7 +214,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                         }}
                       />
                     </div>
-                    <span className="text-xs font-medium w-8 text-right">{item.score.toFixed(1)}</span>
+                    <AverageIcon score={item.score} size="sm" />
                   </div>
                 ))}
               </div>
@@ -201,19 +225,14 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           <div className="border border-gray-200 rounded-lg p-4">
             <h2 className="text-sm font-semibold text-gray-700 mb-4">Résumé</h2>
             <div className="text-center mb-4">
-              <p
-                className="text-4xl font-bold"
-                style={{ color: club.primary_color }}
-              >
-                {formatAverage(overallAverage || null)}
-              </p>
-              <p className="text-sm text-gray-500">Moyenne générale /5</p>
+              <AverageIcon score={overallAverage || null} size="lg" />
+              <p className="text-sm text-gray-500 mt-2">Niveau global</p>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               {radarData.map((item) => (
                 <div key={item.theme} className="flex items-center justify-between p-1 bg-gray-50 rounded">
                   <span className="truncate">{item.theme}</span>
-                  <span className="font-semibold ml-2">{item.score.toFixed(1)}</span>
+                  <AverageIcon score={item.score} size="sm" />
                 </div>
               ))}
             </div>
@@ -246,9 +265,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                     />
                     <h3 className="font-semibold text-gray-900">{theme.name}</h3>
                   </div>
-                  <span className="font-bold" style={{ color: theme.color || "#3B82F6" }}>
-                    {formatAverage(themeAverage)}/5
-                  </span>
+                  <AverageIcon score={themeAverage} size="md" />
                 </div>
 
                 <div className="border border-t-0 border-gray-200 rounded-b-lg">
