@@ -196,6 +196,7 @@ export type Database = {
           name: string
           notes: string | null
           player_id: string
+          type: Database["public"]["Enums"]["evaluation_type"]
         }
         Insert: {
           coach_id: string
@@ -207,6 +208,7 @@ export type Database = {
           name: string
           notes?: string | null
           player_id: string
+          type?: Database["public"]["Enums"]["evaluation_type"]
         }
         Update: {
           coach_id?: string
@@ -218,6 +220,7 @@ export type Database = {
           name?: string
           notes?: string | null
           player_id?: string
+          type?: Database["public"]["Enums"]["evaluation_type"]
         }
         Relationships: [
           {
@@ -672,6 +675,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
       coach_type: "referent" | "assistant"
+      evaluation_type: "coach_assessment" | "player_self_assessment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -801,6 +805,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "club_admin", "coach", "player", "supporter"],
       coach_type: ["referent", "assistant"],
+      evaluation_type: ["coach_assessment", "player_self_assessment"],
     },
   },
 } as const

@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart, Archive, ArchiveRestore } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart, Archive, ArchiveRestore, Star } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
@@ -58,6 +60,7 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
+  type: "coach_assessment" | "player_self_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -101,6 +104,7 @@ export default function PlayerDetail() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
+  const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
@@ -194,6 +198,7 @@ export default function PlayerDetail() {
           name,
           date,
           deleted_at,
+          type,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
@@ -333,6 +338,56 @@ export default function PlayerDetail() {
   const teamColor = teamMembership?.team?.club?.primary_color || "#3B82F6";
   const comparisonDatasets = getComparisonDatasets();
   const showComparison = comparisonIds.length > 0;
+  
+  // Get latest self-evaluation for comparison
+  const latestSelfEvaluation = evaluations.find(
+    e => e.type === "player_self_assessment" && !e.deleted_at
+  );
+  
+  // Get latest coach evaluation (for the toggle comparison)
+  const latestCoachEvaluation = evaluations.find(
+    e => e.type === "coach_assessment" && !e.deleted_at
+  );
+  
+  // Build datasets for self-evaluation overlay
+  const getSelfEvalOverlayDatasets = () => {
+    const datasets: Array<{
+      id: string;
+      label: string;
+      date: string;
+      data: ReturnType<typeof calculateRadarData>;
+      color: string;
+      isCurrent?: boolean;
+    }> = [];
+
+    // Add coach evaluation as primary
+    if (latestCoachEvaluation) {
+      datasets.push({
+        id: latestCoachEvaluation.id,
+        label: "Évaluation Coach",
+        date: latestCoachEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
+        color: teamColor,
+        isCurrent: true,
+      });
+    }
+
+    // Add self-evaluation as secondary (dashed/yellow)
+    if (latestSelfEvaluation) {
+      datasets.push({
+        id: latestSelfEvaluation.id,
+        label: "Auto-évaluation",
+        date: latestSelfEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
+        color: "#F59E0B", // Amber/Yellow for self-evaluation
+        isCurrent: false,
+      });
+    }
+
+    return datasets;
+  };
+  
+  const hasSelfEvaluation = !!latestSelfEvaluation;
 
   return (
     <AppLayout>
@@ -598,11 +653,32 @@ export default function PlayerDetail() {
                 <div>
                   <h2 className="text-xl font-display font-semibold">Analyse des compétences</h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {selectedEvaluation ? selectedEvaluation.name : "Aucune évaluation"}
-                    {showComparison && ` + ${comparisonIds.length} comparaison(s)`}
+                    {showSelfEvaluation && hasSelfEvaluation 
+                      ? "Comparaison Coach vs Auto-évaluation"
+                      : selectedEvaluation 
+                        ? selectedEvaluation.name 
+                        : "Aucune évaluation"}
+                    {showComparison && !showSelfEvaluation && ` + ${comparisonIds.length} comparaison(s)`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
+                  {/* Self-evaluation toggle (only for coach/admin view) */}
+                  {canEvaluate && hasSelfEvaluation && !showComparison && (
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="self-eval-toggle"
+                        checked={showSelfEvaluation}
+                        onCheckedChange={setShowSelfEvaluation}
+                      />
+                      <Label 
+                        htmlFor="self-eval-toggle" 
+                        className="text-sm cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Star className="w-4 h-4 text-amber-500" />
+                        Auto-évaluation
+                      </Label>
+                    </div>
+                  )}
                   {teamMembership && (
                     <Button 
                       variant="ghost" 
@@ -623,7 +699,12 @@ export default function PlayerDetail() {
               </div>
               
               {radarData.length > 0 ? (
-                showComparison ? (
+                showSelfEvaluation && hasSelfEvaluation ? (
+                  <ComparisonRadar 
+                    datasets={getSelfEvalOverlayDatasets()} 
+                    primaryColor={teamColor}
+                  />
+                ) : showComparison ? (
                   <ComparisonRadar 
                     datasets={comparisonDatasets} 
                     primaryColor={teamColor}
@@ -905,17 +986,25 @@ export default function PlayerDetail() {
                           />
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>{evaluation.name}</p>
+                            {evaluation.type === "player_self_assessment" && (
+                              <Badge className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30 hover:bg-amber-500/30">
+                                <Star className="w-3 h-3 mr-1" />
+                                AUTO
+                              </Badge>
+                            )}
                             {isArchived && (
                               <Badge variant="destructive" className="text-xs">Archivée</Badge>
                             )}
-                            {isCurrent && !isArchived && (
+                            {isCurrent && !isArchived && evaluation.type === "coach_assessment" && (
                               <Badge variant="secondary" className="text-xs">Actuelle</Badge>
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Par {evaluation.coach?.first_name} {evaluation.coach?.last_name} •{" "}
+                            {evaluation.type === "player_self_assessment" 
+                              ? "Auto-évaluation • "
+                              : `Par ${evaluation.coach?.first_name} ${evaluation.coach?.last_name} • `}
                             {new Date(evaluation.date).toLocaleDateString("fr-FR", {
                               day: "numeric",
                               month: "long",

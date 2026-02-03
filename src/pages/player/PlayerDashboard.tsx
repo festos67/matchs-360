@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { ClipboardList, TrendingUp, Calendar, Eye } from "lucide-react";
+import { ClipboardList, TrendingUp, Calendar, Eye, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -170,10 +170,18 @@ const PlayerDashboard = () => {
           />
         </div>
 
-        {/* View full profile button */}
+        {/* Action buttons */}
         {playerId && (
-          <div className="flex justify-center">
-            <Button size="lg" asChild>
+          <div className="flex justify-center gap-4 flex-wrap">
+            {!isSupporter && (
+              <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600" asChild>
+                <Link to="/player/self-evaluation">
+                  <Star className="w-5 h-5 mr-2" />
+                  M'auto-évaluer
+                </Link>
+              </Button>
+            )}
+            <Button size="lg" variant="outline" asChild>
               <Link to={`/players/${playerId}`}>
                 <Eye className="w-5 h-5 mr-2" />
                 Voir mon profil complet

@@ -13,6 +13,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClubDashboard from "./pages/club/ClubDashboard";
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import PlayerDashboard from "./pages/player/PlayerDashboard";
+import SelfEvaluation from "./pages/player/SelfEvaluation";
 import Clubs from "./pages/Clubs";
 import ClubDetail from "./pages/ClubDetail";
 import TeamDetail from "./pages/TeamDetail";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/club/dashboard" element={<ClubDashboard />} />
             <Route path="/coach/dashboard" element={<CoachDashboard />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
+            <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
             
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubDetail />} />
