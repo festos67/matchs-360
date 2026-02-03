@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart, Archive, ArchiveRestore } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -57,6 +57,7 @@ interface Evaluation {
   id: string;
   name: string;
   date: string;
+  deleted_at: string | null;
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -99,6 +100,7 @@ export default function PlayerDetail() {
   const [showMutationModal, setShowMutationModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
+  const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
@@ -184,25 +186,27 @@ export default function PlayerDetail() {
         }
       }
 
-      // Fetch evaluations (excluding soft-deleted)
+      // Fetch evaluations (all, including soft-deleted for filtering later)
       const { data: evalData } = await supabase
         .from("evaluations")
         .select(`
           id,
           name,
           date,
+          deleted_at,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
         `)
         .eq("player_id", id)
-        .is("deleted_at", null)
         .order("date", { ascending: false });
 
       if (evalData) {
         setEvaluations(evalData as Evaluation[]);
-        if (evalData.length > 0) {
-          setSelectedEvaluation(evalData[0] as Evaluation);
+        // Set selected to first non-deleted evaluation
+        const activeEvals = evalData.filter(e => !e.deleted_at);
+        if (activeEvals.length > 0) {
+          setSelectedEvaluation(activeEvals[0] as Evaluation);
         }
       }
     } catch (error: any) {
@@ -773,43 +777,68 @@ export default function PlayerDetail() {
           <div className="glass-card p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-display font-semibold">Historique des évaluations</h2>
-              {comparisonIds.length > 0 && (
-                <Badge variant="secondary" className="gap-2">
-                  <Calendar className="w-3 h-3" />
-                  {comparisonIds.length} sélectionnée(s) pour comparaison
-                </Badge>
-              )}
+              <div className="flex items-center gap-4">
+                {canEvaluate && evaluations.some(e => e.deleted_at) && (
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showArchivedEvaluations}
+                      onChange={(e) => setShowArchivedEvaluations(e.target.checked)}
+                      className="rounded border-muted-foreground/30"
+                    />
+                    <Archive className="w-4 h-4" />
+                    Afficher les archivées
+                  </label>
+                )}
+                {comparisonIds.length > 0 && (
+                  <Badge variant="secondary" className="gap-2">
+                    <Calendar className="w-3 h-3" />
+                    {comparisonIds.length} sélectionnée(s) pour comparaison
+                  </Badge>
+                )}
+              </div>
             </div>
             
-            {evaluations.length > 0 ? (
+            {(() => {
+              const filteredEvaluations = showArchivedEvaluations 
+                ? evaluations 
+                : evaluations.filter(e => !e.deleted_at);
+              const activeEvaluations = evaluations.filter(e => !e.deleted_at);
+              
+              return filteredEvaluations.length > 0 ? (
               <div className="space-y-4">
-                {evaluations.map((evaluation, index) => {
+                {filteredEvaluations.map((evaluation) => {
                   const isSelected = selectedEvaluation?.id === evaluation.id;
                   const isCompared = comparisonIds.includes(evaluation.id);
-                  const isCurrent = index === 0;
+                  const isCurrent = activeEvaluations[0]?.id === evaluation.id;
+                  const isArchived = !!evaluation.deleted_at;
 
                   return (
                     <div
                       key={evaluation.id}
                       className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
-                        isSelected
+                        isArchived
+                          ? "bg-destructive/5 border border-destructive/20 opacity-70"
+                          : isSelected
                           ? "bg-primary/10 border border-primary/30"
                           : isCompared
                           ? "bg-warning/10 border border-warning/30"
                           : "bg-muted/30 hover:bg-muted/50"
                       }`}
                     >
-                      {/* Comparison checkbox */}
+                      {/* Comparison checkbox - disabled for archived */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleComparison(evaluation.id);
+                          if (!isArchived) toggleComparison(evaluation.id);
                         }}
                         className="shrink-0"
-                        disabled={isSelected}
+                        disabled={isSelected || isArchived}
                       >
                         {isCompared ? (
                           <CheckSquare className="w-5 h-5 text-warning" />
+                        ) : isArchived ? (
+                          <Archive className="w-5 h-5 text-destructive/50" />
                         ) : (
                           <Square className={`w-5 h-5 ${isSelected ? "text-muted-foreground/30" : "text-muted-foreground hover:text-foreground"}`} />
                         )}
@@ -840,8 +869,11 @@ export default function PlayerDetail() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{evaluation.name}</p>
-                            {isCurrent && (
+                            <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>{evaluation.name}</p>
+                            {isArchived && (
+                              <Badge variant="destructive" className="text-xs">Archivée</Badge>
+                            )}
+                            {isCurrent && !isArchived && (
                               <Badge variant="secondary" className="text-xs">Actuelle</Badge>
                             )}
                           </div>
@@ -880,7 +912,7 @@ export default function PlayerDetail() {
                           </p>
                           <p className="text-xs text-muted-foreground">/5</p>
                         </div>
-                        {canEvaluate && (
+                        {canEvaluate && !isArchived && (
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
@@ -942,6 +974,33 @@ export default function PlayerDetail() {
                             </AlertDialog>
                           </div>
                         )}
+                        {canEvaluate && isArchived && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2 text-success border-success/30 hover:bg-success/10"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const { error } = await supabase
+                                  .from("evaluations")
+                                  .update({ deleted_at: null })
+                                  .eq("id", evaluation.id);
+                                
+                                if (error) throw error;
+                                
+                                toast.success("Évaluation restaurée");
+                                fetchPlayerData();
+                              } catch (error: any) {
+                                console.error("Error restoring evaluation:", error);
+                                toast.error("Erreur lors de la restauration");
+                              }
+                            }}
+                          >
+                            <ArchiveRestore className="w-4 h-4" />
+                            Restaurer
+                          </Button>
+                        )}
                       </div>
                     </div>
                   );
@@ -949,11 +1008,12 @@ export default function PlayerDetail() {
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                Aucune évaluation enregistrée
+                {showArchivedEvaluations ? "Aucune évaluation enregistrée" : "Aucune évaluation active"}
               </div>
-            )}
+            );
+            })()}
 
-            {evaluations.length > 1 && (
+            {evaluations.filter(e => !e.deleted_at).length > 1 && (
               <div className="mt-6 p-4 bg-muted/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   💡 <strong>Astuce:</strong> Cochez les évaluations que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
