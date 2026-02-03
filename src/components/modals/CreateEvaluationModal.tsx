@@ -146,6 +146,37 @@ export const CreateEvaluationModal = ({
 
   const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
 
+  const generateUniqueName = async (baseName: string, playerId: string): Promise<string> => {
+    // Check if an evaluation with this name already exists for this player
+    const { data: existingEvaluations } = await supabase
+      .from("evaluations")
+      .select("name")
+      .eq("player_id", playerId)
+      .ilike("name", `${baseName}%`);
+
+    if (!existingEvaluations || existingEvaluations.length === 0) {
+      return baseName;
+    }
+
+    // Check if the exact name exists
+    const exactMatch = existingEvaluations.some(e => e.name === baseName);
+    if (!exactMatch) {
+      return baseName;
+    }
+
+    // Generate unique name with number and date
+    const today = new Date().toLocaleDateString("fr-FR");
+    let counter = 2;
+    let uniqueName = `${baseName} #${counter} - ${today}`;
+
+    while (existingEvaluations.some(e => e.name === uniqueName)) {
+      counter++;
+      uniqueName = `${baseName} #${counter} - ${today}`;
+    }
+
+    return uniqueName;
+  };
+
   const onSubmit = async (data: EvaluationFormData) => {
     if (!user) return;
 
@@ -164,11 +195,14 @@ export const CreateEvaluationModal = ({
         return;
       }
 
+      // Generate unique name if needed
+      const uniqueName = await generateUniqueName(data.name, data.playerId);
+
       // Create the evaluation
       const { data: evaluation, error } = await supabase
         .from("evaluations")
         .insert({
-          name: data.name,
+          name: uniqueName,
           player_id: data.playerId,
           coach_id: user.id,
           framework_id: framework.id,
