@@ -219,7 +219,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
         </div>
 
-        {/* Detailed Scores */}
+        {/* Page break for print */}
+        <div className="break-before-page" />
+
+        {/* Page 2: Detailed Scores */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-2">
             Détail des compétences
