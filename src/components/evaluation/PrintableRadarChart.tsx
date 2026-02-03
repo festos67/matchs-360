@@ -9,11 +9,9 @@ interface PrintableRadarChartProps {
 }
 
 export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
-  // Large viewBox for maximum label space
   const viewBoxSize = 500;
   const center = viewBoxSize / 2;
-  // 85-90% of available space (leaving room for labels)
-  const radius = 170; // Large radius for poster effect
+  const radius = 160;
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
 
@@ -43,10 +41,10 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
       .join(" ");
   };
 
-  // Calculate label positions - proportional to large radius
+  // Calculate label positions
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const r = radius + 65; // Pushed out for large labels
+    const r = radius + 50;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
     return { x, y, angle };
@@ -61,6 +59,15 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
     return { x, y };
   };
 
+  // Get level label position on axis
+  const getLevelLabelPosition = (level: number) => {
+    const angle = -Math.PI / 2; // Top axis
+    const r = (radius * level) / levels;
+    const x = center + r * Math.cos(angle) + 12;
+    const y = center + r * Math.sin(angle);
+    return { x, y };
+  };
+
   return (
     <svg 
       width="100%" 
@@ -68,7 +75,7 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
       viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} 
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Background grid levels */}
+      {/* Background grid levels - light gray lines */}
       {[1, 2, 3, 4, 5].map((level) => (
         <polygon
           key={level}
@@ -76,11 +83,10 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
           fill="none"
           stroke="#e5e7eb"
           strokeWidth="1"
-          strokeDasharray={level < 5 ? "3,3" : "0"}
         />
       ))}
 
-      {/* Axis lines */}
+      {/* Axis lines from center */}
       {data.map((_, index) => {
         const angle = index * angleStep - Math.PI / 2;
         const x2 = center + radius * Math.cos(angle);
@@ -98,12 +104,29 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
         );
       })}
 
-      {/* Data polygon fill */}
+      {/* Level labels on first axis (0-5) */}
+      {[1, 2, 3, 4, 5].map((level) => {
+        const { x, y } = getLevelLabelPosition(level);
+        return (
+          <text
+            key={level}
+            x={x}
+            y={y}
+            fontSize="12"
+            fill="#9ca3af"
+            dominantBaseline="middle"
+          >
+            {level}
+          </text>
+        );
+      })}
+
+      {/* Data polygon fill - coral/red like the reference */}
       <polygon
         points={getDataPolygonPoints()}
-        fill="rgba(59, 130, 246, 0.3)"
-        stroke="#3B82F6"
-        strokeWidth="2.5"
+        fill="rgba(239, 68, 68, 0.6)"
+        stroke="#EF4444"
+        strokeWidth="2"
       />
 
       {/* Data points */}
@@ -114,42 +137,33 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
             key={index}
             cx={x}
             cy={y}
-            r="6"
-            fill={item.color}
+            r="5"
+            fill="#EF4444"
             stroke="white"
             strokeWidth="2"
           />
         );
       })}
 
-      {/* Labels with colored dots */}
+      {/* Labels with theme colors */}
       {data.map((item, index) => {
         const { x, y } = getLabelPosition(index);
         const textAnchor =
           x < center - 20 ? "end" : x > center + 20 ? "start" : "middle";
 
         return (
-          <g key={index}>
-            {/* Colored indicator dot */}
-            <circle
-              cx={textAnchor === "end" ? x + 8 : textAnchor === "start" ? x - 8 : x}
-              cy={y - 12}
-              r="5"
-              fill={item.color}
-            />
-            {/* Theme name - large font for poster effect */}
-            <text
-              x={x}
-              y={y + 4}
-              textAnchor={textAnchor}
-              dominantBaseline="middle"
-              fontSize="18"
-              fill="#111827"
-              fontWeight="700"
-            >
-              {item.theme}
-            </text>
-          </g>
+          <text
+            key={index}
+            x={x}
+            y={y}
+            textAnchor={textAnchor}
+            dominantBaseline="middle"
+            fontSize="14"
+            fill={item.color}
+            fontWeight="500"
+          >
+            {item.theme}
+          </text>
         );
       })}
     </svg>

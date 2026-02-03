@@ -164,10 +164,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         className="bg-white text-black p-10 w-[210mm] min-h-[297mm] mx-auto"
         style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
       >
-        {/* Page 1: Poster Layout - Vertical Stack */}
+        {/* Page 1: Radar + Theme Details - Like the reference screenshot */}
         <div className="h-[277mm] flex flex-col">
-          {/* Compact Header */}
-          <div className="flex items-center justify-between pb-4 border-b-2 border-gray-300">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-4 border-b-2 border-gray-300 mb-6">
             <div className="flex items-center gap-4">
               {club.logo_url ? (
                 <img src={club.logo_url} alt={club.name} className="w-14 h-14 object-contain" />
@@ -194,63 +194,75 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
           </div>
 
-          {/* Zone 1: Giant Radar Chart (~60% of page) */}
-          <div className="flex-1 flex items-center justify-center py-4" style={{ minHeight: '380px' }}>
-            <div className="w-full h-full max-w-[500px] max-h-[500px]">
-              <PrintableRadarChart data={radarData} />
+          {/* Main content: 2 columns like the reference */}
+          <div className="flex-1 grid grid-cols-5 gap-8">
+            {/* Left Column: Radar Chart (60%) */}
+            <div className="col-span-3 flex flex-col">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">Analyse des compétences</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                {evaluation.name} - {new Date(evaluation.date).toLocaleDateString("fr-FR")}
+              </p>
+              
+              {/* Large Radar Chart */}
+              <div className="flex-1 flex items-center justify-center">
+                <div className="w-full h-full max-w-[450px] max-h-[450px]">
+                  <PrintableRadarChart data={radarData} />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Zone 2: Global Score - Transition Element */}
-          <div className="flex items-center justify-center py-4 border-y border-gray-200">
-            <div className="flex items-center gap-6">
-              <GlobalAverageIcon score={overallAverage || null} />
-              <div>
-                <p className="text-xl font-bold text-gray-900">Niveau Global</p>
-                <p className="text-lg text-gray-600">{formatAverage(overallAverage)}/5</p>
+            {/* Right Column: Theme Details with Progress Bars (40%) */}
+            <div className="col-span-2 flex flex-col">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Détail par thématique</h2>
+              
+              <div className="space-y-5">
+                {radarData.map((item) => (
+                  <div key={item.theme}>
+                    {/* Theme header with score */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full" 
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="text-base font-medium text-gray-900">{item.theme}</span>
+                      </div>
+                      <span className="text-base font-bold text-gray-700">
+                        {item.score.toFixed(1)}/5
+                      </span>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${(item.score / 5) * 100}%`,
+                          backgroundColor: item.color 
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Global score at bottom */}
+              <div className="mt-auto pt-8 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-bold text-gray-900">Niveau Global</p>
+                    <p className="text-2xl font-bold" style={{ color: LEVEL_COLORS[Math.round(overallAverage)] || LEVEL_COLORS[3] }}>
+                      {formatAverage(overallAverage)}/5
+                    </p>
+                  </div>
+                  <GlobalAverageIcon score={overallAverage || null} />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Zone 3: Theme Score Cards Grid */}
-          <div className="py-4">
-            <div className="grid grid-cols-3 gap-3">
-              {radarData.map((item) => {
-                const score = Math.round(item.score);
-                const levelData = LEVEL_ICONS[score] || LEVEL_ICONS[1];
-                const IconComponent = levelData.icon;
-                const iconColor = LEVEL_COLORS[score] || LEVEL_COLORS[1];
-                
-                return (
-                  <div 
-                    key={item.theme} 
-                    className="flex items-center gap-3 p-3 rounded-xl border-2"
-                    style={{ 
-                      borderColor: item.color,
-                      backgroundColor: `${item.color}10`
-                    }}
-                  >
-                    <div 
-                      className="w-4 h-4 rounded-full flex-shrink-0" 
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{item.theme}</p>
-                      <p className="text-xs text-gray-500">{item.score.toFixed(1)}/5</p>
-                    </div>
-                    <IconComponent 
-                      className="w-8 h-8 flex-shrink-0" 
-                      style={{ color: iconColor }} 
-                      strokeWidth={1.5} 
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Page 1 Footer */}
-          <div className="pt-3 border-t border-gray-200 text-center text-xs text-gray-400">
+          <div className="pt-4 border-t border-gray-200 text-center text-xs text-gray-400 mt-6">
             <p>Page 1/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
           </div>
         </div>
