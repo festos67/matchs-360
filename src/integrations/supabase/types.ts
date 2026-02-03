@@ -190,6 +190,7 @@ export type Database = {
           coach_id: string
           created_at: string
           date: string
+          deleted_at: string | null
           framework_id: string
           id: string
           name: string
@@ -200,6 +201,7 @@ export type Database = {
           coach_id: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           framework_id: string
           id?: string
           name: string
@@ -210,6 +212,7 @@ export type Database = {
           coach_id?: string
           created_at?: string
           date?: string
+          deleted_at?: string | null
           framework_id?: string
           id?: string
           name?: string
