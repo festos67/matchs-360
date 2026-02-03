@@ -9,9 +9,9 @@ interface PrintableRadarChartProps {
   size?: number;
 }
 
-export const PrintableRadarChart = ({ data, size = 200 }: PrintableRadarChartProps) => {
+export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartProps) => {
   const center = size / 2;
-  const radius = size * 0.4;
+  const radius = size * 0.32; // Reduced to leave more space for labels
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
 
@@ -41,13 +41,13 @@ export const PrintableRadarChart = ({ data, size = 200 }: PrintableRadarChartPro
       .join(" ");
   };
 
-  // Calculate label positions
+  // Calculate label positions - pushed further out
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const r = radius + 20;
+    const r = radius + 35;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
-    return { x, y };
+    return { x, y, angle };
   };
 
   // Calculate dot positions
@@ -107,51 +107,47 @@ export const PrintableRadarChart = ({ data, size = 200 }: PrintableRadarChartPro
             key={index}
             cx={x}
             cy={y}
-            r="4"
+            r="5"
             fill={item.color}
             stroke="white"
-            strokeWidth="1"
+            strokeWidth="2"
           />
         );
       })}
 
-      {/* Labels */}
+      {/* Labels with colored dots */}
       {data.map((item, index) => {
         const { x, y } = getLabelPosition(index);
         const textAnchor =
           x < center - 10 ? "end" : x > center + 10 ? "start" : "middle";
-        const truncatedName =
-          item.theme.length > 12 ? item.theme.slice(0, 12) + "..." : item.theme;
+        
+        // Show full name, max ~20 chars
+        const displayName = item.theme.length > 20 
+          ? item.theme.slice(0, 18) + "..." 
+          : item.theme;
 
         return (
-          <text
-            key={index}
-            x={x}
-            y={y}
-            textAnchor={textAnchor}
-            dominantBaseline="middle"
-            fontSize="9"
-            fill="#374151"
-            fontWeight="500"
-          >
-            {truncatedName}
-          </text>
-        );
-      })}
-
-      {/* Level labels */}
-      {[1, 2, 3, 4, 5].map((level) => {
-        const y = center - (radius * level) / levels;
-        return (
-          <text
-            key={level}
-            x={center + 3}
-            y={y + 3}
-            fontSize="7"
-            fill="#9ca3af"
-          >
-            {level}
-          </text>
+          <g key={index}>
+            {/* Colored indicator dot */}
+            <circle
+              cx={textAnchor === "end" ? x + 6 : textAnchor === "start" ? x - 6 : x}
+              cy={y - 8}
+              r="4"
+              fill={item.color}
+            />
+            {/* Theme name */}
+            <text
+              x={x}
+              y={y + 2}
+              textAnchor={textAnchor}
+              dominantBaseline="middle"
+              fontSize="11"
+              fill="#1f2937"
+              fontWeight="600"
+            >
+              {displayName}
+            </text>
+          </g>
         );
       })}
     </svg>
