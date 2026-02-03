@@ -6,6 +6,7 @@ import {
   formatAverage,
   type ThemeScores 
 } from "@/lib/evaluation-utils";
+import { PrintableRadarChart } from "./PrintableRadarChart";
 
 interface Theme {
   id: string;
@@ -194,33 +195,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
         {/* Summary Section */}
         <div className="grid grid-cols-2 gap-6 mb-6">
-          {/* Radar visualization (placeholder - actual radar needs SVG export) */}
+          {/* Radar visualization */}
           <div className="border border-gray-200 rounded-lg p-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Vue globale des compétences</h2>
-            <div className="relative">
-              {/* Simple bar representation for print */}
-              <div className="space-y-2">
-                {radarData.map((item) => (
-                  <div key={item.theme} className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span className="text-xs w-28 truncate">{item.theme}</span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${(item.score / 5) * 100}%`,
-                          backgroundColor: item.color,
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs font-medium w-8 text-right">{item.score.toFixed(1)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <h2 className="text-sm font-semibold text-gray-700 mb-2">Vue globale des compétences</h2>
+            <PrintableRadarChart data={radarData} size={220} />
           </div>
 
           {/* Score summary */}
