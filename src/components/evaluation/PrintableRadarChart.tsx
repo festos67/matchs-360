@@ -9,10 +9,11 @@ interface PrintableRadarChartProps {
 }
 
 export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
-  // Use a larger viewBox to fit labels, actual render size controlled by container
-  const viewBoxSize = 400;
+  // Large viewBox for maximum label space
+  const viewBoxSize = 500;
   const center = viewBoxSize / 2;
-  const radius = 100; // Fixed small radius to leave lots of room for labels
+  // 85-90% of available space (leaving room for labels)
+  const radius = 170; // Large radius for poster effect
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
 
@@ -42,10 +43,10 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
       .join(" ");
   };
 
-  // Calculate label positions - pushed much further out
+  // Calculate label positions - proportional to large radius
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const r = radius + 55;
+    const r = radius + 65; // Pushed out for large labels
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
     return { x, y, angle };
@@ -63,7 +64,7 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
   return (
     <svg 
       width="100%" 
-      height="320" 
+      height="100%" 
       viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} 
       preserveAspectRatio="xMidYMid meet"
     >
@@ -136,15 +137,15 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
               r="5"
               fill={item.color}
             />
-            {/* Theme name - full name, larger font */}
+            {/* Theme name - large font for poster effect */}
             <text
               x={x}
               y={y + 4}
               textAnchor={textAnchor}
               dominantBaseline="middle"
-              fontSize="14"
+              fontSize="18"
               fill="#111827"
-              fontWeight="600"
+              fontWeight="700"
             >
               {item.theme}
             </text>
