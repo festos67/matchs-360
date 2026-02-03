@@ -161,61 +161,86 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
     return (
       <div
         ref={ref}
-        className="bg-white text-black p-8 w-[210mm] min-h-[297mm] mx-auto"
+        className="bg-white text-black p-10 w-[210mm] min-h-[297mm] mx-auto"
         style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6 pb-4 border-b-2 border-gray-200">
-          <div className="flex items-center gap-4">
-            {club.logo_url ? (
-              <img src={club.logo_url} alt={club.name} className="w-16 h-16 object-contain" />
-            ) : (
-              <div
-                className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-                style={{ backgroundColor: club.primary_color }}
-              >
-                {club.name.slice(0, 2).toUpperCase()}
-              </div>
-            )}
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{getPlayerName()}</h1>
-              <p className="text-gray-600">{team.name} • {club.name}</p>
-            </div>
-          </div>
-          <div className="text-right text-sm text-gray-600">
-            <p className="font-semibold text-gray-900">{evaluation.name}</p>
-            <p>Évalué par {getCoachName()}</p>
-            <p>{new Date(evaluation.date).toLocaleDateString("fr-FR", {
-              day: "numeric",
-              month: "long",
-              year: "numeric"
-            })}</p>
-          </div>
-        </div>
-
-        {/* Summary Section */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          {/* Radar visualization */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-2">Vue globale des compétences</h2>
-            <PrintableRadarChart data={radarData} />
-          </div>
-
-          {/* Score summary */}
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Résumé</h2>
-            <div className="text-center mb-4">
-              <GlobalAverageIcon score={overallAverage || null} />
-              <p className="text-sm text-gray-500 mt-2">Niveau global</p>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {radarData.map((item) => (
-                <div key={item.theme} className="flex items-center justify-between p-1 bg-gray-50 rounded">
-                  <span className="truncate">{item.theme}</span>
-                  <span className="font-semibold ml-2">{item.score.toFixed(1)}</span>
+        {/* Page 1: Header + Summary */}
+        <div className="h-[277mm] flex flex-col">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-8 pb-6 border-b-2 border-gray-300">
+            <div className="flex items-center gap-6">
+              {club.logo_url ? (
+                <img src={club.logo_url} alt={club.name} className="w-20 h-20 object-contain" />
+              ) : (
+                <div
+                  className="w-20 h-20 rounded-xl flex items-center justify-center text-white font-bold text-2xl"
+                  style={{ backgroundColor: club.primary_color }}
+                >
+                  {club.name.slice(0, 2).toUpperCase()}
                 </div>
-              ))}
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">{getPlayerName()}</h1>
+                <p className="text-lg text-gray-600 mt-1">{team.name} • {club.name}</p>
+              </div>
             </div>
+            <div className="text-right">
+              <p className="font-bold text-xl text-gray-900">{evaluation.name}</p>
+              <p className="text-base text-gray-600 mt-1">Évalué par {getCoachName()}</p>
+              <p className="text-base text-gray-500">{new Date(evaluation.date).toLocaleDateString("fr-FR", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+              })}</p>
+            </div>
+          </div>
+
+          {/* Summary Section - Full page content */}
+          <div className="flex-1 grid grid-cols-2 gap-8">
+            {/* Radar visualization */}
+            <div className="border-2 border-gray-200 rounded-xl p-6 flex flex-col">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Vue globale des compétences</h2>
+              <div className="flex-1 flex items-center justify-center">
+                <PrintableRadarChart data={radarData} />
+              </div>
+            </div>
+
+            {/* Score summary */}
+            <div className="border-2 border-gray-200 rounded-xl p-6 flex flex-col">
+              <h2 className="text-lg font-bold text-gray-800 mb-6">Résumé de l'évaluation</h2>
+              
+              {/* Global score */}
+              <div className="text-center mb-8 py-4">
+                <GlobalAverageIcon score={overallAverage || null} />
+                <p className="text-base text-gray-600 mt-3 font-medium">Niveau global</p>
+              </div>
+              
+              {/* Theme scores */}
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Scores par thème</h3>
+                <div className="space-y-3">
+                  {radarData.map((item) => (
+                    <div key={item.theme} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="text-base font-medium text-gray-800">{item.theme}</span>
+                      </div>
+                      <span className="text-lg font-bold" style={{ color: item.color }}>
+                        {item.score.toFixed(1)}/5
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Page 1 Footer */}
+          <div className="mt-6 pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
+            <p>Page 1/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
           </div>
         </div>
 
@@ -311,9 +336,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           })}
         </div>
 
-        {/* Footer */}
+        {/* Page 2 Footer */}
         <div className="mt-8 pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
-          <p>Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
+          <p>Page 2/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
         </div>
       </div>
     );
