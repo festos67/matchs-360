@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart } from "lucide-react";
+import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart, Archive, ArchiveRestore } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
