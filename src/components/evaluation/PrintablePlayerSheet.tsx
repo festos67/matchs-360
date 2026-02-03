@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Star, Meh, CircleDot, Smile, SmilePlus, Sparkles, type LucideIcon } from "lucide-react";
+import { Star, Meh, Smile, SmilePlus, Laugh, Sparkles, type LucideIcon } from "lucide-react";
 import { 
   calculateRadarData, 
   calculateThemeAverage, 
@@ -59,12 +59,13 @@ interface PrintablePlayerSheetProps {
 }
 
 // Mapping des icônes de visage selon le niveau (approche bienveillante)
+// Tous sont de vrais visages expressifs pour une meilleure lisibilité
 const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
   1: { icon: Meh, label: "En cours d'acquisition" },
-  2: { icon: CircleDot, label: "En progression" },
-  3: { icon: Smile, label: "Maîtrisé" },
-  4: { icon: SmilePlus, label: "Confirmé" },
-  5: { icon: Sparkles, label: "Expert" },
+  2: { icon: Smile, label: "En progression" },
+  3: { icon: SmilePlus, label: "Maîtrisé" },
+  4: { icon: Laugh, label: "Confirmé" },
+  5: { icon: Laugh, label: "Expert" },
 };
 
 // Affiche juste l'icône smiley (pour les moyennes)
@@ -77,6 +78,7 @@ const AverageIcon = ({ score, size = "md" }: { score: number | null; size?: "sm"
   
   const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
   const IconComponent = levelData.icon;
+  const isExpert = value === 5;
   
   const sizeClasses = {
     sm: "w-4 h-4",
@@ -84,9 +86,16 @@ const AverageIcon = ({ score, size = "md" }: { score: number | null; size?: "sm"
     lg: "w-10 h-10",
   };
   
+  const sparkleSizes = {
+    sm: "w-3 h-3",
+    md: "w-4 h-4",
+    lg: "w-6 h-6",
+  };
+  
   return (
-    <div className="flex items-center justify-center" title={levelData.label}>
+    <div className="flex items-center justify-center gap-0.5" title={levelData.label}>
       <IconComponent className={`${sizeClasses[size]} text-slate-700`} strokeWidth={1.5} />
+      {isExpert && <Sparkles className={`${sparkleSizes[size]} text-amber-500`} strokeWidth={1.5} />}
     </div>
   );
 };
@@ -101,6 +110,7 @@ const StarDisplay = ({ score }: { score: number | null }) => {
   
   const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
   const IconComponent = levelData.icon;
+  const isExpert = value === 5;
   
   return (
     <div className="flex items-center gap-1" title={levelData.label}>
@@ -113,6 +123,7 @@ const StarDisplay = ({ score }: { score: number | null }) => {
         />
       ))}
       <IconComponent className="w-4 h-4 ml-1 text-slate-600" strokeWidth={1.5} />
+      {isExpert && <Sparkles className="w-3 h-3 text-amber-500" strokeWidth={1.5} />}
     </div>
   );
 };
