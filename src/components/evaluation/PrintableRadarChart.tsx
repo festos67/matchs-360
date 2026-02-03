@@ -6,12 +6,13 @@ interface RadarDataPoint {
 
 interface PrintableRadarChartProps {
   data: RadarDataPoint[];
-  size?: number;
 }
 
-export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartProps) => {
-  const center = size / 2;
-  const radius = size * 0.32; // Reduced to leave more space for labels
+export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
+  // Use a larger viewBox to fit labels, actual render size controlled by container
+  const viewBoxSize = 400;
+  const center = viewBoxSize / 2;
+  const radius = 100; // Fixed small radius to leave lots of room for labels
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
 
@@ -41,10 +42,10 @@ export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartPro
       .join(" ");
   };
 
-  // Calculate label positions - pushed further out
+  // Calculate label positions - pushed much further out
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const r = radius + 35;
+    const r = radius + 55;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
     return { x, y, angle };
@@ -60,7 +61,12 @@ export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartPro
   };
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
+    <svg 
+      width="100%" 
+      height="260" 
+      viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} 
+      preserveAspectRatio="xMidYMid meet"
+    >
       {/* Background grid levels */}
       {[1, 2, 3, 4, 5].map((level) => (
         <polygon
@@ -69,7 +75,7 @@ export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartPro
           fill="none"
           stroke="#e5e7eb"
           strokeWidth="1"
-          strokeDasharray={level < 5 ? "2,2" : "0"}
+          strokeDasharray={level < 5 ? "3,3" : "0"}
         />
       ))}
 
@@ -94,9 +100,9 @@ export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartPro
       {/* Data polygon fill */}
       <polygon
         points={getDataPolygonPoints()}
-        fill="rgba(59, 130, 246, 0.25)"
+        fill="rgba(59, 130, 246, 0.3)"
         stroke="#3B82F6"
-        strokeWidth="2"
+        strokeWidth="2.5"
       />
 
       {/* Data points */}
@@ -107,7 +113,7 @@ export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartPro
             key={index}
             cx={x}
             cy={y}
-            r="5"
+            r="6"
             fill={item.color}
             stroke="white"
             strokeWidth="2"
@@ -119,33 +125,28 @@ export const PrintableRadarChart = ({ data, size = 280 }: PrintableRadarChartPro
       {data.map((item, index) => {
         const { x, y } = getLabelPosition(index);
         const textAnchor =
-          x < center - 10 ? "end" : x > center + 10 ? "start" : "middle";
-        
-        // Show full name, max ~20 chars
-        const displayName = item.theme.length > 20 
-          ? item.theme.slice(0, 18) + "..." 
-          : item.theme;
+          x < center - 20 ? "end" : x > center + 20 ? "start" : "middle";
 
         return (
           <g key={index}>
             {/* Colored indicator dot */}
             <circle
-              cx={textAnchor === "end" ? x + 6 : textAnchor === "start" ? x - 6 : x}
-              cy={y - 8}
-              r="4"
+              cx={textAnchor === "end" ? x + 8 : textAnchor === "start" ? x - 8 : x}
+              cy={y - 12}
+              r="5"
               fill={item.color}
             />
-            {/* Theme name */}
+            {/* Theme name - full name, larger font */}
             <text
               x={x}
-              y={y + 2}
+              y={y + 4}
               textAnchor={textAnchor}
               dominantBaseline="middle"
-              fontSize="11"
-              fill="#1f2937"
+              fontSize="14"
+              fill="#111827"
               fontWeight="600"
             >
-              {displayName}
+              {item.theme}
             </text>
           </g>
         );

@@ -198,7 +198,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* Radar visualization */}
           <div className="border border-gray-200 rounded-lg p-4">
             <h2 className="text-sm font-semibold text-gray-700 mb-2">Vue globale des compétences</h2>
-            <PrintableRadarChart data={radarData} size={220} />
+            <PrintableRadarChart data={radarData} />
           </div>
 
           {/* Score summary */}
