@@ -63,7 +63,7 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
   return (
     <svg 
       width="100%" 
-      height="260" 
+      height="320" 
       viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`} 
       preserveAspectRatio="xMidYMid meet"
     >
