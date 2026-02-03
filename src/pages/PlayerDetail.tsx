@@ -881,20 +881,66 @@ export default function PlayerDetail() {
                           <p className="text-xs text-muted-foreground">/5</p>
                         </div>
                         {canEvaluate && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedEvaluation(evaluation);
-                              setIsCreatingNew(false);
-                              setIsViewingHistory(false);
-                              setActiveTab("evaluation");
-                            }}
-                          >
-                            <Edit className="w-4 h-4 mr-1" />
-                            Modifier
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedEvaluation(evaluation);
+                                setIsCreatingNew(false);
+                                setIsViewingHistory(false);
+                                setActiveTab("evaluation");
+                              }}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Modifier
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive hover:bg-destructive/10"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cette évaluation ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    L'évaluation "{evaluation.name}" sera archivée et n'apparaîtra plus dans l'historique. Cette action peut être annulée par un administrateur.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    onClick={async () => {
+                                      try {
+                                        const { error } = await supabase
+                                          .from("evaluations")
+                                          .update({ deleted_at: new Date().toISOString() })
+                                          .eq("id", evaluation.id);
+                                        
+                                        if (error) throw error;
+                                        
+                                        toast.success("Évaluation supprimée");
+                                        fetchPlayerData();
+                                      } catch (error: any) {
+                                        console.error("Error deleting evaluation:", error);
+                                        toast.error("Erreur lors de la suppression");
+                                      }
+                                    }}
+                                  >
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         )}
                       </div>
                     </div>
