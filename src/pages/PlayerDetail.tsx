@@ -100,6 +100,7 @@ export default function PlayerDetail() {
   const [showMutationModal, setShowMutationModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
+  const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
