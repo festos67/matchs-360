@@ -184,7 +184,7 @@ export default function PlayerDetail() {
         }
       }
 
-      // Fetch evaluations
+      // Fetch evaluations (excluding soft-deleted)
       const { data: evalData } = await supabase
         .from("evaluations")
         .select(`
@@ -196,6 +196,7 @@ export default function PlayerDetail() {
           objectives:evaluation_objectives(theme_id, content)
         `)
         .eq("player_id", id)
+        .is("deleted_at", null)
         .order("date", { ascending: false });
 
       if (evalData) {
