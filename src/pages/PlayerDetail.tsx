@@ -625,6 +625,41 @@ export default function PlayerDetail() {
               </div>
             </div>
           </div>
+
+          {/* Objectives section from latest evaluation */}
+          {selectedEvaluation && selectedEvaluation.objectives && selectedEvaluation.objectives.length > 0 && (
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <h3 className="font-display font-semibold">Objectifs & Conseils</h3>
+                <Badge variant="outline" className="ml-auto text-xs">
+                  {new Date(selectedEvaluation.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {selectedEvaluation.objectives.map((objective) => {
+                  const theme = themes.find(t => t.id === objective.theme_id);
+                  return (
+                    <div 
+                      key={objective.theme_id} 
+                      className="p-4 rounded-lg border border-border bg-muted/30"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full shrink-0" 
+                          style={{ backgroundColor: theme?.color || "#3B82F6" }} 
+                        />
+                        <span className="text-sm font-medium text-foreground">{theme?.name || "Thème"}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {objective.content}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         {/* Evaluation Tab */}
