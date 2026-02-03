@@ -80,7 +80,22 @@ export const PlayerMutationModal = ({
 
     setLoading(true);
     try {
-      // 1. Archive current team membership (soft delete with reason)
+      // 1. Reactivate profile if it was soft-deleted
+      const { error: reactivateError } = await supabase
+        .from("profiles")
+        .update({
+          deleted_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", playerId)
+        .not("deleted_at", "is", null);
+
+      if (reactivateError) {
+        console.warn("Profile reactivation warning:", reactivateError);
+        // Continue even if this fails (profile might not be deleted)
+      }
+
+      // 2. Archive current team membership (soft delete with reason)
       const { error: archiveError } = await supabase
         .from("team_members")
         .update({
@@ -95,7 +110,7 @@ export const PlayerMutationModal = ({
 
       if (archiveError) throw archiveError;
 
-      // 2. Create new team membership
+      // 3. Create new team membership
       const { error: createError } = await supabase
         .from("team_members")
         .insert({

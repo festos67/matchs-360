@@ -239,6 +239,21 @@ export const CreatePlayerModal = ({
 
     setLoading(true);
     try {
+      // Reactivate profile if it was soft-deleted
+      const { error: reactivateError } = await supabase
+        .from("profiles")
+        .update({
+          deleted_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", selectedPlayer.id)
+        .not("deleted_at", "is", null);
+
+      if (reactivateError) {
+        console.warn("Profile reactivation warning:", reactivateError);
+        // Continue even if this fails (profile might not be deleted)
+      }
+
       // Archive the current team membership
       const { error: archiveError } = await supabase
         .from("team_members")
