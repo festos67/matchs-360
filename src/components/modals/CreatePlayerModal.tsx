@@ -157,19 +157,20 @@ export const CreatePlayerModal = ({
     
     setLoadingPlayers(true);
     try {
-      // Get all players from other teams in this club
+      // Get all players from other teams in this club (exclude deleted profiles)
       const { data, error } = await supabase
         .from("team_members")
         .select(`
           user_id,
           team_id,
           teams!inner(id, name, club_id),
-          profiles!inner(id, first_name, last_name, nickname)
+          profiles!inner(id, first_name, last_name, nickname, deleted_at)
         `)
         .eq("member_type", "player")
         .eq("is_active", true)
         .eq("teams.club_id", clubId)
-        .neq("team_id", defaultTeamId);
+        .neq("team_id", defaultTeamId)
+        .is("profiles.deleted_at", null);
 
       if (error) throw error;
 
