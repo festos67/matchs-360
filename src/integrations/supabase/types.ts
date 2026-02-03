@@ -428,6 +428,71 @@ export type Database = {
           },
         ]
       }
+      supporter_evaluation_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          evaluation_id: string | null
+          expires_at: string
+          id: string
+          player_id: string
+          requested_by: string
+          status: string
+          supporter_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          evaluation_id?: string | null
+          expires_at?: string
+          id?: string
+          player_id: string
+          requested_by: string
+          status?: string
+          supporter_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          evaluation_id?: string | null
+          expires_at?: string
+          id?: string
+          player_id?: string
+          requested_by?: string
+          status?: string
+          supporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supporter_evaluation_requests_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporter_evaluation_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporter_evaluation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporter_evaluation_requests_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supporters_link: {
         Row: {
           created_at: string
