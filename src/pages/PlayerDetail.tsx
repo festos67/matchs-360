@@ -410,10 +410,47 @@ export default function PlayerDetail() {
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
-                <p className="text-3xl font-display font-bold text-success">
-                  {evaluations.length >= 2 ? "+12%" : "-"}
-                </p>
-                <p className="text-sm text-muted-foreground">Progression</p>
+                {(() => {
+                  // Compare current evaluation (t0) with previous one (t-1)
+                  const activeEvals = evaluations.filter(e => !e.deleted_at);
+                  if (activeEvals.length < 2) {
+                    return (
+                      <>
+                        <p className="text-3xl font-display font-bold text-muted-foreground">-</p>
+                        <p className="text-sm text-muted-foreground">Progression</p>
+                      </>
+                    );
+                  }
+                  
+                  // t0 = most recent, t-1 = second most recent
+                  const currentEval = activeEvals[0];
+                  const previousEval = activeEvals[1];
+                  
+                  const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(currentEval));
+                  const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(previousEval));
+                  
+                  if (currentAvg === null || previousAvg === null || previousAvg === 0) {
+                    return (
+                      <>
+                        <p className="text-3xl font-display font-bold text-muted-foreground">-</p>
+                        <p className="text-sm text-muted-foreground">Progression</p>
+                      </>
+                    );
+                  }
+                  
+                  const progressionPercent = ((currentAvg - previousAvg) / previousAvg) * 100;
+                  const isPositive = progressionPercent >= 0;
+                  const formattedPercent = `${isPositive ? "+" : ""}${progressionPercent.toFixed(0)}%`;
+                  
+                  return (
+                    <>
+                      <p className={`text-3xl font-display font-bold ${isPositive ? "text-success" : "text-destructive"}`}>
+                        {formattedPercent}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Progression</p>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
