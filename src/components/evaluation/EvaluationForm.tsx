@@ -172,6 +172,39 @@ export const EvaluationForm = ({
     );
   };
 
+  const generateUniqueName = async (baseName: string): Promise<string> => {
+    // Check if an evaluation with this name already exists for this player
+    const { data: existingEvaluations } = await supabase
+      .from("evaluations")
+      .select("name")
+      .eq("player_id", playerId)
+      .ilike("name", `${baseName}%`);
+
+    if (!existingEvaluations || existingEvaluations.length === 0) {
+      return baseName;
+    }
+
+    // Check if the exact name exists
+    const exactMatch = existingEvaluations.some(e => e.name === baseName);
+    if (!exactMatch) {
+      return baseName;
+    }
+
+    // Generate unique name with number, date and time (for same-day evaluations)
+    const now = new Date();
+    const today = now.toLocaleDateString("fr-FR");
+    const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    let counter = 2;
+    let uniqueName = `${baseName} #${counter} - ${today} ${time}`;
+
+    while (existingEvaluations.some(e => e.name === uniqueName)) {
+      counter++;
+      uniqueName = `${baseName} #${counter} - ${today} ${time}`;
+    }
+
+    return uniqueName;
+  };
+
   const handleSave = async () => {
     if (!user) {
       toast.error("Vous devez être connecté");
@@ -192,6 +225,9 @@ export const EvaluationForm = ({
           })
           .eq("id", evaluationId);
       } else {
+        // Generate unique name if needed
+        const uniqueName = await generateUniqueName(evaluationName);
+
         // Create new evaluation
         const { data: newEval, error } = await supabase
           .from("evaluations")
@@ -199,7 +235,7 @@ export const EvaluationForm = ({
             player_id: playerId,
             coach_id: user.id,
             framework_id: frameworkId,
-            name: evaluationName,
+            name: uniqueName,
           })
           .select()
           .single();
