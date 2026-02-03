@@ -57,6 +57,7 @@ interface Evaluation {
   id: string;
   name: string;
   date: string;
+  deleted_at: string | null;
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
