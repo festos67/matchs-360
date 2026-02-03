@@ -974,11 +974,12 @@ export default function PlayerDetail() {
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
-                Aucune évaluation enregistrée
+                {showArchivedEvaluations ? "Aucune évaluation enregistrée" : "Aucune évaluation active"}
               </div>
-            )}
+            );
+            })()}
 
-            {evaluations.length > 1 && (
+            {evaluations.filter(e => !e.deleted_at).length > 1 && (
               <div className="mt-6 p-4 bg-muted/30 rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   💡 <strong>Astuce:</strong> Cochez les évaluations que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
