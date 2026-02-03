@@ -106,11 +106,11 @@ const StarDisplay = ({ score }: { score: number | null }) => {
   }
   
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center justify-end gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`w-3 h-3 ${
+          className={`w-4 h-4 ${
             star <= value ? "fill-amber-500 text-amber-500" : "fill-gray-200 text-gray-200"
           }`}
         />
