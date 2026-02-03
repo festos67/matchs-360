@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, CheckSquare, Square, ArrowRightLeft, BookOpen, Trash2, Heart, Archive, ArchiveRestore, Star } from "lucide-react";
+import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -16,6 +16,7 @@ import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerShe
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
+import { EvaluationHistory } from "@/components/player/EvaluationHistory";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -103,7 +104,6 @@ export default function PlayerDetail() {
   const [showMutationModal, setShowMutationModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
-  const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
@@ -250,8 +250,14 @@ export default function PlayerDetail() {
     }));
   };
 
+  // For stats display, use latest COACH evaluation only (not self-assessments)
+  const latestOfficialEvaluation = evaluations.find(
+    e => e.type === "coach_assessment" && !e.deleted_at
+  );
+  
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
-  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(selectedEvaluation));
+  // Overall average for header stats = official evaluation only
+  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(latestOfficialEvaluation || null));
 
   // Build comparison datasets
   const getComparisonDatasets = () => {
@@ -460,15 +466,15 @@ export default function PlayerDetail() {
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
-                <p className="text-3xl font-display font-bold">{evaluations.length}</p>
-                <p className="text-sm text-muted-foreground">Évaluations</p>
+                <p className="text-3xl font-display font-bold">{evaluations.filter(e => e.type === "coach_assessment" && !e.deleted_at).length}</p>
+                <p className="text-sm text-muted-foreground">Évaluations officielles</p>
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
                 {(() => {
-                  // Compare current evaluation (t0) with previous one (t-1)
-                  const activeEvals = evaluations.filter(e => !e.deleted_at);
-                  if (activeEvals.length < 2) {
+                  // Compare current evaluation (t0) with previous one (t-1) - ONLY coach assessments
+                  const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+                  if (activeCoachEvals.length < 2) {
                     return (
                       <>
                         <p className="text-3xl font-display font-bold text-muted-foreground">-</p>
@@ -477,9 +483,9 @@ export default function PlayerDetail() {
                     );
                   }
                   
-                  // t0 = most recent, t-1 = second most recent
-                  const currentEval = activeEvals[0];
-                  const previousEval = activeEvals[1];
+                  // t0 = most recent, t-1 = second most recent (coach evaluations only)
+                  const currentEval = activeCoachEvals[0];
+                  const previousEval = activeCoachEvals[1];
                   
                   const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(currentEval));
                   const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(previousEval));
@@ -892,261 +898,23 @@ export default function PlayerDetail() {
 
         {/* History Tab */}
         <TabsContent value="history">
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-display font-semibold">Historique des évaluations</h2>
-              <div className="flex items-center gap-4">
-                {canEvaluate && evaluations.some(e => e.deleted_at) && (
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={showArchivedEvaluations}
-                      onChange={(e) => setShowArchivedEvaluations(e.target.checked)}
-                      className="rounded border-muted-foreground/30"
-                    />
-                    <Archive className="w-4 h-4" />
-                    Afficher les archivées
-                  </label>
-                )}
-                {comparisonIds.length > 0 && (
-                  <Badge variant="secondary" className="gap-2">
-                    <Calendar className="w-3 h-3" />
-                    {comparisonIds.length} sélectionnée(s) pour comparaison
-                  </Badge>
-                )}
-              </div>
-            </div>
-            
-            {(() => {
-              const filteredEvaluations = showArchivedEvaluations 
-                ? evaluations 
-                : evaluations.filter(e => !e.deleted_at);
-              const activeEvaluations = evaluations.filter(e => !e.deleted_at);
-              
-              return filteredEvaluations.length > 0 ? (
-              <div className="space-y-4">
-                {filteredEvaluations.map((evaluation) => {
-                  const isSelected = selectedEvaluation?.id === evaluation.id;
-                  const isCompared = comparisonIds.includes(evaluation.id);
-                  const isCurrent = activeEvaluations[0]?.id === evaluation.id;
-                  const isArchived = !!evaluation.deleted_at;
-
-                  return (
-                    <div
-                      key={evaluation.id}
-                      className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
-                        isArchived
-                          ? "bg-destructive/5 border border-destructive/20 opacity-70"
-                          : isSelected
-                          ? "bg-primary/10 border border-primary/30"
-                          : isCompared
-                          ? "bg-warning/10 border border-warning/30"
-                          : "bg-muted/30 hover:bg-muted/50"
-                      }`}
-                    >
-                      {/* Comparison checkbox - disabled for archived */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isArchived) toggleComparison(evaluation.id);
-                        }}
-                        className="shrink-0"
-                        disabled={isSelected || isArchived}
-                      >
-                        {isCompared ? (
-                          <CheckSquare className="w-5 h-5 text-warning" />
-                        ) : isArchived ? (
-                          <Archive className="w-5 h-5 text-destructive/50" />
-                        ) : (
-                          <Square className={`w-5 h-5 ${isSelected ? "text-muted-foreground/30" : "text-muted-foreground hover:text-foreground"}`} />
-                        )}
-                      </button>
-
-                      <div
-                        className="flex-1 flex items-center gap-4 cursor-pointer"
-                        onClick={() => handleViewEvaluation(evaluation)}
-                      >
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center"
-                          style={{
-                            backgroundColor: isCompared
-                              ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length] + "20"
-                              : isSelected
-                              ? `${teamColor}20`
-                              : "hsl(var(--primary) / 0.2)",
-                          }}
-                        >
-                          <TrendingUp
-                            className="w-6 h-6"
-                            style={{
-                              color: isCompared
-                                ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length]
-                                : "hsl(var(--primary))",
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>{evaluation.name}</p>
-                            {evaluation.type === "player_self_assessment" && (
-                              <Badge className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30 hover:bg-amber-500/30">
-                                <Star className="w-3 h-3 mr-1" />
-                                AUTO
-                              </Badge>
-                            )}
-                            {isArchived && (
-                              <Badge variant="destructive" className="text-xs">Archivée</Badge>
-                            )}
-                            {isCurrent && !isArchived && evaluation.type === "coach_assessment" && (
-                              <Badge variant="secondary" className="text-xs">Actuelle</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {evaluation.type === "player_self_assessment" 
-                              ? "Auto-évaluation • "
-                              : `Par ${evaluation.coach?.first_name} ${evaluation.coach?.last_name} • `}
-                            {new Date(evaluation.date).toLocaleDateString("fr-FR", {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric"
-                            })}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <p className="font-display font-bold text-lg">
-                            {(() => {
-                              const themeScores = themes.map(theme => ({
-                                theme_id: theme.id,
-                                theme_name: theme.name,
-                                theme_color: theme.color,
-                                skills: theme.skills.map(skill => {
-                                  const score = evaluation.scores.find(s => s.skill_id === skill.id);
-                                  return {
-                                    skill_id: skill.id,
-                                    score: score?.score ?? null,
-                                    is_not_observed: score?.is_not_observed ?? false,
-                                    comment: null,
-                                  };
-                                }),
-                                objective: null,
-                              }));
-                              return formatAverage(calculateOverallAverage(themeScores));
-                            })()}
-                          </p>
-                          <p className="text-xs text-muted-foreground">/5</p>
-                        </div>
-                        {canEvaluate && !isArchived && (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedEvaluation(evaluation);
-                                setIsCreatingNew(false);
-                                setIsViewingHistory(false);
-                                setActiveTab("evaluation");
-                              }}
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              Modifier
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-destructive hover:bg-destructive/10"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Supprimer cette évaluation ?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    L'évaluation "{evaluation.name}" sera archivée et n'apparaîtra plus dans l'historique. Cette action peut être annulée par un administrateur.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                    onClick={async () => {
-                                      try {
-                                        const { error } = await supabase
-                                          .from("evaluations")
-                                          .update({ deleted_at: new Date().toISOString() })
-                                          .eq("id", evaluation.id);
-                                        
-                                        if (error) throw error;
-                                        
-                                        toast.success("Évaluation supprimée");
-                                        fetchPlayerData();
-                                      } catch (error: any) {
-                                        console.error("Error deleting evaluation:", error);
-                                        toast.error("Erreur lors de la suppression");
-                                      }
-                                    }}
-                                  >
-                                    Supprimer
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
-                        {canEvaluate && isArchived && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="gap-2 text-success border-success/30 hover:bg-success/10"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              try {
-                                const { error } = await supabase
-                                  .from("evaluations")
-                                  .update({ deleted_at: null })
-                                  .eq("id", evaluation.id);
-                                
-                                if (error) throw error;
-                                
-                                toast.success("Évaluation restaurée");
-                                fetchPlayerData();
-                              } catch (error: any) {
-                                console.error("Error restoring evaluation:", error);
-                                toast.error("Erreur lors de la restauration");
-                              }
-                            }}
-                          >
-                            <ArchiveRestore className="w-4 h-4" />
-                            Restaurer
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                {showArchivedEvaluations ? "Aucune évaluation enregistrée" : "Aucune évaluation active"}
-              </div>
-            );
-            })()}
-
-            {evaluations.filter(e => !e.deleted_at).length > 1 && (
-              <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  💡 <strong>Astuce:</strong> Cochez les évaluations que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
-                </p>
-              </div>
-            )}
-          </div>
+          <EvaluationHistory
+            evaluations={evaluations}
+            themes={themes}
+            selectedEvaluation={selectedEvaluation}
+            comparisonIds={comparisonIds}
+            teamColor={teamColor}
+            canEvaluate={canEvaluate}
+            onViewEvaluation={handleViewEvaluation}
+            onEditEvaluation={(evaluation) => {
+              setSelectedEvaluation(evaluation);
+              setIsCreatingNew(false);
+              setIsViewingHistory(false);
+              setActiveTab("evaluation");
+            }}
+            onToggleComparison={toggleComparison}
+            onRefresh={fetchPlayerData}
+          />
         </TabsContent>
 
         {/* Advice Tab */}

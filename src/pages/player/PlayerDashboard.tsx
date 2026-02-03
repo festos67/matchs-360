@@ -78,7 +78,7 @@ const PlayerDashboard = () => {
     enabled: !!playerId,
   });
 
-  // Fetch evaluations count
+  // Fetch evaluations count (coach assessments only - excludes self-assessments)
   const { data: evaluationsCount, isLoading: loadingEvaluations } = useQuery({
     queryKey: ["player-stats-evaluations", playerId],
     queryFn: async () => {
@@ -86,14 +86,15 @@ const PlayerDashboard = () => {
       const { count, error } = await supabase
         .from("evaluations")
         .select("*", { count: "exact", head: true })
-        .eq("player_id", playerId);
+        .eq("player_id", playerId)
+        .eq("type", "coach_assessment");
       if (error) throw error;
       return count || 0;
     },
     enabled: !!playerId,
   });
 
-  // Fetch latest evaluation for progression indicator
+  // Fetch latest evaluation for progression indicator (coach assessments only)
   const { data: latestEvaluations, isLoading: loadingLatest } = useQuery({
     queryKey: ["player-latest-evaluations", playerId],
     queryFn: async () => {
@@ -105,9 +106,11 @@ const PlayerDashboard = () => {
           name,
           date,
           notes,
+          type,
           profiles:coach_id (first_name, last_name)
         `)
         .eq("player_id", playerId)
+        .eq("type", "coach_assessment")
         .order("date", { ascending: false })
         .limit(10);
       if (error) throw error;

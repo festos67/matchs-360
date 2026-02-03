@@ -38,15 +38,25 @@ const Stats = () => {
         .select("id", { count: "exact", head: true })
         .eq("role", "player");
 
-      // Fetch total evaluations
+      // Fetch total evaluations (coach assessments only - excludes self-assessments)
       const { count: evaluationsCount } = await supabase
         .from("evaluations")
-        .select("id", { count: "exact", head: true });
+        .select("id", { count: "exact", head: true })
+        .eq("type", "coach_assessment");
 
-      // Fetch average score
+      // Fetch average score (from coach assessments only)
+      // First get coach evaluation IDs, then fetch scores
+      const { data: coachEvaluations } = await supabase
+        .from("evaluations")
+        .select("id")
+        .eq("type", "coach_assessment");
+      
+      const coachEvalIds = (coachEvaluations || []).map(e => e.id);
+      
       const { data: scoresData } = await supabase
         .from("evaluation_scores")
         .select("score")
+        .in("evaluation_id", coachEvalIds.length > 0 ? coachEvalIds : [""])
         .eq("is_not_observed", false)
         .not("score", "is", null)
         .gt("score", 0);
@@ -57,7 +67,7 @@ const Stats = () => {
         averageScore = sum / scoresData.length;
       }
 
-      // Fetch recent evaluations with player info
+      // Fetch recent evaluations with player info (coach assessments only)
       const { data: recentEvals } = await supabase
         .from("evaluations")
         .select(`
@@ -70,6 +80,7 @@ const Stats = () => {
             nickname
           )
         `)
+        .eq("type", "coach_assessment")
         .order("date", { ascending: false })
         .limit(5);
 
