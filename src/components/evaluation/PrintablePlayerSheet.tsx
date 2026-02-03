@@ -82,7 +82,7 @@ const GlobalAverageIcon = ({ score }: { score: number | null }) => {
   const value = score ? Math.round(score) : 0;
   
   if (value === 0) {
-    return <span className="text-gray-400 text-2xl">-</span>;
+    return <span className="text-muted-foreground text-2xl">-</span>;
   }
   
   const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
@@ -92,8 +92,8 @@ const GlobalAverageIcon = ({ score }: { score: number | null }) => {
   
   return (
     <div className="flex items-center justify-center gap-1" title={levelData.label}>
-      <IconComponent className="w-12 h-12" style={{ color }} strokeWidth={1.5} />
-      {isExpert && <Sparkles className="w-6 h-6" style={{ color }} strokeWidth={1.5} />}
+      <IconComponent className="w-16 h-16" style={{ color }} strokeWidth={1.5} />
+      {isExpert && <Sparkles className="w-8 h-8" style={{ color }} strokeWidth={1.5} />}
     </div>
   );
 };
@@ -164,30 +164,29 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         className="bg-white text-black p-10 w-[210mm] min-h-[297mm] mx-auto"
         style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
       >
-        {/* Page 1: Header + Summary */}
+        {/* Page 1: Poster Layout - Vertical Stack */}
         <div className="h-[277mm] flex flex-col">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-8 pb-6 border-b-2 border-gray-300">
-            <div className="flex items-center gap-6">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between pb-4 border-b-2 border-gray-300">
+            <div className="flex items-center gap-4">
               {club.logo_url ? (
-                <img src={club.logo_url} alt={club.name} className="w-20 h-20 object-contain" />
+                <img src={club.logo_url} alt={club.name} className="w-14 h-14 object-contain" />
               ) : (
                 <div
-                  className="w-20 h-20 rounded-xl flex items-center justify-center text-white font-bold text-2xl"
+                  className="w-14 h-14 rounded-lg flex items-center justify-center text-white font-bold text-lg"
                   style={{ backgroundColor: club.primary_color }}
                 >
                   {club.name.slice(0, 2).toUpperCase()}
                 </div>
               )}
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{getPlayerName()}</h1>
-                <p className="text-lg text-gray-600 mt-1">{team.name} • {club.name}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{getPlayerName()}</h1>
+                <p className="text-sm text-gray-600">{team.name} • {club.name}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="font-bold text-xl text-gray-900">{evaluation.name}</p>
-              <p className="text-base text-gray-600 mt-1">Évalué par {getCoachName()}</p>
-              <p className="text-base text-gray-500">{new Date(evaluation.date).toLocaleDateString("fr-FR", {
+              <p className="font-bold text-lg text-gray-900">{evaluation.name}</p>
+              <p className="text-sm text-gray-500">{getCoachName()} • {new Date(evaluation.date).toLocaleDateString("fr-FR", {
                 day: "numeric",
                 month: "long",
                 year: "numeric"
@@ -195,51 +194,63 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
           </div>
 
-          {/* Summary Section - Full page content */}
-          <div className="flex-1 grid grid-cols-2 gap-8">
-            {/* Radar visualization */}
-            <div className="border-2 border-gray-200 rounded-xl p-6 flex flex-col">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Vue globale des compétences</h2>
-              <div className="flex-1 flex items-center justify-center">
-                <PrintableRadarChart data={radarData} />
-              </div>
+          {/* Zone 1: Giant Radar Chart (~60% of page) */}
+          <div className="flex-1 flex items-center justify-center py-4" style={{ minHeight: '380px' }}>
+            <div className="w-full h-full max-w-[500px] max-h-[500px]">
+              <PrintableRadarChart data={radarData} />
             </div>
+          </div>
 
-            {/* Score summary */}
-            <div className="border-2 border-gray-200 rounded-xl p-6 flex flex-col">
-              <h2 className="text-lg font-bold text-gray-800 mb-6">Résumé de l'évaluation</h2>
-              
-              {/* Global score */}
-              <div className="text-center mb-8 py-4">
-                <GlobalAverageIcon score={overallAverage || null} />
-                <p className="text-base text-gray-600 mt-3 font-medium">Niveau global</p>
-              </div>
-              
-              {/* Theme scores */}
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Scores par thème</h3>
-                <div className="space-y-3">
-                  {radarData.map((item) => (
-                    <div key={item.theme} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-base font-medium text-gray-800">{item.theme}</span>
-                      </div>
-                      <span className="text-lg font-bold" style={{ color: item.color }}>
-                        {item.score.toFixed(1)}/5
-                      </span>
-                    </div>
-                  ))}
-                </div>
+          {/* Zone 2: Global Score - Transition Element */}
+          <div className="flex items-center justify-center py-4 border-y border-gray-200">
+            <div className="flex items-center gap-6">
+              <GlobalAverageIcon score={overallAverage || null} />
+              <div>
+                <p className="text-xl font-bold text-gray-900">Niveau Global</p>
+                <p className="text-lg text-gray-600">{formatAverage(overallAverage)}/5</p>
               </div>
             </div>
           </div>
 
+          {/* Zone 3: Theme Score Cards Grid */}
+          <div className="py-4">
+            <div className="grid grid-cols-3 gap-3">
+              {radarData.map((item) => {
+                const score = Math.round(item.score);
+                const levelData = LEVEL_ICONS[score] || LEVEL_ICONS[1];
+                const IconComponent = levelData.icon;
+                const iconColor = LEVEL_COLORS[score] || LEVEL_COLORS[1];
+                
+                return (
+                  <div 
+                    key={item.theme} 
+                    className="flex items-center gap-3 p-3 rounded-xl border-2"
+                    style={{ 
+                      borderColor: item.color,
+                      backgroundColor: `${item.color}10`
+                    }}
+                  >
+                    <div 
+                      className="w-4 h-4 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{item.theme}</p>
+                      <p className="text-xs text-gray-500">{item.score.toFixed(1)}/5</p>
+                    </div>
+                    <IconComponent 
+                      className="w-8 h-8 flex-shrink-0" 
+                      style={{ color: iconColor }} 
+                      strokeWidth={1.5} 
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Page 1 Footer */}
-          <div className="mt-6 pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
+          <div className="pt-3 border-t border-gray-200 text-center text-xs text-gray-400">
             <p>Page 1/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
           </div>
         </div>
