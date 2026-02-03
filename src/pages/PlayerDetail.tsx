@@ -186,25 +186,27 @@ export default function PlayerDetail() {
         }
       }
 
-      // Fetch evaluations (excluding soft-deleted)
+      // Fetch evaluations (all, including soft-deleted for filtering later)
       const { data: evalData } = await supabase
         .from("evaluations")
         .select(`
           id,
           name,
           date,
+          deleted_at,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
         `)
         .eq("player_id", id)
-        .is("deleted_at", null)
         .order("date", { ascending: false });
 
       if (evalData) {
         setEvaluations(evalData as Evaluation[]);
-        if (evalData.length > 0) {
-          setSelectedEvaluation(evalData[0] as Evaluation);
+        // Set selected to first non-deleted evaluation
+        const activeEvals = evalData.filter(e => !e.deleted_at);
+        if (activeEvals.length > 0) {
+          setSelectedEvaluation(activeEvals[0] as Evaluation);
         }
       }
     } catch (error: any) {
