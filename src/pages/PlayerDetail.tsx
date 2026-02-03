@@ -869,8 +869,11 @@ export default function PlayerDetail() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{evaluation.name}</p>
-                            {isCurrent && (
+                            <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>{evaluation.name}</p>
+                            {isArchived && (
+                              <Badge variant="destructive" className="text-xs">Archivée</Badge>
+                            )}
+                            {isCurrent && !isArchived && (
                               <Badge variant="secondary" className="text-xs">Actuelle</Badge>
                             )}
                           </div>
