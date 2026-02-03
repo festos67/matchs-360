@@ -817,24 +817,28 @@ export default function PlayerDetail() {
                     <div
                       key={evaluation.id}
                       className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
-                        isSelected
+                        isArchived
+                          ? "bg-destructive/5 border border-destructive/20 opacity-70"
+                          : isSelected
                           ? "bg-primary/10 border border-primary/30"
                           : isCompared
                           ? "bg-warning/10 border border-warning/30"
                           : "bg-muted/30 hover:bg-muted/50"
                       }`}
                     >
-                      {/* Comparison checkbox */}
+                      {/* Comparison checkbox - disabled for archived */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleComparison(evaluation.id);
+                          if (!isArchived) toggleComparison(evaluation.id);
                         }}
                         className="shrink-0"
-                        disabled={isSelected}
+                        disabled={isSelected || isArchived}
                       >
                         {isCompared ? (
                           <CheckSquare className="w-5 h-5 text-warning" />
+                        ) : isArchived ? (
+                          <Archive className="w-5 h-5 text-destructive/50" />
                         ) : (
                           <Square className={`w-5 h-5 ${isSelected ? "text-muted-foreground/30" : "text-muted-foreground hover:text-foreground"}`} />
                         )}
