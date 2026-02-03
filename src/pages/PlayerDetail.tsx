@@ -912,7 +912,7 @@ export default function PlayerDetail() {
                           </p>
                           <p className="text-xs text-muted-foreground">/5</p>
                         </div>
-                        {canEvaluate && (
+                        {canEvaluate && !isArchived && (
                           <div className="flex items-center gap-2">
                             <Button
                               size="sm"
@@ -973,6 +973,33 @@ export default function PlayerDetail() {
                               </AlertDialogContent>
                             </AlertDialog>
                           </div>
+                        )}
+                        {canEvaluate && isArchived && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2 text-success border-success/30 hover:bg-success/10"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const { error } = await supabase
+                                  .from("evaluations")
+                                  .update({ deleted_at: null })
+                                  .eq("id", evaluation.id);
+                                
+                                if (error) throw error;
+                                
+                                toast.success("Évaluation restaurée");
+                                fetchPlayerData();
+                              } catch (error: any) {
+                                console.error("Error restoring evaluation:", error);
+                                toast.error("Erreur lors de la restauration");
+                              }
+                            }}
+                          >
+                            <ArchiveRestore className="w-4 h-4" />
+                            Restaurer
+                          </Button>
                         )}
                       </div>
                     </div>
