@@ -164,14 +164,16 @@ export const CreateEvaluationModal = ({
       return baseName;
     }
 
-    // Generate unique name with number and date
-    const today = new Date().toLocaleDateString("fr-FR");
+    // Generate unique name with number, date and time (for same-day evaluations)
+    const now = new Date();
+    const today = now.toLocaleDateString("fr-FR");
+    const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
     let counter = 2;
-    let uniqueName = `${baseName} #${counter} - ${today}`;
+    let uniqueName = `${baseName} #${counter} - ${today} ${time}`;
 
     while (existingEvaluations.some(e => e.name === uniqueName)) {
       counter++;
-      uniqueName = `${baseName} #${counter} - ${today}`;
+      uniqueName = `${baseName} #${counter} - ${today} ${time}`;
     }
 
     return uniqueName;
