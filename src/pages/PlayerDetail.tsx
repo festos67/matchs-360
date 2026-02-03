@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -16,6 +16,7 @@ import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerShe
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
+import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -61,7 +62,7 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
-  type: "coach_assessment" | "player_self_assessment";
+  type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -104,7 +105,9 @@ export default function PlayerDetail() {
   const [showMutationModal, setShowMutationModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
+  const [showRequestSupporterModal, setShowRequestSupporterModal] = useState(false);
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
+  const [showSupporterEvaluation, setShowSupporterEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
 
   const handlePrint = useReactToPrint({
@@ -350,12 +353,17 @@ export default function PlayerDetail() {
     e => e.type === "player_self_assessment" && !e.deleted_at
   );
   
+  // Get latest supporter evaluation for comparison
+  const latestSupporterEvaluation = evaluations.find(
+    e => e.type === "supporter_assessment" && !e.deleted_at
+  );
+  
   // Get latest coach evaluation (for the toggle comparison)
   const latestCoachEvaluation = evaluations.find(
     e => e.type === "coach_assessment" && !e.deleted_at
   );
   
-  // Build datasets for self-evaluation overlay
+  // Build datasets for self-evaluation overlay (2-way comparison)
   const getSelfEvalOverlayDatasets = () => {
     const datasets: Array<{
       id: string;
@@ -393,7 +401,59 @@ export default function PlayerDetail() {
     return datasets;
   };
   
+  // Build datasets for supporter evaluation overlay (3-way comparison)
+  const getSupporterEvalOverlayDatasets = () => {
+    const datasets: Array<{
+      id: string;
+      label: string;
+      date: string;
+      data: ReturnType<typeof calculateRadarData>;
+      color: string;
+      isCurrent?: boolean;
+    }> = [];
+
+    // Add coach evaluation as primary
+    if (latestCoachEvaluation) {
+      datasets.push({
+        id: latestCoachEvaluation.id,
+        label: "Évaluation Coach",
+        date: latestCoachEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
+        color: teamColor,
+        isCurrent: true,
+      });
+    }
+
+    // Add self-evaluation (if available)
+    if (latestSelfEvaluation) {
+      datasets.push({
+        id: latestSelfEvaluation.id,
+        label: "Auto-évaluation",
+        date: latestSelfEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
+        color: "#F59E0B", // Amber/Yellow
+        isCurrent: false,
+      });
+    }
+
+    // Add supporter evaluation (dashed/orange)
+    if (latestSupporterEvaluation) {
+      datasets.push({
+        id: latestSupporterEvaluation.id,
+        label: "Évaluation Supporter",
+        date: latestSupporterEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
+        color: "#F97316", // Orange for supporter
+        isCurrent: false,
+      });
+    }
+
+    return datasets;
+  };
+  
   const hasSelfEvaluation = !!latestSelfEvaluation;
+  const hasSupporterEvaluation = !!latestSupporterEvaluation;
+
 
   return (
     <AppLayout>
@@ -544,6 +604,12 @@ export default function PlayerDetail() {
                 Supporters
               </Button>
             )}
+            {canEvaluate && teamMembership && (
+              <Button variant="outline" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)}>
+                <Users className="w-4 h-4" />
+                Demander avis
+              </Button>
+            )}
             {canMutate && (
               <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
                 <Edit className="w-4 h-4" />
@@ -629,6 +695,17 @@ export default function PlayerDetail() {
         />
       )}
 
+      {/* Request Supporter Evaluation Modal */}
+      {player && (
+        <RequestSupporterEvaluationModal
+          open={showRequestSupporterModal}
+          onOpenChange={setShowRequestSupporterModal}
+          playerId={id!}
+          playerName={getPlayerName()}
+          onSuccess={fetchPlayerData}
+        />
+      )}
+
       {/* Edit Player Modal */}
       {player && (
         <EditPlayerModal
@@ -659,29 +736,54 @@ export default function PlayerDetail() {
                 <div>
                   <h2 className="text-xl font-display font-semibold">Analyse des compétences</h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {showSelfEvaluation && hasSelfEvaluation 
-                      ? "Comparaison Coach vs Auto-évaluation"
-                      : selectedEvaluation 
-                        ? selectedEvaluation.name 
-                        : "Aucune évaluation"}
-                    {showComparison && !showSelfEvaluation && ` + ${comparisonIds.length} comparaison(s)`}
+                    {showSupporterEvaluation && hasSupporterEvaluation 
+                      ? "Comparaison Coach vs Joueur vs Supporter"
+                      : showSelfEvaluation && hasSelfEvaluation 
+                        ? "Comparaison Coach vs Auto-évaluation"
+                        : selectedEvaluation 
+                          ? selectedEvaluation.name 
+                          : "Aucune évaluation"}
+                    {showComparison && !showSelfEvaluation && !showSupporterEvaluation && ` + ${comparisonIds.length} comparaison(s)`}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   {/* Self-evaluation toggle (only for coach/admin view) */}
-                  {canEvaluate && hasSelfEvaluation && !showComparison && (
+                  {canEvaluate && hasSelfEvaluation && !showComparison && !showSupporterEvaluation && (
                     <div className="flex items-center gap-2">
                       <Switch
                         id="self-eval-toggle"
                         checked={showSelfEvaluation}
-                        onCheckedChange={setShowSelfEvaluation}
+                        onCheckedChange={(checked) => {
+                          setShowSelfEvaluation(checked);
+                          if (checked) setShowSupporterEvaluation(false);
+                        }}
                       />
                       <Label 
                         htmlFor="self-eval-toggle" 
                         className="text-sm cursor-pointer flex items-center gap-1.5"
                       >
-                        <Star className="w-4 h-4 text-amber-500" />
+                        <Star className="w-4 h-4 text-warning" />
                         Auto-évaluation
+                      </Label>
+                    </div>
+                  )}
+                  {/* Supporter evaluation toggle (only for coach/admin view) */}
+                  {canEvaluate && hasSupporterEvaluation && !showComparison && !showSelfEvaluation && (
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="supporter-eval-toggle"
+                        checked={showSupporterEvaluation}
+                        onCheckedChange={(checked) => {
+                          setShowSupporterEvaluation(checked);
+                          if (checked) setShowSelfEvaluation(false);
+                        }}
+                      />
+                      <Label 
+                        htmlFor="supporter-eval-toggle" 
+                        className="text-sm cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Heart className="w-4 h-4 text-warning" />
+                        Supporter
                       </Label>
                     </div>
                   )}
@@ -705,7 +807,12 @@ export default function PlayerDetail() {
               </div>
               
               {radarData.length > 0 ? (
-                showSelfEvaluation && hasSelfEvaluation ? (
+                showSupporterEvaluation && hasSupporterEvaluation ? (
+                  <ComparisonRadar 
+                    datasets={getSupporterEvalOverlayDatasets()} 
+                    primaryColor={teamColor}
+                  />
+                ) : showSelfEvaluation && hasSelfEvaluation ? (
                   <ComparisonRadar 
                     datasets={getSelfEvalOverlayDatasets()} 
                     primaryColor={teamColor}

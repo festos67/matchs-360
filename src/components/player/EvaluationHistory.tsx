@@ -13,6 +13,7 @@ import {
   Star,
   ClipboardCheck,
   User,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,7 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
-  type: "coach_assessment" | "player_self_assessment";
+  type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -102,6 +103,7 @@ export function EvaluationHistory({
   // Separate evaluations by type
   const coachEvaluations = evaluations.filter(e => e.type === "coach_assessment");
   const selfEvaluations = evaluations.filter(e => e.type === "player_self_assessment");
+  const supporterEvaluations = evaluations.filter(e => e.type === "supporter_assessment");
   
   const filteredCoachEvals = showArchivedEvaluations 
     ? coachEvaluations 
@@ -109,6 +111,9 @@ export function EvaluationHistory({
   const filteredSelfEvals = showArchivedEvaluations 
     ? selfEvaluations 
     : selfEvaluations.filter(e => !e.deleted_at);
+  const filteredSupporterEvals = showArchivedEvaluations 
+    ? supporterEvaluations 
+    : supporterEvaluations.filter(e => !e.deleted_at);
 
   const activeCoachEvaluations = coachEvaluations.filter(e => !e.deleted_at);
 
@@ -401,6 +406,35 @@ export function EvaluationHistory({
           <div className="text-center py-8 text-muted-foreground bg-amber-500/5 rounded-lg border border-amber-500/10">
             <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-amber-500" />
             <p>Aucune auto-évaluation {showArchivedEvaluations ? "" : "disponible"}</p>
+          </div>
+        )}
+      </div>
+
+      <Separator className="my-6" />
+
+      {/* Section C: Supporter Evaluations */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-2 text-orange-500">
+            <Heart className="w-5 h-5" />
+            <h3 className="font-semibold text-lg">Évaluations Supporters</h3>
+          </div>
+          <Badge className="text-xs bg-orange-500/20 text-orange-600 border-orange-500/30">
+            {filteredSupporterEvals.length} évaluation{filteredSupporterEvals.length > 1 ? "s" : ""}
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Perception des proches (parents) — Données consultatives uniquement
+        </p>
+        
+        {filteredSupporterEvals.length > 0 ? (
+          <div className="space-y-3">
+            {filteredSupporterEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground bg-orange-500/5 rounded-lg border border-orange-500/10">
+            <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-orange-500" />
+            <p>Aucune évaluation supporter {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
       </div>

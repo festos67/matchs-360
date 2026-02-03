@@ -35,8 +35,10 @@ export const DashboardRedirect = () => {
           navigate("/coach/dashboard", { replace: true });
           break;
         case "player":
-        case "supporter":
           navigate("/player/dashboard", { replace: true });
+          break;
+        case "supporter":
+          navigate("/supporter/dashboard", { replace: true });
           break;
         default:
           navigate("/pending-approval", { replace: true });
