@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { Save, RotateCcw, FileText, Calendar, Loader2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Save, RotateCcw, FileText, Calendar, Loader2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,6 @@ import {
   calculateOverallAverage, 
   formatAverage,
   type ThemeScores,
-  type SkillScore,
 } from "@/lib/evaluation-utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -31,7 +30,7 @@ interface Skill {
   order_index: number;
 }
 
-interface EvaluationFormProps {
+interface SelfEvaluationFormProps {
   playerId: string;
   playerName: string;
   teamId: string;
@@ -53,10 +52,9 @@ interface EvaluationFormProps {
     }>;
   } | null;
   onSaved?: () => void;
-  readOnly?: boolean;
 }
 
-export const EvaluationForm = ({
+export const SelfEvaluationForm = ({
   playerId,
   playerName,
   teamId,
@@ -64,12 +62,11 @@ export const EvaluationForm = ({
   themes,
   existingEvaluation,
   onSaved,
-  readOnly = false,
-}: EvaluationFormProps) => {
+}: SelfEvaluationFormProps) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [evaluationName, setEvaluationName] = useState(
-    existingEvaluation?.name || `MATCHS360-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
+    existingEvaluation?.name || `AUTO-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
   );
 
   // Initialize scores state
@@ -178,6 +175,7 @@ export const EvaluationForm = ({
       .from("evaluations")
       .select("name")
       .eq("player_id", playerId)
+      .eq("type", "player_self_assessment")
       .ilike("name", `${baseName}%`);
 
     if (!existingEvaluations || existingEvaluations.length === 0) {
@@ -190,7 +188,7 @@ export const EvaluationForm = ({
       return baseName;
     }
 
-    // Generate unique name with number, date and time (for same-day evaluations)
+    // Generate unique name with number, date and time
     const now = new Date();
     const today = now.toLocaleDateString("fr-FR");
     const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -216,7 +214,7 @@ export const EvaluationForm = ({
       let evaluationId = existingEvaluation?.id;
 
       if (evaluationId) {
-        // Update existing evaluation
+        // Update existing self-evaluation
         await supabase
           .from("evaluations")
           .update({
@@ -228,15 +226,16 @@ export const EvaluationForm = ({
         // Generate unique name if needed
         const uniqueName = await generateUniqueName(evaluationName);
 
-        // Create new evaluation
+        // Create new self-evaluation
+        // Note: For self-assessments, coach_id = player_id (the player is evaluating themselves)
         const { data: newEval, error } = await supabase
           .from("evaluations")
           .insert({
             player_id: playerId,
-            coach_id: user.id,
+            coach_id: user.id, // The player's own ID
             framework_id: frameworkId,
             name: uniqueName,
-            type: "coach_assessment",
+            type: "player_self_assessment",
           })
           .select()
           .single();
@@ -292,53 +291,59 @@ export const EvaluationForm = ({
         if (objError) throw objError;
       }
 
-      toast.success("Évaluation enregistrée avec succès");
+      toast.success("Auto-évaluation enregistrée avec succès");
       onSaved?.();
     } catch (error: any) {
-      console.error("Error saving evaluation:", error);
+      console.error("Error saving self-evaluation:", error);
       toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
     }
   };
 
+  // Self-evaluation uses a distinct teal/emerald color scheme
+  const selfEvalColor = "#10B981"; // Emerald-500
+
   return (
     <div className="space-y-6 pb-20">
       {/* Header with radar and summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Radar Chart */}
-        <div className="glass-card p-6">
+        {/* Radar Chart - with distinct color for self-evaluation */}
+        <div className="glass-card p-6 border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-display font-semibold text-lg">Vue Radar</h3>
+              <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                <Star className="w-5 h-5 text-emerald-500" />
+                Ma Vue Radar
+              </h3>
               <p className="text-sm text-muted-foreground">Mise à jour en temps réel</p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-display font-bold text-primary">
+              <p className="text-3xl font-display font-bold text-emerald-500">
                 {formatAverage(overallAverage)}
               </p>
-              <p className="text-sm text-muted-foreground">Moyenne globale</p>
+              <p className="text-sm text-muted-foreground">Ma moyenne</p>
             </div>
           </div>
-          <EvaluationRadar data={radarData} />
+          <EvaluationRadar data={radarData} primaryColor={selfEvalColor} />
         </div>
 
         {/* Evaluation info */}
-        <div className="glass-card p-6">
+        <div className="glass-card p-6 border-2 border-emerald-500/30">
           <h3 className="font-display font-semibold text-lg mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileText className="w-5 h-5 text-emerald-500" />
             Informations
           </h3>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="evaluationName">Titre de l'évaluation</Label>
+              <Label htmlFor="evaluationName">Titre de l'auto-évaluation</Label>
               <Input
                 id="evaluationName"
                 value={evaluationName}
                 onChange={(e) => setEvaluationName(e.target.value)}
                 placeholder="Titre de l'évaluation..."
-                disabled={readOnly}
+                className="border-emerald-500/30 focus-visible:ring-emerald-500"
               />
             </div>
 
@@ -347,13 +352,13 @@ export const EvaluationForm = ({
               <span>
                 {existingEvaluation
                   ? `Dernière modification: ${new Date(existingEvaluation.date).toLocaleDateString("fr-FR")}`
-                  : `Nouvelle évaluation - ${new Date().toLocaleDateString("fr-FR")}`}
+                  : `Nouvelle auto-évaluation - ${new Date().toLocaleDateString("fr-FR")}`}
               </span>
             </div>
 
             {/* Score summary */}
             <div className="pt-4 border-t border-border">
-              <h4 className="text-sm font-medium mb-3">Résumé par thématique</h4>
+              <h4 className="text-sm font-medium mb-3">Ma perception par thématique</h4>
               <div className="space-y-2">
                 {themeScores.map((theme) => {
                   const avg = theme.skills.filter(
@@ -367,7 +372,7 @@ export const EvaluationForm = ({
                     <div key={theme.theme_id} className="flex items-center gap-3">
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: theme.theme_color || "#3B82F6" }}
+                        style={{ backgroundColor: theme.theme_color || "#10B981" }}
                       />
                       <span className="flex-1 text-sm">{theme.theme_name}</span>
                       <span className="font-medium">{formatAverage(avgScore)}</span>
@@ -382,7 +387,10 @@ export const EvaluationForm = ({
 
       {/* Theme accordions */}
       <div className="space-y-4">
-        <h3 className="font-display font-semibold text-lg">Évaluation des compétences</h3>
+        <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+          <Star className="w-5 h-5 text-emerald-500" />
+          Mon évaluation des compétences
+        </h3>
         
         {themeScores.map((themeScore) => {
           const theme = themes.find((t) => t.id === themeScore.theme_id);
@@ -408,7 +416,7 @@ export const EvaluationForm = ({
               onObjectiveChange={(objective) =>
                 handleObjectiveChange(theme.id, objective)
               }
-              disabled={readOnly}
+              disabled={false}
               defaultOpen={true}
             />
           );
@@ -416,24 +424,26 @@ export const EvaluationForm = ({
       </div>
 
       {/* Sticky Footer */}
-      {!readOnly && (
-        <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-            <Button variant="outline" onClick={handleReset} disabled={saving}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Réinitialiser
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Enregistrer
-            </Button>
-          </div>
+      <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-emerald-500/30 shadow-lg z-40 max-md:left-0">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
+          <Button variant="outline" onClick={handleReset} disabled={saving}>
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Réinitialiser
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            disabled={saving}
+            className="bg-emerald-500 hover:bg-emerald-600"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            Enregistrer ma perception
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
