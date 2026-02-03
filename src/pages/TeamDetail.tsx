@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -11,6 +11,7 @@ import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditTeamModal } from "@/components/modals/EditTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
+import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -54,12 +55,14 @@ export default function TeamDetail() {
   const [showCoachModal, setShowCoachModal] = useState(false);
   const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showTeamSettings, setShowTeamSettings] = useState(false);
+  const [mutationPlayer, setMutationPlayer] = useState<{ id: string; name: string } | null>(null);
 
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
   const isReferentCoach = members.some(m => m.member_type === "coach" && m.profile.id === user?.id && m.coach_role === "referent");
   const canManageTeam = isAdmin || isClubAdmin || isCoachOfTeam;
   const canEditFramework = isAdmin || isClubAdmin || isReferentCoach;
+  const canMutatePlayers = isAdmin || isClubAdmin;
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -214,8 +217,22 @@ export default function TeamDetail() {
             {players.length > 0 ? (
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                 {players.map((player, index) => (
-                  <div key={player.id} className="animate-fade-in-up opacity-0" style={{ animationDelay: `${index * 0.05}s` }}>
+                  <div key={player.id} className="animate-fade-in-up opacity-0 group relative" style={{ animationDelay: `${index * 0.05}s` }}>
                     <CircleAvatar name={getMemberName(player)} imageUrl={player.profile.photo_url} color={teamColor} size="md" onClick={() => navigate(`/players/${player.profile.id}`)} />
+                    {canMutatePlayers && (
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute -top-2 -right-2 w-7 h-7 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMutationPlayer({ id: player.profile.id, name: getMemberName(player) });
+                        }}
+                        title="Mutation"
+                      >
+                        <ArrowRightLeft className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -340,6 +357,18 @@ export default function TeamDetail() {
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} onSuccess={fetchTeamData} />
       <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={team.club_id} onSuccess={fetchTeamData} />
       <EditTeamModal open={showTeamSettings} onOpenChange={setShowTeamSettings} team={team} onSuccess={fetchTeamData} />
+      {mutationPlayer && (
+        <PlayerMutationModal
+          open={!!mutationPlayer}
+          onOpenChange={(open) => !open && setMutationPlayer(null)}
+          playerId={mutationPlayer.id}
+          playerName={mutationPlayer.name}
+          currentTeamId={team.id}
+          currentTeamName={team.name}
+          clubId={team.club_id}
+          onSuccess={fetchTeamData}
+        />
+      )}
     </AppLayout>
   );
 }
