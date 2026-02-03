@@ -777,20 +777,41 @@ export default function PlayerDetail() {
           <div className="glass-card p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-display font-semibold">Historique des évaluations</h2>
-              {comparisonIds.length > 0 && (
-                <Badge variant="secondary" className="gap-2">
-                  <Calendar className="w-3 h-3" />
-                  {comparisonIds.length} sélectionnée(s) pour comparaison
-                </Badge>
-              )}
+              <div className="flex items-center gap-4">
+                {canEvaluate && evaluations.some(e => e.deleted_at) && (
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showArchivedEvaluations}
+                      onChange={(e) => setShowArchivedEvaluations(e.target.checked)}
+                      className="rounded border-muted-foreground/30"
+                    />
+                    <Archive className="w-4 h-4" />
+                    Afficher les archivées
+                  </label>
+                )}
+                {comparisonIds.length > 0 && (
+                  <Badge variant="secondary" className="gap-2">
+                    <Calendar className="w-3 h-3" />
+                    {comparisonIds.length} sélectionnée(s) pour comparaison
+                  </Badge>
+                )}
+              </div>
             </div>
             
-            {evaluations.length > 0 ? (
+            {(() => {
+              const filteredEvaluations = showArchivedEvaluations 
+                ? evaluations 
+                : evaluations.filter(e => !e.deleted_at);
+              const activeEvaluations = evaluations.filter(e => !e.deleted_at);
+              
+              return filteredEvaluations.length > 0 ? (
               <div className="space-y-4">
-                {evaluations.map((evaluation, index) => {
+                {filteredEvaluations.map((evaluation) => {
                   const isSelected = selectedEvaluation?.id === evaluation.id;
                   const isCompared = comparisonIds.includes(evaluation.id);
-                  const isCurrent = index === 0;
+                  const isCurrent = activeEvaluations[0]?.id === evaluation.id;
+                  const isArchived = !!evaluation.deleted_at;
 
                   return (
                     <div
