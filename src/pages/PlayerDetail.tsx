@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users } from "lucide-react";
+import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, Mail } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
@@ -18,6 +18,7 @@ import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
+import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,6 +107,11 @@ export default function PlayerDetail() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
   const [showRequestSupporterModal, setShowRequestSupporterModal] = useState(false);
+  // Multi-source radar overlay checkboxes (for admin/coach god view)
+  const [showCoachLayer, setShowCoachLayer] = useState(true);
+  const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
+  const [showSupporterLayer, setShowSupporterLayer] = useState(false);
+  // Legacy toggle states (kept for backward compat)
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
   const [showSupporterEvaluation, setShowSupporterEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
@@ -451,8 +457,61 @@ export default function PlayerDetail() {
     return datasets;
   };
   
+  // NEW: Build multi-source overlay datasets based on checkbox selections
+  const getMultiSourceOverlayDatasets = () => {
+    const datasets: Array<{
+      id: string;
+      label: string;
+      date: string;
+      data: ReturnType<typeof calculateRadarData>;
+      color: string;
+      isCurrent?: boolean;
+    }> = [];
+
+    // Add coach evaluation if checkbox is checked
+    if (showCoachLayer && latestCoachEvaluation) {
+      datasets.push({
+        id: latestCoachEvaluation.id,
+        label: "Évaluation Coach",
+        date: latestCoachEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
+        color: teamColor,
+        isCurrent: true,
+      });
+    }
+
+    // Add self-evaluation if checkbox is checked
+    if (showSelfEvalLayer && latestSelfEvaluation) {
+      datasets.push({
+        id: latestSelfEvaluation.id,
+        label: "Auto-évaluation",
+        date: latestSelfEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
+        color: "#F59E0B", // Amber/Yellow
+        isCurrent: false,
+      });
+    }
+
+    // Add supporter evaluation if checkbox is checked
+    if (showSupporterLayer && latestSupporterEvaluation) {
+      datasets.push({
+        id: latestSupporterEvaluation.id,
+        label: "Évaluation Supporter",
+        date: latestSupporterEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
+        color: "#F97316", // Orange
+        isCurrent: false,
+      });
+    }
+
+    return datasets;
+  };
+  
   const hasSelfEvaluation = !!latestSelfEvaluation;
   const hasSupporterEvaluation = !!latestSupporterEvaluation;
+  
+  // Check if multi-source mode is active (any layer besides default coach)
+  const isMultiSourceMode = showSelfEvalLayer || showSupporterLayer;
 
 
   return (
@@ -725,6 +784,12 @@ export default function PlayerDetail() {
             Évaluation
           </TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
+          {canEvaluate && (
+            <TabsTrigger value="invitations" className="gap-2">
+              <Mail className="w-4 h-4" />
+              Invitations
+            </TabsTrigger>
+          )}
           <TabsTrigger value="advice">Conseils</TabsTrigger>
         </TabsList>
 
@@ -736,56 +801,87 @@ export default function PlayerDetail() {
                 <div>
                   <h2 className="text-xl font-display font-semibold">Analyse des compétences</h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {showSupporterEvaluation && hasSupporterEvaluation 
-                      ? "Comparaison Coach vs Joueur vs Supporter"
-                      : showSelfEvaluation && hasSelfEvaluation 
-                        ? "Comparaison Coach vs Auto-évaluation"
-                        : selectedEvaluation 
-                          ? selectedEvaluation.name 
-                          : "Aucune évaluation"}
-                    {showComparison && !showSelfEvaluation && !showSupporterEvaluation && ` + ${comparisonIds.length} comparaison(s)`}
+                    {isMultiSourceMode ? (
+                      (() => {
+                        const sources = [];
+                        if (showCoachLayer && latestCoachEvaluation) sources.push("Coach");
+                        if (showSelfEvalLayer && latestSelfEvaluation) sources.push("Auto-éval");
+                        if (showSupporterLayer && latestSupporterEvaluation) sources.push("Supporter");
+                        return sources.length > 0 
+                          ? `Comparaison: ${sources.join(" vs ")}` 
+                          : "Sélectionnez au moins une source";
+                      })()
+                    ) : showComparison ? (
+                      `${selectedEvaluation?.name || "Évaluation"} + ${comparisonIds.length} comparaison(s)`
+                    ) : selectedEvaluation ? (
+                      selectedEvaluation.name
+                    ) : (
+                      "Aucune évaluation"
+                    )}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
-                  {/* Self-evaluation toggle (only for coach/admin view) */}
-                  {canEvaluate && hasSelfEvaluation && !showComparison && !showSupporterEvaluation && (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id="self-eval-toggle"
-                        checked={showSelfEvaluation}
-                        onCheckedChange={(checked) => {
-                          setShowSelfEvaluation(checked);
-                          if (checked) setShowSupporterEvaluation(false);
-                        }}
-                      />
-                      <Label 
-                        htmlFor="self-eval-toggle" 
-                        className="text-sm cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Star className="w-4 h-4 text-warning" />
-                        Auto-évaluation
-                      </Label>
-                    </div>
-                  )}
-                  {/* Supporter evaluation toggle (only for coach/admin view) */}
-                  {canEvaluate && hasSupporterEvaluation && !showComparison && !showSelfEvaluation && (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id="supporter-eval-toggle"
-                        checked={showSupporterEvaluation}
-                        onCheckedChange={(checked) => {
-                          setShowSupporterEvaluation(checked);
-                          if (checked) setShowSelfEvaluation(false);
-                        }}
-                      />
-                      <Label 
-                        htmlFor="supporter-eval-toggle" 
-                        className="text-sm cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Heart className="w-4 h-4 text-warning" />
-                        Supporter
-                      </Label>
-                    </div>
+                <div className="flex items-center gap-4 flex-wrap">
+                  {/* Multi-source checkboxes for admin/coach (god view) */}
+                  {canEvaluate && !showComparison && (
+                    <>
+                      {/* Coach layer */}
+                      {latestCoachEvaluation && (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="coach-layer"
+                            checked={showCoachLayer}
+                            onCheckedChange={(checked) => setShowCoachLayer(checked as boolean)}
+                          />
+                          <Label 
+                            htmlFor="coach-layer" 
+                            className="text-sm cursor-pointer flex items-center gap-1.5"
+                          >
+                            <ClipboardList className="w-4 h-4 text-primary" />
+                            Coach
+                          </Label>
+                        </div>
+                      )}
+                      {/* Self-evaluation layer */}
+                      {hasSelfEvaluation && (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="self-eval-layer"
+                            checked={showSelfEvalLayer}
+                            onCheckedChange={(checked) => {
+                              setShowSelfEvalLayer(checked as boolean);
+                              setShowSelfEvaluation(checked as boolean);
+                            }}
+                          />
+                          <Label 
+                            htmlFor="self-eval-layer" 
+                            className="text-sm cursor-pointer flex items-center gap-1.5"
+                          >
+                            <Star className="w-4 h-4 text-amber-500" />
+                            Auto-éval
+                          </Label>
+                        </div>
+                      )}
+                      {/* Supporter layer */}
+                      {hasSupporterEvaluation && (
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id="supporter-layer"
+                            checked={showSupporterLayer}
+                            onCheckedChange={(checked) => {
+                              setShowSupporterLayer(checked as boolean);
+                              setShowSupporterEvaluation(checked as boolean);
+                            }}
+                          />
+                          <Label 
+                            htmlFor="supporter-layer" 
+                            className="text-sm cursor-pointer flex items-center gap-1.5"
+                          >
+                            <Heart className="w-4 h-4 text-orange-500" />
+                            Supporter
+                          </Label>
+                        </div>
+                      )}
+                    </>
                   )}
                   {teamMembership && (
                     <Button 
@@ -807,14 +903,9 @@ export default function PlayerDetail() {
               </div>
               
               {radarData.length > 0 ? (
-                showSupporterEvaluation && hasSupporterEvaluation ? (
+                isMultiSourceMode ? (
                   <ComparisonRadar 
-                    datasets={getSupporterEvalOverlayDatasets()} 
-                    primaryColor={teamColor}
-                  />
-                ) : showSelfEvaluation && hasSelfEvaluation ? (
-                  <ComparisonRadar 
-                    datasets={getSelfEvalOverlayDatasets()} 
+                    datasets={getMultiSourceOverlayDatasets()} 
                     primaryColor={teamColor}
                   />
                 ) : showComparison ? (
@@ -1023,6 +1114,22 @@ export default function PlayerDetail() {
             onRefresh={fetchPlayerData}
           />
         </TabsContent>
+
+        {/* Invitations Tab - Only for staff (admin/coach) */}
+        {canEvaluate && (
+          <TabsContent value="invitations">
+            <SupporterRequestsPanel
+              playerId={id!}
+              playerName={getPlayerName()}
+              onViewEvaluation={(evaluationId) => {
+                const evaluation = evaluations.find(e => e.id === evaluationId);
+                if (evaluation) {
+                  handleViewEvaluation(evaluation);
+                }
+              }}
+            />
+          </TabsContent>
+        )}
 
         {/* Advice Tab */}
         <TabsContent value="advice">
