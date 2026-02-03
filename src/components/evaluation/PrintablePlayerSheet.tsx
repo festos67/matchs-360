@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Meh, CircleDot, Smile, SmilePlus, Sparkles, type LucideIcon } from "lucide-react";
+import { Star, Meh, CircleDot, Smile, SmilePlus, Sparkles, type LucideIcon } from "lucide-react";
 import { 
   calculateRadarData, 
   calculateThemeAverage, 
@@ -67,7 +67,8 @@ const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
   5: { icon: Sparkles, label: "Expert" },
 };
 
-const LevelDisplay = ({ score }: { score: number | null }) => {
+// Affiche les étoiles + icône smiley (sans chiffres)
+const StarDisplay = ({ score }: { score: number | null }) => {
   const value = score ? Math.round(score) : 0;
   
   if (value === 0) {
@@ -78,8 +79,16 @@ const LevelDisplay = ({ score }: { score: number | null }) => {
   const IconComponent = levelData.icon;
   
   return (
-    <div className="flex items-center gap-1.5" title={levelData.label}>
-      <IconComponent className="w-4 h-4 text-slate-700" strokeWidth={1.5} />
+    <div className="flex items-center gap-1" title={levelData.label}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`w-3 h-3 ${
+            star <= value ? "fill-amber-500 text-amber-500" : "fill-gray-200 text-gray-200"
+          }`}
+        />
+      ))}
+      <IconComponent className="w-4 h-4 ml-1 text-slate-600" strokeWidth={1.5} />
     </div>
   );
 };
@@ -261,7 +270,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                               {scoreData?.is_not_observed ? (
                                 <span className="text-gray-400 text-xs">N/O</span>
                               ) : (
-                                <LevelDisplay score={scoreData?.score || null} />
+                                <StarDisplay score={scoreData?.score || null} />
                               )}
                             </td>
                           </tr>
