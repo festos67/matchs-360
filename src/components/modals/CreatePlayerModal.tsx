@@ -268,18 +268,43 @@ export const CreatePlayerModal = ({
 
       if (archiveError) throw archiveError;
 
-      // Create new team membership
-      const { error: insertError } = await supabase
+      // Check if there's an existing archived membership in destination team
+      const { data: existingMembership } = await supabase
         .from("team_members")
-        .insert({
-          user_id: selectedPlayer.id,
-          team_id: defaultTeamId,
-          member_type: "player",
-          is_active: true,
-          joined_at: new Date().toISOString(),
-        });
+        .select("id")
+        .eq("user_id", selectedPlayer.id)
+        .eq("team_id", defaultTeamId)
+        .eq("member_type", "player")
+        .eq("is_active", false)
+        .maybeSingle();
 
-      if (insertError) throw insertError;
+      if (existingMembership) {
+        // Reactivate existing membership
+        const { error: reactivateError } = await supabase
+          .from("team_members")
+          .update({
+            is_active: true,
+            left_at: null,
+            archived_reason: null,
+            joined_at: new Date().toISOString(),
+          })
+          .eq("id", existingMembership.id);
+
+        if (reactivateError) throw reactivateError;
+      } else {
+        // Create new team membership
+        const { error: insertError } = await supabase
+          .from("team_members")
+          .insert({
+            user_id: selectedPlayer.id,
+            team_id: defaultTeamId,
+            member_type: "player",
+            is_active: true,
+            joined_at: new Date().toISOString(),
+          });
+
+        if (insertError) throw insertError;
+      }
 
       const playerName = selectedPlayer.nickname || 
         `${selectedPlayer.firstName} ${selectedPlayer.lastName}`;
