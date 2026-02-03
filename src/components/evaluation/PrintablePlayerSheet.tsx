@@ -1,10 +1,9 @@
 import { forwardRef } from "react";
-import { Star } from "lucide-react";
+import { Meh, CircleDot, Smile, SmilePlus, Sparkles, type LucideIcon } from "lucide-react";
 import { 
   calculateRadarData, 
   calculateThemeAverage, 
   formatAverage,
-  SCORE_LABELS,
   type ThemeScores 
 } from "@/lib/evaluation-utils";
 
@@ -59,21 +58,28 @@ interface PrintablePlayerSheetProps {
   themes: Theme[];
 }
 
-const StarDisplay = ({ score }: { score: number | null }) => {
-  const value = score || 0;
+// Mapping des icônes de visage selon le niveau (approche bienveillante)
+const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
+  1: { icon: Meh, label: "En cours d'acquisition" },
+  2: { icon: CircleDot, label: "En progression" },
+  3: { icon: Smile, label: "Maîtrisé" },
+  4: { icon: SmilePlus, label: "Confirmé" },
+  5: { icon: Sparkles, label: "Expert" },
+};
+
+const LevelDisplay = ({ score }: { score: number | null }) => {
+  const value = score ? Math.round(score) : 0;
+  
+  if (value === 0) {
+    return <span className="text-xs text-gray-400">-</span>;
+  }
+  
+  const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
+  const IconComponent = levelData.icon;
+  
   return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`w-3 h-3 ${
-            star <= value ? "fill-amber-500 text-amber-500" : "fill-gray-200 text-gray-200"
-          }`}
-        />
-      ))}
-      <span className="ml-1 text-xs text-gray-600">
-        {value > 0 ? SCORE_LABELS[Math.round(value)] : "-"}
-      </span>
+    <div className="flex items-center gap-1.5" title={levelData.label}>
+      <IconComponent className="w-4 h-4 text-slate-700" strokeWidth={1.5} />
     </div>
   );
 };
@@ -255,7 +261,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                               {scoreData?.is_not_observed ? (
                                 <span className="text-gray-400 text-xs">N/O</span>
                               ) : (
-                                <StarDisplay score={scoreData?.score || null} />
+                                <LevelDisplay score={scoreData?.score || null} />
                               )}
                             </td>
                           </tr>
