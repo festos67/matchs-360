@@ -376,7 +376,7 @@ export function EvaluationHistory({
         ) : (
           <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg">
             <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p>Aucune évaluation officielle {showArchivedEvaluations ? "" : "active"}</p>
+            <p>Aucun débrief officiel {showArchivedEvaluations ? "" : "actif"}</p>
           </div>
         )}
       </div>
