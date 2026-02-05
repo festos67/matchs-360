@@ -388,7 +388,7 @@ export function EvaluationHistory({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-amber-500">
             <User className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Auto-évaluations (Joueur)</h3>
+            <h3 className="font-semibold text-lg">Auto-débriefs (Joueur)</h3>
           </div>
           <Badge className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
             {filteredSelfEvals.length} auto-évaluation{filteredSelfEvals.length > 1 ? "s" : ""}
