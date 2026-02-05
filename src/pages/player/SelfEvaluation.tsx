@@ -212,7 +212,7 @@ export default function SelfEvaluation() {
         frameworkId={frameworkId}
         themes={themes}
         onSaved={() => {
-          toast.success("Auto-évaluation enregistrée !");
+          toast.success("Auto-débrief enregistré !");
           navigate("/player/dashboard");
         }}
       />
