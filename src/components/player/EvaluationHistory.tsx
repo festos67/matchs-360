@@ -420,7 +420,7 @@ export function EvaluationHistory({
             <h3 className="font-semibold text-lg">Débriefs Supporters</h3>
           </div>
           <Badge className="text-xs bg-orange-500/20 text-orange-600 border-orange-500/30">
-            {filteredSupporterEvals.length} évaluation{filteredSupporterEvals.length > 1 ? "s" : ""}
+            {filteredSupporterEvals.length} débrief{filteredSupporterEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
