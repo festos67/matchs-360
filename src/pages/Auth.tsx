@@ -34,9 +34,11 @@ const roleOptions: { value: RequestedRole; label: string; description: string; i
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
@@ -51,17 +53,60 @@ export default function Auth() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
-      });
+      if (isTestMode) {
+        // Mode test: réinitialiser directement via l'edge function admin
+        if (!newPassword || newPassword.length < 6) {
+          toast.error("Le nouveau mot de passe doit contenir au moins 6 caractères");
+          setLoading(false);
+          return;
+        }
 
-      if (error) {
-        toast.error(error.message);
-        return;
+        // D'abord, trouver l'utilisateur par email
+        const { data: users } = await supabase.functions.invoke("admin-users", {
+          method: "GET",
+        });
+
+        const user = users?.users?.find(
+          (u: { email: string }) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+
+        if (!user) {
+          toast.error("Aucun utilisateur trouvé avec cet email");
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await supabase.functions.invoke("admin-users", {
+          body: {
+            action: "update-password",
+            userId: user.id,
+            newPassword,
+          },
+        });
+
+        if (error) {
+          toast.error(error.message || "Erreur lors de la réinitialisation");
+          return;
+        }
+
+        toast.success("Mot de passe modifié avec succès !");
+        setIsForgotPassword(false);
+        setIsTestMode(false);
+        setNewPassword("");
+      } else {
+        // Mode normal: envoyer un email
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/auth?reset=true`,
+        });
+
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+
+        toast.success("Un email de réinitialisation a été envoyé !", { duration: 5000 });
+        setIsForgotPassword(false);
       }
-
-      toast.success("Un email de réinitialisation a été envoyé !", { duration: 5000 });
-      setIsForgotPassword(false);
     } catch (err) {
       toast.error("Une erreur est survenue");
     } finally {
@@ -203,6 +248,37 @@ export default function Auth() {
                 </div>
               </div>
 
+              {/* Mode test toggle */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="test-mode"
+                  checked={isTestMode}
+                  onChange={(e) => setIsTestMode(e.target.checked)}
+                  className="rounded border-border"
+                />
+                <Label htmlFor="test-mode" className="text-sm text-muted-foreground cursor-pointer">
+                  Mode test (changer directement sans email)
+                </Label>
+              </div>
+
+              {isTestMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-medium"
@@ -212,7 +288,7 @@ export default function Auth() {
                   <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 ) : (
                   <>
-                    Envoyer le lien
+                    {isTestMode ? "Changer le mot de passe" : "Envoyer le lien"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -221,7 +297,11 @@ export default function Auth() {
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => setIsForgotPassword(false)}
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setIsTestMode(false);
+                    setNewPassword("");
+                  }}
                   className="text-primary font-medium hover:underline"
                 >
                   Retour à la connexion
