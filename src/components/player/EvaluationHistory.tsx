@@ -417,7 +417,7 @@ export function EvaluationHistory({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-orange-500">
             <Heart className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Évaluations Supporters</h3>
+            <h3 className="font-semibold text-lg">Débriefs Supporters</h3>
           </div>
           <Badge className="text-xs bg-orange-500/20 text-orange-600 border-orange-500/30">
             {filteredSupporterEvals.length} évaluation{filteredSupporterEvals.length > 1 ? "s" : ""}
