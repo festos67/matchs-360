@@ -123,7 +123,7 @@ export function SupporterEvaluationForm({
           player_id: playerId,
           coach_id: user.id, // Supporter is stored in coach_id for self/supporter evals
           framework_id: frameworkId,
-          name: `Évaluation Supporter - ${supporterName}`,
+          name: `Débrief Supporter - ${supporterName}`,
           type: "supporter_assessment" as any,
         })
         .select()
