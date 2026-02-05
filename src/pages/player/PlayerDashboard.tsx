@@ -250,7 +250,7 @@ const PlayerDashboard = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      Aucune évaluation disponible
+                      Aucun débrief disponible
                     </TableCell>
                   </TableRow>
                 )}
