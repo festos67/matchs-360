@@ -337,7 +337,7 @@ export const SelfEvaluationForm = ({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="evaluationName">Titre de l'auto-évaluation</Label>
+              <Label htmlFor="evaluationName">Titre de l'auto-débrief</Label>
               <Input
                 id="evaluationName"
                 value={evaluationName}
