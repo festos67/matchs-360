@@ -237,7 +237,7 @@ export default function SupporterEvaluation() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-display font-bold text-foreground">
-                Évaluation de {getPlayerName()}
+                Débrief de {getPlayerName()}
               </h1>
               <Badge variant="outline" className="bg-orange-500/20 text-orange-600 border-orange-500/30">
                 Point de vue Supporter
