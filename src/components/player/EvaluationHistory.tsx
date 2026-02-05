@@ -291,9 +291,9 @@ export function EvaluationHistory({
                 </AlertDialogTrigger>
                 <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer cette évaluation ?</AlertDialogTitle>
+                    <AlertDialogTitle>Supprimer ce débrief ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      L'évaluation "{evaluation.name}" sera archivée et n'apparaîtra plus dans l'historique. Cette action peut être annulée par un administrateur.
+                      Le débrief "{evaluation.name}" sera archivé et n'apparaîtra plus dans l'historique. Cette action peut être annulée par un administrateur.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
