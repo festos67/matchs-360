@@ -656,7 +656,7 @@ export default function PlayerDetail() {
                 setActiveTab("evaluation");
               }}>
                 <Plus className="w-4 h-4" />
-                Nouvelle évaluation
+                Nouveau débrief
               </Button>
             )}
             {canMutate && teamMembership && (
