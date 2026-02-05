@@ -366,7 +366,7 @@ export function EvaluationHistory({
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Évaluations validées par les coachs — Référence officielle pour le club
+          Débriefs validés par les coachs — Référence officielle pour le club
         </p>
         
         {filteredCoachEvals.length > 0 ? (
