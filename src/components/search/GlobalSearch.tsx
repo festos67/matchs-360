@@ -152,85 +152,92 @@ export const GlobalSearch = () => {
         </kbd>
       </button>
 
-      {/* Search dialog */}
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder="Rechercher un joueur, une équipe..."
-          value={query}
-          onValueChange={setQuery}
-        />
-        <CommandList>
-          {loading && (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-            </div>
-          )}
-          
-          {!loading && query.length >= 2 && results.length === 0 && (
-            <CommandEmpty>Aucun résultat trouvé</CommandEmpty>
-          )}
+      {/* Search dialog with shouldFilter={false} to handle our own filtering */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="overflow-hidden p-0 shadow-lg">
+          <VisuallyHidden>
+            <DialogTitle>Recherche globale</DialogTitle>
+          </VisuallyHidden>
+          <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+            <CommandInput
+              placeholder="Rechercher un joueur, une équipe..."
+              value={query}
+              onValueChange={setQuery}
+            />
+            <CommandList>
+              {loading && (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              
+              {!loading && query.length >= 2 && results.length === 0 && (
+                <CommandEmpty>Aucun résultat trouvé</CommandEmpty>
+              )}
 
-          {!loading && query.length < 2 && (
-            <div className="py-6 text-center text-sm text-muted-foreground">
-              Tapez au moins 2 caractères pour rechercher
-            </div>
-          )}
+              {!loading && query.length < 2 && (
+                <div className="py-6 text-center text-sm text-muted-foreground">
+                  Tapez au moins 2 caractères pour rechercher
+                </div>
+              )}
 
-          {!loading && results.filter(r => r.type === "player").length > 0 && (
-            <CommandGroup heading="Joueurs">
-              {results
-                .filter((r) => r.type === "player")
-                .map((result) => (
-                  <CommandItem
-                    key={result.id}
-                    value={result.id}
-                    onSelect={() => handleSelect(result)}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{result.name}</p>
-                      {result.subtitle && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {result.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-          )}
+              {!loading && results.filter(r => r.type === "player").length > 0 && (
+                <CommandGroup heading="Joueurs">
+                  {results
+                    .filter((r) => r.type === "player")
+                    .map((result) => (
+                      <CommandItem
+                        key={result.id}
+                        value={result.name}
+                        onSelect={() => handleSelect(result)}
+                        className="flex items-center gap-3 cursor-pointer"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="w-4 h-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{result.name}</p>
+                          {result.subtitle && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {result.subtitle}
+                            </p>
+                          )}
+                        </div>
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
+              )}
 
-          {!loading && results.filter(r => r.type === "team").length > 0 && (
-            <CommandGroup heading="Équipes">
-              {results
-                .filter((r) => r.type === "team")
-                .map((result) => (
-                  <CommandItem
-                    key={result.id}
-                    value={result.id}
-                    onSelect={() => handleSelect(result)}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center">
-                      <Users className="w-4 h-4 text-secondary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{result.name}</p>
-                      {result.subtitle && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {result.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-          )}
-        </CommandList>
-      </CommandDialog>
+              {!loading && results.filter(r => r.type === "team").length > 0 && (
+                <CommandGroup heading="Équipes">
+                  {results
+                    .filter((r) => r.type === "team")
+                    .map((result) => (
+                      <CommandItem
+                        key={result.id}
+                        value={result.name}
+                        onSelect={() => handleSelect(result)}
+                        className="flex items-center gap-3 cursor-pointer"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-secondary/50 flex items-center justify-center">
+                          <Users className="w-4 h-4 text-secondary-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{result.name}</p>
+                          {result.subtitle && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {result.subtitle}
+                            </p>
+                          )}
+                        </div>
+                      </CommandItem>
+                    ))}
+                </CommandGroup>
+              )}
+            </CommandList>
+          </Command>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
