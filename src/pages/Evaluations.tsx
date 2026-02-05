@@ -103,7 +103,7 @@ export default function Evaluations() {
         {canCreate && (
           <Button onClick={() => setShowCreateModal(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            Nouvelle évaluation
+            Nouveau débrief
           </Button>
         )}
       </div>
