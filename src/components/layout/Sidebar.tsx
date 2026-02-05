@@ -38,7 +38,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: Building2, label: "Mon Club", path: "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
-        { icon: Trophy, label: "Évaluations", path: "/evaluations" },
+        { icon: Trophy, label: "Débriefs", path: "/evaluations" },
       ];
     case "coach":
       return [
