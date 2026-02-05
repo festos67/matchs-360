@@ -389,7 +389,7 @@ export const SelfEvaluationForm = ({
       <div className="space-y-4">
         <h3 className="font-display font-semibold text-lg flex items-center gap-2">
           <Star className="w-5 h-5 text-emerald-500" />
-          Mon évaluation des compétences
+          Mon débrief des compétences
         </h3>
         
         {themeScores.map((themeScore) => {
