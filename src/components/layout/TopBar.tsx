@@ -1,8 +1,6 @@
-import { useState } from "react";
-import { Bell, Search, User, LogOut } from "lucide-react";
+import { Bell, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { useAuth } from "@/hooks/useAuth";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
 
 export const TopBar = () => {
   const { user, profile, roles, currentRole, setCurrentRole, signOut } = useAuth();
@@ -26,13 +25,7 @@ export const TopBar = () => {
   return (
     <header className="h-16 border-b border-border bg-card/50 backdrop-blur-xl px-6 flex items-center justify-between">
       {/* Search */}
-      <div className="relative w-96">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher un joueur, une équipe..."
-          className="pl-10 bg-muted/50 border-transparent focus:border-primary"
-        />
-      </div>
+      <GlobalSearch />
 
       {/* Actions */}
       <div className="flex items-center gap-4">
