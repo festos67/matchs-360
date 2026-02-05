@@ -352,7 +352,7 @@ export const SelfEvaluationForm = ({
               <span>
                 {existingEvaluation
                   ? `Dernière modification: ${new Date(existingEvaluation.date).toLocaleDateString("fr-FR")}`
-                  : `Nouvelle auto-évaluation - ${new Date().toLocaleDateString("fr-FR")}`}
+                  : `Nouvel auto-débrief - ${new Date().toLocaleDateString("fr-FR")}`}
               </span>
             </div>
 
