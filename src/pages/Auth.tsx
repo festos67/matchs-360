@@ -170,10 +170,16 @@ export default function Auth() {
           {/* Title */}
           <div className="mb-8">
             <h2 className="text-3xl font-display font-bold">
-              {isLogin ? "Bienvenue" : "Créer un compte"}
+              {isForgotPassword
+                ? "Mot de passe oublié"
+                : isLogin
+                ? "Bienvenue"
+                : "Créer un compte"}
             </h2>
             <p className="text-muted-foreground mt-2">
-              {isLogin
+              {isForgotPassword
+                ? "Entrez votre email pour recevoir un lien de réinitialisation"
+                : isLogin
                 ? "Connectez-vous pour accéder à votre espace"
                 : "Rejoignez la plateforme d'évaluation sportive"}
             </p>
