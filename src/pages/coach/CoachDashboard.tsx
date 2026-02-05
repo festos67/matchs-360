@@ -190,7 +190,7 @@ const CoachDashboard = () => {
             <Button asChild>
               <Link to="/evaluations">
                 <Plus className="w-4 h-4 mr-2" />
-                Nouvelle Évaluation
+                Nouveau Débrief
               </Link>
             </Button>
           </div>
