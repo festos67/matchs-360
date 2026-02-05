@@ -145,7 +145,7 @@ export function EvaluationHistory({
       
       if (error) throw error;
       
-      toast.success("Évaluation supprimée");
+      toast.success("Débrief supprimé");
       onRefresh();
     } catch (error: unknown) {
       console.error("Error deleting evaluation:", error);
