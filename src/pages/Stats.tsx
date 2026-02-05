@@ -185,7 +185,7 @@ const Stats = () => {
           ) : stats.recentEvaluations.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               <Activity className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Aucune évaluation enregistrée pour le moment.</p>
+              <p>Aucun débrief enregistré pour le moment.</p>
             </div>
           ) : (
             <div className="space-y-2">
