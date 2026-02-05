@@ -248,7 +248,7 @@ export const CreateEvaluationModal = ({
             <Label htmlFor="name">Nom du débrief</Label>
             <Input
               id="name"
-              placeholder="Évaluation mi-saison"
+              placeholder="Débrief mi-saison"
               {...register("name")}
             />
             {errors.name && (
