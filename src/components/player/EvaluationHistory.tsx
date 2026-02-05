@@ -391,7 +391,7 @@ export function EvaluationHistory({
             <h3 className="font-semibold text-lg">Auto-débriefs (Joueur)</h3>
           </div>
           <Badge className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
-            {filteredSelfEvals.length} auto-évaluation{filteredSelfEvals.length > 1 ? "s" : ""}
+            {filteredSelfEvals.length} auto-débrief{filteredSelfEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
