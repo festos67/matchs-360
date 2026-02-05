@@ -789,7 +789,7 @@ export default function PlayerDetail() {
           <TabsTrigger value="radar">Vue Radar</TabsTrigger>
           <TabsTrigger value="evaluation" disabled={isViewingHistory}>
             <ClipboardList className="w-4 h-4 mr-2" />
-            Évaluation
+            Débrief
           </TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
           {canEvaluate && (
