@@ -382,7 +382,7 @@ export const EvaluationForm = ({
 
       {/* Theme accordions */}
       <div className="space-y-4">
-        <h3 className="font-display font-semibold text-lg">Évaluation des compétences</h3>
+        <h3 className="font-display font-semibold text-lg">Débrief des compétences</h3>
         
         {themeScores.map((themeScore) => {
           const theme = themes.find((t) => t.id === themeScore.theme_id);
