@@ -167,7 +167,7 @@ const PlayerDashboard = () => {
             icon={TrendingUp}
           />
           <StatsCard
-            title="Dernière Éval."
+            title="Dernier Débrief"
             value={latestEvaluations?.[0] ? format(new Date(latestEvaluations[0].date), "dd/MM", { locale: fr }) : "-"}
             icon={Calendar}
           />
