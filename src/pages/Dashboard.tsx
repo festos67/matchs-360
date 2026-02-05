@@ -230,7 +230,7 @@ export default function Dashboard() {
           </div>
 
           <Button className="w-full mt-6" variant="outline">
-            Nouvelle évaluation
+            Nouveau débrief
           </Button>
         </div>
       </div>
