@@ -196,9 +196,9 @@ const PlayerDashboard = () => {
         {/* Recent Evaluations */}
         <div className="bg-card rounded-xl border border-border">
           <div className="p-6 border-b border-border">
-            <h2 className="text-xl font-semibold text-foreground">Mes Évaluations</h2>
+            <h2 className="text-xl font-semibold text-foreground">Mes Débriefs</h2>
             <p className="text-sm text-muted-foreground">
-              Historique de vos dernières évaluations
+              Historique de vos derniers débriefs
             </p>
           </div>
 
