@@ -207,10 +207,10 @@ export default function SupporterEvaluation() {
         <div className="glass-card p-12 text-center">
           <AlertTriangle className="w-16 h-16 mx-auto text-warning/50 mb-4" />
           <h3 className="text-lg font-medium text-muted-foreground">
-            Évaluation non disponible
+            Débrief non disponible
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Cette demande d'évaluation n'est plus accessible ou le référentiel n'est pas configuré.
+            Cette demande de débrief n'est plus accessible ou le référentiel n'est pas configuré.
           </p>
           <Button className="mt-4" onClick={() => navigate("/supporter/dashboard")}>
             Retour au tableau de bord
@@ -237,7 +237,7 @@ export default function SupporterEvaluation() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-display font-bold text-foreground">
-                Évaluation de {getPlayerName()}
+                Débrief de {getPlayerName()}
               </h1>
               <Badge variant="outline" className="bg-orange-500/20 text-orange-600 border-orange-500/30">
                 Point de vue Supporter

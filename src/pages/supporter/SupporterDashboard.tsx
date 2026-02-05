@@ -170,7 +170,7 @@ const SupporterDashboard = () => {
             icon={Clock}
           />
           <StatsCard
-            title="Évaluations soumises"
+            title="Débriefs soumis"
             value={String(completedCount || 0)}
             icon={CheckCircle}
           />
@@ -184,7 +184,7 @@ const SupporterDashboard = () => {
                 <Star className="w-5 h-5 text-orange-500" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Demandes d'évaluation</h2>
+                <h2 className="text-lg font-semibold text-foreground">Demandes de débrief</h2>
                 <p className="text-sm text-muted-foreground">
                   Le coach vous demande votre avis
                 </p>
@@ -211,7 +211,7 @@ const SupporterDashboard = () => {
                   <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
                     <Link to={`/supporter/evaluate/${request.id}`}>
                       <ClipboardList className="w-4 h-4" />
-                      Évaluer
+                      Débriefer
                     </Link>
                   </Button>
                 </div>

@@ -123,7 +123,7 @@ export function SupporterEvaluationForm({
           player_id: playerId,
           coach_id: user.id, // Supporter is stored in coach_id for self/supporter evals
           framework_id: frameworkId,
-          name: `Évaluation Supporter - ${supporterName}`,
+          name: `Débrief Supporter - ${supporterName}`,
           type: "supporter_assessment" as any,
         })
         .select()
@@ -179,7 +179,7 @@ export function SupporterEvaluationForm({
         if (reqError) throw reqError;
       }
 
-      toast.success("Évaluation enregistrée avec succès !");
+      toast.success("Débrief enregistré avec succès !");
       onSaved();
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
@@ -216,7 +216,7 @@ export function SupporterEvaluationForm({
           <div className="flex items-center gap-3">
             <Star className="w-5 h-5 text-warning" />
             <h2 className="text-xl font-display font-semibold">
-              Évaluation de {playerName}
+              Débrief de {playerName}
             </h2>
             <Badge className="bg-warning/20 text-warning border-warning/30">
               Point de vue Supporter

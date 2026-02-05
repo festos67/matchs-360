@@ -338,7 +338,7 @@ export default function TeamDetail() {
               </div>
               <h2 className="text-xl font-display font-semibold mb-2">Aucun référentiel configuré</h2>
               <p className="text-muted-foreground mb-6 max-w-md">
-                Le référentiel de compétences permet d'évaluer les joueurs sur des critères définis. Configurez-le pour commencer les évaluations.
+                Le référentiel de compétences permet de débriefer les joueurs sur des critères définis. Configurez-le pour commencer les débriefs.
               </p>
               {canEditFramework ? (
                 <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>

@@ -156,7 +156,7 @@ export default function Dashboard() {
           color="success"
         />
         <StatsCard
-          title="Évaluations"
+          title="Débriefs"
           value="156"
           subtitle="Total cette saison"
           icon={Trophy}
@@ -197,7 +197,7 @@ export default function Dashboard() {
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-display font-semibold">
-              Évaluations récentes
+              Débriefs récents
             </h2>
             <Button variant="ghost" size="sm" className="text-primary">
               Voir tout
@@ -230,7 +230,7 @@ export default function Dashboard() {
           </div>
 
           <Button className="w-full mt-6" variant="outline">
-            Nouvelle évaluation
+            Nouveau débrief
           </Button>
         </div>
       </div>
@@ -270,9 +270,9 @@ export default function Dashboard() {
         >
           <Trophy className="w-6 h-6 text-primary" />
           <div className="text-left">
-            <p className="font-medium">Évaluer un joueur</p>
+            <p className="font-medium">Débriefer un joueur</p>
             <p className="text-sm text-muted-foreground">
-              Créer une nouvelle évaluation
+              Créer un nouveau débrief
             </p>
           </div>
         </Button>

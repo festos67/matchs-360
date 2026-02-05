@@ -172,7 +172,7 @@ const CoachDashboard = () => {
             icon={Trophy}
           />
           <StatsCard
-            title="Évaluations"
+            title="Débriefs"
             value={loadingEvaluations ? "-" : String(evaluationsCount)}
             icon={ClipboardList}
           />
@@ -190,7 +190,7 @@ const CoachDashboard = () => {
             <Button asChild>
               <Link to="/evaluations">
                 <Plus className="w-4 h-4 mr-2" />
-                Nouvelle Évaluation
+                Nouveau Débrief
               </Link>
             </Button>
           </div>
@@ -202,7 +202,7 @@ const CoachDashboard = () => {
                   <TableHead className="w-[60px]">Photo</TableHead>
                   <TableHead>Joueur</TableHead>
                   <TableHead>Équipe</TableHead>
-                  <TableHead className="text-center">Évaluations</TableHead>
+                  <TableHead className="text-center">Débriefs</TableHead>
                   <TableHead className="w-[100px]">Action</TableHead>
                 </TableRow>
               </TableHeader>

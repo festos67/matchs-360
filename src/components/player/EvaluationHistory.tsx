@@ -145,7 +145,7 @@ export function EvaluationHistory({
       
       if (error) throw error;
       
-      toast.success("Évaluation supprimée");
+      toast.success("Débrief supprimé");
       onRefresh();
     } catch (error: unknown) {
       console.error("Error deleting evaluation:", error);
@@ -162,7 +162,7 @@ export function EvaluationHistory({
       
       if (error) throw error;
       
-      toast.success("Évaluation restaurée");
+      toast.success("Débrief restauré");
       onRefresh();
     } catch (error: unknown) {
       console.error("Error restoring evaluation:", error);
@@ -291,9 +291,9 @@ export function EvaluationHistory({
                 </AlertDialogTrigger>
                 <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer cette évaluation ?</AlertDialogTitle>
+                    <AlertDialogTitle>Supprimer ce débrief ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      L'évaluation "{evaluation.name}" sera archivée et n'apparaîtra plus dans l'historique. Cette action peut être annulée par un administrateur.
+                      Le débrief "{evaluation.name}" sera archivé et n'apparaîtra plus dans l'historique. Cette action peut être annulée par un administrateur.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -331,7 +331,7 @@ export function EvaluationHistory({
   return (
     <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-display font-semibold">Historique des évaluations</h2>
+        <h2 className="text-xl font-display font-semibold">Historique des débriefs</h2>
         <div className="flex items-center gap-4">
           {canEvaluate && evaluations.some(e => e.deleted_at) && (
             <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
@@ -362,11 +362,11 @@ export function EvaluationHistory({
             <h3 className="font-semibold text-lg">Suivi Officiel (Coach)</h3>
           </div>
           <Badge variant="outline" className="text-xs">
-            {filteredCoachEvals.length} évaluation{filteredCoachEvals.length > 1 ? "s" : ""}
+            {filteredCoachEvals.length} débrief{filteredCoachEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          Évaluations validées par les coachs — Référence officielle pour le club
+          Débriefs validés par les coachs — Référence officielle pour le club
         </p>
         
         {filteredCoachEvals.length > 0 ? (
@@ -376,7 +376,7 @@ export function EvaluationHistory({
         ) : (
           <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg">
             <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p>Aucune évaluation officielle {showArchivedEvaluations ? "" : "active"}</p>
+            <p>Aucun débrief officiel {showArchivedEvaluations ? "" : "actif"}</p>
           </div>
         )}
       </div>
@@ -388,10 +388,10 @@ export function EvaluationHistory({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-amber-500">
             <User className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Auto-évaluations (Joueur)</h3>
+            <h3 className="font-semibold text-lg">Auto-débriefs (Joueur)</h3>
           </div>
           <Badge className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
-            {filteredSelfEvals.length} auto-évaluation{filteredSelfEvals.length > 1 ? "s" : ""}
+            {filteredSelfEvals.length} auto-débrief{filteredSelfEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
@@ -405,7 +405,7 @@ export function EvaluationHistory({
         ) : (
           <div className="text-center py-8 text-muted-foreground bg-amber-500/5 rounded-lg border border-amber-500/10">
             <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-amber-500" />
-            <p>Aucune auto-évaluation {showArchivedEvaluations ? "" : "disponible"}</p>
+            <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
       </div>
@@ -417,10 +417,10 @@ export function EvaluationHistory({
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-orange-500">
             <Heart className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Évaluations Supporters</h3>
+            <h3 className="font-semibold text-lg">Débriefs Supporters</h3>
           </div>
           <Badge className="text-xs bg-orange-500/20 text-orange-600 border-orange-500/30">
-            {filteredSupporterEvals.length} évaluation{filteredSupporterEvals.length > 1 ? "s" : ""}
+            {filteredSupporterEvals.length} débrief{filteredSupporterEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
@@ -434,7 +434,7 @@ export function EvaluationHistory({
         ) : (
           <div className="text-center py-8 text-muted-foreground bg-orange-500/5 rounded-lg border border-orange-500/10">
             <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-orange-500" />
-            <p>Aucune évaluation supporter {showArchivedEvaluations ? "" : "disponible"}</p>
+            <p>Aucun débrief supporter {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
       </div>
@@ -443,7 +443,7 @@ export function EvaluationHistory({
       {activeCoachEvaluations.length > 1 && (
         <div className="mt-6 p-4 bg-muted/30 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            💡 <strong>Astuce:</strong> Cochez les évaluations officielles que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
+            💡 <strong>Astuce:</strong> Cochez les débriefs officiels que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
           </p>
         </div>
       )}

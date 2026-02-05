@@ -95,15 +95,15 @@ export default function Evaluations() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-display font-bold">Évaluations</h1>
+          <h1 className="text-3xl font-display font-bold">Débriefs</h1>
           <p className="text-muted-foreground mt-1">
-            Historique des évaluations de joueurs
+            Historique des débriefs de joueurs
           </p>
         </div>
         {canCreate && (
           <Button onClick={() => setShowCreateModal(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            Nouvelle évaluation
+            Nouveau débrief
           </Button>
         )}
       </div>
@@ -112,7 +112,7 @@ export default function Evaluations() {
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Rechercher par joueur ou nom d'évaluation..."
+          placeholder="Rechercher par joueur ou nom de débrief..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 max-w-md"
@@ -124,7 +124,7 @@ export default function Evaluations() {
         <div className="glass-card p-12 text-center">
           <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-display font-semibold mb-2">
-            {search ? "Aucun résultat" : "Aucune évaluation"}
+            {search ? "Aucun résultat" : "Aucun débrief"}
           </h2>
           <p className="text-muted-foreground mb-6">
             {search

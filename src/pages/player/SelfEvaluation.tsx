@@ -184,14 +184,14 @@ export default function SelfEvaluation() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-display font-bold text-foreground">
-                Mon Auto-évaluation
+                Mon Auto-débrief
               </h1>
               <Badge variant="outline" className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
                 Perception personnelle
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              Comment percevez-vous vos compétences ? Évaluez-vous sur le référentiel de votre équipe.
+              Comment percevez-vous vos compétences ? Auto-débriefez-vous sur le référentiel de votre équipe.
             </p>
             <p className="text-sm text-muted-foreground mt-1">
               <span 
@@ -212,7 +212,7 @@ export default function SelfEvaluation() {
         frameworkId={frameworkId}
         themes={themes}
         onSaved={() => {
-          toast.success("Auto-évaluation enregistrée !");
+          toast.success("Auto-débrief enregistré !");
           navigate("/player/dashboard");
         }}
       />

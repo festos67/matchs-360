@@ -291,7 +291,7 @@ export const SelfEvaluationForm = ({
         if (objError) throw objError;
       }
 
-      toast.success("Auto-évaluation enregistrée avec succès");
+      toast.success("Auto-débrief enregistré avec succès");
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving self-evaluation:", error);
@@ -337,12 +337,12 @@ export const SelfEvaluationForm = ({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="evaluationName">Titre de l'auto-évaluation</Label>
+              <Label htmlFor="evaluationName">Titre de l'auto-débrief</Label>
               <Input
                 id="evaluationName"
                 value={evaluationName}
                 onChange={(e) => setEvaluationName(e.target.value)}
-                placeholder="Titre de l'évaluation..."
+                placeholder="Titre du débrief..."
                 className="border-emerald-500/30 focus-visible:ring-emerald-500"
               />
             </div>
@@ -352,7 +352,7 @@ export const SelfEvaluationForm = ({
               <span>
                 {existingEvaluation
                   ? `Dernière modification: ${new Date(existingEvaluation.date).toLocaleDateString("fr-FR")}`
-                  : `Nouvelle auto-évaluation - ${new Date().toLocaleDateString("fr-FR")}`}
+                  : `Nouvel auto-débrief - ${new Date().toLocaleDateString("fr-FR")}`}
               </span>
             </div>
 
@@ -389,7 +389,7 @@ export const SelfEvaluationForm = ({
       <div className="space-y-4">
         <h3 className="font-display font-semibold text-lg flex items-center gap-2">
           <Star className="w-5 h-5 text-emerald-500" />
-          Mon évaluation des compétences
+          Mon débrief des compétences
         </h3>
         
         {themeScores.map((themeScore) => {

@@ -292,7 +292,7 @@ export const EvaluationForm = ({
         if (objError) throw objError;
       }
 
-      toast.success("Évaluation enregistrée avec succès");
+      toast.success("Débrief enregistré avec succès");
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving evaluation:", error);
@@ -332,12 +332,12 @@ export const EvaluationForm = ({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="evaluationName">Titre de l'évaluation</Label>
+              <Label htmlFor="evaluationName">Titre du débrief</Label>
               <Input
                 id="evaluationName"
                 value={evaluationName}
                 onChange={(e) => setEvaluationName(e.target.value)}
-                placeholder="Titre de l'évaluation..."
+                placeholder="Titre du débrief..."
                 disabled={readOnly}
               />
             </div>
@@ -347,7 +347,7 @@ export const EvaluationForm = ({
               <span>
                 {existingEvaluation
                   ? `Dernière modification: ${new Date(existingEvaluation.date).toLocaleDateString("fr-FR")}`
-                  : `Nouvelle évaluation - ${new Date().toLocaleDateString("fr-FR")}`}
+                  : `Nouveau débrief - ${new Date().toLocaleDateString("fr-FR")}`}
               </span>
             </div>
 
@@ -382,7 +382,7 @@ export const EvaluationForm = ({
 
       {/* Theme accordions */}
       <div className="space-y-4">
-        <h3 className="font-display font-semibold text-lg">Évaluation des compétences</h3>
+        <h3 className="font-display font-semibold text-lg">Débrief des compétences</h3>
         
         {themeScores.map((themeScore) => {
           const theme = themes.find((t) => t.id === themeScore.theme_id);

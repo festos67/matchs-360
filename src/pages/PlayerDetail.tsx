@@ -325,7 +325,7 @@ export default function PlayerDetail() {
         return prev.filter(id => id !== evalId);
       }
       if (prev.length >= 3) {
-        toast.error("Maximum 3 évaluations en comparaison");
+        toast.error("Maximum 3 débriefs en comparaison");
         return prev;
       }
       return [...prev, evalId];
@@ -392,7 +392,7 @@ export default function PlayerDetail() {
     if (latestCoachEvaluation) {
       datasets.push({
         id: latestCoachEvaluation.id,
-        label: "Évaluation Coach",
+        label: "Débrief Coach",
         date: latestCoachEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
         color: teamColor,
@@ -404,7 +404,7 @@ export default function PlayerDetail() {
     if (latestSelfEvaluation) {
       datasets.push({
         id: latestSelfEvaluation.id,
-        label: "Auto-évaluation",
+        label: "Auto-débrief",
         date: latestSelfEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
         color: "#F59E0B", // Amber/Yellow for self-evaluation
@@ -430,7 +430,7 @@ export default function PlayerDetail() {
     if (latestCoachEvaluation) {
       datasets.push({
         id: latestCoachEvaluation.id,
-        label: "Évaluation Coach",
+        label: "Débrief Coach",
         date: latestCoachEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
         color: teamColor,
@@ -442,7 +442,7 @@ export default function PlayerDetail() {
     if (latestSelfEvaluation) {
       datasets.push({
         id: latestSelfEvaluation.id,
-        label: "Auto-évaluation",
+        label: "Auto-débrief",
         date: latestSelfEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
         color: "#F59E0B", // Amber/Yellow
@@ -454,7 +454,7 @@ export default function PlayerDetail() {
     if (latestSupporterEvaluation) {
       datasets.push({
         id: latestSupporterEvaluation.id,
-        label: "Évaluation Supporter",
+        label: "Débrief Supporter",
         date: latestSupporterEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
         color: "#F97316", // Orange for supporter
@@ -480,7 +480,7 @@ export default function PlayerDetail() {
     if (showCoachLayer && latestCoachEvaluation) {
       datasets.push({
         id: latestCoachEvaluation.id,
-        label: "Évaluation Coach",
+        label: "Débrief Coach",
         date: latestCoachEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
         color: teamColor,
@@ -492,7 +492,7 @@ export default function PlayerDetail() {
     if (showSelfEvalLayer && latestSelfEvaluation) {
       datasets.push({
         id: latestSelfEvaluation.id,
-        label: "Auto-évaluation",
+        label: "Auto-débrief",
         date: latestSelfEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
         color: "#F59E0B", // Amber/Yellow
@@ -504,7 +504,7 @@ export default function PlayerDetail() {
     if (showSupporterLayer && latestSupporterEvaluation) {
       datasets.push({
         id: latestSupporterEvaluation.id,
-        label: "Évaluation Supporter",
+        label: "Débrief Supporter",
         date: latestSupporterEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
         color: "#F97316", // Orange
@@ -552,7 +552,7 @@ export default function PlayerDetail() {
       {isViewingHistory && (
         <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
           <span className="text-sm text-warning">
-            📜 Vous consultez une évaluation passée: <strong>{selectedEvaluation?.name}</strong>
+            📜 Vous consultez un débrief passé: <strong>{selectedEvaluation?.name}</strong>
           </span>
           <Button size="sm" variant="outline" onClick={handleReturnToCurrent} className="gap-2">
             <RotateCcw className="w-4 h-4" />
@@ -594,7 +594,7 @@ export default function PlayerDetail() {
               <div className="w-px bg-border" />
               <div className="text-center">
                 <p className="text-3xl font-display font-bold">{evaluations.filter(e => e.type === "coach_assessment" && !e.deleted_at).length}</p>
-                <p className="text-sm text-muted-foreground">Évaluations officielles</p>
+                <p className="text-sm text-muted-foreground">Débriefs officiels</p>
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
@@ -656,7 +656,7 @@ export default function PlayerDetail() {
                 setActiveTab("evaluation");
               }}>
                 <Plus className="w-4 h-4" />
-                Nouvelle évaluation
+                Nouveau débrief
               </Button>
             )}
             {canMutate && teamMembership && (
@@ -693,7 +693,7 @@ export default function PlayerDetail() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que toutes ses évaluations et données associées. Cette action est irréversible.
+                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -789,7 +789,7 @@ export default function PlayerDetail() {
           <TabsTrigger value="radar">Vue Radar</TabsTrigger>
           <TabsTrigger value="evaluation" disabled={isViewingHistory}>
             <ClipboardList className="w-4 h-4 mr-2" />
-            Évaluation
+            Débrief
           </TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
           {canEvaluate && (

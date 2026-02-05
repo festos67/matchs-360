@@ -74,7 +74,7 @@ export const CreateEvaluationModal = ({
   } = useForm<EvaluationFormData>({
     resolver: zodResolver(evaluationSchema),
     defaultValues: {
-      name: `Évaluation ${new Date().toLocaleDateString("fr-FR")}`,
+      name: `Débrief ${new Date().toLocaleDateString("fr-FR")}`,
     },
   });
 
@@ -214,7 +214,7 @@ export const CreateEvaluationModal = ({
 
       if (error) throw error;
 
-      toast.success("Évaluation créée !");
+      toast.success("Débrief créé !");
       reset();
       onOpenChange(false);
       onSuccess?.();
@@ -239,16 +239,16 @@ export const CreateEvaluationModal = ({
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Trophy className="w-5 h-5 text-primary" />
             </div>
-            Nouvelle Évaluation
+            Nouveau Débrief
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nom de l'évaluation</Label>
+            <Label htmlFor="name">Nom du débrief</Label>
             <Input
               id="name"
-              placeholder="Évaluation mi-saison"
+              placeholder="Débrief mi-saison"
               {...register("name")}
             />
             {errors.name && (
@@ -366,7 +366,7 @@ export const CreateEvaluationModal = ({
               {loading ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
-                "Commencer l'évaluation"
+                "Commencer le débrief"
               )}
             </Button>
           </div>

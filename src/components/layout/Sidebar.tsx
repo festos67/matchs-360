@@ -26,7 +26,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
       { icon: Building2, label: "Clubs", path: "/clubs" },
       { icon: Users, label: "Équipes", path: "/teams" },
       { icon: UserCog, label: "Coachs", path: "/coaches" },
-      { icon: Trophy, label: "Évaluations", path: "/evaluations" },
+      { icon: Trophy, label: "Débriefs", path: "/evaluations" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
   }
@@ -38,19 +38,19 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: Building2, label: "Mon Club", path: "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
-        { icon: Trophy, label: "Évaluations", path: "/evaluations" },
+        { icon: Trophy, label: "Débriefs", path: "/evaluations" },
       ];
     case "coach":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/coach/dashboard" },
         { icon: Users, label: "Mes Équipes", path: "/teams" },
-        { icon: ClipboardList, label: "Évaluations", path: "/evaluations" },
+        { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
     case "supporter":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
-        { icon: ClipboardList, label: "Mes Évaluations", path: "/evaluations" },
+        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
       ];
     default:
       return [

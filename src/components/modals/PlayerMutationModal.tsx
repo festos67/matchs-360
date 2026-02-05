@@ -150,7 +150,7 @@ export const PlayerMutationModal = ({
 
       const newTeam = teams.find((t) => t.id === selectedTeamId);
       toast.success(`${playerName} a été muté vers ${newTeam?.name}`, {
-        description: "L'historique des évaluations est conservé.",
+        description: "L'historique des débriefs est conservé.",
       });
 
       setSelectedTeamId("");
@@ -251,7 +251,7 @@ export const PlayerMutationModal = ({
             <div className="text-sm">
               <p className="font-medium text-blue-500">Conservation de l'historique</p>
               <p className="text-muted-foreground mt-1">
-                Les évaluations passées seront conservées et resteront consultables. 
+                Les débriefs passés seront conservés et resteront consultables. 
                 Le joueur adoptera le référentiel de compétences de sa nouvelle équipe.
               </p>
             </div>

@@ -157,7 +157,7 @@ const PlayerDashboard = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
-            title="Évaluations"
+            title="Débriefs"
             value={loadingEvaluations ? "-" : String(evaluationsCount)}
             icon={ClipboardList}
           />
@@ -167,7 +167,7 @@ const PlayerDashboard = () => {
             icon={TrendingUp}
           />
           <StatsCard
-            title="Dernière Éval."
+            title="Dernier Débrief"
             value={latestEvaluations?.[0] ? format(new Date(latestEvaluations[0].date), "dd/MM", { locale: fr }) : "-"}
             icon={Calendar}
           />
@@ -180,7 +180,7 @@ const PlayerDashboard = () => {
               <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600" asChild>
                 <Link to="/player/self-evaluation">
                   <Star className="w-5 h-5 mr-2" />
-                  M'auto-évaluer
+                  M'auto-débriefer
                 </Link>
               </Button>
             )}
@@ -196,9 +196,9 @@ const PlayerDashboard = () => {
         {/* Recent Evaluations */}
         <div className="bg-card rounded-xl border border-border">
           <div className="p-6 border-b border-border">
-            <h2 className="text-xl font-semibold text-foreground">Mes Évaluations</h2>
+            <h2 className="text-xl font-semibold text-foreground">Mes Débriefs</h2>
             <p className="text-sm text-muted-foreground">
-              Historique de vos dernières évaluations
+              Historique de vos derniers débriefs
             </p>
           </div>
 
@@ -250,7 +250,7 @@ const PlayerDashboard = () => {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      Aucune évaluation disponible
+                      Aucun débrief disponible
                     </TableCell>
                   </TableRow>
                 )}
