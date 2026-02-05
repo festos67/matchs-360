@@ -366,7 +366,7 @@ export const CreateEvaluationModal = ({
               {loading ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
-                "Commencer l'évaluation"
+                "Commencer le débrief"
               )}
             </Button>
           </div>
