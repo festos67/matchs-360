@@ -50,7 +50,6 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
     case "supporter":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
-        { icon: User, label: "Mon Profil", path: "/players" },
         { icon: ClipboardList, label: "Mes Évaluations", path: "/evaluations" },
       ];
     default:
