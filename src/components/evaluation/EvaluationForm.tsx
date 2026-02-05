@@ -292,7 +292,7 @@ export const EvaluationForm = ({
         if (objError) throw objError;
       }
 
-      toast.success("Évaluation enregistrée avec succès");
+      toast.success("Débrief enregistré avec succès");
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving evaluation:", error);
