@@ -149,7 +149,7 @@ const Stats = () => {
                 color="primary"
               />
               <StatsCard
-                title="Évaluations"
+                title="Débriefs"
                 value={stats.totalEvaluations.toString()}
                 icon={Trophy}
                 color="success"
