@@ -173,7 +173,7 @@ const Stats = () => {
         <div className="rounded-lg border bg-card p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5" />
-            Dernières évaluations
+            Derniers débriefs
           </h2>
           
           {loading ? (
