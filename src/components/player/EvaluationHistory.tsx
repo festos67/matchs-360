@@ -434,7 +434,7 @@ export function EvaluationHistory({
         ) : (
           <div className="text-center py-8 text-muted-foreground bg-orange-500/5 rounded-lg border border-orange-500/10">
             <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-orange-500" />
-            <p>Aucune évaluation supporter {showArchivedEvaluations ? "" : "disponible"}</p>
+            <p>Aucun débrief supporter {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
       </div>
