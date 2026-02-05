@@ -291,7 +291,7 @@ export const SelfEvaluationForm = ({
         if (objError) throw objError;
       }
 
-      toast.success("Auto-évaluation enregistrée avec succès");
+      toast.success("Auto-débrief enregistré avec succès");
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving self-evaluation:", error);
