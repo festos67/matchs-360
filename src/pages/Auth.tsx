@@ -349,6 +349,7 @@ export default function Auth() {
               )}
             </Button>
           </form>
+          )}
 
           {/* Toggle */}
           <div className="mt-6 text-center">
