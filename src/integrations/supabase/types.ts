@@ -706,9 +706,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_coach_player_ids: { Args: { _coach_id: string }; Returns: string[] }
+      get_referent_coach_team_ids: {
+        Args: { _user_id: string }
+        Returns: string[]
+      }
+      get_supporter_player_team_ids: {
+        Args: { _supporter_id: string }
+        Returns: string[]
+      }
       get_teammate_user_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_club_admin_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_club_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_user_team_ids: { Args: { _user_id: string }; Returns: string[] }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -723,6 +733,10 @@ export type Database = {
       }
       is_club_admin_of_team: {
         Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_coach_of_player: {
+        Args: { _coach_id: string; _player_id: string }
         Returns: boolean
       }
       is_coach_of_team: {
