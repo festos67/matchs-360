@@ -170,7 +170,7 @@ const SupporterDashboard = () => {
             icon={Clock}
           />
           <StatsCard
-            title="Évaluations soumises"
+            title="Débriefs soumis"
             value={String(completedCount || 0)}
             icon={CheckCircle}
           />
