@@ -217,10 +217,18 @@ export default function PlayerDetail() {
 
       if (evalData) {
         setEvaluations(evalData as Evaluation[]);
-        // Set selected to first non-deleted evaluation
-        const activeEvals = evalData.filter(e => !e.deleted_at);
-        if (activeEvals.length > 0) {
-          setSelectedEvaluation(activeEvals[0] as Evaluation);
+        // Set selected to latest COACH evaluation (not self-assessment or supporter)
+        const latestCoach = evalData.find(
+          e => e.type === "coach_assessment" && !e.deleted_at
+        );
+        if (latestCoach) {
+          setSelectedEvaluation(latestCoach as Evaluation);
+        } else {
+          // Fallback to first non-deleted if no coach eval exists
+          const activeEvals = evalData.filter(e => !e.deleted_at);
+          if (activeEvals.length > 0) {
+            setSelectedEvaluation(activeEvals[0] as Evaluation);
+          }
         }
       }
     } catch (error: any) {
