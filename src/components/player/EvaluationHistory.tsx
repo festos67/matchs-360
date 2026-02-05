@@ -443,7 +443,7 @@ export function EvaluationHistory({
       {activeCoachEvaluations.length > 1 && (
         <div className="mt-6 p-4 bg-muted/30 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            💡 <strong>Astuce:</strong> Cochez les évaluations officielles que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
+            💡 <strong>Astuce:</strong> Cochez les débriefs officiels que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
           </p>
         </div>
       )}
