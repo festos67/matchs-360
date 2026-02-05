@@ -594,7 +594,7 @@ export default function PlayerDetail() {
               <div className="w-px bg-border" />
               <div className="text-center">
                 <p className="text-3xl font-display font-bold">{evaluations.filter(e => e.type === "coach_assessment" && !e.deleted_at).length}</p>
-                <p className="text-sm text-muted-foreground">Évaluations officielles</p>
+                <p className="text-sm text-muted-foreground">Débriefs officiels</p>
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
