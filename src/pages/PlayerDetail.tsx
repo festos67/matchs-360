@@ -693,7 +693,7 @@ export default function PlayerDetail() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que toutes ses évaluations et données associées. Cette action est irréversible.
+                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
