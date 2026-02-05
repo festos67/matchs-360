@@ -337,7 +337,7 @@ export const EvaluationForm = ({
                 id="evaluationName"
                 value={evaluationName}
                 onChange={(e) => setEvaluationName(e.target.value)}
-                placeholder="Titre de l'évaluation..."
+                placeholder="Titre du débrief..."
                 disabled={readOnly}
               />
             </div>
