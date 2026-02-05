@@ -216,7 +216,7 @@ export function SupporterEvaluationForm({
           <div className="flex items-center gap-3">
             <Star className="w-5 h-5 text-warning" />
             <h2 className="text-xl font-display font-semibold">
-              Évaluation de {playerName}
+              Débrief de {playerName}
             </h2>
             <Badge className="bg-warning/20 text-warning border-warning/30">
               Point de vue Supporter
