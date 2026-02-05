@@ -442,7 +442,7 @@ export default function PlayerDetail() {
     if (latestSelfEvaluation) {
       datasets.push({
         id: latestSelfEvaluation.id,
-        label: "Auto-évaluation",
+        label: "Auto-débrief",
         date: latestSelfEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
         color: "#F59E0B", // Amber/Yellow
