@@ -347,7 +347,7 @@ export const EvaluationForm = ({
               <span>
                 {existingEvaluation
                   ? `Dernière modification: ${new Date(existingEvaluation.date).toLocaleDateString("fr-FR")}`
-                  : `Nouvelle évaluation - ${new Date().toLocaleDateString("fr-FR")}`}
+                  : `Nouveau débrief - ${new Date().toLocaleDateString("fr-FR")}`}
               </span>
             </div>
 
