@@ -179,7 +179,7 @@ export function SupporterEvaluationForm({
         if (reqError) throw reqError;
       }
 
-      toast.success("Évaluation enregistrée avec succès !");
+      toast.success("Débrief enregistré avec succès !");
       onSaved();
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
