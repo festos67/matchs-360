@@ -150,7 +150,7 @@ export const PlayerMutationModal = ({
 
       const newTeam = teams.find((t) => t.id === selectedTeamId);
       toast.success(`${playerName} a été muté vers ${newTeam?.name}`, {
-        description: "L'historique des évaluations est conservé.",
+        description: "L'historique des débriefs est conservé.",
       });
 
       setSelectedTeamId("");

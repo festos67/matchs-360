@@ -325,7 +325,7 @@ export default function PlayerDetail() {
         return prev.filter(id => id !== evalId);
       }
       if (prev.length >= 3) {
-        toast.error("Maximum 3 évaluations en comparaison");
+        toast.error("Maximum 3 débriefs en comparaison");
         return prev;
       }
       return [...prev, evalId];
