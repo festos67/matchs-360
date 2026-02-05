@@ -214,7 +214,7 @@ export const CreateEvaluationModal = ({
 
       if (error) throw error;
 
-      toast.success("Évaluation créée !");
+      toast.success("Débrief créé !");
       reset();
       onOpenChange(false);
       onSuccess?.();
