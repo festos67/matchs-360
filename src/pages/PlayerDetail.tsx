@@ -552,7 +552,7 @@ export default function PlayerDetail() {
       {isViewingHistory && (
         <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
           <span className="text-sm text-warning">
-            📜 Vous consultez une évaluation passée: <strong>{selectedEvaluation?.name}</strong>
+            📜 Vous consultez un débrief passé: <strong>{selectedEvaluation?.name}</strong>
           </span>
           <Button size="sm" variant="outline" onClick={handleReturnToCurrent} className="gap-2">
             <RotateCcw className="w-4 h-4" />
