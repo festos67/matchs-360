@@ -180,7 +180,7 @@ const PlayerDashboard = () => {
               <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600" asChild>
                 <Link to="/player/self-evaluation">
                   <Star className="w-5 h-5 mr-2" />
-                  M'auto-évaluer
+                  M'auto-débriefer
                 </Link>
               </Button>
             )}
