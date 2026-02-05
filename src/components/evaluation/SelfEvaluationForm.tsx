@@ -342,7 +342,7 @@ export const SelfEvaluationForm = ({
                 id="evaluationName"
                 value={evaluationName}
                 onChange={(e) => setEvaluationName(e.target.value)}
-                placeholder="Titre de l'évaluation..."
+                placeholder="Titre du débrief..."
                 className="border-emerald-500/30 focus-visible:ring-emerald-500"
               />
             </div>
