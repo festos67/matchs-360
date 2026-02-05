@@ -720,6 +720,10 @@ export type Database = {
         Args: { _club_id: string; _user_id: string }
         Returns: boolean
       }
+      is_club_admin_of_team: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_coach_of_team: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
