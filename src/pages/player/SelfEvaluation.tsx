@@ -191,7 +191,7 @@ export default function SelfEvaluation() {
               </Badge>
             </div>
             <p className="text-muted-foreground">
-              Comment percevez-vous vos compétences ? Évaluez-vous sur le référentiel de votre équipe.
+              Comment percevez-vous vos compétences ? Auto-débriefez-vous sur le référentiel de votre équipe.
             </p>
             <p className="text-sm text-muted-foreground mt-1">
               <span 
