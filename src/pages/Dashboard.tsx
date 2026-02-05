@@ -156,7 +156,7 @@ export default function Dashboard() {
           color="success"
         />
         <StatsCard
-          title="Évaluations"
+          title="Débriefs"
           value="156"
           subtitle="Total cette saison"
           icon={Trophy}
