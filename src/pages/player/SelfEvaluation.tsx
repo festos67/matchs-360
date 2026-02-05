@@ -184,7 +184,7 @@ export default function SelfEvaluation() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-display font-bold text-foreground">
-                Mon Auto-évaluation
+                Mon Auto-débrief
               </h1>
               <Badge variant="outline" className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
                 Perception personnelle
