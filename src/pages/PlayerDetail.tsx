@@ -504,7 +504,7 @@ export default function PlayerDetail() {
     if (showSupporterLayer && latestSupporterEvaluation) {
       datasets.push({
         id: latestSupporterEvaluation.id,
-        label: "Évaluation Supporter",
+        label: "Débrief Supporter",
         date: latestSupporterEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
         color: "#F97316", // Orange
