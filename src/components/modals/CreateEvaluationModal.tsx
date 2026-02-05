@@ -245,7 +245,7 @@ export const CreateEvaluationModal = ({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nom de l'évaluation</Label>
+            <Label htmlFor="name">Nom du débrief</Label>
             <Input
               id="name"
               placeholder="Évaluation mi-saison"
