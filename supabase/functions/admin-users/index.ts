@@ -323,6 +323,35 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Update password (admin only)
+      if (action === "update-password") {
+        const { userId, newPassword } = body;
+
+        if (!userId || !newPassword) {
+          return new Response(JSON.stringify({ error: "userId and newPassword required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        if (newPassword.length < 6) {
+          return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password: newPassword,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Resend invitation
       if (action === "resend-invitation") {
         const { userId, email, clubId } = body;
