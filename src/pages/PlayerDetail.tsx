@@ -480,7 +480,7 @@ export default function PlayerDetail() {
     if (showCoachLayer && latestCoachEvaluation) {
       datasets.push({
         id: latestCoachEvaluation.id,
-        label: "Évaluation Coach",
+        label: "Débrief Coach",
         date: latestCoachEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
         color: teamColor,
