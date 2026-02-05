@@ -362,7 +362,7 @@ export function EvaluationHistory({
             <h3 className="font-semibold text-lg">Suivi Officiel (Coach)</h3>
           </div>
           <Badge variant="outline" className="text-xs">
-            {filteredCoachEvals.length} évaluation{filteredCoachEvals.length > 1 ? "s" : ""}
+            {filteredCoachEvals.length} débrief{filteredCoachEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
