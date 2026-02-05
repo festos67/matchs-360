@@ -52,7 +52,7 @@ export const GlobalSearch = () => {
         const searchTerm = `%${query}%`;
 
         // Search players
-        const { data: players } = await supabase
+        const { data: players, error: playersError } = await supabase
           .from("profiles")
           .select(`
             id,
@@ -72,6 +72,8 @@ export const GlobalSearch = () => {
           .or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm},nickname.ilike.${searchTerm}`)
           .limit(5);
 
+        console.log("Search players result:", players, playersError);
+
         if (players) {
           players.forEach((player) => {
             const name = player.nickname || 
@@ -88,12 +90,14 @@ export const GlobalSearch = () => {
         }
 
         // Search teams
-        const { data: teams } = await supabase
+        const { data: teams, error: teamsError } = await supabase
           .from("teams")
           .select("id, name, clubs(name)")
           .is("deleted_at", null)
           .ilike("name", searchTerm)
           .limit(5);
+
+        console.log("Search teams result:", teams, teamsError);
 
         if (teams) {
           teams.forEach((team) => {
@@ -106,6 +110,7 @@ export const GlobalSearch = () => {
           });
         }
 
+        console.log("Final search results:", searchResults);
         setResults(searchResults);
       } catch (error) {
         console.error("Search error:", error);
