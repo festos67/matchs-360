@@ -124,7 +124,7 @@ export default function Evaluations() {
         <div className="glass-card p-12 text-center">
           <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-display font-semibold mb-2">
-            {search ? "Aucun résultat" : "Aucune évaluation"}
+            {search ? "Aucun résultat" : "Aucun débrief"}
           </h2>
           <p className="text-muted-foreground mb-6">
             {search
