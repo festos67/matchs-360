@@ -332,7 +332,7 @@ export const EvaluationForm = ({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="evaluationName">Titre de l'évaluation</Label>
+              <Label htmlFor="evaluationName">Titre du débrief</Label>
               <Input
                 id="evaluationName"
                 value={evaluationName}
