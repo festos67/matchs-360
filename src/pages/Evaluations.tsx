@@ -95,9 +95,9 @@ export default function Evaluations() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-display font-bold">Évaluations</h1>
+          <h1 className="text-3xl font-display font-bold">Débriefs</h1>
           <p className="text-muted-foreground mt-1">
-            Historique des évaluations de joueurs
+            Historique des débriefs de joueurs
           </p>
         </div>
         {canCreate && (
