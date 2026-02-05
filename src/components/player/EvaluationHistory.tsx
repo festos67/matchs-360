@@ -162,7 +162,7 @@ export function EvaluationHistory({
       
       if (error) throw error;
       
-      toast.success("Évaluation restaurée");
+      toast.success("Débrief restauré");
       onRefresh();
     } catch (error: unknown) {
       console.error("Error restoring evaluation:", error);
