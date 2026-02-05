@@ -248,6 +248,37 @@ export default function Auth() {
                 </div>
               </div>
 
+              {/* Mode test toggle */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="test-mode"
+                  checked={isTestMode}
+                  onChange={(e) => setIsTestMode(e.target.checked)}
+                  className="rounded border-border"
+                />
+                <Label htmlFor="test-mode" className="text-sm text-muted-foreground cursor-pointer">
+                  Mode test (changer directement sans email)
+                </Label>
+              </div>
+
+              {isTestMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-medium"
@@ -257,7 +288,7 @@ export default function Auth() {
                   <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 ) : (
                   <>
-                    Envoyer le lien
+                    {isTestMode ? "Changer le mot de passe" : "Envoyer le lien"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -266,7 +297,11 @@ export default function Auth() {
               <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => setIsForgotPassword(false)}
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setIsTestMode(false);
+                    setNewPassword("");
+                  }}
                   className="text-primary font-medium hover:underline"
                 >
                   Retour à la connexion
