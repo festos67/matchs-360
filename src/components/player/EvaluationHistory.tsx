@@ -405,7 +405,7 @@ export function EvaluationHistory({
         ) : (
           <div className="text-center py-8 text-muted-foreground bg-amber-500/5 rounded-lg border border-amber-500/10">
             <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-amber-500" />
-            <p>Aucune auto-évaluation {showArchivedEvaluations ? "" : "disponible"}</p>
+            <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
       </div>
