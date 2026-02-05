@@ -54,38 +54,28 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isTestMode) {
-        // Mode test: réinitialiser directement via l'edge function admin
+        // Mode test: réinitialiser directement via l'edge function
         if (!newPassword || newPassword.length < 6) {
           toast.error("Le nouveau mot de passe doit contenir au moins 6 caractères");
           setLoading(false);
           return;
         }
 
-        // D'abord, trouver l'utilisateur par email
-        const { data: users } = await supabase.functions.invoke("admin-users", {
-          method: "GET",
-        });
-
-        const user = users?.users?.find(
-          (u: { email: string }) => u.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (!user) {
-          toast.error("Aucun utilisateur trouvé avec cet email");
-          setLoading(false);
-          return;
-        }
-
-        const { error } = await supabase.functions.invoke("admin-users", {
+        const { data, error } = await supabase.functions.invoke("admin-users", {
           body: {
-            action: "update-password",
-            userId: user.id,
+            action: "test-update-password",
+            email,
             newPassword,
           },
         });
 
         if (error) {
           toast.error(error.message || "Erreur lors de la réinitialisation");
+          return;
+        }
+
+        if (data?.error) {
+          toast.error(data.error);
           return;
         }
 
