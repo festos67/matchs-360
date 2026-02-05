@@ -202,7 +202,7 @@ const CoachDashboard = () => {
                   <TableHead className="w-[60px]">Photo</TableHead>
                   <TableHead>Joueur</TableHead>
                   <TableHead>Équipe</TableHead>
-                  <TableHead className="text-center">Évaluations</TableHead>
+                  <TableHead className="text-center">Débriefs</TableHead>
                   <TableHead className="w-[100px]">Action</TableHead>
                 </TableRow>
               </TableHeader>

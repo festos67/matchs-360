@@ -270,9 +270,9 @@ export default function Dashboard() {
         >
           <Trophy className="w-6 h-6 text-primary" />
           <div className="text-left">
-            <p className="font-medium">Évaluer un joueur</p>
+            <p className="font-medium">Débriefer un joueur</p>
             <p className="text-sm text-muted-foreground">
-              Créer une nouvelle évaluation
+              Créer un nouveau débrief
             </p>
           </div>
         </Button>
