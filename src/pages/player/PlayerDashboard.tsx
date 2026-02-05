@@ -157,7 +157,7 @@ const PlayerDashboard = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
-            title="Évaluations"
+            title="Débriefs"
             value={loadingEvaluations ? "-" : String(evaluationsCount)}
             icon={ClipboardList}
           />
