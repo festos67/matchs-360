@@ -197,7 +197,7 @@ export default function Dashboard() {
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-display font-semibold">
-              Évaluations récentes
+              Débriefs récents
             </h2>
             <Button variant="ghost" size="sm" className="text-primary">
               Voir tout
