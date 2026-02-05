@@ -74,7 +74,7 @@ export const CreateEvaluationModal = ({
   } = useForm<EvaluationFormData>({
     resolver: zodResolver(evaluationSchema),
     defaultValues: {
-      name: `Évaluation ${new Date().toLocaleDateString("fr-FR")}`,
+      name: `Débrief ${new Date().toLocaleDateString("fr-FR")}`,
     },
   });
 
