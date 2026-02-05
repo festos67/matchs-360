@@ -172,7 +172,7 @@ const CoachDashboard = () => {
             icon={Trophy}
           />
           <StatsCard
-            title="Évaluations"
+            title="Débriefs"
             value={loadingEvaluations ? "-" : String(evaluationsCount)}
             icon={ClipboardList}
           />
