@@ -33,6 +33,7 @@ const roleOptions: { value: RequestedRole; label: string; description: string; i
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,6 +41,33 @@ export default function Auth() {
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
   const navigate = useNavigate();
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Veuillez entrer votre email");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Un email de réinitialisation a été envoyé !", { duration: 5000 });
+      setIsForgotPassword(false);
+    } catch (err) {
+      toast.error("Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,16 +170,65 @@ export default function Auth() {
           {/* Title */}
           <div className="mb-8">
             <h2 className="text-3xl font-display font-bold">
-              {isLogin ? "Bienvenue" : "Créer un compte"}
+              {isForgotPassword
+                ? "Mot de passe oublié"
+                : isLogin
+                ? "Bienvenue"
+                : "Créer un compte"}
             </h2>
             <p className="text-muted-foreground mt-2">
-              {isLogin
+              {isForgotPassword
+                ? "Entrez votre email pour recevoir un lien de réinitialisation"
+                : isLogin
                 ? "Connectez-vous pour accéder à votre espace"
                 : "Rejoignez la plateforme d'évaluation sportive"}
             </p>
           </div>
 
           {/* Form */}
+          {isForgotPassword ? (
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="vous@exemple.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-medium"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Envoyer le lien
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPassword(false)}
+                  className="text-primary font-medium hover:underline"
+                >
+                  Retour à la connexion
+                </button>
+              </div>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
               <>
@@ -232,7 +309,18 @@ export default function Auth() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Mot de passe</Label>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -261,6 +349,7 @@ export default function Auth() {
               )}
             </Button>
           </form>
+          )}
 
           {/* Toggle */}
           <div className="mt-6 text-center">
