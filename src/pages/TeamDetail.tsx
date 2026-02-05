@@ -196,7 +196,7 @@ export default function TeamDetail() {
         <TabsContent value="effectif" className="space-y-8">
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-display font-semibold">Staff technique</h2>
+              <h2 className="text-xl font-display font-semibold">Coachs</h2>
               {(isAdmin || isClubAdmin) && <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><UserCog className="w-4 h-4" />Coach</Button>}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
