@@ -211,7 +211,7 @@ const SupporterDashboard = () => {
                   <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
                     <Link to={`/supporter/evaluate/${request.id}`}>
                       <ClipboardList className="w-4 h-4" />
-                      Évaluer
+                      Débriefer
                     </Link>
                   </Button>
                 </div>
