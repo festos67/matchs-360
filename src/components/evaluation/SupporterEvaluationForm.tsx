@@ -226,7 +226,7 @@ export function SupporterEvaluationForm({
 
         <p className="text-muted-foreground mb-6">
           Partagez votre perception des compétences du joueur. Vos observations sont
-          précieuses pour compléter la vision du staff technique.
+          précieuses pour compléter la vision des coachs.
         </p>
 
         <div className="space-y-4">
