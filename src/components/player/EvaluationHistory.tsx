@@ -331,7 +331,7 @@ export function EvaluationHistory({
   return (
     <div className="glass-card p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-display font-semibold">Historique des évaluations</h2>
+        <h2 className="text-xl font-display font-semibold">Historique des débriefs</h2>
         <div className="flex items-center gap-4">
           {canEvaluate && evaluations.some(e => e.deleted_at) && (
             <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
