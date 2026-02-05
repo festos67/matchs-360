@@ -34,9 +34,11 @@ const roleOptions: { value: RequestedRole; label: string; description: string; i
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [isTestMode, setIsTestMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
