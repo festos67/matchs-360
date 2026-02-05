@@ -184,7 +184,7 @@ const SupporterDashboard = () => {
                 <Star className="w-5 h-5 text-orange-500" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Demandes d'évaluation</h2>
+                <h2 className="text-lg font-semibold text-foreground">Demandes de débrief</h2>
                 <p className="text-sm text-muted-foreground">
                   Le coach vous demande votre avis
                 </p>
