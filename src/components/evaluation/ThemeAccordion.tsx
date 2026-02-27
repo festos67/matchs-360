@@ -124,6 +124,27 @@ export const SkillRow = ({
           </TooltipTrigger>
           <TooltipContent>Ajouter un conseil</TooltipContent>
         </Tooltip>
+
+        {/* Previous score toggle */}
+        {hasPreviousScore && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant={showPreviousScore ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => setShowPreviousScore(!showPreviousScore)}
+                className="shrink-0"
+              >
+                <History className={cn(
+                  "w-5 h-5",
+                  showPreviousScore && "text-primary"
+                )} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Dernière note attribuée</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Comment textarea */}
