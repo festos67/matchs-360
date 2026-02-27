@@ -305,7 +305,7 @@ export default function TeamDetail() {
             </div>
           </div>
 
-
+          {framework ? (
             <>
               {/* Framework summary */}
               <div className="glass-card p-6">
