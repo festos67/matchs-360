@@ -9,9 +9,9 @@ interface PrintableRadarChartProps {
 }
 
 export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
-  const viewBoxSize = 500;
+  const viewBoxSize = 600;
   const center = viewBoxSize / 2;
-  const radius = 160;
+  const radius = 150;
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
 
