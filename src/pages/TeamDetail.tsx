@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -157,26 +157,37 @@ export default function TeamDetail() {
             <div className="flex items-center gap-3"><h1 className="text-3xl font-display font-bold">{team.name}</h1><Badge variant="secondary">{team.season}</Badge></div>
             <p className="text-muted-foreground mt-1">{team.club?.name} • {players.length} joueur{players.length > 1 ? "s" : ""} • {coaches.length} coach{coaches.length > 1 ? "es" : ""}</p>
           </div>
-          {(isAdmin || isClubAdmin || isReferentCoach) && (
-            <div className="flex gap-2">
+          <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 size="sm"
                 className="gap-2"
-                onClick={() => setShowSupporterModal(true)}
+                onClick={() => navigate(`/evaluations?team_id=${id}`)}
               >
-                <Plus className="w-4 h-4" />
-                Supporter
+                <ClipboardList className="w-4 h-4" />
+                Débriefs
               </Button>
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setShowTeamSettings(true)}
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
+              {(isAdmin || isClubAdmin || isReferentCoach) && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setShowSupporterModal(true)}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Supporter
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => setShowTeamSettings(true)}
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+          </div>
         </div>
       </div>
 
