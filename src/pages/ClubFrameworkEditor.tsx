@@ -515,6 +515,15 @@ export default function ClubFrameworkEditor() {
           </div>
         </div>
       )}
+
+      <FrameworkHistorySheet
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        entityId={clubId!}
+        entityType="club"
+        activeFrameworkId={framework?.id || null}
+        onRestored={() => fetchData()}
+      />
     </AppLayout>
   );
 }
