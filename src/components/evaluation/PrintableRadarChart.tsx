@@ -44,7 +44,7 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
   // Calculate label positions
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const r = radius + 50;
+    const r = radius + 70;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
     return { x, y, angle };
