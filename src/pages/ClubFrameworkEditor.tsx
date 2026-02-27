@@ -355,7 +355,14 @@ export default function ClubFrameworkEditor() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // Archive current framework before resetting
+    if (framework) {
+      await supabase
+        .from("competence_frameworks")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", framework.id);
+    }
     setShowTemplateSelector(true);
   };
 
