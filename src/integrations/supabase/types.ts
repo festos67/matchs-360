@@ -55,27 +55,33 @@ export type Database = {
       }
       competence_frameworks: {
         Row: {
+          archived_at: string | null
           club_id: string | null
           created_at: string
           id: string
+          is_archived: boolean
           is_template: boolean
           name: string
           team_id: string | null
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           club_id?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_template?: boolean
           name: string
           team_id?: string | null
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           club_id?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_template?: boolean
           name?: string
           team_id?: string | null
