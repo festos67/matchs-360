@@ -419,6 +419,7 @@ export default function ClubFrameworkEditor() {
               <p className="text-muted-foreground text-sm">
                 {club.name} • Modèle du club
               </p>
+            </div>
           </div>
           {canEdit && framework && (
             <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
@@ -426,7 +427,6 @@ export default function ClubFrameworkEditor() {
               Historique
             </Button>
           )}
-        </div>
         </div>
 
         {/* Stats */}
