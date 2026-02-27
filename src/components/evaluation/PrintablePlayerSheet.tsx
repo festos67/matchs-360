@@ -57,6 +57,7 @@ interface PrintablePlayerSheetProps {
   };
   evaluation: Evaluation;
   themes: Theme[];
+  progressionPercent?: number | null;
 }
 
 // Palette de couleurs du rouge (1) au vert (5)
