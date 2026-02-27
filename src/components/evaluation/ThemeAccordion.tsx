@@ -174,12 +174,6 @@ export const SkillRow = ({
           </div>
         </div>
       )}
-            rows={2}
-            disabled={disabled}
-            className="text-sm"
-          />
-        </div>
-      )}
     </div>
   );
 };
