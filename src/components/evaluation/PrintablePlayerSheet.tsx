@@ -340,7 +340,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${club.primary_color}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Activity style={{ width: "16px", height: "16px", color: "white" }} />
               </div>
               <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
