@@ -17,6 +17,7 @@ interface Skill {
 interface SkillRowProps {
   skill: Skill;
   score: SkillScore;
+  previousScore?: number | null;
   onScoreChange: (score: number) => void;
   onNotObservedChange: (isNotObserved: boolean) => void;
   onCommentChange: (comment: string) => void;
