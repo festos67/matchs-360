@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 
@@ -34,6 +35,7 @@ export default function Evaluations() {
   const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
 
   const teamId = searchParams.get("team_id");
   const canCreate = roles.some(r => ["admin", "club_admin", "coach"].includes(r.role));
@@ -57,6 +59,19 @@ export default function Evaluations() {
       setTeamName(null);
     }
   }, [teamId]);
+
+  useEffect(() => {
+    if (user) fetchTeams();
+  }, [user]);
+
+  const fetchTeams = async () => {
+    const { data } = await supabase
+      .from("teams")
+      .select("id, name")
+      .is("deleted_at", null)
+      .order("name");
+    if (data) setTeams(data);
+  };
 
   const fetchTeamName = async () => {
     const { data } = await supabase
@@ -170,7 +185,7 @@ export default function Evaluations() {
         )}
       </div>
 
-      {/* Team filter badge */}
+      {/* Team filter badge (from URL) */}
       {teamId && teamName && (
         <div className="flex items-center gap-2 mb-4">
           <span className="text-sm text-muted-foreground">Filtré par équipe :</span>
@@ -186,15 +201,41 @@ export default function Evaluations() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher par joueur ou nom de débrief..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 max-w-md"
-        />
+      {/* Search + Team filter */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher par joueur ou nom de débrief..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        {!teamId && (
+          <Select
+            value={searchParams.get("team_id") || "all"}
+            onValueChange={(value) => {
+              if (value === "all") {
+                setSearchParams({});
+              } else {
+                setSearchParams({ team_id: value });
+              }
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Toutes les équipes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {teams.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Evaluations List */}
