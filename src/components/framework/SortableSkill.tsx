@@ -59,7 +59,7 @@ export const SortableSkill = ({
     >
       {canEdit && (
         <button
-          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-opacity touch-none"
           {...attributes}
           {...listeners}
         >
