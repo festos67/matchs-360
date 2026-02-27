@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { CreateClubFrameworkModal } from "@/components/modals/CreateClubFrameworkModal";
+import { EditClubModal } from "@/components/modals/EditClubModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
