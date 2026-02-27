@@ -435,9 +435,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 2 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 2/2</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: BRAND_BLUE }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
             <span>Document confidentiel</span>
           </div>
         </div>
