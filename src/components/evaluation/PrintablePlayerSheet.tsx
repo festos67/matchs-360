@@ -212,7 +212,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                   height: "80px",
                   borderRadius: "10px",
                   objectFit: "cover",
-                  border: `3px solid ${club.primary_color}`,
+                  border: `3px solid ${BRAND_BLUE}`,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
               />
