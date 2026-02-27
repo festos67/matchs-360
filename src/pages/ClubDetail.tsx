@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { CreateClubFrameworkModal } from "@/components/modals/CreateClubFrameworkModal";
+import { EditClubModal } from "@/components/modals/EditClubModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ export default function ClubDetail() {
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
   const [showFrameworkModal, setShowFrameworkModal] = useState(false);
+  const [showClubSettings, setShowClubSettings] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -212,8 +214,8 @@ export default function ClubDetail() {
           {canManageClub && (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><UserCog className="w-4 h-4" />Coach</Button>
-              <Button variant="outline" size="icon"><Settings className="w-4 h-4" /></Button>
-              <Button variant="outline" size="icon"><Edit className="w-4 h-4" /></Button>
+              <Button variant="outline" size="icon" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
+              <Button variant="outline" size="icon" onClick={() => setShowClubSettings(true)}><Edit className="w-4 h-4" /></Button>
             </div>
           )}
         </div>
@@ -386,6 +388,7 @@ export default function ClubDetail() {
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
       <CreateClubFrameworkModal open={showFrameworkModal} onOpenChange={setShowFrameworkModal} clubId={club.id} onSuccess={fetchClubData} />
+      {club && <EditClubModal open={showClubSettings} onOpenChange={setShowClubSettings} club={club} onSuccess={fetchClubData} />}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
