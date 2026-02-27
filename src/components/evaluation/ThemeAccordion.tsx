@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { EyeOff, Eye, Info, MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
+import { EyeOff, Eye, Info, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StarRating } from "./StarRating";
-import { calculateThemeAverage, formatAverage, type SkillScore } from "@/lib/evaluation-utils";
+import { calculateThemeAverage, formatAverage, SCORE_LABELS, type SkillScore } from "@/lib/evaluation-utils";
 
 interface Skill {
   id: string;
@@ -17,6 +17,7 @@ interface Skill {
 interface SkillRowProps {
   skill: Skill;
   score: SkillScore;
+  previousScore?: number | null;
   onScoreChange: (score: number) => void;
   onNotObservedChange: (isNotObserved: boolean) => void;
   onCommentChange: (comment: string) => void;
@@ -26,12 +27,15 @@ interface SkillRowProps {
 export const SkillRow = ({
   skill,
   score,
+  previousScore,
   onScoreChange,
   onNotObservedChange,
   onCommentChange,
   disabled = false,
 }: SkillRowProps) => {
   const [showComment, setShowComment] = useState(!!score.comment);
+  const [showPreviousScore, setShowPreviousScore] = useState(false);
+  const hasPreviousScore = previousScore !== undefined && previousScore !== null && previousScore > 0;
 
   return (
     <div
@@ -120,6 +124,27 @@ export const SkillRow = ({
           </TooltipTrigger>
           <TooltipContent>Ajouter un conseil</TooltipContent>
         </Tooltip>
+
+        {/* Previous score toggle */}
+        {hasPreviousScore && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant={showPreviousScore ? "secondary" : "ghost"}
+                size="icon"
+                onClick={() => setShowPreviousScore(!showPreviousScore)}
+                className="shrink-0"
+              >
+                <History className={cn(
+                  "w-5 h-5",
+                  showPreviousScore && "text-primary"
+                )} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Dernière note attribuée</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Comment textarea */}
@@ -135,6 +160,20 @@ export const SkillRow = ({
           />
         </div>
       )}
+
+      {/* Previous score display */}
+      {showPreviousScore && hasPreviousScore && (
+        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-md bg-muted/60 border border-border/50">
+          <History className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="text-sm text-muted-foreground">Dernière note :</span>
+          <div className="flex items-center gap-1">
+            <StarRating value={previousScore!} disabled size="sm" />
+            <span className="text-sm font-medium ml-1">
+              {previousScore} - {SCORE_LABELS[previousScore!]}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -144,6 +183,7 @@ interface ThemeAccordionProps {
   themeColor: string | null;
   skills: Skill[];
   scores: SkillScore[];
+  previousScores?: Record<string, number | null>;
   objective: string | null;
   onScoreChange: (skillId: string, score: number) => void;
   onNotObservedChange: (skillId: string, isNotObserved: boolean) => void;
@@ -158,6 +198,7 @@ export const ThemeAccordion = ({
   themeColor,
   skills,
   scores,
+  previousScores,
   objective,
   onScoreChange,
   onNotObservedChange,
@@ -226,6 +267,7 @@ export const ThemeAccordion = ({
                   key={skill.id}
                   skill={skill}
                   score={skillScore}
+                  previousScore={previousScores?.[skill.id]}
                   onScoreChange={(score) => onScoreChange(skill.id, score)}
                   onNotObservedChange={(isNotObserved) => onNotObservedChange(skill.id, isNotObserved)}
                   onCommentChange={(comment) => onCommentChange(skill.id, comment)}

@@ -52,6 +52,7 @@ interface EvaluationFormProps {
       content: string;
     }>;
   } | null;
+  previousScores?: Record<string, number | null>;
   onSaved?: () => void;
   readOnly?: boolean;
 }
@@ -63,6 +64,7 @@ export const EvaluationForm = ({
   frameworkId,
   themes,
   existingEvaluation,
+  previousScores,
   onSaved,
   readOnly = false,
 }: EvaluationFormProps) => {
@@ -388,6 +390,15 @@ export const EvaluationForm = ({
           const theme = themes.find((t) => t.id === themeScore.theme_id);
           if (!theme) return null;
 
+          const themePreviousScores: Record<string, number | null> = {};
+          if (previousScores) {
+            theme.skills.forEach(skill => {
+              if (previousScores[skill.id] !== undefined) {
+                themePreviousScores[skill.id] = previousScores[skill.id];
+              }
+            });
+          }
+
           return (
             <ThemeAccordion
               key={theme.id}
@@ -395,6 +406,7 @@ export const EvaluationForm = ({
               themeColor={theme.color}
               skills={theme.skills}
               scores={themeScore.skills}
+              previousScores={previousScores ? themePreviousScores : undefined}
               objective={themeScore.objective}
               onScoreChange={(skillId, score) =>
                 handleScoreChange(theme.id, skillId, score)
