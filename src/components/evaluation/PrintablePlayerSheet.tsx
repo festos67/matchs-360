@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Star, Meh, Smile, SmilePlus, Laugh, Sparkles, type LucideIcon } from "lucide-react";
+import { Star, Meh, Smile, SmilePlus, Laugh, Sparkles, TrendingUp, TrendingDown, type LucideIcon } from "lucide-react";
 import { 
   calculateRadarData, 
   calculateThemeAverage, 
@@ -57,6 +57,7 @@ interface PrintablePlayerSheetProps {
   };
   evaluation: Evaluation;
   themes: Theme[];
+  progressionPercent?: number | null;
 }
 
 // Palette de couleurs du rouge (1) au vert (5)
@@ -121,7 +122,7 @@ const StarDisplay = ({ score }: { score: number | null }) => {
 };
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
-  ({ player, club, team, evaluation, themes }, ref) => {
+  ({ player, club, team, evaluation, themes, progressionPercent }, ref) => {
     const getPlayerName = () => {
       if (player.nickname) return player.nickname;
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
@@ -254,6 +255,22 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                     <p className="text-2xl font-bold" style={{ color: LEVEL_COLORS[Math.round(overallAverage)] || LEVEL_COLORS[3] }}>
                       {formatAverage(overallAverage)}/5
                     </p>
+                    {progressionPercent !== null && progressionPercent !== undefined && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {progressionPercent >= 0 ? (
+                          <TrendingUp className="w-4 h-4" style={{ color: "#22C55E" }} />
+                        ) : (
+                          <TrendingDown className="w-4 h-4" style={{ color: "#EF4444" }} />
+                        )}
+                        <span
+                          className="text-sm font-bold"
+                          style={{ color: progressionPercent >= 0 ? "#22C55E" : "#EF4444" }}
+                        >
+                          {progressionPercent >= 0 ? "+" : ""}{progressionPercent}%
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1">vs précédent</span>
+                      </div>
+                    )}
                   </div>
                   <GlobalAverageIcon score={overallAverage || null} />
                 </div>

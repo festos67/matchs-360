@@ -538,6 +538,14 @@ export default function PlayerDetail() {
             team={{ name: teamMembership.team.name }}
             evaluation={selectedEvaluation}
             themes={themes}
+            progressionPercent={(() => {
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+              if (activeCoachEvals.length < 2) return null;
+              const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0]));
+              const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1]));
+              if (currentAvg === null || previousAvg === null || previousAvg === 0) return null;
+              return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
+            })()}
           />
         )}
       </div>
