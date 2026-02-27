@@ -258,8 +258,13 @@ export default function ClubFrameworkEditor() {
     setSaving(true);
 
     try {
-      // Snapshot current state before saving changes
-      await snapshotFramework(framework.id);
+      // Snapshot current state before saving changes (non-blocking)
+      try {
+        await snapshotFramework(framework.id);
+      } catch (snapError) {
+        console.warn("Snapshot failed, continuing save:", snapError);
+      }
+
       // Save themes
       for (const theme of themes) {
         if (theme.isNew) {
