@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { Star, Meh, Smile, SmilePlus, Laugh, Sparkles, TrendingUp, TrendingDown, type LucideIcon } from "lucide-react";
+import { Star, Meh, Smile, SmilePlus, Laugh, Sparkles, TrendingUp, TrendingDown, Activity, type LucideIcon } from "lucide-react";
 import { 
   calculateRadarData, 
   calculateThemeAverage, 
@@ -178,9 +178,14 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 {club.name}
               </span>
             </div>
-            <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
-              MATCHS360
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${club.primary_color}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Activity style={{ width: "16px", height: "16px", color: "white" }} />
+              </div>
+              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+                MATCHS360
+              </span>
+            </div>
           </div>
 
           {/* ── Player identity card ── */}
@@ -309,7 +314,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* Page 1 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 1/2</span>
-            <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}>MATCHS360</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
             <span>Document confidentiel</span>
           </div>
         </div>
@@ -331,9 +336,14 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 <span style={{ fontSize: "12px", color: "#6b7280", marginLeft: "8px" }}>{team.name}</span>
               </div>
             </div>
-            <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
-              MATCHS360
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${club.primary_color}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Activity style={{ width: "16px", height: "16px", color: "white" }} />
+              </div>
+              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+                MATCHS360
+              </span>
+            </div>
           </div>
 
           <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.03em" }}>
@@ -424,7 +434,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* Page 2 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 2/2</span>
-            <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}>MATCHS360</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
             <span>Document confidentiel</span>
           </div>
         </div>
