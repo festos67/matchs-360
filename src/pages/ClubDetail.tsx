@@ -388,6 +388,7 @@ export default function ClubDetail() {
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
       <CreateClubFrameworkModal open={showFrameworkModal} onOpenChange={setShowFrameworkModal} clubId={club.id} onSuccess={fetchClubData} />
+      {club && <EditClubModal open={showClubSettings} onOpenChange={setShowClubSettings} club={club} onSuccess={fetchClubData} />}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
