@@ -15,6 +15,7 @@ import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTeamProgression } from "@/hooks/useTeamProgression";
 
 interface Team {
   id: string;
