@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Trophy, Search, Calendar, User, ChevronRight, Plus } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Trophy, Search, Calendar, User, ChevronRight, Plus, X } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 
@@ -27,11 +28,14 @@ interface Evaluation {
 export default function Evaluations() {
   const { user, loading: authLoading, roles } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [teamName, setTeamName] = useState<string | null>(null);
 
+  const teamId = searchParams.get("team_id");
   const canCreate = roles.some(r => ["admin", "club_admin", "coach"].includes(r.role));
 
   useEffect(() => {
@@ -44,25 +48,79 @@ export default function Evaluations() {
     if (user) {
       fetchEvaluations();
     }
-  }, [user]);
+  }, [user, teamId]);
+
+  useEffect(() => {
+    if (teamId) {
+      fetchTeamName();
+    } else {
+      setTeamName(null);
+    }
+  }, [teamId]);
+
+  const fetchTeamName = async () => {
+    const { data } = await supabase
+      .from("teams")
+      .select("name")
+      .eq("id", teamId!)
+      .maybeSingle();
+    if (data) setTeamName(data.name);
+  };
 
   const fetchEvaluations = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("evaluations")
-      .select(`
-        id,
-        name,
-        date,
-        player:profiles!evaluations_player_id_fkey(id, first_name, last_name, nickname),
-        coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
-      `)
-      .is("deleted_at", null)
-      .order("date", { ascending: false })
-      .limit(50);
 
-    if (!error && data) {
-      setEvaluations(data as unknown as Evaluation[]);
+    if (teamId) {
+      // Get player IDs in this team first
+      const { data: memberData } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", teamId)
+        .eq("member_type", "player")
+        .eq("is_active", true);
+
+      const playerIds = memberData?.map(m => m.user_id) || [];
+
+      if (playerIds.length === 0) {
+        setEvaluations([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("evaluations")
+        .select(`
+          id,
+          name,
+          date,
+          player:profiles!evaluations_player_id_fkey(id, first_name, last_name, nickname),
+          coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
+        `)
+        .is("deleted_at", null)
+        .in("player_id", playerIds)
+        .order("date", { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        setEvaluations(data as unknown as Evaluation[]);
+      }
+    } else {
+      const { data, error } = await supabase
+        .from("evaluations")
+        .select(`
+          id,
+          name,
+          date,
+          player:profiles!evaluations_player_id_fkey(id, first_name, last_name, nickname),
+          coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
+        `)
+        .is("deleted_at", null)
+        .order("date", { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        setEvaluations(data as unknown as Evaluation[]);
+      }
     }
     setLoading(false);
   };
@@ -80,6 +138,10 @@ export default function Evaluations() {
       month: "short",
       year: "numeric",
     });
+  };
+
+  const clearTeamFilter = () => {
+    setSearchParams({});
   };
 
   if (authLoading || loading) {
@@ -108,6 +170,22 @@ export default function Evaluations() {
         )}
       </div>
 
+      {/* Team filter badge */}
+      {teamId && teamName && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-sm text-muted-foreground">Filtré par équipe :</span>
+          <Badge variant="secondary" className="gap-1 pr-1">
+            {teamName}
+            <button
+              onClick={clearTeamFilter}
+              className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20 transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </Badge>
+        </div>
+      )}
+
       {/* Search */}
       <div className="relative mb-6">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -129,11 +207,19 @@ export default function Evaluations() {
           <p className="text-muted-foreground mb-6">
             {search
               ? "Essayez avec d'autres termes de recherche"
-              : "Commencez par évaluer un joueur depuis sa fiche"}
+              : teamId
+                ? "Aucun débrief pour cette équipe"
+                : "Commencez par débriefer un joueur depuis sa fiche"}
           </p>
-          <Button onClick={() => navigate("/clubs")}>
-            Voir les clubs
-          </Button>
+          {teamId ? (
+            <Button variant="outline" onClick={clearTeamFilter}>
+              Voir tous les débriefs
+            </Button>
+          ) : (
+            <Button onClick={() => navigate("/clubs")}>
+              Voir les clubs
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-3">
