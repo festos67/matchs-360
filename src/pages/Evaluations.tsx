@@ -35,6 +35,7 @@ export default function Evaluations() {
   const [search, setSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
 
   const teamId = searchParams.get("team_id");
   const canCreate = roles.some(r => ["admin", "club_admin", "coach"].includes(r.role));
