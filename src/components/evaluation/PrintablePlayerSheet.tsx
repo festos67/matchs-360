@@ -227,7 +227,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 fontSize: "28px",
                 fontWeight: "bold",
                 color: "white",
-                backgroundColor: club.primary_color,
+                backgroundColor: BRAND_BLUE,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               }}>
                 {(player.first_name?.[0] || "").toUpperCase()}{(player.last_name?.[0] || "").toUpperCase()}
