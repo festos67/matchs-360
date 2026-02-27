@@ -138,7 +138,7 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
             cx={x}
             cy={y}
             r="5"
-            fill="#EF4444"
+            fill="#3B82F6"
             stroke="white"
             strokeWidth="2"
           />
