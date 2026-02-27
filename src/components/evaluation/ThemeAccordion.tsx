@@ -267,6 +267,7 @@ export const ThemeAccordion = ({
                   key={skill.id}
                   skill={skill}
                   score={skillScore}
+                  previousScore={previousScores?.[skill.id]}
                   onScoreChange={(score) => onScoreChange(skill.id, score)}
                   onNotObservedChange={(isNotObserved) => onNotObservedChange(skill.id, isNotObserved)}
                   onCommentChange={(comment) => onCommentChange(skill.id, comment)}
