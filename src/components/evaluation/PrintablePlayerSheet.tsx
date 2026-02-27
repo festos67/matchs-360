@@ -273,7 +273,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               <span style={{ fontWeight: 600, color: "#374151" }}>Date :</span> {evalDate}
             </div>
             {periodLabel && (
-              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${club.primary_color}15`, color: club.primary_color, fontWeight: 600, fontSize: "11px" }}>
+              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${BRAND_BLUE}15`, color: BRAND_BLUE, fontWeight: 600, fontSize: "11px" }}>
                 📅 {periodLabel}
               </div>
             )}
