@@ -546,6 +546,10 @@ export default function PlayerDetail() {
               if (currentAvg === null || previousAvg === null || previousAvg === 0) return null;
               return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
             })()}
+            previousEvaluationDate={(() => {
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+              return activeCoachEvals.length >= 2 ? activeCoachEvals[1].date : null;
+            })()}
           />
         )}
       </div>

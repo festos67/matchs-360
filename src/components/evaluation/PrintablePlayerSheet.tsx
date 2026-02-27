@@ -58,6 +58,7 @@ interface PrintablePlayerSheetProps {
   evaluation: Evaluation;
   themes: Theme[];
   progressionPercent?: number | null;
+  previousEvaluationDate?: string | null;
 }
 
 // Palette de couleurs du rouge (1) au vert (5)
@@ -79,7 +80,7 @@ const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
 
 const GlobalAverageIcon = ({ score }: { score: number | null }) => {
   const value = score ? Math.round(score) : 0;
-  if (value === 0) return <span className="text-2xl" style={{ color: "#9ca3af" }}>-</span>;
+  if (value === 0) return <span style={{ fontSize: "24px", color: "#9ca3af" }}>-</span>;
   
   const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
   const IconComponent = levelData.icon;
@@ -114,38 +115,11 @@ const StarDisplay = ({ score }: { score: number | null }) => {
   );
 };
 
-// Header component reused on both pages
-const PageHeader = ({ player, club, team, evaluation, getPlayerName, getCoachName }: {
-  player: PrintablePlayerSheetProps["player"];
-  club: PrintablePlayerSheetProps["club"];
-  team: PrintablePlayerSheetProps["team"];
-  evaluation: Evaluation;
-  getPlayerName: () => string;
-  getCoachName: () => string;
-}) => (
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "2px solid #d1d5db", marginBottom: "16px" }}>
-    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-      {club.logo_url ? (
-        <img src={club.logo_url} alt={club.name} style={{ width: "40px", height: "40px", objectFit: "contain" }} />
-      ) : (
-        <div style={{ width: "40px", height: "40px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "14px", backgroundColor: club.primary_color }}>
-          {club.name.slice(0, 2).toUpperCase()}
-        </div>
-      )}
-      <div>
-        <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#111827", margin: 0 }}>{getPlayerName()}</h1>
-        <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>{team.name} • {club.name}</p>
-      </div>
-    </div>
-    <div style={{ textAlign: "right" }}>
-      <p style={{ fontWeight: "bold", fontSize: "14px", color: "#111827", margin: 0 }}>{evaluation.name}</p>
-      <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>{getCoachName()} • {new Date(evaluation.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
-    </div>
-  </div>
-);
+const formatDateFr = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
-  ({ player, club, team, evaluation, themes, progressionPercent }, ref) => {
+  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate }, ref) => {
     const getPlayerName = () => {
       if (player.nickname) return player.nickname;
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
@@ -179,44 +153,129 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
     const validAverages = themeScores.map(t => calculateThemeAverage(t.skills)).filter((a): a is number => a !== null);
     const overallAverage = validAverages.length > 0 ? validAverages.reduce((a, b) => a + b, 0) / validAverages.length : null;
 
+    const evalDate = formatDateFr(evaluation.date);
+    const hasPreviousEval = !!previousEvaluationDate;
+    const periodLabel = hasPreviousEval
+      ? `Du ${formatDateFr(previousEvaluationDate!)} au ${evalDate}`
+      : null;
+
     return (
       <div
         ref={ref}
         className="bg-white text-black"
-        style={{ fontFamily: "system-ui, -apple-system, sans-serif", width: "210mm" }}
+        style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
         {/* ===== PAGE 1 ===== */}
-        <div style={{ padding: "12mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
-          {/* Header */}
-          <PageHeader player={player} club={club} team={team} evaluation={evaluation} getPlayerName={getPlayerName} getCoachName={getCoachName} />
+        <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
-          {/* Niveau global + smiley + progression - top left */}
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", padding: "12px 16px", backgroundColor: "#f9fafb", borderRadius: "10px", border: "1px solid #e5e7eb" }}>
-            <GlobalAverageIcon score={overallAverage} />
-            <div>
-              <p style={{ fontSize: "13px", fontWeight: 600, color: "#374151", margin: 0 }}>Niveau Global</p>
-              <p style={{ fontSize: "22px", fontWeight: "bold", margin: 0, color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280" }}>
-                {formatAverage(overallAverage)}/5
+          {/* ── Top brand bar ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {club.logo_url && (
+                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              )}
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {club.name}
+              </span>
+            </div>
+            <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+              MATCHS360
+            </span>
+          </div>
+
+          {/* ── Player identity card ── */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "20px",
+            marginBottom: "20px",
+            padding: "16px 20px",
+            borderRadius: "12px",
+            background: `linear-gradient(135deg, ${club.primary_color}10, ${club.primary_color}05)`,
+            border: `1px solid ${club.primary_color}30`,
+          }}>
+            {/* Photo */}
+            {player.photo_url ? (
+              <img
+                src={player.photo_url}
+                alt={getPlayerName()}
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "10px",
+                  objectFit: "cover",
+                  border: `3px solid ${club.primary_color}`,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                }}
+              />
+            ) : (
+              <div style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "10px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "28px",
+                fontWeight: "bold",
+                color: "white",
+                backgroundColor: club.primary_color,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              }}>
+                {(player.first_name?.[0] || "").toUpperCase()}{(player.last_name?.[0] || "").toUpperCase()}
+              </div>
+            )}
+
+            {/* Name + team */}
+            <div style={{ flex: 1 }}>
+              <h1 style={{ fontSize: "26px", fontWeight: 800, color: "#111827", margin: "0 0 2px 0", lineHeight: 1.15 }}>
+                {getPlayerName()}
+              </h1>
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: 0 }}>
+                {team.name}
               </p>
             </div>
-            {progressionPercent !== null && progressionPercent !== undefined && (
-              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "8px" }}>
-                {progressionPercent >= 0 ? (
-                  <TrendingUp className="w-5 h-5" style={{ color: "#22C55E" }} />
-                ) : (
-                  <TrendingDown className="w-5 h-5" style={{ color: "#EF4444" }} />
-                )}
-                <span style={{ fontSize: "16px", fontWeight: "bold", color: progressionPercent >= 0 ? "#22C55E" : "#EF4444" }}>
-                  {progressionPercent >= 0 ? "+" : ""}{progressionPercent}%
-                </span>
-                <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "4px" }}>vs précédent</span>
+
+            {/* Global level */}
+            <div style={{ textAlign: "center", minWidth: "120px" }}>
+              <GlobalAverageIcon score={overallAverage} />
+              <p style={{ fontSize: "26px", fontWeight: 800, margin: "4px 0 0 0", color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280" }}>
+                {formatAverage(overallAverage)}/5
+              </p>
+              {progressionPercent !== null && progressionPercent !== undefined && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "3px", marginTop: "4px" }}>
+                  {progressionPercent >= 0 ? (
+                    <TrendingUp className="w-4 h-4" style={{ color: "#22C55E" }} />
+                  ) : (
+                    <TrendingDown className="w-4 h-4" style={{ color: "#EF4444" }} />
+                  )}
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: progressionPercent >= 0 ? "#22C55E" : "#EF4444" }}>
+                    {progressionPercent >= 0 ? "+" : ""}{progressionPercent}%
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Evaluation info line ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", fontSize: "12px", color: "#6b7280" }}>
+            <div>
+              <span style={{ fontWeight: 600, color: "#374151" }}>Coach :</span> {getCoachName()}
+              {" • "}
+              <span style={{ fontWeight: 600, color: "#374151" }}>Date :</span> {evalDate}
+            </div>
+            {periodLabel && (
+              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${club.primary_color}15`, color: club.primary_color, fontWeight: 600, fontSize: "11px" }}>
+                📅 {periodLabel}
               </div>
             )}
           </div>
 
-          {/* Radar chart - full width, half page */}
+          {/* ── Radar chart - full width ── */}
           <div style={{ marginBottom: "16px" }}>
-            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#111827", margin: "0 0 8px 0" }}>Analyse des compétences</h2>
+            <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 8px 0", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+              Analyse des compétences
+            </h2>
             <div style={{ width: "100%", height: "340px", display: "flex", justifyContent: "center" }}>
               <div style={{ width: "100%", maxWidth: "520px", height: "100%" }}>
                 <PrintableRadarChart data={radarData} />
@@ -224,9 +283,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
           </div>
 
-          {/* Detail par thématique - progress bars */}
+          {/* ── Detail par thématique - progress bars ── */}
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#111827", margin: "0 0 12px 0" }}>Détail par thématique</h2>
+            <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 12px 0", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+              Détail par thématique
+            </h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
               {radarData.map((item) => (
                 <div key={item.theme}>
@@ -246,8 +307,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 1 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: "1px solid #e5e7eb", textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px" }}>
-            Page 1/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Page 1/2</span>
+            <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}>MATCHS360</span>
+            <span>Document confidentiel</span>
           </div>
         </div>
 
@@ -255,11 +318,25 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         <div className="break-before-page" />
 
         {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div style={{ padding: "12mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
-          {/* Header repeated */}
-          <PageHeader player={player} club={club} team={team} evaluation={evaluation} getPlayerName={getPlayerName} getCoachName={getCoachName} />
+        <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
-          <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px" }}>
+          {/* ── Top brand bar (repeated) ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {club.logo_url && (
+                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              )}
+              <div>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{getPlayerName()}</span>
+                <span style={{ fontSize: "12px", color: "#6b7280", marginLeft: "8px" }}>{team.name}</span>
+              </div>
+            </div>
+            <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+              MATCHS360
+            </span>
+          </div>
+
+          <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.03em" }}>
             Détail des compétences
           </h2>
 
@@ -345,8 +422,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 2 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: "1px solid #e5e7eb", textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto" }}>
-            Page 2/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Page 2/2</span>
+            <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}>MATCHS360</span>
+            <span>Document confidentiel</span>
           </div>
         </div>
       </div>
