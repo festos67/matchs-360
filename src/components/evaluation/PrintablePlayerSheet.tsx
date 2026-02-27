@@ -62,14 +62,13 @@ interface PrintablePlayerSheetProps {
 
 // Palette de couleurs du rouge (1) au vert (5)
 const LEVEL_COLORS: Record<number, string> = {
-  1: "#EF4444", // Rouge
-  2: "#F97316", // Orange
-  3: "#EAB308", // Jaune
-  4: "#84CC16", // Vert clair
-  5: "#22C55E", // Vert
+  1: "#EF4444",
+  2: "#F97316",
+  3: "#EAB308",
+  4: "#84CC16",
+  5: "#22C55E",
 };
 
-// Mapping des icônes de visage selon le niveau (approche bienveillante)
 const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
   1: { icon: Meh, label: "En cours d'acquisition" },
   2: { icon: Smile, label: "En progression" },
@@ -78,13 +77,9 @@ const LEVEL_ICONS: Record<number, { icon: LucideIcon; label: string }> = {
   5: { icon: Laugh, label: "Expert" },
 };
 
-// Affiche l'icône smiley colorée (UNIQUEMENT pour la moyenne globale)
 const GlobalAverageIcon = ({ score }: { score: number | null }) => {
   const value = score ? Math.round(score) : 0;
-  
-  if (value === 0) {
-    return <span className="text-muted-foreground text-2xl">-</span>;
-  }
+  if (value === 0) return <span className="text-2xl" style={{ color: "#9ca3af" }}>-</span>;
   
   const levelData = LEVEL_ICONS[value] || LEVEL_ICONS[1];
   const IconComponent = levelData.icon;
@@ -92,34 +87,62 @@ const GlobalAverageIcon = ({ score }: { score: number | null }) => {
   const isExpert = value === 5;
   
   return (
-    <div className="flex items-center justify-center gap-1" title={levelData.label}>
-      <IconComponent className="w-16 h-16" style={{ color }} strokeWidth={1.5} />
-      {isExpert && <Sparkles className="w-8 h-8" style={{ color }} strokeWidth={1.5} />}
+    <div className="flex items-center gap-1" title={levelData.label}>
+      <IconComponent className="w-10 h-10" style={{ color }} strokeWidth={1.5} />
+      {isExpert && <Sparkles className="w-5 h-5" style={{ color }} strokeWidth={1.5} />}
     </div>
   );
 };
 
-// Affiche les étoiles uniquement (pour les compétences individuelles)
 const StarDisplay = ({ score }: { score: number | null }) => {
   const value = score ? Math.round(score) : 0;
-  
-  if (value === 0) {
-    return <span className="text-xs text-gray-400">-</span>;
-  }
+  if (value === 0) return <span style={{ fontSize: "11px", color: "#9ca3af" }}>-</span>;
   
   return (
-    <div className="flex items-center justify-end gap-0.5">
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "2px" }}>
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`w-4 h-4 ${
-            star <= value ? "fill-amber-500 text-amber-500" : "fill-gray-200 text-gray-200"
-          }`}
+          className="w-3.5 h-3.5"
+          style={{
+            fill: star <= value ? "#f59e0b" : "#e5e7eb",
+            color: star <= value ? "#f59e0b" : "#e5e7eb",
+          }}
         />
       ))}
     </div>
   );
 };
+
+// Header component reused on both pages
+const PageHeader = ({ player, club, team, evaluation, getPlayerName, getCoachName }: {
+  player: PrintablePlayerSheetProps["player"];
+  club: PrintablePlayerSheetProps["club"];
+  team: PrintablePlayerSheetProps["team"];
+  evaluation: Evaluation;
+  getPlayerName: () => string;
+  getCoachName: () => string;
+}) => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: "12px", borderBottom: "2px solid #d1d5db", marginBottom: "16px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+      {club.logo_url ? (
+        <img src={club.logo_url} alt={club.name} style={{ width: "40px", height: "40px", objectFit: "contain" }} />
+      ) : (
+        <div style={{ width: "40px", height: "40px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: "14px", backgroundColor: club.primary_color }}>
+          {club.name.slice(0, 2).toUpperCase()}
+        </div>
+      )}
+      <div>
+        <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#111827", margin: 0 }}>{getPlayerName()}</h1>
+        <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>{team.name} • {club.name}</p>
+      </div>
+    </div>
+    <div style={{ textAlign: "right" }}>
+      <p style={{ fontWeight: "bold", fontSize: "14px", color: "#111827", margin: 0 }}>{evaluation.name}</p>
+      <p style={{ fontSize: "12px", color: "#6b7280", margin: 0 }}>{getCoachName()} • {new Date(evaluation.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</p>
+    </div>
+  </div>
+);
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
   ({ player, club, team, evaluation, themes, progressionPercent }, ref) => {
@@ -136,7 +159,6 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
       return evaluation.coach.first_name || evaluation.coach.last_name || "Coach";
     };
 
-    // Calculate theme scores from evaluation
     const themeScores: ThemeScores[] = themes.map(theme => ({
       theme_id: theme.id,
       theme_name: theme.name,
@@ -154,231 +176,178 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
     }));
 
     const radarData = calculateRadarData(themeScores);
-    const overallAverage = themeScores.reduce((acc, theme) => {
-      const avg = calculateThemeAverage(theme.skills);
-      return avg !== null ? acc + avg : acc;
-    }, 0) / themeScores.filter(t => calculateThemeAverage(t.skills) !== null).length;
+    const validAverages = themeScores.map(t => calculateThemeAverage(t.skills)).filter((a): a is number => a !== null);
+    const overallAverage = validAverages.length > 0 ? validAverages.reduce((a, b) => a + b, 0) / validAverages.length : null;
 
     return (
       <div
         ref={ref}
-        className="bg-white text-black p-10 w-[210mm] min-h-[297mm] mx-auto"
-        style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+        className="bg-white text-black"
+        style={{ fontFamily: "system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
-        {/* Page 1: Radar + Theme Details - Like the reference screenshot */}
-        <div className="h-[277mm] flex flex-col">
+        {/* ===== PAGE 1 ===== */}
+        <div style={{ padding: "12mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b-2 border-gray-300 mb-6">
-            <div className="flex items-center gap-4">
-              {club.logo_url ? (
-                <img src={club.logo_url} alt={club.name} className="w-14 h-14 object-contain" />
-              ) : (
-                <div
-                  className="w-14 h-14 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                  style={{ backgroundColor: club.primary_color }}
-                >
-                  {club.name.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{getPlayerName()}</h1>
-                <p className="text-sm text-gray-600">{team.name} • {club.name}</p>
-              </div>
+          <PageHeader player={player} club={club} team={team} evaluation={evaluation} getPlayerName={getPlayerName} getCoachName={getCoachName} />
+
+          {/* Niveau global + smiley + progression - top left */}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", padding: "12px 16px", backgroundColor: "#f9fafb", borderRadius: "10px", border: "1px solid #e5e7eb" }}>
+            <GlobalAverageIcon score={overallAverage} />
+            <div>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "#374151", margin: 0 }}>Niveau Global</p>
+              <p style={{ fontSize: "22px", fontWeight: "bold", margin: 0, color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280" }}>
+                {formatAverage(overallAverage)}/5
+              </p>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-lg text-gray-900">{evaluation.name}</p>
-              <p className="text-sm text-gray-500">{getCoachName()} • {new Date(evaluation.date).toLocaleDateString("fr-FR", {
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-              })}</p>
+            {progressionPercent !== null && progressionPercent !== undefined && (
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "8px" }}>
+                {progressionPercent >= 0 ? (
+                  <TrendingUp className="w-5 h-5" style={{ color: "#22C55E" }} />
+                ) : (
+                  <TrendingDown className="w-5 h-5" style={{ color: "#EF4444" }} />
+                )}
+                <span style={{ fontSize: "16px", fontWeight: "bold", color: progressionPercent >= 0 ? "#22C55E" : "#EF4444" }}>
+                  {progressionPercent >= 0 ? "+" : ""}{progressionPercent}%
+                </span>
+                <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "4px" }}>vs précédent</span>
+              </div>
+            )}
+          </div>
+
+          {/* Radar chart - full width, half page */}
+          <div style={{ marginBottom: "16px" }}>
+            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#111827", margin: "0 0 8px 0" }}>Analyse des compétences</h2>
+            <div style={{ width: "100%", height: "340px", display: "flex", justifyContent: "center" }}>
+              <div style={{ width: "100%", maxWidth: "520px", height: "100%" }}>
+                <PrintableRadarChart data={radarData} />
+              </div>
             </div>
           </div>
 
-          {/* Main content: 2 columns like the reference */}
-          <div className="flex-1 grid grid-cols-5 gap-8">
-            {/* Left Column: Radar Chart (60%) */}
-            <div className="col-span-3 flex flex-col">
-              <h2 className="text-xl font-bold text-gray-900 mb-1">Analyse des compétences</h2>
-              <p className="text-sm text-gray-500 mb-4">
-                {evaluation.name} - {new Date(evaluation.date).toLocaleDateString("fr-FR")}
-              </p>
-              
-              {/* Large Radar Chart */}
-              <div className="flex-1 flex items-center justify-center">
-                <div className="w-full h-full max-w-[450px] max-h-[450px]">
-                  <PrintableRadarChart data={radarData} />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Theme Details with Progress Bars (40%) */}
-            <div className="col-span-2 flex flex-col">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Détail par thématique</h2>
-              
-              <div className="space-y-5">
-                {radarData.map((item) => (
-                  <div key={item.theme}>
-                    {/* Theme header with score */}
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2.5 h-2.5 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-base font-medium text-gray-900">{item.theme}</span>
-                      </div>
-                      <span className="text-base font-bold text-gray-700">
-                        {item.score.toFixed(1)}/5
-                      </span>
+          {/* Detail par thématique - progress bars */}
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#111827", margin: "0 0 12px 0" }}>Détail par thématique</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
+              {radarData.map((item) => (
+                <div key={item.theme}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: item.color }} />
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111827" }}>{item.theme}</span>
                     </div>
-                    
-                    {/* Progress bar */}
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all"
-                        style={{ 
-                          width: `${(item.score / 5) * 100}%`,
-                          backgroundColor: item.color 
-                        }}
-                      />
-                    </div>
+                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>{item.score.toFixed(1)}/5</span>
                   </div>
-                ))}
-              </div>
-
-              {/* Global score at bottom */}
-              <div className="mt-auto pt-8 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-lg font-bold text-gray-900">Niveau Global</p>
-                    <p className="text-2xl font-bold" style={{ color: LEVEL_COLORS[Math.round(overallAverage)] || LEVEL_COLORS[3] }}>
-                      {formatAverage(overallAverage)}/5
-                    </p>
-                    {progressionPercent !== null && progressionPercent !== undefined && (
-                      <div className="flex items-center gap-1 mt-1">
-                        {progressionPercent >= 0 ? (
-                          <TrendingUp className="w-4 h-4" style={{ color: "#22C55E" }} />
-                        ) : (
-                          <TrendingDown className="w-4 h-4" style={{ color: "#EF4444" }} />
-                        )}
-                        <span
-                          className="text-sm font-bold"
-                          style={{ color: progressionPercent >= 0 ? "#22C55E" : "#EF4444" }}
-                        >
-                          {progressionPercent >= 0 ? "+" : ""}{progressionPercent}%
-                        </span>
-                        <span className="text-xs text-gray-400 ml-1">vs précédent</span>
-                      </div>
-                    )}
+                  <div style={{ height: "6px", backgroundColor: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: "999px", width: `${(item.score / 5) * 100}%`, backgroundColor: item.color }} />
                   </div>
-                  <GlobalAverageIcon score={overallAverage || null} />
                 </div>
-              </div>
+              ))}
             </div>
           </div>
 
           {/* Page 1 Footer */}
-          <div className="pt-4 border-t border-gray-200 text-center text-xs text-gray-400 mt-6">
-            <p>Page 1/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
+          <div style={{ paddingTop: "12px", borderTop: "1px solid #e5e7eb", textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px" }}>
+            Page 1/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360
           </div>
         </div>
 
-        {/* Page break for print */}
+        {/* Page break */}
         <div className="break-before-page" />
 
-        {/* Page 2: Detailed Scores */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 border-b border-gray-200 pb-2">
+        {/* ===== PAGE 2: Détail des compétences ===== */}
+        <div style={{ padding: "12mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
+          {/* Header repeated */}
+          <PageHeader player={player} club={club} team={team} evaluation={evaluation} getPlayerName={getPlayerName} getCoachName={getCoachName} />
+
+          <h2 style={{ fontSize: "16px", fontWeight: "bold", color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px" }}>
             Détail des compétences
           </h2>
 
-          {themeScores.map((themeScore) => {
-            const theme = themes.find(t => t.id === themeScore.theme_id);
-            if (!theme) return null;
+          <div style={{ flex: 1 }}>
+            {themeScores.map((themeScore) => {
+              const theme = themes.find(t => t.id === themeScore.theme_id);
+              if (!theme) return null;
 
-            const themeAverage = calculateThemeAverage(themeScore.skills);
-            const objective = themeScore.objective;
+              const themeAverage = calculateThemeAverage(themeScore.skills);
+              const objective = themeScore.objective;
+              const hasComments = themeScore.skills.some(s => s.comment);
 
-            return (
-              <div key={theme.id} className="break-inside-avoid">
-                <div
-                  className="flex items-center justify-between p-2 rounded-t-lg"
-                  style={{ backgroundColor: `${theme.color || "#3B82F6"}20` }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: theme.color || "#3B82F6" }}
-                    />
-                    <h3 className="font-semibold text-gray-900">{theme.name}</h3>
+              return (
+                <div key={theme.id} style={{ marginBottom: "14px", breakInside: "avoid" }}>
+                  {/* Theme header */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: "6px 6px 0 0", backgroundColor: `${theme.color || "#3B82F6"}20` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: theme.color || "#3B82F6" }} />
+                      <h3 style={{ fontWeight: 600, color: "#111827", fontSize: "13px", margin: 0 }}>{theme.name}</h3>
+                    </div>
+                    <span style={{ fontWeight: "bold", fontSize: "13px", color: theme.color || "#3B82F6" }}>
+                      {formatAverage(themeAverage)}/5
+                    </span>
                   </div>
-                  <span className="font-bold" style={{ color: theme.color || "#3B82F6" }}>
-                    {formatAverage(themeAverage)}/5
-                  </span>
-                </div>
 
-                <div className="border border-t-0 border-gray-200 rounded-b-lg">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {theme.skills.map((skill) => {
-                        const scoreData = themeScore.skills.find(s => s.skill_id === skill.id);
-                        return (
-                          <tr key={skill.id} className="border-b border-gray-100 last:border-0">
-                            <td className="py-2 px-3">
-                              <span className={scoreData?.is_not_observed ? "text-gray-400" : ""}>
-                                {skill.name}
-                              </span>
-                              {scoreData?.is_not_observed && (
-                                <span className="ml-2 text-xs text-gray-400">(Non observé)</span>
-                              )}
-                            </td>
-                            <td className="py-2 px-3 text-right">
-                              {scoreData?.is_not_observed ? (
-                                <span className="text-gray-400 text-xs">N/O</span>
-                              ) : (
-                                <StarDisplay score={scoreData?.score || null} />
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-
-                  {/* Comments for this theme */}
-                  {themeScore.skills.some(s => s.comment) && (
-                    <div className="px-3 py-2 bg-gray-50 border-t border-gray-100">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">💬 Conseils</p>
-                      {themeScore.skills
-                        .filter(s => s.comment)
-                        .map(s => {
-                          const skill = theme.skills.find(sk => sk.id === s.skill_id);
+                  {/* Skills table */}
+                  <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 6px 6px" }}>
+                    <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
+                      <tbody>
+                        {theme.skills.map((skill, idx) => {
+                          const scoreData = themeScore.skills.find(s => s.skill_id === skill.id);
                           return (
-                            <p key={s.skill_id} className="text-xs text-gray-600 mb-1">
-                              <strong>{skill?.name}:</strong> {s.comment}
-                            </p>
+                            <tr key={skill.id} style={{ borderBottom: idx < theme.skills.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                              <td style={{ padding: "5px 10px" }}>
+                                <span style={{ color: scoreData?.is_not_observed ? "#9ca3af" : "#111827" }}>
+                                  {skill.name}
+                                </span>
+                                {scoreData?.is_not_observed && (
+                                  <span style={{ marginLeft: "6px", fontSize: "10px", color: "#9ca3af" }}>(Non observé)</span>
+                                )}
+                              </td>
+                              <td style={{ padding: "5px 10px", textAlign: "right" }}>
+                                {scoreData?.is_not_observed ? (
+                                  <span style={{ color: "#9ca3af", fontSize: "10px" }}>N/O</span>
+                                ) : (
+                                  <StarDisplay score={scoreData?.score || null} />
+                                )}
+                              </td>
+                            </tr>
                           );
                         })}
-                    </div>
-                  )}
+                      </tbody>
+                    </table>
 
-                  {/* Objective for this theme */}
-                  {objective && (
-                    <div className="px-3 py-2 bg-blue-50 border-t border-gray-100">
-                      <p className="text-xs font-semibold text-blue-700 mb-1">🎯 Objectifs</p>
-                      <p className="text-xs text-gray-700">{objective}</p>
-                    </div>
-                  )}
+                    {/* Conseils du coach */}
+                    {hasComments && (
+                      <div style={{ padding: "6px 10px", backgroundColor: "#f9fafb", borderTop: "1px solid #f3f4f6" }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: "#4b5563", margin: "0 0 3px 0" }}>💬 Conseils</p>
+                        {themeScore.skills
+                          .filter(s => s.comment)
+                          .map(s => {
+                            const skill = theme.skills.find(sk => sk.id === s.skill_id);
+                            return (
+                              <p key={s.skill_id} style={{ fontSize: "11px", color: "#4b5563", margin: "0 0 2px 0" }}>
+                                <strong>{skill?.name} :</strong> {s.comment}
+                              </p>
+                            );
+                          })}
+                      </div>
+                    )}
+
+                    {/* Objectifs */}
+                    {objective && (
+                      <div style={{ padding: "6px 10px", backgroundColor: "#eff6ff", borderTop: "1px solid #f3f4f6" }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: "#1d4ed8", margin: "0 0 3px 0" }}>🎯 Objectifs</p>
+                        <p style={{ fontSize: "11px", color: "#374151", margin: 0 }}>{objective}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        {/* Page 2 Footer */}
-        <div className="mt-8 pt-4 border-t border-gray-200 text-center text-xs text-gray-400">
-          <p>Page 2/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360</p>
+          {/* Page 2 Footer */}
+          <div style={{ paddingTop: "12px", borderTop: "1px solid #e5e7eb", textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto" }}>
+            Page 2/2 • Document généré le {new Date().toLocaleDateString("fr-FR")} • MATCHS360
+          </div>
         </div>
       </div>
     );
