@@ -536,6 +536,15 @@ export default function FrameworkEditor() {
           </div>
         </div>
       )}
+
+      <FrameworkHistorySheet
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        entityId={teamId!}
+        entityType="team"
+        activeFrameworkId={framework?.id || null}
+        onRestored={() => fetchData()}
+      />
     </AppLayout>
   );
 }
