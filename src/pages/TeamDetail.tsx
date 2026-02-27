@@ -285,49 +285,6 @@ export default function TeamDetail() {
 
         {/* Indicateurs Tab */}
         <TabsContent value="indicateurs" className="space-y-6">
-          {/* Team Progression KPI */}
-          <div className="glass-card p-6 flex items-center gap-6">
-            <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
-              progression?.value === null || progression?.value === undefined
-                ? "bg-muted text-muted-foreground"
-                : progression.value > 0
-                  ? "bg-emerald-500/10 text-emerald-600"
-                  : progression.value < 0
-                    ? "bg-destructive/10 text-destructive"
-                    : "bg-muted text-muted-foreground"
-            }`}>
-              {progression?.value === null || progression?.value === undefined ? (
-                <Minus className="w-7 h-7" />
-              ) : progression.value >= 0 ? (
-                <TrendingUp className="w-7 h-7" />
-              ) : (
-                <TrendingDown className="w-7 h-7" />
-              )}
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground font-medium">Progression de l'équipe</p>
-              {loadingProgression ? (
-                <p className="text-3xl font-display font-bold mt-1 text-muted-foreground">…</p>
-              ) : progression?.value === null || progression?.value === undefined ? (
-                <p className="text-3xl font-display font-bold mt-1 text-muted-foreground">N/A</p>
-              ) : (
-                <p className={`text-3xl font-display font-bold mt-1 ${
-                  progression.value > 0
-                    ? "text-emerald-600"
-                    : progression.value < 0
-                      ? "text-destructive"
-                      : "text-muted-foreground"
-                }`}>
-                  {progression.value > 0 ? "+" : ""}{progression.value}%
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {progression?.count
-                  ? `Basé sur ${progression.count} joueur${progression.count > 1 ? "s" : ""} évalué${progression.count > 1 ? "s" : ""}`
-                  : "Aucun joueur avec 2+ évaluations"}
-              </p>
-            </div>
-          </div>
 
           {framework ? (
             <>
