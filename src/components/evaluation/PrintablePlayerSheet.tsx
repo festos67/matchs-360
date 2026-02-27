@@ -255,6 +255,22 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                     <p className="text-2xl font-bold" style={{ color: LEVEL_COLORS[Math.round(overallAverage)] || LEVEL_COLORS[3] }}>
                       {formatAverage(overallAverage)}/5
                     </p>
+                    {progressionPercent !== null && progressionPercent !== undefined && (
+                      <div className="flex items-center gap-1 mt-1">
+                        {progressionPercent >= 0 ? (
+                          <TrendingUp className="w-4 h-4" style={{ color: "#22C55E" }} />
+                        ) : (
+                          <TrendingDown className="w-4 h-4" style={{ color: "#EF4444" }} />
+                        )}
+                        <span
+                          className="text-sm font-bold"
+                          style={{ color: progressionPercent >= 0 ? "#22C55E" : "#EF4444" }}
+                        >
+                          {progressionPercent >= 0 ? "+" : ""}{progressionPercent}%
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1">vs précédent</span>
+                      </div>
+                    )}
                   </div>
                   <GlobalAverageIcon score={overallAverage || null} />
                 </div>
