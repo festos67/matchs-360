@@ -62,6 +62,7 @@ export default function ClubDetail() {
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
   const [showFrameworkModal, setShowFrameworkModal] = useState(false);
+  const [showClubSettings, setShowClubSettings] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
