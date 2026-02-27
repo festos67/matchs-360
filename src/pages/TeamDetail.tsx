@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -15,6 +15,7 @@ import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTeamProgression } from "@/hooks/useTeamProgression";
 
 interface Team {
   id: string;
@@ -112,6 +113,8 @@ export default function TeamDetail() {
 
   const coaches = members.filter(m => m.member_type === "coach");
   const players = members.filter(m => m.member_type === "player");
+  const playerIds = players.map(p => p.profile.id);
+  const { data: progression, isLoading: loadingProgression } = useTeamProgression(id, playerIds);
 
   const getMemberName = (member: TeamMember) => {
     const { profile } = member;
@@ -258,6 +261,50 @@ export default function TeamDetail() {
 
         {/* Indicateurs Tab */}
         <TabsContent value="indicateurs" className="space-y-6">
+          {/* Team Progression KPI */}
+          <div className="glass-card p-6 flex items-center gap-6">
+            <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
+              progression?.value === null || progression?.value === undefined
+                ? "bg-muted text-muted-foreground"
+                : progression.value > 0
+                  ? "bg-emerald-500/10 text-emerald-600"
+                  : progression.value < 0
+                    ? "bg-destructive/10 text-destructive"
+                    : "bg-muted text-muted-foreground"
+            }`}>
+              {progression?.value === null || progression?.value === undefined ? (
+                <Minus className="w-7 h-7" />
+              ) : progression.value >= 0 ? (
+                <TrendingUp className="w-7 h-7" />
+              ) : (
+                <TrendingDown className="w-7 h-7" />
+              )}
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground font-medium">Progression de l'équipe</p>
+              {loadingProgression ? (
+                <p className="text-3xl font-display font-bold mt-1 text-muted-foreground">…</p>
+              ) : progression?.value === null || progression?.value === undefined ? (
+                <p className="text-3xl font-display font-bold mt-1 text-muted-foreground">N/A</p>
+              ) : (
+                <p className={`text-3xl font-display font-bold mt-1 ${
+                  progression.value > 0
+                    ? "text-emerald-600"
+                    : progression.value < 0
+                      ? "text-destructive"
+                      : "text-muted-foreground"
+                }`}>
+                  {progression.value > 0 ? "+" : ""}{progression.value}%
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {progression?.count
+                  ? `Basé sur ${progression.count} joueur${progression.count > 1 ? "s" : ""} évalué${progression.count > 1 ? "s" : ""}`
+                  : "Aucun joueur avec 2+ évaluations"}
+              </p>
+            </div>
+          </div>
+
           {framework ? (
             <>
               {/* Framework summary */}
