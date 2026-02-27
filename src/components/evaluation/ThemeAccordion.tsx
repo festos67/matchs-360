@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { EyeOff, Eye, Info, MessageSquare, ChevronDown, ChevronRight } from "lucide-react";
+import { EyeOff, Eye, Info, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StarRating } from "./StarRating";
-import { calculateThemeAverage, formatAverage, type SkillScore } from "@/lib/evaluation-utils";
+import { calculateThemeAverage, formatAverage, SCORE_LABELS, type SkillScore } from "@/lib/evaluation-utils";
 
 interface Skill {
   id: string;
