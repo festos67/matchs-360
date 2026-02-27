@@ -32,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
+import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 
 interface Skill {
   id: string;
