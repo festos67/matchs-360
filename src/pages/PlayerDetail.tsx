@@ -1088,6 +1088,21 @@ export default function PlayerDetail() {
               frameworkId={frameworkId}
               themes={themes}
               existingEvaluation={isCreatingNew ? null : selectedEvaluation}
+              previousScores={(() => {
+                // Find the previous coach evaluation to show last scores
+                const coachEvals = evaluations.filter(
+                  e => e.type === "coach_assessment" && !e.deleted_at
+                );
+                const previousEval = isCreatingNew 
+                  ? coachEvals[0]  // When creating new, the "previous" is the latest
+                  : coachEvals[1]; // When editing, the "previous" is the one before
+                if (!previousEval) return undefined;
+                const map: Record<string, number | null> = {};
+                previousEval.scores.forEach(s => {
+                  map[s.skill_id] = s.score;
+                });
+                return map;
+              })()}
               onSaved={() => {
                 setIsCreatingNew(false);
                 fetchPlayerData();
