@@ -10,34 +10,41 @@ export async function snapshotFramework(frameworkId: string): Promise<void> {
     .from("competence_frameworks")
     .select("*")
     .eq("id", frameworkId)
-    .single();
+    .maybeSingle();
 
-  if (fwError || !fw) throw new Error("Framework not found");
+  if (fwError || !fw) {
+    console.warn("snapshotFramework: could not fetch framework", fwError);
+    return;
+  }
 
-  // 2. Create archived copy of the framework
-  const { data: archivedFw, error: copyError } = await supabase
-    .from("competence_frameworks")
-    .insert({
-      name: fw.name,
-      club_id: fw.club_id,
-      team_id: fw.team_id,
-      is_template: fw.is_template,
-      is_archived: true,
-      archived_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (copyError || !archivedFw) throw new Error("Failed to create snapshot");
-
-  // 3. Fetch themes with skills
+  // 2. Fetch themes with skills before creating snapshot
   const { data: themes } = await supabase
     .from("themes")
     .select("*, skills(*)")
     .eq("framework_id", frameworkId)
     .order("order_index");
 
+  // If no themes, skip snapshot (nothing meaningful to archive)
   if (!themes || themes.length === 0) return;
+
+  // 3. Create archived copy of the framework
+  const { data: archivedFw, error: copyError } = await supabase
+    .from("competence_frameworks")
+    .insert({
+      name: fw.name,
+      club_id: (fw as any).club_id,
+      team_id: (fw as any).team_id,
+      is_template: fw.is_template,
+      is_archived: true,
+      archived_at: new Date().toISOString(),
+    } as any)
+    .select()
+    .single();
+
+  if (copyError || !archivedFw) {
+    console.warn("snapshotFramework: could not create archived copy", copyError);
+    return;
+  }
 
   // 4. Clone themes and skills into the archived framework
   for (const theme of themes) {
@@ -50,13 +57,16 @@ export async function snapshotFramework(frameworkId: string): Promise<void> {
         order_index: theme.order_index,
       })
       .select()
-      .single();
+      .maybeSingle();
 
-    if (themeError || !newTheme) continue;
+    if (themeError || !newTheme) {
+      console.warn("snapshotFramework: could not copy theme", theme.name, themeError);
+      continue;
+    }
 
     const skills = theme.skills || [];
     if (skills.length > 0) {
-      await supabase.from("skills").insert(
+      const { error: skillsError } = await supabase.from("skills").insert(
         skills.map((s: any) => ({
           theme_id: newTheme.id,
           name: s.name,
@@ -64,6 +74,9 @@ export async function snapshotFramework(frameworkId: string): Promise<void> {
           order_index: s.order_index,
         }))
       );
+      if (skillsError) {
+        console.warn("snapshotFramework: could not copy skills for theme", theme.name, skillsError);
+      }
     }
   }
 }
