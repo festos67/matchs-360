@@ -25,6 +25,7 @@ import {
   Building2,
   Users,
   FileQuestion,
+  History,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
