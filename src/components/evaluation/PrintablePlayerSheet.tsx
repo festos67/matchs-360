@@ -61,6 +61,9 @@ interface PrintablePlayerSheetProps {
   previousEvaluationDate?: string | null;
 }
 
+// Bleu primaire de l'interface numérique
+const BRAND_BLUE = "#3B82F6";
+
 // Palette de couleurs du rouge (1) au vert (5)
 const LEVEL_COLORS: Record<number, string> = {
   1: "#EF4444",
@@ -169,7 +172,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
           {/* ── Top brand bar ── */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               {club.logo_url && (
                 <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
@@ -179,10 +182,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${club.primary_color}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Activity style={{ width: "16px", height: "16px", color: "white" }} />
               </div>
-              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: BRAND_BLUE }}>
                 MATCHS360
               </span>
             </div>
@@ -196,8 +199,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             marginBottom: "20px",
             padding: "16px 20px",
             borderRadius: "12px",
-            background: `linear-gradient(135deg, ${club.primary_color}10, ${club.primary_color}05)`,
-            border: `1px solid ${club.primary_color}30`,
+            background: `linear-gradient(135deg, ${BRAND_BLUE}10, ${BRAND_BLUE}05)`,
+            border: `1px solid ${BRAND_BLUE}30`,
           }}>
             {/* Photo */}
             {player.photo_url ? (
@@ -209,7 +212,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                   height: "80px",
                   borderRadius: "10px",
                   objectFit: "cover",
-                  border: `3px solid ${club.primary_color}`,
+                  border: `3px solid ${BRAND_BLUE}`,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
               />
@@ -224,7 +227,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 fontSize: "28px",
                 fontWeight: "bold",
                 color: "white",
-                backgroundColor: club.primary_color,
+                backgroundColor: BRAND_BLUE,
                 boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               }}>
                 {(player.first_name?.[0] || "").toUpperCase()}{(player.last_name?.[0] || "").toUpperCase()}
@@ -270,7 +273,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               <span style={{ fontWeight: 600, color: "#374151" }}>Date :</span> {evalDate}
             </div>
             {periodLabel && (
-              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${club.primary_color}15`, color: club.primary_color, fontWeight: 600, fontSize: "11px" }}>
+              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${BRAND_BLUE}15`, color: BRAND_BLUE, fontWeight: 600, fontSize: "11px" }}>
                 📅 {periodLabel}
               </div>
             )}
@@ -312,9 +315,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 1 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 1/2</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: BRAND_BLUE }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
             <span>Document confidentiel</span>
           </div>
         </div>
@@ -326,7 +329,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
           {/* ── Top brand bar (repeated) ── */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               {club.logo_url && (
                 <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
@@ -337,10 +340,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${club.primary_color}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Activity style={{ width: "16px", height: "16px", color: "white" }} />
               </div>
-              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: BRAND_BLUE }}>
                 MATCHS360
               </span>
             </div>
@@ -432,9 +435,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 2 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 2/2</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
+            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: BRAND_BLUE }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
             <span>Document confidentiel</span>
           </div>
         </div>
