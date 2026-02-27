@@ -172,7 +172,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
           {/* ── Top brand bar ── */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               {club.logo_url && (
                 <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
