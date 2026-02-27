@@ -9,9 +9,9 @@ interface PrintableRadarChartProps {
 }
 
 export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
-  const viewBoxSize = 500;
+  const viewBoxSize = 600;
   const center = viewBoxSize / 2;
-  const radius = 160;
+  const radius = 150;
   const levels = 5;
   const angleStep = (2 * Math.PI) / data.length;
 
@@ -44,7 +44,7 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
   // Calculate label positions
   const getLabelPosition = (index: number) => {
     const angle = index * angleStep - Math.PI / 2;
-    const r = radius + 50;
+    const r = radius + 70;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);
     return { x, y, angle };
@@ -151,18 +151,37 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
         const textAnchor =
           x < center - 20 ? "end" : x > center + 20 ? "start" : "middle";
 
+        // Split long names into lines of ~18 chars
+        const words = item.theme.split(" ");
+        const lines: string[] = [];
+        let current = "";
+        for (const word of words) {
+          if (current && (current + " " + word).length > 18) {
+            lines.push(current);
+            current = word;
+          } else {
+            current = current ? current + " " + word : word;
+          }
+        }
+        if (current) lines.push(current);
+
+        const lineHeight = 16;
+        const startY = y - ((lines.length - 1) * lineHeight) / 2;
+
         return (
           <text
             key={index}
-            x={x}
-            y={y}
             textAnchor={textAnchor}
             dominantBaseline="middle"
-            fontSize="14"
+            fontSize="13"
             fill={item.color}
-            fontWeight="500"
+            fontWeight="600"
           >
-            {item.theme}
+            {lines.map((line, i) => (
+              <tspan key={i} x={x} y={startY + i * lineHeight}>
+                {line}
+              </tspan>
+            ))}
           </text>
         );
       })}
