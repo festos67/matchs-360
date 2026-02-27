@@ -64,6 +64,7 @@ export const EvaluationForm = ({
   frameworkId,
   themes,
   existingEvaluation,
+  previousScores,
   onSaved,
   readOnly = false,
 }: EvaluationFormProps) => {
