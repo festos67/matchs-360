@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { snapshotFramework } from "@/lib/framework-snapshot";
 
 interface Skill {
   id: string;
@@ -257,6 +258,8 @@ export default function ClubFrameworkEditor() {
     setSaving(true);
 
     try {
+      // Snapshot current state before saving changes
+      await snapshotFramework(framework.id);
       // Save themes
       for (const theme of themes) {
         if (theme.isNew) {
