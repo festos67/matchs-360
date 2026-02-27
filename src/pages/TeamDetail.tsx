@@ -113,6 +113,8 @@ export default function TeamDetail() {
 
   const coaches = members.filter(m => m.member_type === "coach");
   const players = members.filter(m => m.member_type === "player");
+  const playerIds = players.map(p => p.profile.id);
+  const { data: progression, isLoading: loadingProgression } = useTeamProgression(id, playerIds);
 
   const getMemberName = (member: TeamMember) => {
     const { profile } = member;
