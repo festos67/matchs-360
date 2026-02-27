@@ -304,16 +304,25 @@ export default function ClubFrameworkEditor() {
             .eq("id", theme.id);
 
           // Handle skills
+          const persistedSkillIds: string[] = [];
+
           for (const skill of theme.skills) {
             if (skill.isNew) {
-              await supabase.from("skills").insert({
-                theme_id: theme.id,
-                name: skill.name,
-                definition: skill.definition,
-                order_index: skill.order_index,
-              });
+              const { data: insertedSkill, error: insertError } = await supabase
+                .from("skills")
+                .insert({
+                  theme_id: theme.id,
+                  name: skill.name,
+                  definition: skill.definition,
+                  order_index: skill.order_index,
+                })
+                .select("id")
+                .single();
+
+              if (insertError) throw insertError;
+              if (insertedSkill?.id) persistedSkillIds.push(insertedSkill.id);
             } else {
-              await supabase
+              const { error: updateError } = await supabase
                 .from("skills")
                 .update({
                   name: skill.name,
@@ -321,19 +330,21 @@ export default function ClubFrameworkEditor() {
                   order_index: skill.order_index,
                 })
                 .eq("id", skill.id);
+
+              if (updateError) throw updateError;
+              persistedSkillIds.push(skill.id);
             }
           }
 
           // Delete removed skills from this theme
-          const currentSkillIds = theme.skills.filter(s => !s.isNew).map(s => s.id);
-          if (currentSkillIds.length > 0) {
+          if (persistedSkillIds.length > 0) {
             await supabase
               .from("skills")
               .delete()
               .eq("theme_id", theme.id)
-              .not("id", "in", `(${currentSkillIds.join(",")})`);
+              .not("id", "in", `(${persistedSkillIds.join(",")})`);
           } else {
-            // If all skills are new or none exist, delete all existing skills for this theme
+            // If none exist, delete all existing skills for this theme
             await supabase
               .from("skills")
               .delete()
