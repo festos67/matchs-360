@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { snapshotFramework } from "@/lib/framework-snapshot";
 
 interface Skill {
   id: string;
