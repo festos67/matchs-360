@@ -160,31 +160,7 @@ export default function TeamDetail() {
             <div className="flex items-center gap-3"><h1 className="text-3xl font-display font-bold">{team.name}</h1><Badge variant="secondary">{team.season}</Badge></div>
             <p className="text-muted-foreground mt-1">{team.club?.name} • {players.length} joueur{players.length > 1 ? "s" : ""} • {coaches.length} coach{coaches.length > 1 ? "es" : ""}</p>
           </div>
-          <div className="flex items-center gap-3">
-              {/* Progression badge */}
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold ${
-                loadingProgression || progression?.value === null || progression?.value === undefined
-                  ? "bg-muted text-muted-foreground"
-                  : progression.value > 0
-                    ? "bg-emerald-500/10 text-emerald-600"
-                    : progression.value < 0
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-muted text-muted-foreground"
-              }`}>
-                {loadingProgression ? (
-                  <span>…</span>
-                ) : progression?.value === null || progression?.value === undefined ? (
-                  <>
-                    <Minus className="w-4 h-4" />
-                    <span>N/A</span>
-                  </>
-                ) : (
-                  <>
-                    {progression.value >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    <span>{progression.value > 0 ? "+" : ""}{progression.value}%</span>
-                  </>
-                )}
-              </div>
+          <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 size="sm"
