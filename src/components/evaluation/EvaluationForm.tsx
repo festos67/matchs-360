@@ -52,6 +52,7 @@ interface EvaluationFormProps {
       content: string;
     }>;
   } | null;
+  previousScores?: Record<string, number | null>;
   onSaved?: () => void;
   readOnly?: boolean;
 }
