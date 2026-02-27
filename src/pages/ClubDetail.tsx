@@ -214,8 +214,8 @@ export default function ClubDetail() {
           {canManageClub && (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><UserCog className="w-4 h-4" />Coach</Button>
-              <Button variant="outline" size="icon"><Settings className="w-4 h-4" /></Button>
-              <Button variant="outline" size="icon"><Edit className="w-4 h-4" /></Button>
+              <Button variant="outline" size="icon" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
+              <Button variant="outline" size="icon" onClick={() => setShowClubSettings(true)}><Edit className="w-4 h-4" /></Button>
             </div>
           )}
         </div>
