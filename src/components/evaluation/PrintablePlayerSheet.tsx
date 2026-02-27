@@ -61,6 +61,9 @@ interface PrintablePlayerSheetProps {
   previousEvaluationDate?: string | null;
 }
 
+// Bleu primaire de l'interface numérique
+const BRAND_BLUE = "#3B82F6";
+
 // Palette de couleurs du rouge (1) au vert (5)
 const LEVEL_COLORS: Record<number, string> = {
   1: "#EF4444",
