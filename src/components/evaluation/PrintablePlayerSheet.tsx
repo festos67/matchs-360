@@ -199,8 +199,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             marginBottom: "20px",
             padding: "16px 20px",
             borderRadius: "12px",
-            background: `linear-gradient(135deg, ${club.primary_color}10, ${club.primary_color}05)`,
-            border: `1px solid ${club.primary_color}30`,
+            background: `linear-gradient(135deg, ${BRAND_BLUE}10, ${BRAND_BLUE}05)`,
+            border: `1px solid ${BRAND_BLUE}30`,
           }}>
             {/* Photo */}
             {player.photo_url ? (
