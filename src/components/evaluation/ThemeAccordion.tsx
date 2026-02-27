@@ -160,6 +160,26 @@ export const SkillRow = ({
           />
         </div>
       )}
+
+      {/* Previous score display */}
+      {showPreviousScore && hasPreviousScore && (
+        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-md bg-muted/60 border border-border/50">
+          <History className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="text-sm text-muted-foreground">Dernière note :</span>
+          <div className="flex items-center gap-1">
+            <StarRating value={previousScore!} disabled size="sm" />
+            <span className="text-sm font-medium ml-1">
+              {previousScore} - {SCORE_LABELS[previousScore!]}
+            </span>
+          </div>
+        </div>
+      )}
+            rows={2}
+            disabled={disabled}
+            className="text-sm"
+          />
+        </div>
+      )}
     </div>
   );
 };
