@@ -27,12 +27,15 @@ interface SkillRowProps {
 export const SkillRow = ({
   skill,
   score,
+  previousScore,
   onScoreChange,
   onNotObservedChange,
   onCommentChange,
   disabled = false,
 }: SkillRowProps) => {
   const [showComment, setShowComment] = useState(!!score.comment);
+  const [showPreviousScore, setShowPreviousScore] = useState(false);
+  const hasPreviousScore = previousScore !== undefined && previousScore !== null && previousScore > 0;
 
   return (
     <div
