@@ -376,7 +376,13 @@ export default function FrameworkEditor() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    if (framework) {
+      await supabase
+        .from("competence_frameworks")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", framework.id);
+    }
     setShowTemplateSelector(true);
   };
 
