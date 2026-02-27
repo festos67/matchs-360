@@ -23,6 +23,7 @@ import {
   FileText,
   Building2,
   FileQuestion,
+  History,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
+import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 
 interface Skill {
   id: string;
@@ -74,6 +76,7 @@ export default function ClubFrameworkEditor() {
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -114,12 +117,13 @@ export default function ClubFrameworkEditor() {
       }
       setClub(clubData);
 
-      // Fetch framework
+      // Fetch active framework (not archived)
       const { data: frameworkData } = await supabase
         .from("competence_frameworks")
         .select("*")
         .eq("club_id", clubId)
         .eq("is_template", true)
+        .eq("is_archived", false)
         .maybeSingle();
 
       if (frameworkData) {
@@ -351,7 +355,14 @@ export default function ClubFrameworkEditor() {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // Archive current framework before resetting
+    if (framework) {
+      await supabase
+        .from("competence_frameworks")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", framework.id);
+    }
     setShowTemplateSelector(true);
   };
 
@@ -410,6 +421,12 @@ export default function ClubFrameworkEditor() {
               </p>
             </div>
           </div>
+          {canEdit && framework && (
+            <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+              <History className="w-4 h-4 mr-2" />
+              Historique
+            </Button>
+          )}
         </div>
 
         {/* Stats */}
@@ -498,6 +515,15 @@ export default function ClubFrameworkEditor() {
           </div>
         </div>
       )}
+
+      <FrameworkHistorySheet
+        open={showHistory}
+        onOpenChange={setShowHistory}
+        entityId={clubId!}
+        entityType="club"
+        activeFrameworkId={framework?.id || null}
+        onRestored={() => fetchData()}
+      />
     </AppLayout>
   );
 }
