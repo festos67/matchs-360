@@ -60,6 +60,19 @@ export default function Evaluations() {
     }
   }, [teamId]);
 
+  useEffect(() => {
+    if (user) fetchTeams();
+  }, [user]);
+
+  const fetchTeams = async () => {
+    const { data } = await supabase
+      .from("teams")
+      .select("id, name")
+      .is("deleted_at", null)
+      .order("name");
+    if (data) setTeams(data);
+  };
+
   const fetchTeamName = async () => {
     const { data } = await supabase
       .from("teams")
