@@ -139,11 +139,12 @@ export default function FrameworkEditor() {
       }
       setTeam(teamData);
 
-      // Fetch framework
+      // Fetch active framework (not archived)
       const { data: frameworkData } = await supabase
         .from("competence_frameworks")
         .select("*")
         .eq("team_id", teamId)
+        .eq("is_archived", false)
         .maybeSingle();
 
       if (frameworkData) {
