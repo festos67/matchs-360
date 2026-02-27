@@ -117,12 +117,13 @@ export default function ClubFrameworkEditor() {
       }
       setClub(clubData);
 
-      // Fetch framework
+      // Fetch active framework (not archived)
       const { data: frameworkData } = await supabase
         .from("competence_frameworks")
         .select("*")
         .eq("club_id", clubId)
         .eq("is_template", true)
+        .eq("is_archived", false)
         .maybeSingle();
 
       if (frameworkData) {
