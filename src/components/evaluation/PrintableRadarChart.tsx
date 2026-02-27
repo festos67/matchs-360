@@ -121,11 +121,11 @@ export const PrintableRadarChart = ({ data }: PrintableRadarChartProps) => {
         );
       })}
 
-      {/* Data polygon fill - coral/red like the reference */}
+      {/* Data polygon fill - primary blue */}
       <polygon
         points={getDataPolygonPoints()}
-        fill="rgba(239, 68, 68, 0.6)"
-        stroke="#EF4444"
+        fill="rgba(59, 130, 246, 0.25)"
+        stroke="#3B82F6"
         strokeWidth="2"
       />
 
