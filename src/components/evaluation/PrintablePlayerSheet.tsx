@@ -61,13 +61,7 @@ interface PrintablePlayerSheetProps {
   previousEvaluationDate?: string | null;
 }
 
-// Design tokens matching app's dark theme (but printed on white)
-const BRAND_BLUE = "#3B82F6";
-const BRAND_DARK = "#0f172a";
-const BRAND_NAVY = "#1e293b";
-const BRAND_SLATE = "#475569";
-const BRAND_LIGHT = "#f1f5f9";
-
+// Palette de couleurs du rouge (1) au vert (5)
 const LEVEL_COLORS: Record<number, string> = {
   1: "#EF4444",
   2: "#F97316",
@@ -95,8 +89,8 @@ const GlobalAverageIcon = ({ score }: { score: number | null }) => {
   
   return (
     <div className="flex items-center gap-1" title={levelData.label}>
-      <IconComponent className="w-12 h-12" style={{ color }} strokeWidth={1.5} />
-      {isExpert && <Sparkles className="w-6 h-6" style={{ color }} strokeWidth={1.5} />}
+      <IconComponent className="w-10 h-10" style={{ color }} strokeWidth={1.5} />
+      {isExpert && <Sparkles className="w-5 h-5" style={{ color }} strokeWidth={1.5} />}
     </div>
   );
 };
@@ -123,76 +117,6 @@ const StarDisplay = ({ score }: { score: number | null }) => {
 
 const formatDateFr = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-
-// Brand header bar used on both pages
-const BrandBar = ({ clubLogoUrl, clubName }: { clubLogoUrl?: string | null; clubName: string }) => (
-  <div style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "20px",
-    paddingBottom: "12px",
-    borderBottom: `3px solid ${BRAND_BLUE}`,
-  }}>
-    {/* MATCHS360 logo/brand */}
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <div style={{
-        width: "32px",
-        height: "32px",
-        borderRadius: "8px",
-        background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "white",
-        fontSize: "12px",
-        fontWeight: 800,
-        fontFamily: "'Space Grotesk', sans-serif",
-      }}>
-        M
-      </div>
-      <span style={{
-        fontSize: "20px",
-        fontWeight: 800,
-        letterSpacing: "0.04em",
-        color: BRAND_BLUE,
-        fontFamily: "'Space Grotesk', 'Inter', sans-serif",
-      }}>
-        MATCHS<span style={{ color: "#6366f1" }}>360</span>
-      </span>
-    </div>
-
-    {/* Club logo + name */}
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-      {clubLogoUrl && (
-        <img src={clubLogoUrl} alt={clubName} style={{ width: "32px", height: "32px", objectFit: "contain" }} />
-      )}
-      <span style={{ fontSize: "12px", fontWeight: 600, color: BRAND_SLATE, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-        {clubName}
-      </span>
-    </div>
-  </div>
-);
-
-// Footer used on both pages
-const PageFooter = ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => (
-  <div style={{
-    paddingTop: "10px",
-    borderTop: `2px solid ${BRAND_BLUE}20`,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "auto",
-    fontSize: "9px",
-    color: BRAND_SLATE,
-  }}>
-    <span>Page {pageNumber}/{totalPages}</span>
-    <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: BRAND_BLUE, fontFamily: "'Space Grotesk', sans-serif" }}>
-      MATCHS<span style={{ color: "#6366f1" }}>360</span>
-    </span>
-    <span>Document confidentiel</span>
-  </div>
-);
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
   ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate }, ref) => {
@@ -232,19 +156,32 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
     const evalDate = formatDateFr(evaluation.date);
     const hasPreviousEval = !!previousEvaluationDate;
     const periodLabel = hasPreviousEval
-      ? `${formatDateFr(previousEvaluationDate!)} → ${evalDate}`
+      ? `Du ${formatDateFr(previousEvaluationDate!)} au ${evalDate}`
       : null;
 
     return (
       <div
         ref={ref}
         className="bg-white text-black"
-        style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", width: "210mm" }}
+        style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
         {/* ===== PAGE 1 ===== */}
         <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
-          <BrandBar clubLogoUrl={club.logo_url} clubName={club.name} />
+          {/* ── Top brand bar ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {club.logo_url && (
+                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              )}
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {club.name}
+              </span>
+            </div>
+            <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+              MATCHS360
+            </span>
+          </div>
 
           {/* ── Player identity card ── */}
           <div style={{
@@ -252,11 +189,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             alignItems: "center",
             gap: "20px",
             marginBottom: "20px",
-            padding: "20px 24px",
-            borderRadius: "14px",
-            background: `linear-gradient(135deg, ${BRAND_DARK} 0%, ${BRAND_NAVY} 100%)`,
-            color: "white",
-            boxShadow: "0 4px 20px rgba(15, 23, 42, 0.25)",
+            padding: "16px 20px",
+            borderRadius: "12px",
+            background: `linear-gradient(135deg, ${club.primary_color}10, ${club.primary_color}05)`,
+            border: `1px solid ${club.primary_color}30`,
           }}>
             {/* Photo */}
             {player.photo_url ? (
@@ -264,73 +200,47 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 src={player.photo_url}
                 alt={getPlayerName()}
                 style={{
-                  width: "88px",
-                  height: "88px",
-                  borderRadius: "12px",
+                  width: "80px",
+                  height: "80px",
+                  borderRadius: "10px",
                   objectFit: "cover",
-                  border: `3px solid ${BRAND_BLUE}`,
-                  boxShadow: `0 0 20px ${BRAND_BLUE}40`,
+                  border: `3px solid ${club.primary_color}`,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                 }}
               />
             ) : (
               <div style={{
-                width: "88px",
-                height: "88px",
-                borderRadius: "12px",
+                width: "80px",
+                height: "80px",
+                borderRadius: "10px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "30px",
+                fontSize: "28px",
                 fontWeight: "bold",
                 color: "white",
-                background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`,
-                boxShadow: `0 0 20px ${BRAND_BLUE}40`,
+                backgroundColor: club.primary_color,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
               }}>
                 {(player.first_name?.[0] || "").toUpperCase()}{(player.last_name?.[0] || "").toUpperCase()}
               </div>
             )}
 
-            {/* Name + team + period */}
+            {/* Name + team */}
             <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: "28px", fontWeight: 800, margin: "0 0 4px 0", lineHeight: 1.15, fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+              <h1 style={{ fontSize: "26px", fontWeight: 800, color: "#111827", margin: "0 0 2px 0", lineHeight: 1.15 }}>
                 {getPlayerName()}
               </h1>
-              <p style={{ fontSize: "14px", color: "#94a3b8", margin: "0 0 6px 0" }}>
-                {team.name} • {club.name}
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: 0 }}>
+                {team.name}
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8" }}>
-                  Coach : <span style={{ color: "white", fontWeight: 500 }}>{getCoachName()}</span>
-                </span>
-                <span style={{ fontSize: "11px", color: "#94a3b8" }}>
-                  {evalDate}
-                </span>
-                {periodLabel && (
-                  <span style={{
-                    fontSize: "10px",
-                    padding: "2px 8px",
-                    borderRadius: "999px",
-                    backgroundColor: `${BRAND_BLUE}30`,
-                    color: "#93c5fd",
-                    fontWeight: 600,
-                  }}>
-                    📅 {periodLabel}
-                  </span>
-                )}
-              </div>
             </div>
 
             {/* Global level */}
             <div style={{ textAlign: "center", minWidth: "120px" }}>
               <GlobalAverageIcon score={overallAverage} />
-              <p style={{
-                fontSize: "28px",
-                fontWeight: 800,
-                margin: "4px 0 0 0",
-                color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280",
-                fontFamily: "'Space Grotesk', sans-serif",
-              }}>
-                {formatAverage(overallAverage)}<span style={{ fontSize: "16px", color: "#64748b" }}>/5</span>
+              <p style={{ fontSize: "26px", fontWeight: 800, margin: "4px 0 0 0", color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280" }}>
+                {formatAverage(overallAverage)}/5
               </p>
               {progressionPercent !== null && progressionPercent !== undefined && (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "3px", marginTop: "4px" }}>
@@ -347,17 +257,23 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
           </div>
 
-          {/* ── Radar chart ── */}
+          {/* ── Evaluation info line ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", fontSize: "12px", color: "#6b7280" }}>
+            <div>
+              <span style={{ fontWeight: 600, color: "#374151" }}>Coach :</span> {getCoachName()}
+              {" • "}
+              <span style={{ fontWeight: 600, color: "#374151" }}>Date :</span> {evalDate}
+            </div>
+            {periodLabel && (
+              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${club.primary_color}15`, color: club.primary_color, fontWeight: 600, fontSize: "11px" }}>
+                📅 {periodLabel}
+              </div>
+            )}
+          </div>
+
+          {/* ── Radar chart - full width ── */}
           <div style={{ marginBottom: "16px" }}>
-            <h2 style={{
-              fontSize: "14px",
-              fontWeight: 700,
-              color: BRAND_DARK,
-              margin: "0 0 8px 0",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              fontFamily: "'Space Grotesk', sans-serif",
-            }}>
+            <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 8px 0", textTransform: "uppercase", letterSpacing: "0.03em" }}>
               Analyse des compétences
             </h2>
             <div style={{ width: "100%", height: "340px", display: "flex", justifyContent: "center" }}>
@@ -367,17 +283,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
           </div>
 
-          {/* ── Detail par thématique ── */}
+          {/* ── Detail par thématique - progress bars ── */}
           <div style={{ flex: 1 }}>
-            <h2 style={{
-              fontSize: "14px",
-              fontWeight: 700,
-              color: BRAND_DARK,
-              margin: "0 0 12px 0",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              fontFamily: "'Space Grotesk', sans-serif",
-            }}>
+            <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 12px 0", textTransform: "uppercase", letterSpacing: "0.03em" }}>
               Détail par thématique
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
@@ -386,13 +294,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                       <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: item.color }} />
-                      <span style={{ fontSize: "12px", fontWeight: 500, color: BRAND_DARK }}>{item.theme}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111827" }}>{item.theme}</span>
                     </div>
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: BRAND_NAVY, fontFamily: "'Space Grotesk', sans-serif" }}>
-                      {item.score.toFixed(1)}/5
-                    </span>
+                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>{item.score.toFixed(1)}/5</span>
                   </div>
-                  <div style={{ height: "6px", backgroundColor: "#e2e8f0", borderRadius: "999px", overflow: "hidden" }}>
+                  <div style={{ height: "6px", backgroundColor: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
                     <div style={{ height: "100%", borderRadius: "999px", width: `${(item.score / 5) * 100}%`, backgroundColor: item.color }} />
                   </div>
                 </div>
@@ -400,44 +306,37 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
           </div>
 
-          <PageFooter pageNumber={1} totalPages={2} />
+          {/* Page 1 Footer */}
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Page 1/2</span>
+            <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}>MATCHS360</span>
+            <span>Document confidentiel</span>
+          </div>
         </div>
 
         {/* Page break */}
         <div className="break-before-page" />
 
-        {/* ===== PAGE 2 ===== */}
+        {/* ===== PAGE 2: Détail des compétences ===== */}
         <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
 
-          <BrandBar clubLogoUrl={club.logo_url} clubName={club.name} />
-
-          {/* Compact player reminder */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: "16px",
-            padding: "8px 14px",
-            borderRadius: "8px",
-            backgroundColor: BRAND_LIGHT,
-          }}>
-            <span style={{ fontSize: "13px", fontWeight: 700, color: BRAND_DARK, fontFamily: "'Space Grotesk', sans-serif" }}>
-              {getPlayerName()}
+          {/* ── Top brand bar (repeated) ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${club.primary_color}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {club.logo_url && (
+                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              )}
+              <div>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{getPlayerName()}</span>
+                <span style={{ fontSize: "12px", color: "#6b7280", marginLeft: "8px" }}>{team.name}</span>
+              </div>
+            </div>
+            <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: club.primary_color }}>
+              MATCHS360
             </span>
-            <span style={{ fontSize: "11px", color: BRAND_SLATE }}>{team.name} • {evalDate}</span>
           </div>
 
-          <h2 style={{
-            fontSize: "14px",
-            fontWeight: 700,
-            color: BRAND_DARK,
-            borderBottom: `2px solid ${BRAND_BLUE}20`,
-            paddingBottom: "6px",
-            marginBottom: "12px",
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            fontFamily: "'Space Grotesk', sans-serif",
-          }}>
+          <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.03em" }}>
             Détail des compétences
           </h2>
 
@@ -453,42 +352,35 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               return (
                 <div key={theme.id} style={{ marginBottom: "14px", breakInside: "avoid" }}>
                   {/* Theme header */}
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "7px 12px",
-                    borderRadius: "8px 8px 0 0",
-                    background: `linear-gradient(135deg, ${theme.color || BRAND_BLUE}18, ${theme.color || BRAND_BLUE}08)`,
-                    borderLeft: `4px solid ${theme.color || BRAND_BLUE}`,
-                  }}>
-                    <h3 style={{ fontWeight: 700, color: BRAND_DARK, fontSize: "13px", margin: 0, fontFamily: "'Space Grotesk', sans-serif" }}>
-                      {theme.name}
-                    </h3>
-                    <span style={{ fontWeight: 800, fontSize: "13px", color: theme.color || BRAND_BLUE, fontFamily: "'Space Grotesk', sans-serif" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 10px", borderRadius: "6px 6px 0 0", backgroundColor: `${theme.color || "#3B82F6"}20` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: theme.color || "#3B82F6" }} />
+                      <h3 style={{ fontWeight: 600, color: "#111827", fontSize: "13px", margin: 0 }}>{theme.name}</h3>
+                    </div>
+                    <span style={{ fontWeight: "bold", fontSize: "13px", color: theme.color || "#3B82F6" }}>
                       {formatAverage(themeAverage)}/5
                     </span>
                   </div>
 
                   {/* Skills table */}
-                  <div style={{ border: "1px solid #e2e8f0", borderTop: "none", borderRadius: "0 0 8px 8px" }}>
+                  <div style={{ border: "1px solid #e5e7eb", borderTop: "none", borderRadius: "0 0 6px 6px" }}>
                     <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
                       <tbody>
                         {theme.skills.map((skill, idx) => {
                           const scoreData = themeScore.skills.find(s => s.skill_id === skill.id);
                           return (
-                            <tr key={skill.id} style={{ borderBottom: idx < theme.skills.length - 1 ? "1px solid #f1f5f9" : "none" }}>
-                              <td style={{ padding: "5px 12px" }}>
-                                <span style={{ color: scoreData?.is_not_observed ? "#94a3b8" : BRAND_DARK }}>
+                            <tr key={skill.id} style={{ borderBottom: idx < theme.skills.length - 1 ? "1px solid #f3f4f6" : "none" }}>
+                              <td style={{ padding: "5px 10px" }}>
+                                <span style={{ color: scoreData?.is_not_observed ? "#9ca3af" : "#111827" }}>
                                   {skill.name}
                                 </span>
                                 {scoreData?.is_not_observed && (
-                                  <span style={{ marginLeft: "6px", fontSize: "10px", color: "#94a3b8" }}>(Non observé)</span>
+                                  <span style={{ marginLeft: "6px", fontSize: "10px", color: "#9ca3af" }}>(Non observé)</span>
                                 )}
                               </td>
-                              <td style={{ padding: "5px 12px", textAlign: "right" }}>
+                              <td style={{ padding: "5px 10px", textAlign: "right" }}>
                                 {scoreData?.is_not_observed ? (
-                                  <span style={{ color: "#94a3b8", fontSize: "10px" }}>N/O</span>
+                                  <span style={{ color: "#9ca3af", fontSize: "10px" }}>N/O</span>
                                 ) : (
                                   <StarDisplay score={scoreData?.score || null} />
                                 )}
@@ -501,14 +393,14 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
                     {/* Conseils du coach */}
                     {hasComments && (
-                      <div style={{ padding: "8px 12px", backgroundColor: "#f8fafc", borderTop: "1px solid #f1f5f9" }}>
-                        <p style={{ fontSize: "11px", fontWeight: 700, color: BRAND_NAVY, margin: "0 0 3px 0" }}>💬 Conseils</p>
+                      <div style={{ padding: "6px 10px", backgroundColor: "#f9fafb", borderTop: "1px solid #f3f4f6" }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: "#4b5563", margin: "0 0 3px 0" }}>💬 Conseils</p>
                         {themeScore.skills
                           .filter(s => s.comment)
                           .map(s => {
                             const skill = theme.skills.find(sk => sk.id === s.skill_id);
                             return (
-                              <p key={s.skill_id} style={{ fontSize: "11px", color: BRAND_SLATE, margin: "0 0 2px 0" }}>
+                              <p key={s.skill_id} style={{ fontSize: "11px", color: "#4b5563", margin: "0 0 2px 0" }}>
                                 <strong>{skill?.name} :</strong> {s.comment}
                               </p>
                             );
@@ -518,9 +410,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
                     {/* Objectifs */}
                     {objective && (
-                      <div style={{ padding: "8px 12px", backgroundColor: "#eff6ff", borderTop: "1px solid #f1f5f9" }}>
-                        <p style={{ fontSize: "11px", fontWeight: 700, color: BRAND_BLUE, margin: "0 0 3px 0" }}>🎯 Objectifs</p>
-                        <p style={{ fontSize: "11px", color: BRAND_NAVY, margin: 0 }}>{objective}</p>
+                      <div style={{ padding: "6px 10px", backgroundColor: "#eff6ff", borderTop: "1px solid #f3f4f6" }}>
+                        <p style={{ fontSize: "11px", fontWeight: 600, color: "#1d4ed8", margin: "0 0 3px 0" }}>🎯 Objectifs</p>
+                        <p style={{ fontSize: "11px", color: "#374151", margin: 0 }}>{objective}</p>
                       </div>
                     )}
                   </div>
@@ -529,7 +421,12 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             })}
           </div>
 
-          <PageFooter pageNumber={2} totalPages={2} />
+          {/* Page 2 Footer */}
+          <div style={{ paddingTop: "12px", borderTop: `2px solid ${club.primary_color}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>Page 2/2</span>
+            <span style={{ fontWeight: 700, letterSpacing: "0.05em", color: club.primary_color }}>MATCHS360</span>
+            <span>Document confidentiel</span>
+          </div>
         </div>
       </div>
     );
