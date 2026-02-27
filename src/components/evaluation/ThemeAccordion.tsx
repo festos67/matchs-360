@@ -183,6 +183,7 @@ interface ThemeAccordionProps {
   themeColor: string | null;
   skills: Skill[];
   scores: SkillScore[];
+  previousScores?: Record<string, number | null>;
   objective: string | null;
   onScoreChange: (skillId: string, score: number) => void;
   onNotObservedChange: (skillId: string, isNotObserved: boolean) => void;
@@ -197,6 +198,7 @@ export const ThemeAccordion = ({
   themeColor,
   skills,
   scores,
+  previousScores,
   objective,
   onScoreChange,
   onNotObservedChange,
