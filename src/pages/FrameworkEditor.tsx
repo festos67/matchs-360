@@ -440,6 +440,7 @@ export default function FrameworkEditor() {
               <p className="text-muted-foreground text-sm">
                 {team.name} • {team.club?.name}
               </p>
+            </div>
           </div>
           {canEdit && framework && (
             <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
@@ -447,7 +448,6 @@ export default function FrameworkEditor() {
               Historique
             </Button>
           )}
-        </div>
         </div>
 
         {/* Stats */}
