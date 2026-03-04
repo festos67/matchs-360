@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { Building2, Users, Trophy, Eye, Plus } from "lucide-react";
+import { Building2, Users, Trophy, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -166,7 +166,7 @@ const AdminDashboard = () => {
                   <TableHead>Référent</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead className="text-center">Équipes</TableHead>
-                  <TableHead className="w-[100px]">Action</TableHead>
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -179,19 +179,21 @@ const AdminDashboard = () => {
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-16" /></TableCell>
+                      
                     </TableRow>
                   ))
                 ) : clubs && clubs.length > 0 ? (
                   clubs.map((club) => (
                     <TableRow key={club.id} className="hover:bg-muted/50">
                       <TableCell>
-                        <CircleAvatar
-                          name={club.name}
-                          imageUrl={club.logo_url}
-                          color={club.primary_color}
-                          size="sm"
-                        />
+                        <Link to={`/clubs/${club.id}`}>
+                          <CircleAvatar
+                            name={club.name}
+                            imageUrl={club.logo_url}
+                            color={club.primary_color}
+                            size="sm"
+                          />
+                        </Link>
                       </TableCell>
                       <TableCell className="font-medium">{club.name}</TableCell>
                       <TableCell className="text-muted-foreground">
@@ -205,19 +207,13 @@ const AdminDashboard = () => {
                           {club.teamsCount}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/clubs/${club.id}`}>
-                            <Eye className="w-4 h-4 mr-1" />
-                            Voir
-                          </Link>
-                        </Button>
-                      </TableCell>
+
+
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Aucun club enregistré
                     </TableCell>
                   </TableRow>
