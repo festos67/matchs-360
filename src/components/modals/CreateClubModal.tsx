@@ -17,6 +17,7 @@ import { toast } from "sonner";
 
 const clubSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
+  shortName: z.string().max(3, "3 caractères maximum").optional().or(z.literal("")),
   primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide"),
   secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide"),
   referentEmail: z.string().email("Email invalide").max(255),
@@ -51,6 +52,8 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
 
   const primaryColor = watch("primaryColor");
   const secondaryColor = watch("secondaryColor");
+  const watchName = watch("name");
+  const watchShortName = watch("shortName");
 
   const onSubmit = async (data: ClubFormData) => {
     setLoading(true);
@@ -60,6 +63,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
         .from("clubs")
         .insert({
           name: data.name,
+          short_name: data.shortName?.toUpperCase() || null,
           primary_color: data.primaryColor,
           secondary_color: data.secondaryColor,
           referent_name: `${data.referentFirstName} ${data.referentLastName}`,
@@ -123,16 +127,31 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
               Informations du club
             </h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Nom du club</Label>
-              <Input
-                id="name"
-                placeholder="FC Example"
-                {...register("name")}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+            <div className="grid grid-cols-[1fr,auto] gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom du club</Label>
+                <Input
+                  id="name"
+                  placeholder="FC Example"
+                  {...register("name")}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="shortName">Initiales</Label>
+                <Input
+                  id="shortName"
+                  placeholder="FCE"
+                  maxLength={3}
+                  className="w-20 text-center uppercase font-bold"
+                  {...register("shortName")}
+                />
+                {errors.shortName && (
+                  <p className="text-sm text-destructive">{errors.shortName.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -179,7 +198,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
                   color: "white",
                 }}
               >
-                FC
+                {watchShortName?.toUpperCase() || watchName?.slice(0, 2).toUpperCase() || "FC"}
               </div>
               <div>
                 <p className="font-medium">Aperçu</p>
