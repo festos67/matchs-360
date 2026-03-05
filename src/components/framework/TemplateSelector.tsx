@@ -13,6 +13,7 @@ interface Template {
   team_id: string | null;
   club_id: string | null;
   themes_count?: number;
+  skills_count?: number;
 }
 
 interface Team {
@@ -46,7 +47,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const fetchClubTemplates = async () => {
     const { data } = await supabase
       .from("competence_frameworks")
-      .select("*, themes:themes(count)")
+      .select("*, themes:themes(id, skills(count))")
       .eq("club_id", clubId)
       .eq("is_template", true)
       .eq("is_archived", false)
@@ -54,10 +55,11 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       .limit(1);
     
     if (data) {
-      setClubTemplates(data.map((t: any) => ({
-        ...t,
-        themes_count: t.themes?.[0]?.count || 0,
-      })));
+      setClubTemplates(data.map((t: any) => {
+        const themes = t.themes || [];
+        const skillsCount = themes.reduce((sum: number, th: any) => sum + (th.skills?.[0]?.count || 0), 0);
+        return { ...t, themes_count: themes.length, skills_count: skillsCount };
+      }));
     }
   };
 
@@ -160,7 +162,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       icon: Building2,
       title: "Modèle du Club",
       description: clubTemplates.length > 0 
-        ? `Utiliser le référentiel du club (${clubTemplates[0].themes_count} thématiques)` 
+        ? `Utiliser le référentiel du club — ${clubTemplates[0].themes_count} thématiques et ${clubTemplates[0].skills_count} compétences` 
         : "Aucun modèle de club disponible",
       color: "text-success",
       bgColor: "bg-success/10",
