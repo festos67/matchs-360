@@ -12,6 +12,7 @@ interface EditClubModalProps {
   club: {
     id: string;
     name: string;
+    short_name?: string | null;
     primary_color: string;
     secondary_color: string | null;
     logo_url: string | null;
@@ -23,6 +24,7 @@ interface EditClubModalProps {
 
 export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubModalProps) {
   const [name, setName] = useState(club.name);
+  const [shortName, setShortName] = useState(club.short_name || "");
   const [primaryColor, setPrimaryColor] = useState(club.primary_color);
   const [referentName, setReferentName] = useState(club.referent_name || "");
   const [referentEmail, setReferentEmail] = useState(club.referent_email || "");
@@ -32,6 +34,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
   useEffect(() => {
     if (open) {
       setName(club.name);
+      setShortName(club.short_name || "");
       setPrimaryColor(club.primary_color);
       setReferentName(club.referent_name || "");
       setReferentEmail(club.referent_email || "");
@@ -50,6 +53,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
         .from("clubs")
         .update({
           name: name.trim(),
+          short_name: shortName.trim().toUpperCase() || null,
           primary_color: primaryColor,
           referent_name: referentName.trim() || null,
           referent_email: referentEmail.trim() || null,
@@ -76,9 +80,22 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
           <DialogTitle>Paramètres du club</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-2">
-          <div className="space-y-2">
-            <Label htmlFor="club-name">Nom du club</Label>
-            <Input id="club-name" value={name} onChange={(e) => setName(e.target.value)} />
+          <div className="grid grid-cols-[1fr,auto] gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="club-name">Nom du club</Label>
+              <Input id="club-name" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="club-short">Initiales</Label>
+              <Input
+                id="club-short"
+                value={shortName}
+                onChange={(e) => setShortName(e.target.value.slice(0, 3))}
+                maxLength={3}
+                placeholder="ABC"
+                className="w-20 text-center uppercase font-bold"
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="club-color">Couleur principale</Label>

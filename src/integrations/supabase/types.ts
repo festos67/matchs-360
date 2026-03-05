@@ -25,6 +25,7 @@ export type Database = {
           referent_email: string | null
           referent_name: string | null
           secondary_color: string | null
+          short_name: string | null
           updated_at: string
         }
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           referent_email?: string | null
           referent_name?: string | null
           secondary_color?: string | null
+          short_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -49,6 +51,7 @@ export type Database = {
           referent_email?: string | null
           referent_name?: string | null
           secondary_color?: string | null
+          short_name?: string | null
           updated_at?: string
         }
         Relationships: []
