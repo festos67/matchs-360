@@ -35,10 +35,12 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [clubTemplates, setClubTemplates] = useState<Template[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
 
   useEffect(() => {
     fetchClubTemplates();
     fetchTeams();
+    fetchStandardStats();
   }, [clubId]);
 
   const fetchClubTemplates = async () => {
@@ -67,6 +69,18 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       .neq("id", teamId);
     
     if (data) setTeams(data);
+  };
+
+  const fetchStandardStats = async () => {
+    const { data: themes } = await supabase
+      .from("themes")
+      .select("id, skills(count)")
+      .eq("framework_id", STANDARD_TEMPLATE_ID);
+    
+    if (themes) {
+      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
+      setStandardStats({ themes: themes.length, skills: totalSkills });
+    }
   };
 
   const handleImport = async () => {
@@ -135,7 +149,9 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       id: "standard",
       icon: FileText,
       title: "Modèle Standard",
-      description: "Le référentiel MATCHS360 complet avec 5 thématiques et 15 compétences",
+      description: standardStats 
+        ? `${standardStats.themes} thématique${standardStats.themes > 1 ? 's' : ''} et ${standardStats.skills} compétence${standardStats.skills > 1 ? 's' : ''}`
+        : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
