@@ -253,7 +253,6 @@ export default function ClubDetail() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}><Edit className="w-4 h-4" /></Button>
               </div>
             </div>
           )}
