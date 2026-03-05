@@ -134,7 +134,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       icon: FileText,
       title: "Modèle Standard MATCHS 360",
       description: standardStats 
-        ? `Utiliser le modèle standard — ${standardStats.themes} thématiques et ${standardStats.skills} compétences`
+        ? `Utiliser le modèle standard\n${standardStats.themes} thématiques et ${standardStats.skills} compétences`
         : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -194,7 +194,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
               </div>
             </CardHeader>
             <CardContent>
-              <CardDescription>{option.description}</CardDescription>
+              <CardDescription className="whitespace-pre-line">{option.description}</CardDescription>
             </CardContent>
           </Card>
         ))}

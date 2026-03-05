@@ -152,7 +152,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       icon: FileText,
       title: "Modèle Standard MATCHS 360",
       description: standardStats 
-        ? `Utiliser le modèle standard — ${standardStats.themes} thématiques et ${standardStats.skills} compétences`
+        ? `Utiliser le modèle standard\n${standardStats.themes} thématiques et ${standardStats.skills} compétences`
         : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -162,7 +162,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       icon: Building2,
       title: "Modèle du Club",
       description: clubTemplates.length > 0 
-        ? `Utiliser le référentiel du club — ${clubTemplates[0].themes_count} thématiques et ${clubTemplates[0].skills_count} compétences` 
+        ? `Utiliser le référentiel du club\n${clubTemplates[0].themes_count} thématiques et ${clubTemplates[0].skills_count} compétences` 
         : "Aucun modèle de club disponible",
       color: "text-success",
       bgColor: "bg-success/10",
@@ -223,7 +223,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
               </div>
             </CardHeader>
             <CardContent>
-              <CardDescription>{option.description}</CardDescription>
+              <CardDescription className="whitespace-pre-line">{option.description}</CardDescription>
             </CardContent>
           </Card>
         ))}
