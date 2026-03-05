@@ -156,12 +156,19 @@ export default function TeamDetail() {
     <AppLayout>
       <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
 
-      <div className="glass-card p-5 mb-8">
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
+      <div className="glass-card p-6 mb-8">
+        <div className="flex items-center gap-8">
+          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
           <div className="flex-1">
-            <div className="flex items-center gap-3"><h1 className="text-2xl font-display font-bold">{team.name}</h1><Badge variant="secondary">{team.season}</Badge></div>
-            <p className="text-sm text-muted-foreground mt-1">{team.club?.name} • {players.length} joueur{players.length > 1 ? "s" : ""} • {coaches.length} coach{coaches.length > 1 ? "es" : ""}</p>
+            <h1 className="text-4xl font-display font-bold">
+              {team.name}
+            </h1>
+            <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
+              <span className="flex items-center gap-1.5">{team.club?.name}</span>
+              <span className="flex items-center gap-1.5">• {players.length} joueur{players.length > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-1.5">• {coaches.length} coach{coaches.length > 1 ? "es" : ""}</span>
+              {team.season && <Badge variant="secondary">{team.season}</Badge>}
+            </div>
           </div>
           {canManageTeam && (
             <div className="flex items-start gap-2">
