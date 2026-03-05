@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 
 interface CircleAvatarProps {
   name: string;
+  shortName?: string | null;
   subtitle?: string;
   imageUrl?: string | null;
   color?: string;
@@ -36,6 +37,7 @@ const subtitleSizeClasses = {
 
 export const CircleAvatar = ({
   name,
+  shortName,
   subtitle,
   imageUrl,
   color = "#3B82F6",
@@ -45,7 +47,7 @@ export const CircleAvatar = ({
   badge,
   className,
 }: CircleAvatarProps) => {
-  const initials = name
+  const displayText = shortName || name
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -79,7 +81,7 @@ export const CircleAvatar = ({
               textSizeClasses[size]
             )}
           >
-            {icon || initials}
+            {icon || displayText}
           </span>
         )}
         

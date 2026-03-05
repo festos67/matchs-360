@@ -1,0 +1,1 @@
+ALTER TABLE public.teams ADD COLUMN short_name text DEFAULT NULL;

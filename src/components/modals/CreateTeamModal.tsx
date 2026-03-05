@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const teamSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
+  shortName: z.string().max(3, "3 caractères maximum").optional().or(z.literal("")),
   season: z.string().min(4, "Saison requise").max(20),
   description: z.string().max(500).optional(),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide"),
@@ -129,6 +130,7 @@ export const CreateTeamModal = ({
         .insert({
           club_id: clubId,
           name: data.name,
+          short_name: data.shortName?.toUpperCase() || null,
           season: data.season,
           description: data.description || null,
           color: data.color,
@@ -197,16 +199,28 @@ export const CreateTeamModal = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom de l'équipe</Label>
-            <Input
-              id="name"
-              placeholder="U15 A, Seniors B..."
-              {...register("name")}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
+          <div className="grid grid-cols-[1fr,auto] gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nom de l'équipe</Label>
+              <Input
+                id="name"
+                placeholder="U15 A, Seniors B..."
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="shortName">Initiales</Label>
+              <Input
+                id="shortName"
+                placeholder="DR1"
+                maxLength={3}
+                className="w-20 text-center uppercase font-bold"
+                {...register("shortName")}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -300,7 +314,7 @@ export const CreateTeamModal = ({
                 color: "white",
               }}
             >
-              {watch("name")?.slice(0, 2).toUpperCase() || "EQ"}
+              {watch("shortName")?.toUpperCase() || watch("name")?.slice(0, 2).toUpperCase() || "EQ"}
             </div>
             <div>
               <p className="font-medium">{watch("name") || "Nouvelle équipe"}</p>
