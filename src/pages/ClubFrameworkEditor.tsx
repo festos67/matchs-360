@@ -400,19 +400,20 @@ export default function ClubFrameworkEditor() {
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
+      // Archive instead of hard delete so it appears in history
       const { error } = await supabase
         .from("competence_frameworks")
-        .delete()
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
         .eq("id", framework.id);
       
       if (error) throw error;
       
       setFramework(null);
       setThemes([]);
-      toast.success("Référentiel supprimé avec succès");
+      toast.success("Référentiel archivé — récupérable via l'historique");
       navigate(`/clubs/${clubId}`);
     } catch (error: any) {
-      console.error("Error deleting framework:", error);
+      console.error("Error archiving framework:", error);
       toast.error("Erreur lors de la suppression");
     }
   };
@@ -489,7 +490,7 @@ export default function ClubFrameworkEditor() {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Cette action supprimera définitivement le référentiel ainsi que toutes ses thématiques et compétences. Cette action est irréversible.
+                      Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
