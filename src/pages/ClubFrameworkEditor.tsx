@@ -387,11 +387,18 @@ export default function ClubFrameworkEditor() {
   };
 
   const handleReset = async () => {
-    // Archive current framework before resetting
+    // Create a full snapshot (with themes & skills) before resetting
     if (framework) {
+      await snapshotFramework(framework.id);
+      // Delete themes from the active framework to allow re-import
+      await supabase
+        .from("themes")
+        .delete()
+        .eq("framework_id", framework.id);
+      // Delete the now-empty active framework
       await supabase
         .from("competence_frameworks")
-        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .delete()
         .eq("id", framework.id);
     }
     setShowTemplateSelector(true);
@@ -400,7 +407,9 @@ export default function ClubFrameworkEditor() {
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
-      // Archive instead of hard delete so it appears in history
+      // Create a full snapshot before archiving
+      await snapshotFramework(framework.id);
+      // Archive the active framework
       const { error } = await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })
@@ -576,10 +585,28 @@ export default function ClubFrameworkEditor() {
       {canEdit && (
         <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
           <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-            <Button variant="outline" onClick={handleReset} disabled={saving}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Réinitialiser
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={saving}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Réinitialiser
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions. Vous pourrez ensuite choisir un nouveau modèle.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleReset}>
+                    Réinitialiser
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button onClick={handleSave} disabled={saving || themes.length === 0}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />

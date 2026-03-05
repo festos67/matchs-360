@@ -13,6 +13,7 @@ import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { useAuth } from "@/hooks/useAuth";
+import { snapshotFramework } from "@/lib/framework-snapshot";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTeamProgression } from "@/hooks/useTeamProgression";
@@ -128,7 +129,8 @@ export default function TeamDetail() {
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
-      // Archive instead of hard delete so it appears in history
+      // Create a full snapshot before archiving
+      await snapshotFramework(framework.id);
       const { error } = await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })
