@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, Users, FileQuestion, ArrowRight, BookOpen } from "lucide-react";
+import { FileText, Users, FileQuestion, ArrowRight, BookOpen, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,12 @@ interface Team {
   id: string;
   name: string;
   hasFramework: boolean;
+}
+
+interface ArchivedFramework {
+  id: string;
+  name: string;
+  archived_at: string;
 }
 
 interface CreateClubFrameworkModalProps {
@@ -39,19 +45,22 @@ export function CreateClubFrameworkModal({
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [loadingTeams, setLoadingTeams] = useState(false);
+  const [archivedFrameworks, setArchivedFrameworks] = useState<ArchivedFramework[]>([]);
+  const [selectedArchivedId, setSelectedArchivedId] = useState<string>("");
 
   useEffect(() => {
     if (open) {
       fetchTeamsWithFrameworks();
+      fetchArchivedFrameworks();
       setSelectedOption(null);
       setSelectedTeamId("");
+      setSelectedArchivedId("");
     }
   }, [open, clubId]);
 
   const fetchTeamsWithFrameworks = async () => {
     setLoadingTeams(true);
     try {
-      // Get all teams for this club
       const { data: teamsData } = await supabase
         .from("teams")
         .select("id, name")
@@ -60,7 +69,6 @@ export function CreateClubFrameworkModal({
         .order("name");
 
       if (teamsData && teamsData.length > 0) {
-        // Get frameworks for these teams
         const { data: frameworks } = await supabase
           .from("competence_frameworks")
           .select("team_id")
@@ -82,7 +90,30 @@ export function CreateClubFrameworkModal({
     }
   };
 
+  const fetchArchivedFrameworks = async () => {
+    const { data } = await supabase
+      .from("competence_frameworks")
+      .select("id, name, archived_at")
+      .eq("club_id", clubId)
+      .eq("is_archived", true)
+      .order("archived_at", { ascending: false });
+
+    if (data) {
+      setArchivedFrameworks(data.map(f => ({
+        id: f.id,
+        name: f.name,
+        archived_at: f.archived_at || "",
+      })));
+    }
+  };
+
   const teamsWithFrameworks = teams.filter(t => t.hasFramework);
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
 
   const handleCreate = async () => {
     if (!selectedOption) return;
@@ -96,7 +127,6 @@ export function CreateClubFrameworkModal({
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
         frameworkName = "Référentiel Standard du Club";
       } else if (selectedOption === "team" && selectedTeamId) {
-        // Get the framework from the selected team
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
           .select("id, name")
@@ -112,8 +142,19 @@ export function CreateClubFrameworkModal({
           setLoading(false);
           return;
         }
+      } else if (selectedOption === "history" && selectedArchivedId) {
+        // Restore archived framework
+        const { error } = await supabase
+          .from("competence_frameworks")
+          .update({ is_archived: false, archived_at: null })
+          .eq("id", selectedArchivedId);
+
+        if (error) throw error;
+        toast.success("Référentiel restauré depuis l'historique");
+        onSuccess();
+        onOpenChange(false);
+        return;
       } else if (selectedOption === "empty") {
-        // Create empty club framework
         const { error } = await supabase.from("competence_frameworks").insert({
           club_id: clubId,
           team_id: null,
@@ -173,6 +214,17 @@ export function CreateClubFrameworkModal({
       color: "text-warning",
       bgColor: "bg-warning/10",
       disabled: teamsWithFrameworks.length === 0,
+    },
+    {
+      id: "history",
+      icon: History,
+      title: "Depuis l'historique",
+      description: archivedFrameworks.length > 0
+        ? `${archivedFrameworks.length} version${archivedFrameworks.length > 1 ? "s" : ""} archivée${archivedFrameworks.length > 1 ? "s" : ""} disponible${archivedFrameworks.length > 1 ? "s" : ""}`
+        : "Aucune version archivée disponible",
+      color: "text-accent-foreground",
+      bgColor: "bg-accent",
+      disabled: archivedFrameworks.length === 0,
     },
     {
       id: "empty",
@@ -256,6 +308,27 @@ export function CreateClubFrameworkModal({
             </div>
           )}
 
+          {/* Archived framework selector when "history" is selected */}
+          {selectedOption === "history" && archivedFrameworks.length > 0 && (
+            <div className="p-4 rounded-lg border border-border bg-muted/30">
+              <label className="text-sm font-medium mb-2 block">
+                Sélectionner la version à restaurer
+              </label>
+              <Select value={selectedArchivedId} onValueChange={setSelectedArchivedId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une version..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {archivedFrameworks.map((fw) => (
+                    <SelectItem key={fw.id} value={fw.id}>
+                      {fw.name} — {formatDate(fw.archived_at)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -263,7 +336,7 @@ export function CreateClubFrameworkModal({
             </Button>
             <Button
               onClick={handleCreate}
-              disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId)}
+              disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId) || (selectedOption === "history" && !selectedArchivedId)}
               className="gap-2"
             >
               {loading ? (
