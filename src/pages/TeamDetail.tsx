@@ -201,7 +201,7 @@ export default function TeamDetail() {
             Effectif
           </TabsTrigger>
           <TabsTrigger value="indicateurs" className="gap-2">
-            <BookOpen className="w-4 h-4" />
+            <TrendingUp className="w-4 h-4" />
             Performance
           </TabsTrigger>
         </TabsList>
