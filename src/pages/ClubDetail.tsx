@@ -258,7 +258,6 @@ export default function ClubDetail() {
           </div>
           <div className="flex-1">
             <h1 className="text-4xl font-display font-bold">
-              {club.short_name && <span className="text-primary mr-2">{club.short_name}</span>}
               {club.name}
             </h1>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
