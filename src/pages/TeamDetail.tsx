@@ -53,6 +53,7 @@ export default function TeamDetail() {
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [framework, setFramework] = useState<Framework | null>(null);
+  const [supporterCount, setSupporterCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
@@ -104,6 +105,16 @@ export default function TeamDetail() {
           ...frameworkData,
           themes: themesData || []
         });
+      }
+
+      // Fetch supporter count for team players
+      const playerUserIds = (membersData as TeamMember[]).filter(m => m.member_type === "player").map(m => m.profile.id);
+      if (playerUserIds.length > 0) {
+        const { count } = await supabase
+          .from("supporters_link")
+          .select("id", { count: "exact", head: true })
+          .in("player_id", playerUserIds);
+        setSupporterCount(count || 0);
       }
     } catch (error: any) {
       console.error("Error fetching team:", error);
@@ -165,8 +176,9 @@ export default function TeamDetail() {
             </h1>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">{team.club?.name}</span>
-              <span className="flex items-center gap-1.5">• {players.length} joueur{players.length > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {coaches.length} coach{coaches.length > 1 ? "es" : ""}</span>
+              <span className="flex items-center gap-1.5">• {players.length} joueur{players.length > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-1.5">• {supporterCount} supporter{supporterCount > 1 ? "s" : ""}</span>
               {team.season && <Badge variant="secondary">{team.season}</Badge>}
             </div>
           </div>
