@@ -21,6 +21,7 @@ import { useTeamProgression } from "@/hooks/useTeamProgression";
 interface Team {
   id: string;
   name: string;
+  short_name: string | null;
   season: string | null;
   color: string | null;
   club_id: string;
@@ -157,7 +158,7 @@ export default function TeamDetail() {
 
       <div className="glass-card p-8 mb-8">
         <div className="flex items-center gap-8">
-          <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-display font-bold" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.name.slice(0, 2).toUpperCase()}</div>
+          <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-display font-bold" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
           <div className="flex-1">
             <div className="flex items-center gap-3"><h1 className="text-3xl font-display font-bold">{team.name}</h1><Badge variant="secondary">{team.season}</Badge></div>
             <p className="text-muted-foreground mt-1">{team.club?.name} • {players.length} joueur{players.length > 1 ? "s" : ""} • {coaches.length} coach{coaches.length > 1 ? "es" : ""}</p>
