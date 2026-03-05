@@ -50,10 +50,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Importing framework ${sourceFrameworkId} to ${targetType} ${targetId}`);
 
-    // Check if target already has a framework
+    // Check if target already has a framework (non-archived)
     let existingFrameworkQuery = supabaseAdmin
       .from("competence_frameworks")
-      .select("id");
+      .select("id")
+      .eq("is_archived", false);
     
     if (isClubImport) {
       existingFrameworkQuery = existingFrameworkQuery
@@ -77,10 +78,10 @@ const handler = async (req: Request): Promise<Response> => {
       
       newFrameworkId = existingFramework.id;
       
-      // Update framework name
+      // Update framework name and ensure not archived
       await supabaseAdmin
         .from("competence_frameworks")
-        .update({ name: frameworkName })
+        .update({ name: frameworkName, is_archived: false, archived_at: null })
         .eq("id", existingFramework.id);
     } else {
       // Create new framework
