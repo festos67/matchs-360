@@ -33,6 +33,7 @@ interface EditTeamModalProps {
   team: {
     id: string;
     name: string;
+    short_name?: string | null;
     season: string | null;
     color: string | null;
     club_id: string;
@@ -61,6 +62,7 @@ const SEASONS = [
 
 export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamModalProps) {
   const [name, setName] = useState(team.name);
+  const [shortName, setShortName] = useState(team.short_name || "");
   const [color, setColor] = useState(team.color || "#3B82F6");
   const [season, setSeason] = useState(team.season || "2024-2025");
   const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -71,6 +73,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
   useEffect(() => {
     if (open) {
       setName(team.name);
+      setShortName(team.short_name || "");
       setColor(team.color || "#3B82F6");
       setSeason(team.season || "2024-2025");
       fetchCoaches();
@@ -265,6 +268,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
         .from("teams")
         .update({
           name: name.trim(),
+          short_name: shortName.trim().toUpperCase() || null,
           color,
           season,
         })
@@ -306,14 +310,27 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor="team-name">Nom de l'équipe</Label>
-              <Input
-                id="team-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: U13 Elite"
-              />
+            <div className="grid grid-cols-[1fr,auto] gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="team-name">Nom de l'équipe</Label>
+                <Input
+                  id="team-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: U13 Elite"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="team-short">Initiales</Label>
+                <Input
+                  id="team-short"
+                  value={shortName}
+                  onChange={(e) => setShortName(e.target.value.slice(0, 3))}
+                  maxLength={3}
+                  placeholder="DR1"
+                  className="w-20 text-center uppercase font-bold"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

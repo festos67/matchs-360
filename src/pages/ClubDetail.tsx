@@ -44,6 +44,7 @@ interface Club {
 interface Team {
   id: string;
   name: string;
+  short_name: string | null;
   season: string | null;
   color: string | null;
   deleted_at: string | null;
@@ -431,7 +432,8 @@ export default function ClubDetail() {
                 // Active team display
                 <>
                   <CircleAvatar 
-                    name={team.name} 
+                    name={team.name}
+                    shortName={team.short_name}
                     subtitle={team.season || ""} 
                     color={team.color || club.primary_color} 
                     size="lg" 
