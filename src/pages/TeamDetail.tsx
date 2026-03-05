@@ -202,7 +202,7 @@ export default function TeamDetail() {
           </TabsTrigger>
           <TabsTrigger value="indicateurs" className="gap-2">
             <BookOpen className="w-4 h-4" />
-            Indicateurs
+            Performance
           </TabsTrigger>
         </TabsList>
 
