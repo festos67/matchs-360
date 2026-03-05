@@ -122,6 +122,7 @@ export default function ClubDetail() {
         .select("id, name, themes:themes(count)")
         .eq("club_id", id)
         .eq("is_template", true)
+        .eq("is_archived", false)
         .maybeSingle();
       
       if (frameworkData) {
