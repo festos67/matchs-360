@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
+import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
+import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { CreateClubFrameworkModal } from "@/components/modals/CreateClubFrameworkModal";
 import { EditClubModal } from "@/components/modals/EditClubModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -64,6 +66,8 @@ export default function ClubDetail() {
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
   const [showFrameworkModal, setShowFrameworkModal] = useState(false);
+  const [showPlayerModal, setShowPlayerModal] = useState(false);
+  const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showClubSettings, setShowClubSettings] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -240,8 +244,11 @@ export default function ClubDetail() {
             </div>
           </div>
           {canManageClub && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTeamModal(true)}><Plus className="w-4 h-4" />Équipe</Button>
               <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><UserCog className="w-4 h-4" />Coach</Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowPlayerModal(true)}><UserPlus className="w-4 h-4" />Joueur</Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowSupporterModal(true)}><Heart className="w-4 h-4" />Supporter</Button>
               <Button variant="outline" size="icon" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
               <Button variant="outline" size="icon" onClick={() => setShowClubSettings(true)}><Edit className="w-4 h-4" /></Button>
             </div>
@@ -438,6 +445,8 @@ export default function ClubDetail() {
 
       <CreateTeamModal open={showTeamModal} onOpenChange={setShowTeamModal} clubId={club.id} clubColor={club.primary_color} onSuccess={fetchClubData} />
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
+      <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={club.id} onSuccess={fetchClubData} />
+      <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={club.id} onSuccess={fetchClubData} />
       <CreateClubFrameworkModal open={showFrameworkModal} onOpenChange={setShowFrameworkModal} clubId={club.id} onSuccess={fetchClubData} />
       {club && <EditClubModal open={showClubSettings} onOpenChange={setShowClubSettings} club={club} onSuccess={fetchClubData} />}
 
