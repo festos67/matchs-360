@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import { EditClubModal } from "@/components/modals/EditClubModal";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { snapshotFramework } from "@/lib/framework-snapshot";
+import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +69,9 @@ export default function ClubDetail() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
@@ -165,6 +170,28 @@ export default function ClubDetail() {
     }
   };
 
+  const handleResetFramework = async () => {
+    if (!clubFramework) return;
+    setIsResetting(true);
+    try {
+      await snapshotFramework(clubFramework.id);
+      await supabase
+        .from("competence_frameworks")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", clubFramework.id);
+      
+      setClubFramework(null);
+      toast.success("Référentiel archivé — récupérable via l'historique");
+      fetchClubData();
+    } catch (error: any) {
+      console.error("Error resetting framework:", error);
+      toast.error("Erreur lors de la réinitialisation");
+    } finally {
+      setIsResetting(false);
+      setShowResetConfirm(false);
+    }
+  };
+
   const handleRestoreTeam = async (teamId: string, teamName: string) => {
     setIsRestoring(true);
     try {
@@ -248,6 +275,17 @@ export default function ClubDetail() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowFrameworkHistory(true);
+                      }}
+                    >
+                      <History className="w-4 h-4 mr-2" />
+                      Historique
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -258,6 +296,18 @@ export default function ClubDetail() {
                     >
                       <Edit className="w-4 h-4 mr-2" />
                       Consulter / Modifier
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowResetConfirm(true);
+                      }}
+                    >
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Réinitialiser
                     </Button>
                   </div>
                 </div>
@@ -390,6 +440,37 @@ export default function ClubDetail() {
       <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={club.id} onSuccess={fetchClubData} />
       <CreateClubFrameworkModal open={showFrameworkModal} onOpenChange={setShowFrameworkModal} clubId={club.id} onSuccess={fetchClubData} />
       {club && <EditClubModal open={showClubSettings} onOpenChange={setShowClubSettings} club={club} onSuccess={fetchClubData} />}
+
+      <FrameworkHistorySheet
+        open={showFrameworkHistory}
+        onOpenChange={setShowFrameworkHistory}
+        entityId={id!}
+        entityType="club"
+        activeFrameworkId={clubFramework?.id || null}
+        onRestored={() => fetchClubData()}
+      />
+
+      {/* Reset Framework Confirmation */}
+      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Réinitialiser le référentiel du club ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isResetting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleResetFramework}
+              disabled={isResetting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isResetting ? "Réinitialisation..." : "Réinitialiser"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
