@@ -148,9 +148,9 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     {
       id: "standard",
       icon: FileText,
-      title: "Modèle Standard",
+      title: "Modèle Standard MATCHS 360",
       description: standardStats 
-        ? `${standardStats.themes} thématique${standardStats.themes > 1 ? 's' : ''} et ${standardStats.skills} compétence${standardStats.skills > 1 ? 's' : ''}`
+        ? `Utilise le modèle standard — ${standardStats.themes} thématiques et ${standardStats.skills} compétences`
         : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
