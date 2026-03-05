@@ -62,6 +62,8 @@ export default function ClubDetail() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [archivedTeams, setArchivedTeams] = useState<Team[]>([]);
   const [clubFramework, setClubFramework] = useState<ClubFramework | null>(null);
+  const [coachCount, setCoachCount] = useState(0);
+  const [playerCount, setPlayerCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
@@ -124,6 +126,22 @@ export default function ClubDetail() {
         if (archivedError) throw archivedError;
         setArchivedTeams(archivedData || []);
       }
+
+      // Fetch coach count (via user_roles with role=coach in this club)
+      const { count: coaches } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "coach")
+        .eq("club_id", id!);
+      setCoachCount(coaches || 0);
+
+      // Fetch player count (via user_roles with role=player in this club)
+      const { count: players } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "player")
+        .eq("club_id", id!);
+      setPlayerCount(players || 0);
 
       // Fetch club framework
       const { data: frameworkData } = await supabase
@@ -238,9 +256,11 @@ export default function ClubDetail() {
           </div>
           <div className="flex-1">
             <h1 className="text-2xl font-display font-bold">{club.name}</h1>
-            <div className="flex items-center gap-4 mt-2 text-muted-foreground">
-              <span className="flex items-center gap-2"><Users className="w-4 h-4" />{activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
-              {club.referent_name && <span>• Référent: {club.referent_name}</span>}
+            <div className="flex items-center gap-3 mt-2 text-sm text-muted-foreground flex-wrap">
+              {club.referent_name && <span className="flex items-center gap-1.5">Référent : {club.referent_name}</span>}
+              <span className="flex items-center gap-1.5">• {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-1.5">• {coachCount} coach{coachCount > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-1.5">• {playerCount} joueur{playerCount > 1 ? "s" : ""}</span>
             </div>
           </div>
           {canManageClub && (
