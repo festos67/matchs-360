@@ -24,6 +24,7 @@ import {
   Building2,
   FileQuestion,
   History,
+  Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,17 @@ import { SortableTheme } from "@/components/framework/SortableTheme";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Skill {
   id: string;
@@ -385,6 +397,26 @@ export default function ClubFrameworkEditor() {
     setShowTemplateSelector(true);
   };
 
+  const handleDeleteFramework = async () => {
+    if (!framework) return;
+    try {
+      const { error } = await supabase
+        .from("competence_frameworks")
+        .delete()
+        .eq("id", framework.id);
+      
+      if (error) throw error;
+      
+      setFramework(null);
+      setThemes([]);
+      toast.success("Référentiel supprimé avec succès");
+      navigate(`/clubs/${clubId}`);
+    } catch (error: any) {
+      console.error("Error deleting framework:", error);
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
   const handleTemplateSelected = async () => {
     setShowTemplateSelector(false);
     await fetchData();
@@ -441,10 +473,34 @@ export default function ClubFrameworkEditor() {
             </div>
           </div>
           {canEdit && framework && (
-            <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-              <History className="w-4 h-4 mr-2" />
-              Historique
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                <History className="w-4 h-4 mr-2" />
+                Historique
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Supprimer
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action supprimera définitivement le référentiel ainsi que toutes ses thématiques et compétences. Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
 
