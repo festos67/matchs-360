@@ -46,7 +46,10 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       .from("competence_frameworks")
       .select("*, themes:themes(count)")
       .eq("club_id", clubId)
-      .eq("is_template", true);
+      .eq("is_template", true)
+      .eq("is_archived", false)
+      .order("updated_at", { ascending: false })
+      .limit(1);
     
     if (data) {
       setClubTemplates(data.map((t: any) => ({
@@ -141,7 +144,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       icon: Building2,
       title: "Modèle du Club",
       description: clubTemplates.length > 0 
-        ? `${clubTemplates.length} modèle(s) disponible(s)` 
+        ? `Utiliser le référentiel du club (${clubTemplates[0].themes_count} thématiques)` 
         : "Aucun modèle de club disponible",
       color: "text-success",
       bgColor: "bg-success/10",
