@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, BookOpen, Users, FileQuestion, ArrowRight } from "lucide-react";
+import { FileText, BookOpen, Users, FileQuestion, ArrowRight, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,12 @@ interface Team {
   id: string;
   name: string;
   hasFramework: boolean;
+}
+
+interface ArchivedFramework {
+  id: string;
+  name: string;
+  archived_at: string;
 }
 
 interface ClubTemplateSelectorProps {
@@ -26,14 +32,16 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [archivedFrameworks, setArchivedFrameworks] = useState<ArchivedFramework[]>([]);
+  const [selectedArchivedId, setSelectedArchivedId] = useState<string>("");
 
   useEffect(() => {
     fetchTeamsWithFrameworks();
     fetchStandardStats();
+    fetchArchivedFrameworks();
   }, [clubId]);
 
   const fetchTeamsWithFrameworks = async () => {
-    // Get all teams in the club
     const { data: teamsData } = await supabase
       .from("teams")
       .select("id, name")
@@ -42,7 +50,6 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
 
     if (!teamsData) return;
 
-    // Check which teams have frameworks
     const { data: frameworksData } = await supabase
       .from("competence_frameworks")
       .select("team_id")
@@ -70,6 +77,23 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     }
   };
 
+  const fetchArchivedFrameworks = async () => {
+    const { data } = await supabase
+      .from("competence_frameworks")
+      .select("id, name, archived_at")
+      .eq("club_id", clubId)
+      .eq("is_archived", true)
+      .order("archived_at", { ascending: false });
+
+    if (data) {
+      setArchivedFrameworks(data.map(f => ({
+        id: f.id,
+        name: f.name,
+        archived_at: f.archived_at || "",
+      })));
+    }
+  };
+
   const handleImport = async () => {
     if (!selectedOption) return;
     setLoading(true);
@@ -82,7 +106,6 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
         frameworkName = "Référentiel Standard";
       } else if (selectedOption === "team" && selectedTeamId) {
-        // Get the framework from the selected team
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
           .select("id, name")
@@ -93,8 +116,17 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           sourceFrameworkId = teamFramework.id;
           frameworkName = teamFramework.name;
         }
+      } else if (selectedOption === "history" && selectedArchivedId) {
+        // Restore archived framework: unarchive it
+        const { error } = await supabase
+          .from("competence_frameworks")
+          .update({ is_archived: false, archived_at: null })
+          .eq("id", selectedArchivedId);
+
+        if (error) throw error;
+        onSelected();
+        return;
       } else if (selectedOption === "empty") {
-        // Create empty framework
         const { error } = await supabase.from("competence_frameworks").insert({
           club_id: clubId,
           name: "Référentiel du Club",
@@ -128,6 +160,12 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
   const options = [
     {
       id: "standard",
@@ -151,6 +189,17 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       disabled: teams.length === 0,
     },
     {
+      id: "history",
+      icon: History,
+      title: "Depuis l'historique",
+      description: archivedFrameworks.length > 0
+        ? `Restaurer une version précédente (${archivedFrameworks.length} disponible${archivedFrameworks.length > 1 ? "s" : ""})`
+        : "Aucune version archivée disponible",
+      color: "text-accent-foreground",
+      bgColor: "bg-accent",
+      disabled: archivedFrameworks.length === 0,
+    },
+    {
       id: "empty",
       icon: FileQuestion,
       title: "Vierge",
@@ -172,7 +221,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {options.map((option) => (
           <Card
             key={option.id}
@@ -221,13 +270,34 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         </div>
       )}
 
+      {/* Archived framework selector when "history" is selected */}
+      {selectedOption === "history" && archivedFrameworks.length > 0 && (
+        <div className="glass-card p-4 mb-8">
+          <label className="text-sm font-medium mb-2 block">
+            Sélectionner la version à restaurer
+          </label>
+          <Select value={selectedArchivedId} onValueChange={setSelectedArchivedId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir une version..." />
+            </SelectTrigger>
+            <SelectContent>
+              {archivedFrameworks.map((fw) => (
+                <SelectItem key={fw.id} value={fw.id}>
+                  {fw.name} — {formatDate(fw.archived_at)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="flex justify-center gap-4">
         <Button variant="outline" onClick={onCancel}>
           Annuler
         </Button>
         <Button 
           onClick={handleImport} 
-          disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId)}
+          disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId) || (selectedOption === "history" && !selectedArchivedId)}
           className="gap-2"
         >
           {loading ? (
