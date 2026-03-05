@@ -491,21 +491,21 @@ export default function ClubFrameworkEditor() {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Supprimer
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Réinitialiser
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
+                    <AlertDialogTitle>Réinitialiser le référentiel du club ?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
+                      Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Annuler</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Supprimer
+                      Réinitialiser
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -584,29 +584,7 @@ export default function ClubFrameworkEditor() {
       {/* Sticky Footer */}
       {canEdit && (
         <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" disabled={saving}>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Réinitialiser
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions. Vous pourrez ensuite choisir un nouveau modèle.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleReset}>
-                    Réinitialiser
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+           <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
             <Button onClick={handleSave} disabled={saving || themes.length === 0}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
