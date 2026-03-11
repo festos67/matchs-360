@@ -26,85 +26,99 @@ export default function InviteAccept() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkSession = async () => {
+    let mounted = true;
+
+    const handleInviteSession = async () => {
       try {
-        // First, check if there's a hash fragment with tokens (from Supabase email link)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get("access_token");
-        const refreshToken = hashParams.get("refresh_token");
-        const type = hashParams.get("type");
+        const hash = window.location.hash;
 
-        // If we have tokens in the URL hash, set the session
-        if (accessToken && refreshToken) {
-          console.log("Found tokens in URL hash, setting session...");
-          const { data: sessionData, error: setSessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (setSessionError) {
-            console.error("Set session error:", setSessionError);
-            setError("Lien d'invitation invalide ou expiré");
-            setChecking(false);
-            return;
-          }
-
-          // Clear the hash from URL for security
-          window.history.replaceState(null, "", window.location.pathname);
-
-          // Check if password already set
-          if (sessionData?.user?.user_metadata?.password_set) {
-            navigate("/dashboard");
-            return;
-          }
-
-          setChecking(false);
-          return;
-        }
-
-        // Check for error in hash (e.g., expired link)
+        // Check for error in hash first
+        const hashParams = new URLSearchParams(hash.substring(1));
         const errorDescription = hashParams.get("error_description");
         if (errorDescription) {
-          console.error("Auth error from URL:", errorDescription);
-          setError(errorDescription);
-          setChecking(false);
+          if (mounted) {
+            setError(errorDescription);
+            setChecking(false);
+          }
           return;
         }
 
-        // Check if we have an existing session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // If hash contains tokens, let Supabase client process them
+        if (hash && hash.includes("access_token")) {
+          // The Supabase client auto-processes hash tokens via onAuthStateChange
+          // We listen for it and also use a fallback
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+              if (!mounted) return;
+              if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY" || event === "TOKEN_REFRESHED")) {
+                subscription.unsubscribe();
+                // Clear hash for security
+                window.history.replaceState(null, "", window.location.pathname);
+                
+                if (session.user?.user_metadata?.password_set) {
+                  navigate("/dashboard");
+                  return;
+                }
+                setChecking(false);
+              }
+            }
+          );
+
+          // Fallback: if onAuthStateChange doesn't fire within 3s, try getSession
+          const timeout = setTimeout(async () => {
+            if (!mounted) return;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+              subscription.unsubscribe();
+              window.history.replaceState(null, "", window.location.pathname);
+              if (session.user?.user_metadata?.password_set) {
+                navigate("/dashboard");
+                return;
+              }
+              if (mounted) setChecking(false);
+            } else if (mounted) {
+              setError("Lien d'invitation invalide ou expiré. Veuillez demander une nouvelle invitation.");
+              setChecking(false);
+            }
+          }, 3000);
+
+          return () => {
+            clearTimeout(timeout);
+            subscription.unsubscribe();
+          };
+        }
+
+        // No hash tokens - check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          setError("Lien d'invitation invalide ou expiré");
-          setChecking(false);
-          return;
-        }
-
         if (!session) {
-          // No session means the invite link might be invalid or expired
-          setError("Lien d'invitation invalide ou expiré. Veuillez demander une nouvelle invitation.");
-          setChecking(false);
+          if (mounted) {
+            setError("Lien d'invitation invalide ou expiré. Veuillez demander une nouvelle invitation.");
+            setChecking(false);
+          }
           return;
         }
 
-        // Check if user already has a password set (they might have used this link already)
-        // If they do, redirect to dashboard
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData?.user?.user_metadata?.password_set) {
+        if (session.user?.user_metadata?.password_set) {
           navigate("/dashboard");
           return;
         }
 
-        setChecking(false);
+        if (mounted) setChecking(false);
       } catch (err) {
-        console.error("Error checking session:", err);
-        setError("Une erreur est survenue");
-        setChecking(false);
+        console.error("Error checking invite session:", err);
+        if (mounted) {
+          setError("Une erreur est survenue");
+          setChecking(false);
+        }
       }
     };
 
-    checkSession();
+    handleInviteSession();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,15 +126,11 @@ export default function InviteAccept() {
     setLoading(true);
 
     try {
-      // Validate passwords
       passwordSchema.parse({ password, confirmPassword });
 
-      // Update user password
       const { error: updateError } = await supabase.auth.updateUser({
         password,
-        data: {
-          password_set: true,
-        },
+        data: { password_set: true },
       });
 
       if (updateError) {
@@ -131,7 +141,6 @@ export default function InviteAccept() {
       setSuccess(true);
       toast.success("Mot de passe défini avec succès !");
 
-      // Redirect to dashboard after a short delay
       setTimeout(() => {
         navigate("/dashboard");
       }, 2000);
@@ -149,7 +158,10 @@ export default function InviteAccept() {
   if (checking) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 mx-auto border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-muted-foreground">Vérification de votre invitation...</p>
+        </div>
       </div>
     );
   }
@@ -190,7 +202,6 @@ export default function InviteAccept() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="flex items-center gap-3 mb-8 justify-center">
           <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
             <Activity className="w-7 h-7 text-primary-foreground" />
@@ -201,7 +212,6 @@ export default function InviteAccept() {
           </div>
         </div>
 
-        {/* Card */}
         <div className="bg-card border rounded-xl p-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-display font-bold">
@@ -228,9 +238,7 @@ export default function InviteAccept() {
                   required
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Minimum 8 caractères
-              </p>
+              <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
             </div>
 
             <div className="space-y-2">

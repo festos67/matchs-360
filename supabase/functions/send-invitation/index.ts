@@ -5,7 +5,7 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface InvitationRequest {
@@ -16,7 +16,7 @@ interface InvitationRequest {
   intendedRole: "club_admin" | "coach" | "player" | "supporter";
   teamId?: string;
   coachRole?: "referent" | "assistant";
-  playerIds?: string[]; // For supporters
+  playerIds?: string[];
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -36,12 +36,11 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
-    // Initialize Resend if API key is available
     const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-    // Get the authenticated user
+    // Authenticate the caller
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       throw new Error("No authorization header");
     }
 
@@ -57,14 +56,18 @@ const handler = async (req: Request): Promise<Response> => {
     const body: InvitationRequest = await req.json();
     const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds } = body;
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       throw new Error("Invalid email address");
     }
 
-    // Get origin for redirect URL
-    const origin = req.headers.get("origin") || "https://lovable.dev";
+    // Use the origin from the request, falling back to referer
+    const origin = req.headers.get("origin") || 
+                   (req.headers.get("referer") ? new URL(req.headers.get("referer")!).origin : null);
+    
+    if (!origin) {
+      throw new Error("Could not determine application origin");
+    }
 
     // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
@@ -74,7 +77,6 @@ const handler = async (req: Request): Promise<Response> => {
     let isNewUser = false;
 
     if (existingUser) {
-      // User exists - check if already has this role in this club
       const { data: existingRole } = await supabaseAdmin
         .from("user_roles")
         .select("id")
@@ -89,7 +91,6 @@ const handler = async (req: Request): Promise<Response> => {
 
       userId = existingUser.id;
       
-      // Update profile with club_id if not set
       await supabaseAdmin
         .from("profiles")
         .update({ club_id: clubId })
@@ -98,7 +99,10 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       isNewUser = true;
       
-      // Generate an invite link for the new user
+      // Generate invite link for new user
+      const redirectTo = `${origin}/invite/accept`;
+      console.log("Generating invite link with redirectTo:", redirectTo);
+      
       const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'invite',
         email: email.toLowerCase(),
@@ -107,7 +111,7 @@ const handler = async (req: Request): Promise<Response> => {
             first_name: firstName,
             last_name: lastName,
           },
-          redirectTo: `${origin}/invite/accept`,
+          redirectTo,
         },
       });
 
@@ -118,11 +122,13 @@ const handler = async (req: Request): Promise<Response> => {
 
       userId = inviteData.user.id;
 
+      // Build the proper invite link that redirects through Supabase auth
+      // The action_link from generateLink goes through /auth/v1/verify which redirects to our app
+      const inviteLink = inviteData.properties.action_link;
+      console.log("Generated invite link (action_link):", inviteLink);
+
       // Send invitation email via Resend
       if (resend) {
-        const inviteLink = inviteData.properties.action_link;
-        
-        // Get club name for the email
         const { data: club } = await supabaseAdmin
           .from("clubs")
           .select("name")
@@ -137,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
         };
 
         try {
-          await resend.emails.send({
+          const emailResult = await resend.emails.send({
             from: "MATCHS360 <onboarding@resend.dev>",
             to: [email.toLowerCase()],
             subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
@@ -182,19 +188,17 @@ const handler = async (req: Request): Promise<Response> => {
               </html>
             `,
           });
-          console.log("Invitation email sent successfully to:", email);
+          console.log("Invitation email sent successfully to:", email, "Result:", JSON.stringify(emailResult));
         } catch (emailError) {
           console.error("Failed to send email via Resend:", emailError);
-          // Continue anyway - the user is created, just email failed
         }
       } else {
         console.warn("Resend API key not configured - invitation email not sent");
       }
 
-      // Wait a moment for the trigger to create the profile
+      // Wait for trigger to create profile
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Check if profile exists and update or insert
       const { data: existingProfile } = await supabaseAdmin
         .from("profiles")
         .select("id")
@@ -202,7 +206,6 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (existingProfile) {
-        // Update existing profile
         await supabaseAdmin
           .from("profiles")
           .update({
@@ -212,7 +215,6 @@ const handler = async (req: Request): Promise<Response> => {
           })
           .eq("id", userId);
       } else {
-        // Insert profile if trigger hasn't created it yet
         await supabaseAdmin
           .from("profiles")
           .insert({
@@ -239,11 +241,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Erreur lors de l'attribution du rôle");
     }
 
-    // If coach with teamId, add to team_members (for backward compatibility)
-    // Note: The new workflow creates coaches without team assignment
-    // Team assignment now happens when creating a team
+    // If coach with teamId, add to team_members
     if (intendedRole === "coach" && teamId) {
-      // Check if already a referent coach exists
       if (coachRole === "referent") {
         const { data: existingReferent } = await supabaseAdmin
           .from("team_members")
@@ -268,11 +267,9 @@ const handler = async (req: Request): Promise<Response> => {
           coach_role: coachRole || "assistant",
         });
     }
-    // Coach without teamId: just role is assigned, no team_members entry yet
 
     // If player, add to team_members
     if (intendedRole === "player" && teamId) {
-      // Check if player is already in another team
       const { data: existingTeam } = await supabaseAdmin
         .from("team_members")
         .select("id, team:teams(name)")
@@ -343,9 +340,7 @@ const handler = async (req: Request): Promise<Response> => {
           html: `
             <!DOCTYPE html>
             <html>
-            <head>
-              <meta charset="utf-8">
-            </head>
+            <head><meta charset="utf-8"></head>
             <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
               <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px;">
                 <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
