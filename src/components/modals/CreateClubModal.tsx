@@ -76,7 +76,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       if (clubError) throw clubError;
 
       // Invite the club admin
-      const { error: inviteError } = await supabase.functions.invoke("send-invitation", {
+      const { data: inviteResult, error: inviteError } = await supabase.functions.invoke("send-invitation", {
         body: {
           email: data.referentEmail,
           firstName: data.referentFirstName,
@@ -86,10 +86,11 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
         },
       });
 
-      if (inviteError) {
+      if (inviteError || inviteResult?.error) {
         // Rollback club creation
         await supabase.from("clubs").delete().eq("id", club.id);
-        throw inviteError;
+        const inviteErrorMessage = inviteResult?.error || await getEdgeFunctionErrorMessage(inviteError);
+        throw new Error(inviteErrorMessage);
       }
 
       toast.success(`Club "${data.name}" créé avec succès !`, {
