@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),

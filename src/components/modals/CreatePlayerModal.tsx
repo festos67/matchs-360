@@ -46,6 +46,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 
 const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
