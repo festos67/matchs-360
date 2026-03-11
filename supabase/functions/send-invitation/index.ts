@@ -19,6 +19,50 @@ interface InvitationRequest {
   playerIds?: string[];
 }
 
+type EmailProviderError = {
+  message?: string;
+  statusCode?: number;
+  status?: number;
+  name?: string;
+};
+
+type InvitationError = Error & {
+  statusCode?: number;
+  code?: string;
+};
+
+const getProviderStatusCode = (providerError: EmailProviderError): number => {
+  const rawStatus = providerError.statusCode ?? providerError.status;
+  const parsedStatus = typeof rawStatus === "number" ? rawStatus : Number(rawStatus);
+  return Number.isFinite(parsedStatus) && parsedStatus > 0 ? parsedStatus : 500;
+};
+
+const throwEmailDeliveryError = (providerError: EmailProviderError): never => {
+  const statusCode = getProviderStatusCode(providerError);
+  const providerMessage = providerError.message || "Erreur inconnue du fournisseur email";
+
+  const error = new Error(providerMessage) as InvitationError;
+
+  if (statusCode === 429) {
+    error.message = "Limite d'envoi atteinte (429). Veuillez réessayer plus tard.";
+    error.code = "EMAIL_RATE_LIMITED";
+    error.statusCode = 429;
+    throw error;
+  }
+
+  if (statusCode === 403) {
+    error.message = "Envoi refusé (403) : domaine expéditeur non autorisé. Configurez un domaine email vérifié pour envoyer à des destinataires externes.";
+    error.code = "EMAIL_SENDER_FORBIDDEN";
+    error.statusCode = 403;
+    throw error;
+  }
+
+  error.message = `Erreur d'envoi email (${statusCode}) : ${providerMessage}`;
+  error.code = "EMAIL_PROVIDER_ERROR";
+  error.statusCode = statusCode;
+  throw error;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
