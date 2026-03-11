@@ -412,6 +412,19 @@ export default function AdminUsers() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      {/* Promote to Super Admin - only visible to super admin, hidden if user already admin */}
+                      {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-amber-600 hover:text-amber-700"
+                          onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
+                          disabled={actionLoading === user.id}
+                          title="Promouvoir Super Admin"
+                        >
+                          <ShieldPlus className="w-4 h-4" />
+                        </Button>
+                      )}
                       {user.status === "Invité" && (
                         <>
                           <Button
