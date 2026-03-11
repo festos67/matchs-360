@@ -2,3 +2,12 @@ project_id = "aasihxqsasjpszqjlbid"
 
 [functions.admin-users]
 verify_jwt = false
+
+[functions.send-invitation]
+verify_jwt = false
+
+[functions.import-framework]
+verify_jwt = false
+
+[functions.cleanup-auth-users]
+verify_jwt = false
