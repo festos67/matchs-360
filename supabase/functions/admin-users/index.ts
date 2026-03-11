@@ -19,56 +19,7 @@ Deno.serve(async (req) => {
     // Admin client (bypasses RLS)
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Handle test password reset (no auth required - for testing only)
-    if (req.method === "POST") {
-      const clonedReq = req.clone();
-      const body = await clonedReq.json();
-      
-      if (body.action === "test-update-password") {
-        const { email, newPassword } = body;
-
-        if (!email || !newPassword) {
-          return new Response(JSON.stringify({ error: "email and newPassword required" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        if (newPassword.length < 6) {
-          return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        // Find user by email
-        const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-        if (usersError) throw usersError;
-
-        const targetUser = authUsers.users.find(
-          (u) => u.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (!targetUser) {
-          return new Response(JSON.stringify({ error: "User not found" }), {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUser.id, {
-          password: newPassword,
-        });
-
-        if (error) throw error;
-
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
-
-    // For all other actions, require authentication
+    // All actions require authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "No authorization header" }), {
