@@ -95,15 +95,21 @@ const statusColors: Record<string, string> = {
   Suspendu: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
+const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
+
 export default function AdminUsers() {
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AdminUser | null>(null);
+  const [promoteConfirm, setPromoteConfirm] = useState<AdminUser | null>(null);
+  const [promoteInput, setPromoteInput] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
