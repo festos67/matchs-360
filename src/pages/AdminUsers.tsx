@@ -19,6 +19,7 @@ import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { EditUserModal } from "@/components/modals/EditUserModal";
 import {
   Shield,
+  ShieldPlus,
   Search,
   CheckCircle,
   Trash2,
@@ -94,15 +95,21 @@ const statusColors: Record<string, string> = {
   Suspendu: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
+const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
+
 export default function AdminUsers() {
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AdminUser | null>(null);
+  const [promoteConfirm, setPromoteConfirm] = useState<AdminUser | null>(null);
+  const [promoteInput, setPromoteInput] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -226,6 +233,21 @@ export default function AdminUsers() {
       fetchUsers();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erreur lors du renvoi de l'invitation");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handlePromoteAdmin = async (targetUser: AdminUser) => {
+    try {
+      setActionLoading(targetUser.id);
+      await callAdminAction("promote-admin", { userId: targetUser.id });
+      toast.success(`${getUserDisplayName(targetUser)} a été promu Super Admin`);
+      setPromoteConfirm(null);
+      setPromoteInput("");
+      fetchUsers();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la promotion");
     } finally {
       setActionLoading(null);
     }
@@ -405,6 +427,19 @@ export default function AdminUsers() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      {/* Promote to Super Admin - only visible to super admin, hidden if user already admin */}
+                      {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-amber-600 hover:text-amber-700"
+                          onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
+                          disabled={actionLoading === user.id}
+                          title="Promouvoir Super Admin"
+                        >
+                          <ShieldPlus className="w-4 h-4" />
+                        </Button>
+                      )}
                       {user.status === "Invité" && (
                         <>
                           <Button
@@ -495,6 +530,51 @@ export default function AdminUsers() {
             >
               Suspendre
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Promote Super Admin Confirmation */}
+      <AlertDialog open={!!promoteConfirm} onOpenChange={(open) => { if (!open) { setPromoteConfirm(null); setPromoteInput(""); } }}>
+        <AlertDialogContent className="border-amber-500/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+              <ShieldPlus className="w-5 h-5" />
+              Promouvoir Super Admin
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Êtes-vous sûr de vouloir accorder les droits de <strong>Super Administrateur</strong> à{" "}
+                  <strong>{promoteConfirm ? getUserDisplayName(promoteConfirm) : ""}</strong> ({promoteConfirm?.email}) ?
+                </p>
+                <p className="text-destructive font-medium">
+                  Cette personne aura un accès total à l'application et pourra modifier ou supprimer toutes les données.
+                </p>
+                <div>
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Tapez <strong>CONFIRMER</strong> pour valider cette action :
+                  </label>
+                  <Input
+                    value={promoteInput}
+                    onChange={(e) => setPromoteInput(e.target.value)}
+                    placeholder="CONFIRMER"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              onClick={() => promoteConfirm && handlePromoteAdmin(promoteConfirm)}
+              disabled={promoteInput !== "CONFIRMER" || actionLoading === promoteConfirm?.id}
+              className="bg-amber-600 text-white hover:bg-amber-700"
+            >
+              <ShieldPlus className="w-4 h-4 mr-2" />
+              Promouvoir Super Admin
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
