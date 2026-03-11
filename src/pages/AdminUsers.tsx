@@ -518,6 +518,51 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Promote Super Admin Confirmation */}
+      <AlertDialog open={!!promoteConfirm} onOpenChange={(open) => { if (!open) { setPromoteConfirm(null); setPromoteInput(""); } }}>
+        <AlertDialogContent className="border-amber-500/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+              <ShieldPlus className="w-5 h-5" />
+              Promouvoir Super Admin
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Êtes-vous sûr de vouloir accorder les droits de <strong>Super Administrateur</strong> à{" "}
+                  <strong>{promoteConfirm ? getUserDisplayName(promoteConfirm) : ""}</strong> ({promoteConfirm?.email}) ?
+                </p>
+                <p className="text-destructive font-medium">
+                  Cette personne aura un accès total à l'application et pourra modifier ou supprimer toutes les données.
+                </p>
+                <div>
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Tapez <strong>CONFIRMER</strong> pour valider cette action :
+                  </label>
+                  <Input
+                    value={promoteInput}
+                    onChange={(e) => setPromoteInput(e.target.value)}
+                    placeholder="CONFIRMER"
+                    className="font-mono"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              onClick={() => promoteConfirm && handlePromoteAdmin(promoteConfirm)}
+              disabled={promoteInput !== "CONFIRMER" || actionLoading === promoteConfirm?.id}
+              className="bg-amber-600 text-white hover:bg-amber-700"
+            >
+              <ShieldPlus className="w-4 h-4 mr-2" />
+              Promouvoir Super Admin
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
