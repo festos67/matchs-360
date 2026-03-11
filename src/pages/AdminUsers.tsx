@@ -238,6 +238,21 @@ export default function AdminUsers() {
     }
   };
 
+  const handlePromoteAdmin = async (targetUser: AdminUser) => {
+    try {
+      setActionLoading(targetUser.id);
+      await callAdminAction("promote-admin", { userId: targetUser.id });
+      toast.success(`${getUserDisplayName(targetUser)} a été promu Super Admin`);
+      setPromoteConfirm(null);
+      setPromoteInput("");
+      fetchUsers();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la promotion");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
     return (
