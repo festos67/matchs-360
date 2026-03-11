@@ -61,6 +61,13 @@ export default function Auth() {
           return;
         }
 
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast.error("Vous devez être connecté en tant qu'administrateur pour utiliser le mode test");
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke("admin-users", {
           body: {
             action: "test-update-password",
