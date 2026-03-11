@@ -126,10 +126,10 @@ export const CreateSupporterModal = ({
       setSelectedPlayers([]);
       onOpenChange(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error inviting supporter:", error);
       toast.error("Erreur lors de l'invitation", {
-        description: error.message,
+        description: await getEdgeFunctionErrorMessage(error),
       });
     } finally {
       setLoading(false);

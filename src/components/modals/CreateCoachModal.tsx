@@ -171,9 +171,9 @@ export const CreateCoachModal = ({
       setTeamAssignments([]);
       onOpenChange(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error inviting coach:", error);
-      const errorMessage = error.message || "Une erreur est survenue";
+      const errorMessage = await getEdgeFunctionErrorMessage(error);
 
       if (errorMessage.includes("déjà ce rôle")) {
         toast.error("Coach déjà existant", {
