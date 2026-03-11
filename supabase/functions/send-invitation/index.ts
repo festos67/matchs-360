@@ -367,6 +367,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     // For existing users, send a notification email
+    let notificationEmailSent = false;
+    let notificationEmailError: string | null = null;
+
     if (!isNewUser && resend) {
       const { data: club } = await supabaseAdmin
         .from("clubs")
@@ -381,34 +384,42 @@ const handler = async (req: Request): Promise<Response> => {
         supporter: "Supporter",
       };
 
-      try {
-        await resend.emails.send({
-          from: "MATCHS360 <onboarding@resend.dev>",
-          to: [email.toLowerCase()],
-          subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head><meta charset="utf-8"></head>
-            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
-              <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px;">
-                <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
-                <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
-                <p style="color: #3f3f46; line-height: 1.6;">
-                  Vous avez été ajouté(e) à <strong>${club?.name || "MATCHS360"}</strong> 
-                  en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
-                </p>
-                <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
-                  Accéder à mon espace
-                </a>
-              </div>
-            </body>
-            </html>
-          `,
-        });
-      } catch (emailError) {
-        console.error("Failed to send notification email:", emailError);
+      const notificationResult = await resend.emails.send({
+        from: "MATCHS360 <onboarding@resend.dev>",
+        to: [email.toLowerCase()],
+        subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"></head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
+            <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px;">
+              <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
+              <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
+              <p style="color: #3f3f46; line-height: 1.6;">
+                Vous avez été ajouté(e) à <strong>${club?.name || "MATCHS360"}</strong> 
+                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+              </p>
+              <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
+                Accéder à mon espace
+              </a>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      if (notificationResult.error) {
+        notificationEmailError = notificationResult.error.message || "Erreur inconnue lors de l'envoi de la notification";
+        console.error("Failed to send notification email:", notificationResult.error);
+      } else {
+        notificationEmailSent = true;
       }
+    }
+
+    if (!isNewUser && !resend) {
+      notificationEmailError = "Configuration email manquante : RESEND_API_KEY non configurée";
+      console.warn(notificationEmailError);
     }
 
     return new Response(
