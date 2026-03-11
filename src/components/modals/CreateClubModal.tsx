@@ -100,10 +100,10 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       reset();
       onOpenChange(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating club:", error);
       toast.error("Erreur lors de la création du club", {
-        description: error.message,
+        description: await getEdgeFunctionErrorMessage(error),
       });
     } finally {
       setLoading(false);
