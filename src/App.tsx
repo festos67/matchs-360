@@ -29,6 +29,7 @@ import InviteAccept from "./pages/InviteAccept";
 import NotFound from "./pages/NotFound";
 import Stats from "./pages/Stats";
 import AdminUsers from "./pages/AdminUsers";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
