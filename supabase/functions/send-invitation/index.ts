@@ -19,6 +19,50 @@ interface InvitationRequest {
   playerIds?: string[];
 }
 
+type EmailProviderError = {
+  message?: string;
+  statusCode?: number;
+  status?: number;
+  name?: string;
+};
+
+type InvitationError = Error & {
+  statusCode?: number;
+  code?: string;
+};
+
+const getProviderStatusCode = (providerError: EmailProviderError): number => {
+  const rawStatus = providerError.statusCode ?? providerError.status;
+  const parsedStatus = typeof rawStatus === "number" ? rawStatus : Number(rawStatus);
+  return Number.isFinite(parsedStatus) && parsedStatus > 0 ? parsedStatus : 500;
+};
+
+const throwEmailDeliveryError = (providerError: EmailProviderError): never => {
+  const statusCode = getProviderStatusCode(providerError);
+  const providerMessage = providerError.message || "Erreur inconnue du fournisseur email";
+
+  const error = new Error(providerMessage) as InvitationError;
+
+  if (statusCode === 429) {
+    error.message = "Limite d'envoi atteinte (429). Veuillez réessayer plus tard.";
+    error.code = "EMAIL_RATE_LIMITED";
+    error.statusCode = 429;
+    throw error;
+  }
+
+  if (statusCode === 403) {
+    error.message = "Envoi refusé (403) : domaine expéditeur non autorisé. Configurez un domaine email vérifié pour envoyer à des destinataires externes.";
+    error.code = "EMAIL_SENDER_FORBIDDEN";
+    error.statusCode = 403;
+    throw error;
+  }
+
+  error.message = `Erreur d'envoi email (${statusCode}) : ${providerMessage}`;
+  error.code = "EMAIL_PROVIDER_ERROR";
+  error.statusCode = statusCode;
+  throw error;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -128,73 +172,78 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("Generated invite link (action_link):", inviteLink);
 
       // Send invitation email via Resend
-      if (resend) {
-        const { data: club } = await supabaseAdmin
-          .from("clubs")
-          .select("name")
-          .eq("id", clubId)
-          .single();
-
-        const roleLabels: Record<string, string> = {
-          club_admin: "Administrateur de club",
-          coach: "Coach",
-          player: "Joueur",
-          supporter: "Supporter",
-        };
-
-        try {
-          const emailResult = await resend.emails.send({
-            from: "MATCHS360 <onboarding@resend.dev>",
-            to: [email.toLowerCase()],
-            subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
-            html: `
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
-              </head>
-              <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
-                <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                  <div style="text-align: center; margin-bottom: 32px;">
-                    <h1 style="color: #18181b; font-size: 24px; margin: 0;">MATCHS360</h1>
-                    <p style="color: #71717a; font-size: 14px; margin-top: 8px;">Sports Analytics Platform</p>
-                  </div>
-                  
-                  <h2 style="color: #18181b; font-size: 20px; margin-bottom: 16px;">Vous êtes invité(e) !</h2>
-                  
-                  <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
-                    Bonjour${firstName ? ` ${firstName}` : ""},<br><br>
-                    Vous avez été invité(e) à rejoindre <strong>${club?.name || "MATCHS360"}</strong> 
-                    en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
-                  </p>
-                  
-                  <a href="${inviteLink}" style="display: block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 24px;">
-                    Accepter l'invitation
-                  </a>
-                  
-                  <p style="color: #71717a; font-size: 12px; line-height: 1.6;">
-                    Ou copiez ce lien dans votre navigateur :<br>
-                    <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${inviteLink}</a>
-                  </p>
-                  
-                  <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 32px 0;">
-                  
-                  <p style="color: #a1a1aa; font-size: 12px; text-align: center;">
-                    Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.
-                  </p>
-                </div>
-              </body>
-              </html>
-            `,
-          });
-          console.log("Invitation email sent successfully to:", email, "Result:", JSON.stringify(emailResult));
-        } catch (emailError) {
-          console.error("Failed to send email via Resend:", emailError);
-        }
-      } else {
-        console.warn("Resend API key not configured - invitation email not sent");
+      if (!resend) {
+        throw Object.assign(new Error("Configuration email manquante : RESEND_API_KEY non configurée"), {
+          statusCode: 500,
+          code: "EMAIL_PROVIDER_NOT_CONFIGURED",
+        });
       }
+
+      const { data: club } = await supabaseAdmin
+        .from("clubs")
+        .select("name")
+        .eq("id", clubId)
+        .single();
+
+      const roleLabels: Record<string, string> = {
+        club_admin: "Administrateur de club",
+        coach: "Coach",
+        player: "Joueur",
+        supporter: "Supporter",
+      };
+
+      const emailResult = await resend.emails.send({
+        from: "MATCHS360 <onboarding@resend.dev>",
+        to: [email.toLowerCase()],
+        subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
+            <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+              <div style="text-align: center; margin-bottom: 32px;">
+                <h1 style="color: #18181b; font-size: 24px; margin: 0;">MATCHS360</h1>
+                <p style="color: #71717a; font-size: 14px; margin-top: 8px;">Sports Analytics Platform</p>
+              </div>
+              
+              <h2 style="color: #18181b; font-size: 20px; margin-bottom: 16px;">Vous êtes invité(e) !</h2>
+              
+              <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
+                Bonjour${firstName ? ` ${firstName}` : ""},<br><br>
+                Vous avez été invité(e) à rejoindre <strong>${club?.name || "MATCHS360"}</strong> 
+                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+              </p>
+              
+              <a href="${inviteLink}" style="display: block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 24px;">
+                Accepter l'invitation
+              </a>
+              
+              <p style="color: #71717a; font-size: 12px; line-height: 1.6;">
+                Ou copiez ce lien dans votre navigateur :<br>
+                <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${inviteLink}</a>
+              </p>
+              
+              <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 32px 0;">
+              
+              <p style="color: #a1a1aa; font-size: 12px; text-align: center;">
+                Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.
+              </p>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      if (emailResult.error) {
+        console.error("Email provider error while sending invitation:", emailResult.error);
+        throwEmailDeliveryError(emailResult.error as EmailProviderError);
+      }
+
+      console.log("Invitation email sent successfully to:", email, "messageId:", emailResult.data?.id);
 
       // Wait for trigger to create profile
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -318,6 +367,9 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     // For existing users, send a notification email
+    let notificationEmailSent = false;
+    let notificationEmailError: string | null = null;
+
     if (!isNewUser && resend) {
       const { data: club } = await supabaseAdmin
         .from("clubs")
@@ -332,34 +384,42 @@ const handler = async (req: Request): Promise<Response> => {
         supporter: "Supporter",
       };
 
-      try {
-        await resend.emails.send({
-          from: "MATCHS360 <onboarding@resend.dev>",
-          to: [email.toLowerCase()],
-          subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
-          html: `
-            <!DOCTYPE html>
-            <html>
-            <head><meta charset="utf-8"></head>
-            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
-              <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px;">
-                <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
-                <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
-                <p style="color: #3f3f46; line-height: 1.6;">
-                  Vous avez été ajouté(e) à <strong>${club?.name || "MATCHS360"}</strong> 
-                  en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
-                </p>
-                <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
-                  Accéder à mon espace
-                </a>
-              </div>
-            </body>
-            </html>
-          `,
-        });
-      } catch (emailError) {
-        console.error("Failed to send notification email:", emailError);
+      const notificationResult = await resend.emails.send({
+        from: "MATCHS360 <onboarding@resend.dev>",
+        to: [email.toLowerCase()],
+        subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"></head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
+            <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px;">
+              <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
+              <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
+              <p style="color: #3f3f46; line-height: 1.6;">
+                Vous avez été ajouté(e) à <strong>${club?.name || "MATCHS360"}</strong> 
+                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+              </p>
+              <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
+                Accéder à mon espace
+              </a>
+            </div>
+          </body>
+          </html>
+        `,
+      });
+
+      if (notificationResult.error) {
+        notificationEmailError = notificationResult.error.message || "Erreur inconnue lors de l'envoi de la notification";
+        console.error("Failed to send notification email:", notificationResult.error);
+      } else {
+        notificationEmailSent = true;
       }
+    }
+
+    if (!isNewUser && !resend) {
+      notificationEmailError = "Configuration email manquante : RESEND_API_KEY non configurée";
+      console.warn(notificationEmailError);
     }
 
     return new Response(

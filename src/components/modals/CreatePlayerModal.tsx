@@ -46,6 +46,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 
 const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -215,11 +216,12 @@ export const CreatePlayerModal = ({
       reset();
       onOpenChange(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error inviting player:", error);
+      const errorMessage = await getEdgeFunctionErrorMessage(error);
       
       // Handle mutation case
-      if (error.message.includes("déjà dans une équipe") && !force) {
+      if (errorMessage.includes("déjà dans une équipe") && !force) {
         setPendingSubmit(data);
         setShowMutationAlert(true);
         setLoading(false);
@@ -227,7 +229,7 @@ export const CreatePlayerModal = ({
       }
 
       toast.error("Erreur lors de l'invitation", {
-        description: error.message,
+        description: errorMessage,
       });
     } finally {
       setLoading(false);

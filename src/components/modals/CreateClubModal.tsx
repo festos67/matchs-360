@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 
 const clubSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
@@ -75,7 +76,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       if (clubError) throw clubError;
 
       // Invite the club admin
-      const { error: inviteError } = await supabase.functions.invoke("send-invitation", {
+      const { data: inviteResult, error: inviteError } = await supabase.functions.invoke("send-invitation", {
         body: {
           email: data.referentEmail,
           firstName: data.referentFirstName,
@@ -85,10 +86,11 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
         },
       });
 
-      if (inviteError) {
+      if (inviteError || inviteResult?.error) {
         // Rollback club creation
         await supabase.from("clubs").delete().eq("id", club.id);
-        throw inviteError;
+        const inviteErrorMessage = inviteResult?.error || await getEdgeFunctionErrorMessage(inviteError);
+        throw new Error(inviteErrorMessage);
       }
 
       toast.success(`Club "${data.name}" créé avec succès !`, {
@@ -98,10 +100,10 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       reset();
       onOpenChange(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating club:", error);
       toast.error("Erreur lors de la création du club", {
-        description: error.message,
+        description: await getEdgeFunctionErrorMessage(error),
       });
     } finally {
       setLoading(false);

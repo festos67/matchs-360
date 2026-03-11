@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 
 const coachSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -170,9 +171,9 @@ export const CreateCoachModal = ({
       setTeamAssignments([]);
       onOpenChange(false);
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error inviting coach:", error);
-      const errorMessage = error.message || "Une erreur est survenue";
+      const errorMessage = await getEdgeFunctionErrorMessage(error);
 
       if (errorMessage.includes("déjà ce rôle")) {
         toast.error("Coach déjà existant", {

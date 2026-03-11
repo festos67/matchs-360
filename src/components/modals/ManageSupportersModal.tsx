@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -152,10 +153,10 @@ export const ManageSupportersModal = ({
       setActiveTab("list");
       fetchSupporters();
       onSuccess?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error inviting supporter:", error);
       toast.error("Erreur lors de l'invitation", {
-        description: error.message,
+        description: await getEdgeFunctionErrorMessage(error),
       });
     } finally {
       setLoading(false);
