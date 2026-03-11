@@ -525,6 +525,61 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Promote to admin (super admin only)
+      if (action === "promote-admin") {
+        const { userId } = body;
+
+        if (!userId) {
+          return new Response(JSON.stringify({ error: "userId required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // CRITICAL: Only the super admin (asahand@protonmail.com) can promote to admin
+        const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
+        if (user.email?.toLowerCase() !== SUPER_ADMIN_EMAIL) {
+          return new Response(JSON.stringify({ error: "Action non autorisée. Seul le Super Administrateur peut effectuer cette action." }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Prevent promoting yourself
+        if (userId === user.id) {
+          return new Response(JSON.stringify({ error: "Vous ne pouvez pas vous promouvoir vous-même" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Check if user already has admin role
+        const { data: existingAdmin } = await supabaseAdmin
+          .from("user_roles")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        if (existingAdmin) {
+          return new Response(JSON.stringify({ error: "Cet utilisateur est déjà Super Admin" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        // Add admin role
+        const { error: roleError } = await supabaseAdmin
+          .from("user_roles")
+          .insert({ user_id: userId, role: "admin", club_id: null });
+
+        if (roleError) throw roleError;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify({ error: "Unknown action" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
