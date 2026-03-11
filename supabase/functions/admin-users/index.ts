@@ -352,6 +352,49 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Test update password by email (admin only)
+      if (action === "test-update-password") {
+        const { email, newPassword } = body;
+
+        if (!email || !newPassword) {
+          return new Response(JSON.stringify({ error: "email and newPassword required" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        if (newPassword.length < 6) {
+          return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
+        if (usersError) throw usersError;
+
+        const targetUser = authUsers.users.find(
+          (u) => u.email?.toLowerCase() === email.toLowerCase()
+        );
+
+        if (!targetUser) {
+          return new Response(JSON.stringify({ error: "User not found" }), {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUser.id, {
+          password: newPassword,
+        });
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Resend invitation
       if (action === "resend-invitation") {
         const { userId, email, clubId } = body;
