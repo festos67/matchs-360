@@ -138,7 +138,6 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         
         if (teamFramework) {
           sourceFrameworkId = teamFramework.id;
-          frameworkName = teamFramework.name;
         }
       } else if (selectedOption === "empty") {
         const { error } = await supabase.from("competence_frameworks").insert({
