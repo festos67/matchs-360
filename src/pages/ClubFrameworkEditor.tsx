@@ -93,7 +93,7 @@ export default function ClubFrameworkEditor() {
   const [hasChanges, setHasChanges] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-
+  const [showNameModal, setShowNameModal] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
