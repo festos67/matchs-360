@@ -361,6 +361,10 @@ export default function TeamDetail() {
                       <Printer className="w-4 h-4" />
                       Imprimer
                     </Button>
+                    <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowFrameworkHistory(true)}>
+                      <History className="w-4 h-4" />
+                      Historique
+                    </Button>
                     {isAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
