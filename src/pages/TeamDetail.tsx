@@ -64,6 +64,7 @@ export default function TeamDetail() {
   const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [mutationPlayer, setMutationPlayer] = useState<{ id: string; name: string } | null>(null);
+  const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrintFramework = useReactToPrint({
