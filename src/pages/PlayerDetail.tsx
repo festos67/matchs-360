@@ -663,7 +663,7 @@ export default function PlayerDetail() {
               </Button>
             )}
             <div className="flex flex-col gap-1.5">
-              {canEvaluate && frameworkId && !isViewingHistory && (
+              {canEvaluate && teamMembership && !isViewingHistory && (
                 <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => {
                   setIsCreatingNew(true);
                   setActiveTab("evaluation");
