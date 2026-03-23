@@ -520,6 +520,7 @@ export default function ClubFrameworkEditor() {
               <Button variant="outline" size="sm" onClick={() => handlePrint()}>
                 <Printer className="w-4 h-4 mr-2" />
                 Imprimer
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
