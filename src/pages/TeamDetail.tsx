@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTeamProgression } from "@/hooks/useTeamProgression";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { useReactToPrint } from "react-to-print";
 
 interface Team {
@@ -63,6 +64,7 @@ export default function TeamDetail() {
   const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [mutationPlayer, setMutationPlayer] = useState<{ id: string; name: string } | null>(null);
+  const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrintFramework = useReactToPrint({
@@ -359,6 +361,10 @@ export default function TeamDetail() {
                       <Printer className="w-4 h-4" />
                       Imprimer
                     </Button>
+                    <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowFrameworkHistory(true)}>
+                      <History className="w-4 h-4" />
+                      Historique
+                    </Button>
                     {isAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -477,6 +483,15 @@ export default function TeamDetail() {
           />
         </div>
       )}
+
+      <FrameworkHistorySheet
+        open={showFrameworkHistory}
+        onOpenChange={setShowFrameworkHistory}
+        entityId={id!}
+        entityType="team"
+        activeFrameworkId={framework?.id || null}
+        onRestored={() => fetchTeamData()}
+      />
     </AppLayout>
   );
 }
