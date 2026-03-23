@@ -88,18 +88,31 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     }
   };
 
-  const handleImport = async () => {
+  const getDefaultName = () => {
+    if (selectedOption === "standard") return "Référentiel Standard";
+    if (selectedOption === "club" && clubTemplates.length > 0) return clubTemplates[0].name;
+    if (selectedOption === "team" && selectedTeamId) {
+      const team = teams.find(t => t.id === selectedTeamId);
+      return `Référentiel basé sur ${team?.name || "équipe"}`;
+    }
+    if (selectedOption === "empty") return "Référentiel de compétences";
+    return "Référentiel de compétences";
+  };
+
+  const handleContinue = () => {
     if (!selectedOption) return;
+    setDefaultName(getDefaultName());
+    setShowNameModal(true);
+  };
+
+  const handleImport = async (confirmedName: string) => {
+    if (!selectedOption) return;
+    setShowNameModal(false);
     setLoading(true);
 
     try {
       let sourceFrameworkId: string | null = null;
-      let frameworkName = "Référentiel de compétences";
-
-      if (selectedOption === "standard") {
-        sourceFrameworkId = STANDARD_TEMPLATE_ID;
-        frameworkName = "Référentiel Standard";
-      } else if (selectedOption === "club" && clubTemplates.length > 0) {
+      const frameworkName = confirmedName;
         sourceFrameworkId = clubTemplates[0].id;
         frameworkName = clubTemplates[0].name;
       } else if (selectedOption === "team" && selectedTeamId) {
