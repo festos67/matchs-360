@@ -190,6 +190,7 @@ export default function PlayerDetail() {
 
         if (framework) {
           setFrameworkId(framework.id);
+          setFrameworkName(framework.name);
 
           // Fetch themes with skills
           const { data: themesData } = await supabase
