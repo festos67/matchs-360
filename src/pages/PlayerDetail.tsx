@@ -19,6 +19,7 @@ import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
 import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,6 +91,7 @@ export default function PlayerDetail() {
   const { user, loading: authLoading, isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
+  const frameworkPrintRef = useRef<HTMLDivElement>(null);
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
@@ -119,6 +121,11 @@ export default function PlayerDetail() {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
+  });
+
+  const handlePrintFramework = useReactToPrint({
+    contentRef: frameworkPrintRef,
+    documentTitle: `Referentiel_${teamMembership?.team?.name || "Equipe"}_${new Date().toLocaleDateString("fr-FR")}`,
   });
 
   useEffect(() => {
@@ -1178,16 +1185,22 @@ export default function PlayerDetail() {
         {frameworkId && themes.length > 0 && (
           <TabsContent value="framework">
             <div className="glass-card p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-primary" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-display font-semibold">Référentiel de l'équipe</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {themes.length} thématique{themes.length > 1 ? "s" : ""} · {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétences
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-display font-semibold">Référentiel de l'équipe</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {themes.length} thématique{themes.length > 1 ? "s" : ""} · {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétences
-                  </p>
-                </div>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrintFramework()}>
+                  <Download className="w-4 h-4" />
+                  Imprimer
+                </Button>
               </div>
 
               <div className="space-y-4">
@@ -1220,6 +1233,17 @@ export default function PlayerDetail() {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Hidden printable framework */}
+            <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+              <PrintableFramework
+                ref={frameworkPrintRef}
+                frameworkName="Référentiel de compétences"
+                teamName={teamMembership?.team?.name || ""}
+                clubName={teamMembership?.team?.club?.name || ""}
+                themes={themes}
+              />
             </div>
           </TabsContent>
         )}
