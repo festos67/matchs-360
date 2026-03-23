@@ -142,7 +142,7 @@ export default function ClubFrameworkEditor() {
 
       if (frameworkData) {
         setFramework(frameworkData);
-        
+        setFrameworkName(frameworkData.name);
         // Fetch themes with skills
         const { data: themesData } = await supabase
           .from("themes")
