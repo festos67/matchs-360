@@ -645,6 +645,17 @@ export default function ClubFrameworkEditor() {
         activeFrameworkId={framework?.id || null}
         onRestored={() => fetchData()}
       />
+
+      {/* Hidden printable component */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+        <PrintableFramework
+          ref={printRef}
+          frameworkName={frameworkName}
+          teamName="Modèle du club"
+          clubName={club?.name || ""}
+          themes={themes}
+        />
+      </div>
     </AppLayout>
   );
 }
