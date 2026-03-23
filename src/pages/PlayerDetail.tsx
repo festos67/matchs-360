@@ -19,6 +19,7 @@ import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
 import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
