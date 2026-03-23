@@ -1174,6 +1174,56 @@ export default function PlayerDetail() {
           </TabsContent>
         )}
 
+        {/* Framework Tab */}
+        {frameworkId && themes.length > 0 && (
+          <TabsContent value="framework">
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-display font-semibold">Référentiel de l'équipe</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {themes.length} thématique{themes.length > 1 ? "s" : ""} · {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétences
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {themes.map((theme) => (
+                  <div key={theme.id} className="border border-border rounded-xl overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: theme.color || "hsl(var(--primary))" }}
+                      />
+                      <h3 className="font-semibold text-sm">{theme.name}</h3>
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {theme.skills.length} compétence{theme.skills.length > 1 ? "s" : ""}
+                      </Badge>
+                    </div>
+                    {theme.skills.length > 0 && (
+                      <div className="divide-y divide-border">
+                        {theme.skills.map((skill) => (
+                          <div key={skill.id} className="px-4 py-2.5 flex items-start gap-3">
+                            <span className="text-sm font-medium">{skill.name}</span>
+                            {skill.definition && (
+                              <span className="text-xs text-muted-foreground ml-auto text-right max-w-[50%]">
+                                {skill.definition}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        )}
+
         {/* Advice Tab */}
         <TabsContent value="advice">
           <div className="glass-card p-6">
