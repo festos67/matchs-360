@@ -44,7 +44,8 @@ interface Framework {
     id: string;
     name: string;
     color: string | null;
-    skills: Array<{ id: string; name: string }>;
+    order_index: number;
+    skills: Array<{ id: string; name: string; definition: string | null; order_index: number }>;
   }>;
 }
 
