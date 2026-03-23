@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileText, BookOpen, Users, FileQuestion, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,13 +26,22 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
 
-  useEffect(() => {
-    fetchTeamsWithFrameworks();
-    fetchStandardStats();
-  }, [clubId]);
+  const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
+    const { data: themes } = await supabase
+      .from("themes")
+      .select("id, skills(count)")
+      .eq("framework_id", frameworkId);
+    
+    if (themes) {
+      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
+      return { themes: themes.length, skills: totalSkills };
+    }
+    return null;
+  }, []);
 
-  const fetchTeamsWithFrameworks = async () => {
+  const fetchTeamsWithFrameworks = useCallback(async () => {
     const { data: teamsData } = await supabase
       .from("teams")
       .select("id, name")
@@ -54,19 +63,41 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     })).filter(t => t.hasFramework);
 
     setTeams(teamsWithInfo);
-  };
+  }, [clubId]);
 
-  const fetchStandardStats = async () => {
-    const { data: themes } = await supabase
-      .from("themes")
-      .select("id, skills(count)")
-      .eq("framework_id", STANDARD_TEMPLATE_ID);
+  const fetchStandardStats = useCallback(async () => {
+    const stats = await fetchFrameworkStats(STANDARD_TEMPLATE_ID);
+    if (stats) setStandardStats(stats);
+  }, [fetchFrameworkStats]);
+
+  const fetchTeamStats = useCallback(async (teamId: string) => {
+    const { data: framework } = await supabase
+      .from("competence_frameworks")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     
-    if (themes) {
-      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setStandardStats({ themes: themes.length, skills: totalSkills });
+    if (framework) {
+      const stats = await fetchFrameworkStats(framework.id);
+      setSelectedTeamStats(stats);
     }
-  };
+  }, [fetchFrameworkStats]);
+
+  useEffect(() => {
+    fetchTeamsWithFrameworks();
+    fetchStandardStats();
+  }, [fetchTeamsWithFrameworks, fetchStandardStats]);
+
+  useEffect(() => {
+    if (selectedTeamId) {
+      fetchTeamStats(selectedTeamId);
+    } else {
+      setSelectedTeamStats(null);
+    }
+  }, [selectedTeamId, fetchTeamStats]);
 
   const handleImport = async () => {
     if (!selectedOption) return;
@@ -140,7 +171,9 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       icon: Users,
       title: "Copier une équipe",
       description: teams.length > 0 
-        ? "Dupliquer le référentiel d'une équipe du club" 
+        ? selectedTeamStats 
+          ? `Dupliquer le référentiel d'une équipe\n${selectedTeamStats.themes} thématiques et ${selectedTeamStats.skills} compétences`
+          : "Dupliquer le référentiel d'une équipe du club" 
         : "Aucune équipe avec référentiel disponible",
       color: "text-warning",
       bgColor: "bg-warning/10",
