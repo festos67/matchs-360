@@ -1241,7 +1241,7 @@ export default function PlayerDetail() {
             <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
               <PrintableFramework
                 ref={frameworkPrintRef}
-                frameworkName="Référentiel de compétences"
+                frameworkName={frameworkName || "Référentiel de compétences"}
                 teamName={teamMembership?.team?.name || ""}
                 clubName={teamMembership?.team?.club?.name || ""}
                 themes={themes}
