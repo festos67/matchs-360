@@ -599,7 +599,7 @@ export default function FrameworkEditor() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button onClick={handleSave} disabled={saving || themes.length === 0}>
+            <Button onClick={() => setShowNameModal(true)} disabled={saving || themes.length === 0}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
               ) : (
