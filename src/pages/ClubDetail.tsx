@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,6 +83,13 @@ export default function ClubDetail() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
+  const [frameworkThemes, setFrameworkThemes] = useState<any[]>([]);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: clubFramework?.name || "Référentiel du Club",
+  });
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
@@ -164,8 +173,22 @@ export default function ClubDetail() {
           themes_count: themesArr.length,
           skills_count: skillsTotal,
         });
+
+        // Fetch full themes with skills for printing
+        const { data: fullThemes } = await supabase
+          .from("themes")
+          .select("*, skills(*)")
+          .eq("framework_id", frameworkData.id)
+          .order("order_index");
+        if (fullThemes) {
+          setFrameworkThemes(fullThemes.map(t => ({
+            ...t,
+            skills: (t.skills || []).sort((a: any, b: any) => a.order_index - b.order_index),
+          })));
+        }
       } else {
         setClubFramework(null);
+        setFrameworkThemes([]);
       }
     } catch (error: any) {
       console.error("Error fetching club:", error);
@@ -323,6 +346,17 @@ export default function ClubDetail() {
                     >
                       <History className="w-4 h-4 mr-2" />
                       Historique
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrint();
+                      }}
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimer
                     </Button>
                     <Button 
                       variant="outline" 
@@ -512,6 +546,17 @@ export default function ClubDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Hidden printable component */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+        <PrintableFramework
+          ref={printRef}
+          frameworkName={clubFramework?.name || "Référentiel du Club"}
+          teamName="Modèle du club"
+          clubName={club?.name || ""}
+          themes={frameworkThemes}
+        />
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
