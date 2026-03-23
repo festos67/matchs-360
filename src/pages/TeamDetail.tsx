@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -17,6 +17,8 @@ import { snapshotFramework } from "@/lib/framework-snapshot";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTeamProgression } from "@/hooks/useTeamProgression";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 
 interface Team {
   id: string;
@@ -42,7 +44,8 @@ interface Framework {
     id: string;
     name: string;
     color: string | null;
-    skills: Array<{ id: string; name: string }>;
+    order_index: number;
+    skills: Array<{ id: string; name: string; definition: string | null; order_index: number }>;
   }>;
 }
 
@@ -60,6 +63,12 @@ export default function TeamDetail() {
   const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [mutationPlayer, setMutationPlayer] = useState<{ id: string; name: string } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrintFramework = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: framework?.name || "Référentiel",
+  });
 
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
@@ -100,7 +109,7 @@ export default function TeamDetail() {
       if (frameworkData) {
         const { data: themesData } = await supabase
           .from("themes")
-          .select("id, name, color, skills(id, name)")
+          .select("id, name, color, order_index, skills(id, name, definition, order_index)")
           .eq("framework_id", frameworkData.id)
           .order("order_index");
 
@@ -335,12 +344,16 @@ export default function TeamDetail() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {canEditFramework && (
-                      <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
-                        <FileText className="w-4 h-4" />
-                        Éditer le référentiel
+                      <Button variant="outline" className="gap-2" onClick={() => handlePrintFramework()}>
+                        <Printer className="w-4 h-4" />
+                        Imprimer
                       </Button>
-                    )}
+                      {canEditFramework && (
+                        <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
+                          <FileText className="w-4 h-4" />
+                          Éditer le référentiel
+                        </Button>
+                      )}
                     {isAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -444,6 +457,19 @@ export default function TeamDetail() {
           clubId={team.club_id}
           onSuccess={fetchTeamData}
         />
+      )}
+
+      {/* Hidden printable framework */}
+      {framework && team && (
+        <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+          <PrintableFramework
+            ref={printRef}
+            frameworkName={framework.name}
+            teamName={team.name}
+            clubName={team.club?.name || ""}
+            themes={framework.themes}
+          />
+        </div>
       )}
     </AppLayout>
   );
