@@ -177,6 +177,7 @@ export default function PlayerDetail() {
           .from("competence_frameworks")
           .select("id")
           .eq("team_id", membership.team_id)
+          .eq("is_archived", false)
           .maybeSingle();
 
         if (framework) {
