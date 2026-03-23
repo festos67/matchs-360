@@ -39,6 +39,8 @@ import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 import {
   AlertDialog,
   AlertDialogAction,
