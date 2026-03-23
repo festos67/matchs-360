@@ -655,95 +655,96 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex items-start gap-2">
             {selectedEvaluation && (
-              <Button variant="outline" className="gap-2" onClick={() => handlePrint()}>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrint()}>
                 <Download className="w-4 h-4" />
                 Télécharger PDF
               </Button>
             )}
-            {canEvaluate && frameworkId && !isViewingHistory && (
-              <Button className="gap-2" onClick={() => {
-                setIsCreatingNew(true);
-                setActiveTab("evaluation");
-              }}>
-                <Plus className="w-4 h-4" />
-                Nouveau débrief
-              </Button>
-            )}
-            {canMutate && teamMembership && (
-              <Button variant="outline" className="gap-2" onClick={() => setShowMutationModal(true)}>
-                <ArrowRightLeft className="w-4 h-4" />
-                Mutation
-              </Button>
-            )}
-            {canEvaluate && teamMembership && (
-              <Button variant="outline" className="gap-2" onClick={() => setShowSupportersModal(true)}>
-                <Heart className="w-4 h-4" />
-                Supporters
-              </Button>
-            )}
-            {canEvaluate && teamMembership && (
-              <Button variant="outline" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)}>
-                <Users className="w-4 h-4" />
-                Demander avis
-              </Button>
-            )}
-            {canMutate && (
-              <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
-                <Edit className="w-4 h-4" />
-              </Button>
-            )}
-            {isAdmin && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={async () => {
-                        try {
-                          // Soft delete du profil
-                          const { error: profileError } = await supabase
-                            .from("profiles")
-                            .update({ deleted_at: new Date().toISOString() })
-                            .eq("id", id);
-                          
-                          if (profileError) throw profileError;
+            <div className="flex flex-col gap-1.5">
+              {canEvaluate && frameworkId && !isViewingHistory && (
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => {
+                  setIsCreatingNew(true);
+                  setActiveTab("evaluation");
+                }}>
+                  <Plus className="w-3.5 h-3.5 text-primary" />Débrief
+                </Button>
+              )}
+              {canEvaluate && teamMembership && (
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)}>
+                  <Plus className="w-3.5 h-3.5 text-primary" />Supporter
+                </Button>
+              )}
+              {canMutate && teamMembership && (
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowMutationModal(true)}>
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Mutation
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {canEvaluate && teamMembership && (
+                <Button variant="outline" size="sm" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)}>
+                  <Users className="w-3.5 h-3.5" />
+                  Avis supporter
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {canMutate && (
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowEditModal(true)}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="icon" className="h-9 w-9">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={async () => {
+                          try {
+                            const { error: profileError } = await supabase
+                              .from("profiles")
+                              .update({ deleted_at: new Date().toISOString() })
+                              .eq("id", id);
+                            
+                            if (profileError) throw profileError;
 
-                          // Désactiver aussi les team_members associés
-                          const { error: memberError } = await supabase
-                            .from("team_members")
-                            .update({ is_active: false, left_at: new Date().toISOString() })
-                            .eq("user_id", id);
-                          
-                          if (memberError) throw memberError;
-                          
-                          toast.success("Joueur supprimé avec succès");
-                          navigate(-1);
-                        } catch (error: unknown) {
-                          console.error("Error deleting player:", error);
-                          toast.error("Erreur lors de la suppression");
-                        }
-                      }}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Supprimer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+                            const { error: memberError } = await supabase
+                              .from("team_members")
+                              .update({ is_active: false, left_at: new Date().toISOString() })
+                              .eq("user_id", id);
+                            
+                            if (memberError) throw memberError;
+                            
+                            toast.success("Joueur supprimé avec succès");
+                            navigate(-1);
+                          } catch (error: unknown) {
+                            console.error("Error deleting player:", error);
+                            toast.error("Erreur lors de la suppression");
+                          }
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
         </div>
       </div>
