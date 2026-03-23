@@ -103,7 +103,7 @@ export default function TeamDetail() {
       if (frameworkData) {
         const { data: themesData } = await supabase
           .from("themes")
-          .select("id, name, color, skills(id, name)")
+          .select("id, name, color, order_index, skills(id, name, definition, order_index)")
           .eq("framework_id", frameworkData.id)
           .order("order_index");
 
