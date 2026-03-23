@@ -458,6 +458,19 @@ export default function TeamDetail() {
           onSuccess={fetchTeamData}
         />
       )}
+
+      {/* Hidden printable framework */}
+      {framework && team && (
+        <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+          <PrintableFramework
+            ref={printRef}
+            frameworkName={framework.name}
+            teamName={team.name}
+            clubName={team.club?.name || ""}
+            themes={framework.themes}
+          />
+        </div>
+      )}
     </AppLayout>
   );
 }
