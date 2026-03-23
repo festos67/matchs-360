@@ -49,12 +49,14 @@ interface CreateEvaluationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  preselectedTeamId?: string;
 }
 
 export const CreateEvaluationModal = ({
   open,
   onOpenChange,
   onSuccess,
+  preselectedTeamId,
 }: CreateEvaluationModalProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -85,6 +87,14 @@ export const CreateEvaluationModal = ({
       fetchTeams();
     }
   }, [open]);
+
+  useEffect(() => {
+    if (preselectedTeamId) {
+      setSelectedTeam(preselectedTeamId);
+    } else if (selectedTeam && !teams.find(t => t.id === selectedTeam)) {
+      setSelectedTeam("");
+    }
+  }, [preselectedTeamId, teams]);
 
   useEffect(() => {
     if (selectedTeam) {
@@ -256,7 +266,7 @@ export const CreateEvaluationModal = ({
             )}
           </div>
 
-          {teams.length > 1 && (
+          {teams.length > 1 && !preselectedTeamId && (
             <div className="space-y-2">
               <Label>Équipe</Label>
               <Select value={selectedTeam} onValueChange={setSelectedTeam}>
@@ -271,6 +281,15 @@ export const CreateEvaluationModal = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {preselectedTeamId && teams.find(t => t.id === preselectedTeamId) && (
+            <div className="space-y-2">
+              <Label>Équipe</Label>
+              <div className="p-2 rounded-lg bg-muted/50 text-sm font-medium">
+                {teams.find(t => t.id === preselectedTeamId)?.name}
+              </div>
             </div>
           )}
 

@@ -308,6 +308,7 @@ export default function Evaluations() {
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
         onSuccess={fetchEvaluations}
+        preselectedTeamId={teamId || undefined}
       />
     </AppLayout>
   );
