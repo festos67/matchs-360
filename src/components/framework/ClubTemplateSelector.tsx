@@ -129,7 +129,6 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
-        frameworkName = "Référentiel Standard";
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
