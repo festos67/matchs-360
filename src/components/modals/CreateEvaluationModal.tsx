@@ -89,6 +89,14 @@ export const CreateEvaluationModal = ({
   }, [open]);
 
   useEffect(() => {
+    if (preselectedTeamId) {
+      setSelectedTeam(preselectedTeamId);
+    } else if (selectedTeam && !teams.find(t => t.id === selectedTeam)) {
+      setSelectedTeam("");
+    }
+  }, [preselectedTeamId, teams]);
+
+  useEffect(() => {
     if (selectedTeam) {
       fetchPlayers(selectedTeam);
     }
