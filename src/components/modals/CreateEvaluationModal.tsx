@@ -49,12 +49,14 @@ interface CreateEvaluationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  preselectedTeamId?: string;
 }
 
 export const CreateEvaluationModal = ({
   open,
   onOpenChange,
   onSuccess,
+  preselectedTeamId,
 }: CreateEvaluationModalProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
