@@ -448,6 +448,7 @@ export default function FrameworkEditor() {
     documentTitle: frameworkName || "Référentiel",
   });
 
+  if (authLoading || loading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
