@@ -63,6 +63,12 @@ export default function TeamDetail() {
   const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [mutationPlayer, setMutationPlayer] = useState<{ id: string; name: string } | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrintFramework = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: framework?.name || "Référentiel",
+  });
 
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
