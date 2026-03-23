@@ -806,6 +806,12 @@ export default function PlayerDetail() {
             Débrief
           </TabsTrigger>
           <TabsTrigger value="history">Historique</TabsTrigger>
+          {frameworkId && themes.length > 0 && (
+            <TabsTrigger value="framework" className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              Référentiel
+            </TabsTrigger>
+          )}
           {canEvaluate && (
             <TabsTrigger value="invitations" className="gap-2">
               <Mail className="w-4 h-4" />
