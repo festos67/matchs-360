@@ -37,6 +37,7 @@ import { SortableTheme } from "@/components/framework/SortableTheme";
 import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
+import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import {
   AlertDialog,
   AlertDialogAction,
