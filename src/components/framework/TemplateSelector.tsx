@@ -113,8 +113,11 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     try {
       let sourceFrameworkId: string | null = null;
       const frameworkName = confirmedName;
+
+      if (selectedOption === "standard") {
+        sourceFrameworkId = STANDARD_TEMPLATE_ID;
+      } else if (selectedOption === "club" && clubTemplates.length > 0) {
         sourceFrameworkId = clubTemplates[0].id;
-        frameworkName = clubTemplates[0].name;
       } else if (selectedOption === "team" && selectedTeamId) {
         // Get the framework from the selected team
         const { data: teamFramework } = await supabase
