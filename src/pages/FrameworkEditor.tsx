@@ -298,6 +298,12 @@ export default function FrameworkEditor() {
         console.warn("Snapshot failed, continuing save:", snapError);
       }
 
+      // Update framework name
+      await supabase
+        .from("competence_frameworks")
+        .update({ name: frameworkName })
+        .eq("id", framework.id);
+
       // Save themes
       for (const theme of themes) {
         if (theme.isNew) {
