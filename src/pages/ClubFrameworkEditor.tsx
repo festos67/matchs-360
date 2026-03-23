@@ -25,6 +25,7 @@ import {
   FileQuestion,
   History,
   Trash2,
+  Printer,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,8 @@ import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelecto
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -96,6 +99,12 @@ export default function ClubFrameworkEditor() {
   const [showNameModal, setShowNameModal] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: frameworkName || "Référentiel du Club",
+  });
 
   // Check permissions
   const isClubAdmin = club ? roles.some(r => r.role === "club_admin" && r.club_id === club.id) : false;
@@ -508,6 +517,10 @@ export default function ClubFrameworkEditor() {
                 <History className="w-4 h-4 mr-2" />
                 Historique
               </Button>
+              <Button variant="outline" size="sm" onClick={() => handlePrint()}>
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimer
+              </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
@@ -633,6 +646,17 @@ export default function ClubFrameworkEditor() {
         activeFrameworkId={framework?.id || null}
         onRestored={() => fetchData()}
       />
+
+      {/* Hidden printable component */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+        <PrintableFramework
+          ref={printRef}
+          frameworkName={frameworkName}
+          teamName="Modèle du club"
+          clubName={club?.name || ""}
+          themes={themes}
+        />
+      </div>
     </AppLayout>
   );
 }
