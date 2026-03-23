@@ -130,7 +130,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         // Create empty framework
         const { error } = await supabase.from("competence_frameworks").insert({
           team_id: teamId,
-          name: "Référentiel de compétences",
+          name: frameworkName,
           is_template: false,
         });
         
