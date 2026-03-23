@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTeamProgression } from "@/hooks/useTeamProgression";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { useReactToPrint } from "react-to-print";
 
 interface Team {
