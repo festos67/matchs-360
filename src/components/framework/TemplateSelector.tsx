@@ -119,13 +119,12 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         // Get the framework from the selected team
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
-          .select("id, name")
+          .select("id")
           .eq("team_id", selectedTeamId)
           .maybeSingle();
         
         if (teamFramework) {
           sourceFrameworkId = teamFramework.id;
-          frameworkName = teamFramework.name;
         }
       } else if (selectedOption === "empty") {
         // Create empty framework
