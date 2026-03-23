@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FileText, BookOpen, Users, FileQuestion, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,21 +28,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    fetchTeamsWithFrameworks();
-    fetchStandardStats();
-  }, [clubId]);
-
-  useEffect(() => {
-    if (selectedTeamId) {
-      fetchTeamStats(selectedTeamId);
-    } else {
-      setSelectedTeamStats(null);
-    }
-  }, [selectedTeamId]);
-
-  const fetchFrameworkStats = async (frameworkId: string) => {
+  const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
       .from("themes")
       .select("id, skills(count)")
@@ -53,14 +39,38 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       return { themes: themes.length, skills: totalSkills };
     }
     return null;
-  };
+  }, []);
 
-  const fetchStandardStats = async () => {
+  const fetchTeamsWithFrameworks = useCallback(async () => {
+    const { data: teamsData } = await supabase
+      .from("teams")
+      .select("id, name")
+      .eq("club_id", clubId)
+      .is("deleted_at", null);
+
+    if (!teamsData) return;
+
+    const { data: frameworksData } = await supabase
+      .from("competence_frameworks")
+      .select("team_id")
+      .in("team_id", teamsData.map(t => t.id));
+
+    const teamsWithFrameworkIds = new Set(frameworksData?.map(f => f.team_id) || []);
+
+    const teamsWithInfo = teamsData.map(t => ({
+      ...t,
+      hasFramework: teamsWithFrameworkIds.has(t.id),
+    })).filter(t => t.hasFramework);
+
+    setTeams(teamsWithInfo);
+  }, [clubId]);
+
+  const fetchStandardStats = useCallback(async () => {
     const stats = await fetchFrameworkStats(STANDARD_TEMPLATE_ID);
     if (stats) setStandardStats(stats);
-  };
+  }, [fetchFrameworkStats]);
 
-  const fetchTeamStats = async (teamId: string) => {
+  const fetchTeamStats = useCallback(async (teamId: string) => {
     const { data: framework } = await supabase
       .from("competence_frameworks")
       .select("id")
@@ -74,7 +84,20 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       const stats = await fetchFrameworkStats(framework.id);
       setSelectedTeamStats(stats);
     }
-  };
+  }, [fetchFrameworkStats]);
+
+  useEffect(() => {
+    fetchTeamsWithFrameworks();
+    fetchStandardStats();
+  }, [fetchTeamsWithFrameworks, fetchStandardStats]);
+
+  useEffect(() => {
+    if (selectedTeamId) {
+      fetchTeamStats(selectedTeamId);
+    } else {
+      setSelectedTeamStats(null);
+    }
+  }, [selectedTeamId, fetchTeamStats]);
 
   const handleImport = async () => {
     if (!selectedOption) return;
