@@ -38,6 +38,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [defaultName, setDefaultName] = useState("");
 
   useEffect(() => {
     fetchClubTemplates();
