@@ -47,16 +47,20 @@ export function CreateClubFrameworkModal({
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [archivedFrameworks, setArchivedFrameworks] = useState<ArchivedFramework[]>([]);
   const [selectedArchivedId, setSelectedArchivedId] = useState<string>("");
+  const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      fetchTeamsWithFrameworks();
-      fetchArchivedFrameworks();
-      setSelectedOption(null);
-      setSelectedTeamId("");
-      setSelectedArchivedId("");
+  const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
+    const { data: themes } = await supabase
+      .from("themes")
+      .select("id, skills(count)")
+      .eq("framework_id", frameworkId);
+    
+    if (themes) {
+      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
+      return { themes: themes.length, skills: totalSkills };
     }
-  }, [open, clubId]);
+    return null;
+  }, []);
 
   const fetchTeamsWithFrameworks = async () => {
     setLoadingTeams(true);
