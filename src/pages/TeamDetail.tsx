@@ -92,6 +92,9 @@ export default function TeamDetail() {
         .from("competence_frameworks")
         .select("id, name")
         .eq("team_id", id)
+        .eq("is_archived", false)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (frameworkData) {
