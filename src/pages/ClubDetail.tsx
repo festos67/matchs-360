@@ -54,6 +54,7 @@ interface ClubFramework {
   id: string;
   name: string;
   themes_count: number;
+  skills_count: number;
 }
 
 export default function ClubDetail() {
