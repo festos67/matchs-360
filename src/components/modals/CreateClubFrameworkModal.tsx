@@ -135,13 +135,39 @@ export function CreateClubFrameworkModal({
     return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleCreate = async () => {
+  const getDefaultName = () => {
+    if (selectedOption === "standard") return "Référentiel Standard du Club";
+    if (selectedOption === "team" && selectedTeamId) {
+      const selectedTeam = teams.find(t => t.id === selectedTeamId);
+      return `Référentiel basé sur ${selectedTeam?.name || "équipe"}`;
+    }
+    if (selectedOption === "history") {
+      const fw = archivedFrameworks.find(f => f.id === selectedArchivedId);
+      return fw?.name || "Référentiel du Club";
+    }
+    if (selectedOption === "empty") return "Référentiel du Club";
+    return "Référentiel du Club";
+  };
+
+  const handleContinue = () => {
     if (!selectedOption) return;
+    // History option doesn't need naming - it restores as-is
+    if (selectedOption === "history" && selectedArchivedId) {
+      handleCreate(getDefaultName());
+      return;
+    }
+    setDefaultName(getDefaultName());
+    setShowNameModal(true);
+  };
+
+  const handleCreate = async (confirmedName: string) => {
+    if (!selectedOption) return;
+    setShowNameModal(false);
     setLoading(true);
 
     try {
       let sourceFrameworkId: string | null = null;
-      let frameworkName = "Référentiel du Club";
+      const frameworkName = confirmedName;
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
