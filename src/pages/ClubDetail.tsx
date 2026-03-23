@@ -308,7 +308,7 @@ export default function ClubDetail() {
                     <div>
                       <CardTitle className="text-base">{clubFramework.name}</CardTitle>
                       <CardDescription>
-                        {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""}
+                        {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
                       </CardDescription>
                     </div>
                   </div>
