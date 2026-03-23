@@ -244,7 +244,7 @@ export default function TeamDetail() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-display font-semibold">Joueurs ({players.length})</h2>
-              {canManageTeam && <Button className="gap-2" onClick={() => setShowPlayerModal(true)}><Plus className="w-4 h-4" />Joueur</Button>}
+              {canManageTeam && <Button size="sm" className="gap-2" onClick={() => setShowPlayerModal(true)}><Plus className="w-4 h-4" />Joueur</Button>}
             </div>
             {players.length > 0 ? (
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
