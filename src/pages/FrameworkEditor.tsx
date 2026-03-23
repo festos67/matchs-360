@@ -473,13 +473,13 @@ export default function FrameworkEditor() {
     <AppLayout>
       <div className="pb-20">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="-ml-2" onClick={() => navigate(`/teams/${teamId}`)}>
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="flex items-start gap-4 min-w-0 flex-1">
+            <Button variant="ghost" className="-ml-2 flex-shrink-0 mt-1" onClick={() => navigate(`/teams/${teamId}`)}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
             </Button>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <FileText className="w-6 h-6 text-primary flex-shrink-0" />
                 {canEdit ? (
@@ -490,16 +490,16 @@ export default function FrameworkEditor() {
                     className="text-2xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
                   />
                 ) : (
-                  <h1 className="text-2xl font-display font-bold">{frameworkName || "Référentiel"}</h1>
+                  <h1 className="text-2xl font-display font-bold truncate">{frameworkName || "Référentiel"}</h1>
                 )}
               </div>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-sm mt-1">
                 {team.name} • {team.club?.name}
               </p>
             </div>
           </div>
           {canEdit && framework && (
-            <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+            <Button variant="outline" size="sm" className="flex-shrink-0" onClick={() => setShowHistory(true)}>
               <History className="w-4 h-4 mr-2" />
               Historique
             </Button>
