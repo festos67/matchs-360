@@ -517,6 +517,9 @@ export default function ClubFrameworkEditor() {
                 <History className="w-4 h-4 mr-2" />
                 Historique
               </Button>
+              <Button variant="outline" size="sm" onClick={() => handlePrint()}>
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimer
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
