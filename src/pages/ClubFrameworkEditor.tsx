@@ -27,6 +27,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
