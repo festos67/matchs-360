@@ -322,7 +322,7 @@ export default function ClubDetail() {
               className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
               onClick={() => navigate(`/clubs/${club.id}/framework`)}
             >
-              <CardHeader className="pb-2">
+              <CardHeader className="py-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -335,7 +335,7 @@ export default function ClubDetail() {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     <Button 
                       variant="outline" 
                       size="sm"
