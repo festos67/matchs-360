@@ -266,7 +266,7 @@ export const CreateEvaluationModal = ({
             )}
           </div>
 
-          {teams.length > 1 && (
+          {teams.length > 1 && !preselectedTeamId && (
             <div className="space-y-2">
               <Label>Équipe</Label>
               <Select value={selectedTeam} onValueChange={setSelectedTeam}>
@@ -281,6 +281,15 @@ export const CreateEvaluationModal = ({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {preselectedTeamId && teams.find(t => t.id === preselectedTeamId) && (
+            <div className="space-y-2">
+              <Label>Équipe</Label>
+              <div className="p-2 rounded-lg bg-muted/50 text-sm font-medium">
+                {teams.find(t => t.id === preselectedTeamId)?.name}
+              </div>
             </div>
           )}
 
