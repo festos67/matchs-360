@@ -605,7 +605,7 @@ export default function ClubFrameworkEditor() {
       {canEdit && (
         <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
            <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-            <Button onClick={handleSave} disabled={saving || themes.length === 0}>
+            <Button onClick={() => setShowNameModal(true)} disabled={saving || themes.length === 0}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
               ) : (
