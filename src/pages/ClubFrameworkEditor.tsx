@@ -480,11 +480,20 @@ export default function ClubFrameworkEditor() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
             </Button>
-            <div>
-              <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-primary" />
-                {framework?.name || "Référentiel du Club"}
-              </h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-6 h-6 text-primary flex-shrink-0" />
+                {canEdit ? (
+                  <Input
+                    value={frameworkName}
+                    onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
+                    placeholder="Nom du référentiel"
+                    className="text-2xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
+                  />
+                ) : (
+                  <h1 className="text-2xl font-display font-bold">{frameworkName || "Référentiel du Club"}</h1>
+                )}
+              </div>
               <p className="text-muted-foreground text-sm">
                 {club.name} • Modèle du club
               </p>
