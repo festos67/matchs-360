@@ -689,61 +689,62 @@ export default function PlayerDetail() {
                   Avis supporter
                 </Button>
               )}
+            </div>
+            <div className="flex flex-col gap-1.5">
               {canMutate && (
-              <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
-                <Edit className="w-4 h-4" />
-              </Button>
-            )}
-            {isAdmin && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={async () => {
-                        try {
-                          // Soft delete du profil
-                          const { error: profileError } = await supabase
-                            .from("profiles")
-                            .update({ deleted_at: new Date().toISOString() })
-                            .eq("id", id);
-                          
-                          if (profileError) throw profileError;
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowEditModal(true)}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="icon" className="h-9 w-9">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={async () => {
+                          try {
+                            const { error: profileError } = await supabase
+                              .from("profiles")
+                              .update({ deleted_at: new Date().toISOString() })
+                              .eq("id", id);
+                            
+                            if (profileError) throw profileError;
 
-                          // Désactiver aussi les team_members associés
-                          const { error: memberError } = await supabase
-                            .from("team_members")
-                            .update({ is_active: false, left_at: new Date().toISOString() })
-                            .eq("user_id", id);
-                          
-                          if (memberError) throw memberError;
-                          
-                          toast.success("Joueur supprimé avec succès");
-                          navigate(-1);
-                        } catch (error: unknown) {
-                          console.error("Error deleting player:", error);
-                          toast.error("Erreur lors de la suppression");
-                        }
-                      }}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Supprimer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+                            const { error: memberError } = await supabase
+                              .from("team_members")
+                              .update({ is_active: false, left_at: new Date().toISOString() })
+                              .eq("user_id", id);
+                            
+                            if (memberError) throw memberError;
+                            
+                            toast.success("Joueur supprimé avec succès");
+                            navigate(-1);
+                          } catch (error: unknown) {
+                            console.error("Error deleting player:", error);
+                            toast.error("Erreur lors de la suppression");
+                          }
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
         </div>
       </div>
