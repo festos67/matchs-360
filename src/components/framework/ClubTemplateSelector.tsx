@@ -273,7 +273,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           Annuler
         </Button>
         <Button 
-          onClick={handleImport} 
+          onClick={handleContinue} 
           disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId)}
           className="gap-2"
         >
@@ -287,6 +287,14 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           )}
         </Button>
       </div>
+
+      <FrameworkNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentName={defaultName}
+        onConfirm={handleImport}
+        saving={loading}
+      />
     </div>
   );
 };
