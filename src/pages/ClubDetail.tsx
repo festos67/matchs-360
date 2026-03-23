@@ -54,6 +54,7 @@ interface ClubFramework {
   id: string;
   name: string;
   themes_count: number;
+  skills_count: number;
 }
 
 export default function ClubDetail() {
@@ -148,17 +149,20 @@ export default function ClubDetail() {
       // Fetch club framework
       const { data: frameworkData } = await supabase
         .from("competence_frameworks")
-        .select("id, name, themes:themes(count)")
+        .select("id, name, themes:themes(id, skills(count))")
         .eq("club_id", id)
         .eq("is_template", true)
         .eq("is_archived", false)
         .maybeSingle();
       
       if (frameworkData) {
+        const themesArr = (frameworkData.themes as any[]) || [];
+        const skillsTotal = themesArr.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
         setClubFramework({
           id: frameworkData.id,
           name: frameworkData.name,
-          themes_count: (frameworkData.themes as any)?.[0]?.count || 0,
+          themes_count: themesArr.length,
+          skills_count: skillsTotal,
         });
       } else {
         setClubFramework(null);
@@ -304,7 +308,7 @@ export default function ClubDetail() {
                     <div>
                       <CardTitle className="text-base">{clubFramework.name}</CardTitle>
                       <CardDescription>
-                        {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""}
+                        {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
                       </CardDescription>
                     </div>
                   </div>
