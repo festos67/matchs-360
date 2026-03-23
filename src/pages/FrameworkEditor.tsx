@@ -28,6 +28,7 @@ import {
   History,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +88,7 @@ export default function FrameworkEditor() {
   const [team, setTeam] = useState<Team | null>(null);
   const [framework, setFramework] = useState<Framework | null>(null);
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [frameworkName, setFrameworkName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -161,7 +163,7 @@ export default function FrameworkEditor() {
 
       if (frameworkData) {
         setFramework(frameworkData);
-        
+        setFrameworkName(frameworkData.name);
         // Fetch themes with skills
         const { data: themesData } = await supabase
           .from("themes")
@@ -296,6 +298,12 @@ export default function FrameworkEditor() {
       } catch (snapError) {
         console.warn("Snapshot failed, continuing save:", snapError);
       }
+
+      // Update framework name
+      await supabase
+        .from("competence_frameworks")
+        .update({ name: frameworkName })
+        .eq("id", framework.id);
 
       // Save themes
       for (const theme of themes) {
@@ -467,11 +475,20 @@ export default function FrameworkEditor() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
             </Button>
-            <div>
-              <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-                <FileText className="w-6 h-6 text-primary" />
-                {framework?.name || "Référentiel"}
-              </h1>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <FileText className="w-6 h-6 text-primary flex-shrink-0" />
+                {canEdit ? (
+                  <Input
+                    value={frameworkName}
+                    onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
+                    placeholder="Nom du référentiel"
+                    className="text-2xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
+                  />
+                ) : (
+                  <h1 className="text-2xl font-display font-bold">{frameworkName || "Référentiel"}</h1>
+                )}
+              </div>
               <p className="text-muted-foreground text-sm">
                 {team.name} • {team.club?.name}
               </p>
