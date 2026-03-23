@@ -84,45 +84,55 @@ export const SortableSkill = ({
         <span className="flex-1 text-sm">{skill.name}</span>
       )}
 
-      <Popover open={showDefinition} onOpenChange={setShowDefinition}>
-        <PopoverTrigger asChild>
-          <button
-            className={`p-1.5 rounded hover:bg-muted transition-colors ${
-              skill.definition ? "text-primary" : "text-muted-foreground"
-            }`}
-          >
-            <Info className="w-4 h-4" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80" align="end">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm">Définition</h4>
+      <Tooltip>
+        <Popover open={showDefinition} onOpenChange={setShowDefinition}>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
               <button
-                className="p-1 rounded hover:bg-muted"
-                onClick={() => setShowDefinition(false)}
+                className={`flex items-center gap-1 px-1.5 py-1 rounded hover:bg-muted transition-colors text-xs ${
+                  skill.definition ? "text-primary" : "text-muted-foreground"
+                }`}
               >
-                <X className="w-4 h-4" />
+                <Info className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline opacity-60">Définition</span>
               </button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          {!showDefinition && skill.definition && (
+            <TooltipContent side="top" className="max-w-xs text-xs">
+              {skill.definition}
+            </TooltipContent>
+          )}
+          <PopoverContent className="w-80" align="end">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-sm">Définition</h4>
+                <button
+                  className="p-1 rounded hover:bg-muted"
+                  onClick={() => setShowDefinition(false)}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {canEdit ? (
+                <Textarea
+                  value={skill.definition || ""}
+                  onChange={(e) => onUpdate({ definition: e.target.value })}
+                  placeholder="Décrivez cette compétence..."
+                  rows={3}
+                  className="text-sm"
+                />
+              ) : skill.definition ? (
+                <p className="text-sm text-muted-foreground">{skill.definition}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  Aucune définition
+                </p>
+              )}
             </div>
-            {canEdit ? (
-              <Textarea
-                value={skill.definition || ""}
-                onChange={(e) => onUpdate({ definition: e.target.value })}
-                placeholder="Décrivez cette compétence..."
-                rows={3}
-                className="text-sm"
-              />
-            ) : skill.definition ? (
-              <p className="text-sm text-muted-foreground">{skill.definition}</p>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">
-                Aucune définition
-              </p>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      </Tooltip>
 
       {canEdit && (
         <button
