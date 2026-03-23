@@ -122,6 +122,11 @@ export default function PlayerDetail() {
     documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
   });
 
+  const handlePrintFramework = useReactToPrint({
+    contentRef: frameworkPrintRef,
+    documentTitle: `Referentiel_${teamMembership?.team?.name || "Equipe"}_${new Date().toLocaleDateString("fr-FR")}`,
+  });
+
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
