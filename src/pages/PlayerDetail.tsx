@@ -183,7 +183,7 @@ export default function PlayerDetail() {
         // Fetch framework
         const { data: framework } = await supabase
           .from("competence_frameworks")
-          .select("id")
+          .select("id, name")
           .eq("team_id", membership.team_id)
           .eq("is_archived", false)
           .maybeSingle();
