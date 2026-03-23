@@ -28,6 +28,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [defaultName, setDefaultName] = useState("");
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
