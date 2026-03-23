@@ -70,7 +70,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
             <div style={{ borderBottom: "1px solid #E5E7EB", height: "24px" }}></div>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "11px", color: "#6B7280", marginBottom: "4px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Évaluateur</div>
+            <div style={{ fontSize: "11px", color: "#6B7280", marginBottom: "4px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Observateur</div>
             <div style={{ borderBottom: "1px solid #E5E7EB", height: "24px" }}></div>
           </div>
         </div>
