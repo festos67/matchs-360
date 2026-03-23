@@ -347,6 +347,17 @@ export default function ClubDetail() {
                       <History className="w-4 h-4 mr-2" />
                       Historique
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrint();
+                      }}
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimer
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
