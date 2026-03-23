@@ -1119,13 +1119,8 @@ export default function PlayerDetail() {
               <ClipboardList className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground">Référentiel non configuré</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                L'équipe doit d'abord configurer son référentiel de compétences
+                Le référentiel de compétences de l'équipe doit d'abord être configuré par un coach ou administrateur
               </p>
-              {teamMembership && (
-                <Button className="mt-4" onClick={() => navigate(`/teams/${teamMembership.team_id}/framework`)}>
-                  Configurer le référentiel
-                </Button>
-              )}
             </div>
           )}
         </TabsContent>
