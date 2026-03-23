@@ -75,7 +75,7 @@ export function CreateClubFrameworkModal({
     }
   }, [open, clubId, fetchFrameworkStats]);
 
-
+  const fetchTeamsWithFrameworks = async () => {
     setLoadingTeams(true);
     try {
       const { data: teamsData } = await supabase
