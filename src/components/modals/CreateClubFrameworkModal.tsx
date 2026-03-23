@@ -201,7 +201,7 @@ export function CreateClubFrameworkModal({
         const { error } = await supabase.from("competence_frameworks").insert({
           club_id: clubId,
           team_id: null,
-          name: "Référentiel du Club",
+          name: frameworkName,
           is_template: true,
         });
 
