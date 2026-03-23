@@ -48,6 +48,8 @@ export function CreateClubFrameworkModal({
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [archivedFrameworks, setArchivedFrameworks] = useState<ArchivedFramework[]>([]);
   const [selectedArchivedId, setSelectedArchivedId] = useState<string>("");
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [defaultName, setDefaultName] = useState("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
