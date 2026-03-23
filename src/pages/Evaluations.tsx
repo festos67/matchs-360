@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Trophy, Search, Calendar, User, ChevronRight, Plus, X } from "lucide-react";
+import { Trophy, Search, Calendar, User, ChevronRight, Plus, X, ArrowLeft } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -169,6 +169,12 @@ export default function Evaluations() {
 
   return (
     <AppLayout>
+      {teamId && (
+        <Button variant="ghost" className="mb-4 -ml-2" onClick={() => navigate(`/teams/${teamId}`)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour à l'équipe{teamName ? ` ${teamName}` : ""}
+        </Button>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
