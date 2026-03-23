@@ -26,6 +26,7 @@ import {
   Users,
   FileQuestion,
   History,
+  Printer,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,8 @@ import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -98,6 +101,7 @@ export default function FrameworkEditor() {
   const [showNameModal, setShowNameModal] = useState(false);
 
   const newThemeInputRef = useRef<HTMLInputElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   // Check permissions
@@ -439,6 +443,11 @@ export default function FrameworkEditor() {
     toast.success("Référentiel importé avec succès");
   };
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: frameworkName || "Référentiel",
+  });
+
   if (authLoading || loading) {
     return (
       <AppLayout>
@@ -498,11 +507,19 @@ export default function FrameworkEditor() {
               </p>
             </div>
           </div>
-          {canEdit && framework && (
-            <Button variant="outline" size="sm" className="flex-shrink-0" onClick={() => setShowHistory(true)}>
-              <History className="w-4 h-4 mr-2" />
-              Historique
-            </Button>
+          {framework && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimer
+              </Button>
+              {canEdit && (
+                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                  <History className="w-4 h-4 mr-2" />
+                  Historique
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
@@ -627,6 +644,17 @@ export default function FrameworkEditor() {
         activeFrameworkId={framework?.id || null}
         onRestored={() => fetchData()}
       />
+
+      {/* Hidden printable component */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+        <PrintableFramework
+          ref={printRef}
+          frameworkName={frameworkName}
+          teamName={team?.name || ""}
+          clubName={team?.club?.name || ""}
+          themes={themes}
+        />
+      </div>
     </AppLayout>
   );
 }
