@@ -99,6 +99,12 @@ export default function ClubFrameworkEditor() {
   const [showNameModal, setShowNameModal] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: frameworkName || "Référentiel du Club",
+  });
 
   // Check permissions
   const isClubAdmin = club ? roles.some(r => r.role === "club_admin" && r.club_id === club.id) : false;
