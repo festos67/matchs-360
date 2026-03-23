@@ -344,12 +344,16 @@ export default function TeamDetail() {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    {canEditFramework && (
-                      <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
-                        <FileText className="w-4 h-4" />
-                        Éditer le référentiel
+                      <Button variant="outline" className="gap-2" onClick={() => handlePrintFramework()}>
+                        <Printer className="w-4 h-4" />
+                        Imprimer
                       </Button>
-                    )}
+                      {canEditFramework && (
+                        <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
+                          <FileText className="w-4 h-4" />
+                          Éditer le référentiel
+                        </Button>
+                      )}
                     {isAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
