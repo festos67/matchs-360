@@ -102,13 +102,30 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     }
   }, [selectedTeamId, fetchTeamStats]);
 
-  const handleImport = async () => {
+  const getDefaultName = () => {
+    if (selectedOption === "standard") return "Référentiel Standard";
+    if (selectedOption === "team" && selectedTeamId) {
+      const team = teams.find(t => t.id === selectedTeamId);
+      return `Référentiel basé sur ${team?.name || "équipe"}`;
+    }
+    if (selectedOption === "empty") return "Référentiel du Club";
+    return "Référentiel du Club";
+  };
+
+  const handleContinue = () => {
     if (!selectedOption) return;
+    setDefaultName(getDefaultName());
+    setShowNameModal(true);
+  };
+
+  const handleImport = async (confirmedName: string) => {
+    if (!selectedOption) return;
+    setShowNameModal(false);
     setLoading(true);
 
     try {
       let sourceFrameworkId: string | null = null;
-      let frameworkName = "Référentiel du Club";
+      const frameworkName = confirmedName;
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
