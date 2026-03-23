@@ -173,8 +173,22 @@ export default function ClubDetail() {
           themes_count: themesArr.length,
           skills_count: skillsTotal,
         });
+
+        // Fetch full themes with skills for printing
+        const { data: fullThemes } = await supabase
+          .from("themes")
+          .select("*, skills(*)")
+          .eq("framework_id", frameworkData.id)
+          .order("order_index");
+        if (fullThemes) {
+          setFrameworkThemes(fullThemes.map(t => ({
+            ...t,
+            skills: (t.skills || []).sort((a: any, b: any) => a.order_index - b.order_index),
+          })));
+        }
       } else {
         setClubFramework(null);
+        setFrameworkThemes([]);
       }
     } catch (error: any) {
       console.error("Error fetching club:", error);
