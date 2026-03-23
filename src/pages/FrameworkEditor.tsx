@@ -443,7 +443,11 @@ export default function FrameworkEditor() {
     toast.success("Référentiel importé avec succès");
   };
 
-  if (authLoading || loading) {
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: frameworkName || "Référentiel",
+  });
+
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
