@@ -38,6 +38,8 @@ import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelecto
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 import {
   AlertDialog,
   AlertDialogAction,
