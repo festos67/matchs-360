@@ -138,7 +138,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
                 backgroundColor: "#F9FAFB",
               }}>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                  🎯 Objectifs — {theme.name}
+                  🎯 Objectifs / Pour s'améliorer — {theme.name}
                 </div>
                 <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "22px" }}></div>
                 <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "22px", marginTop: "2px" }}></div>
