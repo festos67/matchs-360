@@ -547,6 +547,17 @@ export default function ClubDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Hidden printable component */}
+      <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+        <PrintableFramework
+          ref={printRef}
+          frameworkName={clubFramework?.name || "Référentiel du Club"}
+          teamName="Modèle du club"
+          clubName={club?.name || ""}
+          themes={frameworkThemes}
+        />
+      </div>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
         <AlertDialogContent>
