@@ -617,6 +617,14 @@ export default function ClubFrameworkEditor() {
         </div>
       )}
 
+      <FrameworkNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentName={frameworkName}
+        onConfirm={handleSave}
+        saving={saving}
+      />
+
       <FrameworkHistorySheet
         open={showHistory}
         onOpenChange={setShowHistory}
