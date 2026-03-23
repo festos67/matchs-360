@@ -689,7 +689,7 @@ export default function PlayerDetail() {
                   Avis supporter
                 </Button>
               )}
-            {canMutate && (
+              {canMutate && (
               <Button variant="outline" size="icon" onClick={() => setShowEditModal(true)}>
                 <Edit className="w-4 h-4" />
               </Button>
