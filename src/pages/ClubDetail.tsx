@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
