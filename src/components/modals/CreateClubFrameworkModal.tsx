@@ -380,7 +380,7 @@ export function CreateClubFrameworkModal({
               Annuler
             </Button>
             <Button
-              onClick={handleCreate}
+              onClick={handleContinue}
               disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId) || (selectedOption === "history" && !selectedArchivedId)}
               className="gap-2"
             >
@@ -393,6 +393,16 @@ export function CreateClubFrameworkModal({
                 </>
               )}
             </Button>
+          </div>
+        </div>
+
+        <FrameworkNameModal
+          open={showNameModal}
+          onOpenChange={setShowNameModal}
+          currentName={defaultName}
+          onConfirm={handleCreate}
+          saving={loading}
+        />
           </div>
         </div>
       </DialogContent>
