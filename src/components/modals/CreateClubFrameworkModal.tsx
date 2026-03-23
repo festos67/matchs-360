@@ -62,7 +62,20 @@ export function CreateClubFrameworkModal({
     return null;
   }, []);
 
-  const fetchTeamsWithFrameworks = async () => {
+  useEffect(() => {
+    if (open) {
+      fetchTeamsWithFrameworks();
+      fetchArchivedFrameworks();
+      fetchFrameworkStats(STANDARD_TEMPLATE_ID).then(stats => {
+        if (stats) setStandardStats(stats);
+      });
+      setSelectedOption(null);
+      setSelectedTeamId("");
+      setSelectedArchivedId("");
+    }
+  }, [open, clubId, fetchFrameworkStats]);
+
+
     setLoadingTeams(true);
     try {
       const { data: teamsData } = await supabase
