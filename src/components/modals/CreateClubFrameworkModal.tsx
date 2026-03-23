@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 
 interface Team {
   id: string;
@@ -47,6 +48,8 @@ export function CreateClubFrameworkModal({
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [archivedFrameworks, setArchivedFrameworks] = useState<ArchivedFramework[]>([]);
   const [selectedArchivedId, setSelectedArchivedId] = useState<string>("");
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [defaultName, setDefaultName] = useState("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
@@ -132,17 +135,42 @@ export function CreateClubFrameworkModal({
     return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
-  const handleCreate = async () => {
+  const getDefaultName = () => {
+    if (selectedOption === "standard") return "Référentiel Standard du Club";
+    if (selectedOption === "team" && selectedTeamId) {
+      const selectedTeam = teams.find(t => t.id === selectedTeamId);
+      return `Référentiel basé sur ${selectedTeam?.name || "équipe"}`;
+    }
+    if (selectedOption === "history") {
+      const fw = archivedFrameworks.find(f => f.id === selectedArchivedId);
+      return fw?.name || "Référentiel du Club";
+    }
+    if (selectedOption === "empty") return "Référentiel du Club";
+    return "Référentiel du Club";
+  };
+
+  const handleContinue = () => {
     if (!selectedOption) return;
+    // History option doesn't need naming - it restores as-is
+    if (selectedOption === "history" && selectedArchivedId) {
+      handleCreate(getDefaultName());
+      return;
+    }
+    setDefaultName(getDefaultName());
+    setShowNameModal(true);
+  };
+
+  const handleCreate = async (confirmedName: string) => {
+    if (!selectedOption) return;
+    setShowNameModal(false);
     setLoading(true);
 
     try {
       let sourceFrameworkId: string | null = null;
-      let frameworkName = "Référentiel du Club";
+      const frameworkName = confirmedName;
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
-        frameworkName = "Référentiel Standard du Club";
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -152,8 +180,6 @@ export function CreateClubFrameworkModal({
 
         if (teamFramework) {
           sourceFrameworkId = teamFramework.id;
-          const selectedTeam = teams.find(t => t.id === selectedTeamId);
-          frameworkName = `Référentiel basé sur ${selectedTeam?.name || "équipe"}`;
         } else {
           toast.error("Cette équipe n'a pas de référentiel");
           setLoading(false);
@@ -175,7 +201,7 @@ export function CreateClubFrameworkModal({
         const { error } = await supabase.from("competence_frameworks").insert({
           club_id: clubId,
           team_id: null,
-          name: "Référentiel du Club",
+          name: frameworkName,
           is_template: true,
         });
 
@@ -354,7 +380,7 @@ export function CreateClubFrameworkModal({
               Annuler
             </Button>
             <Button
-              onClick={handleCreate}
+              onClick={handleContinue}
               disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId) || (selectedOption === "history" && !selectedArchivedId)}
               className="gap-2"
             >
@@ -369,6 +395,14 @@ export function CreateClubFrameworkModal({
             </Button>
           </div>
         </div>
+
+        <FrameworkNameModal
+          open={showNameModal}
+          onOpenChange={setShowNameModal}
+          currentName={defaultName}
+          onConfirm={handleCreate}
+          saving={loading}
+        />
       </DialogContent>
     </Dialog>
   );

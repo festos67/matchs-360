@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 
 interface Template {
   id: string;
@@ -37,6 +38,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [defaultName, setDefaultName] = useState("");
 
   useEffect(() => {
     fetchClubTemplates();
@@ -85,37 +88,52 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     }
   };
 
-  const handleImport = async () => {
+  const getDefaultName = () => {
+    if (selectedOption === "standard") return "Référentiel Standard";
+    if (selectedOption === "club" && clubTemplates.length > 0) return clubTemplates[0].name;
+    if (selectedOption === "team" && selectedTeamId) {
+      const team = teams.find(t => t.id === selectedTeamId);
+      return `Référentiel basé sur ${team?.name || "équipe"}`;
+    }
+    if (selectedOption === "empty") return "Référentiel de compétences";
+    return "Référentiel de compétences";
+  };
+
+  const handleContinue = () => {
     if (!selectedOption) return;
+    setDefaultName(getDefaultName());
+    setShowNameModal(true);
+  };
+
+  const handleImport = async (confirmedName: string) => {
+    if (!selectedOption) return;
+    setShowNameModal(false);
     setLoading(true);
 
     try {
       let sourceFrameworkId: string | null = null;
-      let frameworkName = "Référentiel de compétences";
+      const frameworkName = confirmedName;
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
-        frameworkName = "Référentiel Standard";
       } else if (selectedOption === "club" && clubTemplates.length > 0) {
         sourceFrameworkId = clubTemplates[0].id;
-        frameworkName = clubTemplates[0].name;
       } else if (selectedOption === "team" && selectedTeamId) {
         // Get the framework from the selected team
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
-          .select("id, name")
+          .select("id")
           .eq("team_id", selectedTeamId)
           .maybeSingle();
         
         if (teamFramework) {
           sourceFrameworkId = teamFramework.id;
-          frameworkName = teamFramework.name;
         }
       } else if (selectedOption === "empty") {
         // Create empty framework
         const { error } = await supabase.from("competence_frameworks").insert({
           team_id: teamId,
-          name: "Référentiel de compétences",
+          name: frameworkName,
           is_template: false,
         });
         
@@ -276,7 +294,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
           Annuler
         </Button>
         <Button 
-          onClick={handleImport} 
+          onClick={handleContinue} 
           disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId)}
           className="gap-2"
         >
@@ -290,6 +308,14 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
           )}
         </Button>
       </div>
+
+      <FrameworkNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentName={defaultName}
+        onConfirm={handleImport}
+        saving={loading}
+      />
     </div>
   );
 };

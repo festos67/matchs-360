@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 
 interface Team {
   id: string;
@@ -27,6 +28,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [defaultName, setDefaultName] = useState("");
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
@@ -99,17 +102,33 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     }
   }, [selectedTeamId, fetchTeamStats]);
 
-  const handleImport = async () => {
+  const getDefaultName = () => {
+    if (selectedOption === "standard") return "Référentiel Standard";
+    if (selectedOption === "team" && selectedTeamId) {
+      const team = teams.find(t => t.id === selectedTeamId);
+      return `Référentiel basé sur ${team?.name || "équipe"}`;
+    }
+    if (selectedOption === "empty") return "Référentiel du Club";
+    return "Référentiel du Club";
+  };
+
+  const handleContinue = () => {
     if (!selectedOption) return;
+    setDefaultName(getDefaultName());
+    setShowNameModal(true);
+  };
+
+  const handleImport = async (confirmedName: string) => {
+    if (!selectedOption) return;
+    setShowNameModal(false);
     setLoading(true);
 
     try {
       let sourceFrameworkId: string | null = null;
-      let frameworkName = "Référentiel du Club";
+      const frameworkName = confirmedName;
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
-        frameworkName = "Référentiel Standard";
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -119,12 +138,11 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         
         if (teamFramework) {
           sourceFrameworkId = teamFramework.id;
-          frameworkName = teamFramework.name;
         }
       } else if (selectedOption === "empty") {
         const { error } = await supabase.from("competence_frameworks").insert({
           club_id: clubId,
-          name: "Référentiel du Club",
+          name: frameworkName,
           is_template: true,
         });
         
@@ -255,7 +273,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           Annuler
         </Button>
         <Button 
-          onClick={handleImport} 
+          onClick={handleContinue} 
           disabled={!selectedOption || loading || (selectedOption === "team" && !selectedTeamId)}
           className="gap-2"
         >
@@ -269,6 +287,14 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           )}
         </Button>
       </div>
+
+      <FrameworkNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentName={defaultName}
+        onConfirm={handleImport}
+        saving={loading}
+      />
     </div>
   );
 };
