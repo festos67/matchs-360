@@ -808,26 +808,35 @@ export default function PlayerDetail() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-muted/50">
-          <TabsTrigger value="radar">Vue Radar</TabsTrigger>
-          <TabsTrigger value="evaluation" disabled={isViewingHistory}>
-            <ClipboardList className="w-4 h-4 mr-2" />
+        <TabsList className="bg-muted h-12 p-1 rounded-lg w-full max-w-2xl">
+          <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <TrendingUp className="w-4 h-4" />
+            Radar
+          </TabsTrigger>
+          <TabsTrigger value="evaluation" disabled={isViewingHistory} className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <ClipboardList className="w-4 h-4" />
             Débrief
           </TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
+          <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <RotateCcw className="w-4 h-4" />
+            Historique
+          </TabsTrigger>
           {frameworkId && themes.length > 0 && (
-            <TabsTrigger value="framework" className="gap-2">
+            <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <BookOpen className="w-4 h-4" />
               Référentiel
             </TabsTrigger>
           )}
           {canEvaluate && (
-            <TabsTrigger value="invitations" className="gap-2">
+            <TabsTrigger value="invitations" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <Mail className="w-4 h-4" />
               Invitations
             </TabsTrigger>
           )}
-          <TabsTrigger value="advice">Conseils</TabsTrigger>
+          <TabsTrigger value="advice" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <Star className="w-4 h-4" />
+            Conseils
+          </TabsTrigger>
         </TabsList>
 
         {/* Radar Tab */}
