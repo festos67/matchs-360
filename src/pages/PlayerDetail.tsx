@@ -96,6 +96,7 @@ export default function PlayerDetail() {
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
+  const [frameworkName, setFrameworkName] = useState<string>("");
   const [themes, setThemes] = useState<Theme[]>([]);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
@@ -182,13 +183,14 @@ export default function PlayerDetail() {
         // Fetch framework
         const { data: framework } = await supabase
           .from("competence_frameworks")
-          .select("id")
+          .select("id, name")
           .eq("team_id", membership.team_id)
           .eq("is_archived", false)
           .maybeSingle();
 
         if (framework) {
           setFrameworkId(framework.id);
+          setFrameworkName(framework.name);
 
           // Fetch themes with skills
           const { data: themesData } = await supabase
@@ -1191,9 +1193,9 @@ export default function PlayerDetail() {
                     <BookOpen className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-display font-semibold">Référentiel de l'équipe</h2>
+                    <h2 className="text-xl font-display font-semibold">{frameworkName || "Référentiel de l'équipe"}</h2>
                     <p className="text-sm text-muted-foreground">
-                      {themes.length} thématique{themes.length > 1 ? "s" : ""} · {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétences
+                      {teamMembership?.team?.name} · {themes.length} thématique{themes.length > 1 ? "s" : ""} · {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétences
                     </p>
                   </div>
                 </div>
@@ -1239,7 +1241,7 @@ export default function PlayerDetail() {
             <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
               <PrintableFramework
                 ref={frameworkPrintRef}
-                frameworkName="Référentiel de compétences"
+                frameworkName={frameworkName || "Référentiel de compétences"}
                 teamName={teamMembership?.team?.name || ""}
                 clubName={teamMembership?.team?.club?.name || ""}
                 themes={themes}
