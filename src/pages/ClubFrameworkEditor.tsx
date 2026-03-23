@@ -25,6 +25,7 @@ import {
   FileQuestion,
   History,
   Trash2,
+  Printer,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
