@@ -90,6 +90,7 @@ export default function PlayerDetail() {
   const { user, loading: authLoading, isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
+  const frameworkPrintRef = useRef<HTMLDivElement>(null);
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
