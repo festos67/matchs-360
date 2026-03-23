@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Trophy, Search, Calendar, User, ChevronRight, Plus, X } from "lucide-react";
+import { Trophy, Search, Calendar, User, ChevronRight, Plus, X, ArrowLeft } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
