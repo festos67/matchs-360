@@ -502,11 +502,19 @@ export default function FrameworkEditor() {
               </p>
             </div>
           </div>
-          {canEdit && framework && (
-            <Button variant="outline" size="sm" className="flex-shrink-0" onClick={() => setShowHistory(true)}>
-              <History className="w-4 h-4 mr-2" />
-              Historique
-            </Button>
+          {framework && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="w-4 h-4 mr-2" />
+                Imprimer
+              </Button>
+              {canEdit && (
+                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                  <History className="w-4 h-4 mr-2" />
+                  Historique
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
