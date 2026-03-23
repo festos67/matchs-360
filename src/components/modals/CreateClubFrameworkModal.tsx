@@ -216,7 +216,9 @@ export function CreateClubFrameworkModal({
       id: "standard",
       icon: FileText,
       title: "Modèle Standard",
-      description: "Le référentiel MATCHS360 complet avec 5 thématiques et 15 compétences",
+      description: standardStats
+        ? `Le référentiel MATCHS360 complet avec ${standardStats.themes} thématiques et ${standardStats.skills} compétences`
+        : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
       disabled: false,
