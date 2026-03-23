@@ -403,8 +403,6 @@ export function CreateClubFrameworkModal({
           onConfirm={handleCreate}
           saving={loading}
         />
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
