@@ -26,45 +26,52 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
 
   useEffect(() => {
     fetchTeamsWithFrameworks();
     fetchStandardStats();
   }, [clubId]);
 
-  const fetchTeamsWithFrameworks = async () => {
-    const { data: teamsData } = await supabase
-      .from("teams")
-      .select("id, name")
-      .eq("club_id", clubId)
-      .is("deleted_at", null);
+  useEffect(() => {
+    if (selectedTeamId) {
+      fetchTeamStats(selectedTeamId);
+    } else {
+      setSelectedTeamStats(null);
+    }
+  }, [selectedTeamId]);
 
-    if (!teamsData) return;
-
-    const { data: frameworksData } = await supabase
-      .from("competence_frameworks")
-      .select("team_id")
-      .in("team_id", teamsData.map(t => t.id));
-
-    const teamsWithFrameworkIds = new Set(frameworksData?.map(f => f.team_id) || []);
-
-    const teamsWithInfo = teamsData.map(t => ({
-      ...t,
-      hasFramework: teamsWithFrameworkIds.has(t.id),
-    })).filter(t => t.hasFramework);
-
-    setTeams(teamsWithInfo);
-  };
-
-  const fetchStandardStats = async () => {
+  const fetchFrameworkStats = async (frameworkId: string) => {
     const { data: themes } = await supabase
       .from("themes")
       .select("id, skills(count)")
-      .eq("framework_id", STANDARD_TEMPLATE_ID);
+      .eq("framework_id", frameworkId);
     
     if (themes) {
       const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setStandardStats({ themes: themes.length, skills: totalSkills });
+      return { themes: themes.length, skills: totalSkills };
+    }
+    return null;
+  };
+
+  const fetchStandardStats = async () => {
+    const stats = await fetchFrameworkStats(STANDARD_TEMPLATE_ID);
+    if (stats) setStandardStats(stats);
+  };
+
+  const fetchTeamStats = async (teamId: string) => {
+    const { data: framework } = await supabase
+      .from("competence_frameworks")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (framework) {
+      const stats = await fetchFrameworkStats(framework.id);
+      setSelectedTeamStats(stats);
     }
   };
 
