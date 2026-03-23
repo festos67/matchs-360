@@ -83,6 +83,13 @@ export default function ClubDetail() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
+  const [frameworkThemes, setFrameworkThemes] = useState<any[]>([]);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: clubFramework?.name || "Référentiel du Club",
+  });
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
