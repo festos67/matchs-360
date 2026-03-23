@@ -112,6 +112,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
                     .sort((a, b) => a.order_index - b.order_index)
                     .map((skill, skillIndex) => (
                       <>
+                        {/* Row for each skill */}
                         <tr key={skill.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
                           <td style={{ padding: "8px 10px", fontSize: "12px", fontWeight: 600, verticalAlign: "top" }}>
                             {skill.name}
@@ -120,18 +121,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
                             {skill.definition || <span style={{ color: "#9CA3AF", fontStyle: "italic" }}>—</span>}
                           </td>
                           <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
-                            {/* Empty space for self-evaluation */}
                             <div style={{ minHeight: "28px" }}></div>
-                          </td>
-                        </tr>
-                        {/* Pour s'améliorer */}
-                        <tr key={`${skill.id}-improve`} style={{ borderBottom: skillIndex < theme.skills.length - 1 ? "2px solid #D1D5DB" : "1px solid #E5E7EB" }}>
-                          <td colSpan={3} style={{ padding: "4px 10px 10px 10px" }}>
-                            <div style={{ fontSize: "10px", fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "2px" }}>
-                              📝 Pour s'améliorer
-                            </div>
-                            <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "20px" }}></div>
-                            <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "20px", marginTop: "2px" }}></div>
                           </td>
                         </tr>
                       </>
@@ -148,7 +138,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
                 backgroundColor: "#F9FAFB",
               }}>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#374151", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                  🎯 Objectifs — {theme.name}
+                  🎯 Objectifs / Pour s'améliorer — {theme.name}
                 </div>
                 <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "22px" }}></div>
                 <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "22px", marginTop: "2px" }}></div>
