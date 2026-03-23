@@ -36,6 +36,7 @@ import { SortableTheme } from "@/components/framework/SortableTheme";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
+import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -92,7 +93,7 @@ export default function ClubFrameworkEditor() {
   const [hasChanges, setHasChanges] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-
+  const [showNameModal, setShowNameModal] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
@@ -267,8 +268,10 @@ export default function ClubFrameworkEditor() {
     setHasChanges(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (confirmedName: string) => {
     if (!framework) return;
+    setFrameworkName(confirmedName);
+    setShowNameModal(false);
     setSaving(true);
 
     try {
@@ -282,7 +285,7 @@ export default function ClubFrameworkEditor() {
       // Update framework name
       await supabase
         .from("competence_frameworks")
-        .update({ name: frameworkName })
+        .update({ name: confirmedName })
         .eq("id", framework.id);
 
       // Save themes
@@ -602,7 +605,7 @@ export default function ClubFrameworkEditor() {
       {canEdit && (
         <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
            <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-            <Button onClick={handleSave} disabled={saving || themes.length === 0}>
+            <Button onClick={() => setShowNameModal(true)} disabled={saving || themes.length === 0}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
               ) : (
@@ -613,6 +616,14 @@ export default function ClubFrameworkEditor() {
           </div>
         </div>
       )}
+
+      <FrameworkNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentName={frameworkName}
+        onConfirm={handleSave}
+        saving={saving}
+      />
 
       <FrameworkHistorySheet
         open={showHistory}

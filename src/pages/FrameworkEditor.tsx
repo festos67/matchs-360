@@ -37,6 +37,7 @@ import { SortableTheme } from "@/components/framework/SortableTheme";
 import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
+import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -94,6 +95,7 @@ export default function FrameworkEditor() {
   const [hasChanges, setHasChanges] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
 
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -287,8 +289,10 @@ export default function FrameworkEditor() {
     setHasChanges(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (confirmedName: string) => {
     if (!framework) return;
+    setFrameworkName(confirmedName);
+    setShowNameModal(false);
     setSaving(true);
 
     try {
@@ -302,7 +306,7 @@ export default function FrameworkEditor() {
       // Update framework name
       await supabase
         .from("competence_frameworks")
-        .update({ name: frameworkName })
+        .update({ name: confirmedName })
         .eq("id", framework.id);
 
       // Save themes
@@ -595,7 +599,7 @@ export default function FrameworkEditor() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button onClick={handleSave} disabled={saving || themes.length === 0}>
+            <Button onClick={() => setShowNameModal(true)} disabled={saving || themes.length === 0}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
               ) : (
@@ -606,6 +610,14 @@ export default function FrameworkEditor() {
           </div>
         </div>
       )}
+
+      <FrameworkNameModal
+        open={showNameModal}
+        onOpenChange={setShowNameModal}
+        currentName={frameworkName}
+        onConfirm={handleSave}
+        saving={saving}
+      />
 
       <FrameworkHistorySheet
         open={showHistory}
