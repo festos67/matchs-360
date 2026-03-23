@@ -268,8 +268,10 @@ export default function ClubFrameworkEditor() {
     setHasChanges(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (confirmedName: string) => {
     if (!framework) return;
+    setFrameworkName(confirmedName);
+    setShowNameModal(false);
     setSaving(true);
 
     try {
