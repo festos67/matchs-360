@@ -101,6 +101,7 @@ export default function FrameworkEditor() {
   const [showNameModal, setShowNameModal] = useState(false);
 
   const newThemeInputRef = useRef<HTMLInputElement>(null);
+  const printRef = useRef<HTMLDivElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   // Check permissions
