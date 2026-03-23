@@ -483,6 +483,15 @@ export default function TeamDetail() {
           />
         </div>
       )}
+
+      <FrameworkHistorySheet
+        open={showFrameworkHistory}
+        onOpenChange={setShowFrameworkHistory}
+        entityId={id!}
+        entityType="team"
+        activeFrameworkId={framework?.id || null}
+        onRestored={() => fetchTeamData()}
+      />
     </AppLayout>
   );
 }
