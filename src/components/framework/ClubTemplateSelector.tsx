@@ -142,7 +142,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       } else if (selectedOption === "empty") {
         const { error } = await supabase.from("competence_frameworks").insert({
           club_id: clubId,
-          name: "Référentiel du Club",
+          name: frameworkName,
           is_template: true,
         });
         
