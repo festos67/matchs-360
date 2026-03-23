@@ -148,7 +148,9 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       icon: Users,
       title: "Copier une équipe",
       description: teams.length > 0 
-        ? "Dupliquer le référentiel d'une équipe du club" 
+        ? selectedTeamStats 
+          ? `Dupliquer le référentiel d'une équipe\n${selectedTeamStats.themes} thématiques et ${selectedTeamStats.skills} compétences`
+          : "Dupliquer le référentiel d'une équipe du club" 
         : "Aucune équipe avec référentiel disponible",
       color: "text-warning",
       bgColor: "bg-warning/10",
