@@ -285,7 +285,7 @@ export default function ClubFrameworkEditor() {
       // Update framework name
       await supabase
         .from("competence_frameworks")
-        .update({ name: frameworkName })
+        .update({ name: confirmedName })
         .eq("id", framework.id);
 
       // Save themes
