@@ -180,8 +180,6 @@ export function CreateClubFrameworkModal({
 
         if (teamFramework) {
           sourceFrameworkId = teamFramework.id;
-          const selectedTeam = teams.find(t => t.id === selectedTeamId);
-          frameworkName = `Référentiel basé sur ${selectedTeam?.name || "équipe"}`;
         } else {
           toast.error("Cette équipe n'a pas de référentiel");
           setLoading(false);
