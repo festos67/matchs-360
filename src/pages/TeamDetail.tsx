@@ -336,34 +336,40 @@ export default function TeamDetail() {
             <>
               {/* Framework summary */}
               <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl font-display font-semibold">{framework.name}</h2>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      {framework.themes.length} thème{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
-                    </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-display font-semibold">{framework.name}</h2>
+                      <p className="text-muted-foreground text-sm">
+                        {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                      <Button variant="outline" className="gap-2" onClick={() => handlePrintFramework()}>
-                        <Printer className="w-4 h-4" />
-                        Imprimer
+                  <div className="flex items-center gap-2">
+                    {canEditFramework && (
+                      <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
+                        <Edit className="w-4 h-4" />
+                        Éditer
                       </Button>
-                      {canEditFramework && (
-                        <Button className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
-                          <FileText className="w-4 h-4" />
-                          Éditer le référentiel
-                        </Button>
-                      )}
+                    )}
+                    <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrintFramework()}>
+                      <Printer className="w-4 h-4" />
+                      Imprimer
+                    </Button>
                     {isAdmin && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon">
-                            <Trash2 className="w-4 h-4" />
+                          <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
+                            <RotateCcw className="w-4 h-4" />
+                            Réinitialiser
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Supprimer le référentiel ?</AlertDialogTitle>
+                            <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
                             <AlertDialogDescription>
                               Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
                             </AlertDialogDescription>
@@ -371,7 +377,7 @@ export default function TeamDetail() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Annuler</AlertDialogCancel>
                             <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                              Supprimer
+                              Réinitialiser
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
