@@ -199,6 +199,7 @@ export const CreateEvaluationModal = ({
         .from("competence_frameworks")
         .select("id")
         .eq("team_id", selectedTeam)
+        .eq("is_archived", false)
         .maybeSingle();
 
       if (!framework) {

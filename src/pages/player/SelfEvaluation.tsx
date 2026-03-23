@@ -94,6 +94,7 @@ export default function SelfEvaluation() {
         .from("competence_frameworks")
         .select("id")
         .eq("team_id", team.id)
+        .eq("is_archived", false)
         .maybeSingle();
 
       if (frameworkError) throw frameworkError;
