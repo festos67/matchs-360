@@ -87,6 +87,7 @@ export default function FrameworkEditor() {
   const [team, setTeam] = useState<Team | null>(null);
   const [framework, setFramework] = useState<Framework | null>(null);
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [frameworkName, setFrameworkName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
