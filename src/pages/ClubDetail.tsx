@@ -336,16 +336,16 @@ export default function ClubDetail() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
+                    <Button 
+                      variant="outline" 
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setShowFrameworkHistory(true);
+                        navigate(`/clubs/${club.id}/framework`);
                       }}
                     >
-                      <History className="w-4 h-4 mr-2" />
-                      Historique
+                      <Edit className="w-4 h-4 mr-2" />
+                      Éditer
                     </Button>
                     <Button
                       variant="outline"
@@ -358,16 +358,16 @@ export default function ClubDetail() {
                       <Printer className="w-4 h-4 mr-2" />
                       Imprimer
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/clubs/${club.id}/framework`);
+                        setShowFrameworkHistory(true);
                       }}
                     >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Éditer
+                      <History className="w-4 h-4 mr-2" />
+                      Historique
                     </Button>
                     <Button
                       variant="outline"
