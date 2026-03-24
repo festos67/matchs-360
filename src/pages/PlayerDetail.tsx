@@ -102,7 +102,7 @@ export default function PlayerDetail() {
   const [frameworkName, setFrameworkName] = useState<string>("");
    const [themes, setThemes] = useState<Theme[]>([]); // current active framework themes (for new evals)
    const [displayThemes, setDisplayThemes] = useState<Theme[]>([]); // themes for the selected evaluation's framework
-   const [displayThemesCache, setDisplayThemesCache] = useState<Record<string, Theme[]>>({}); // cache by framework_id
+   const themesCache = useRef<Record<string, Theme[]>>({});
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
