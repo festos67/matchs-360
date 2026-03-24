@@ -192,6 +192,8 @@ export function EvaluationHistory({
         className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
           isArchived
             ? "bg-destructive/5 border border-destructive/20 opacity-70"
+            : isOldFramework
+            ? "opacity-60 bg-muted/20 hover:bg-muted/30"
             : isSelected
             ? "bg-primary/10 border border-primary/30"
             : isCompared
