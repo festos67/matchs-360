@@ -112,8 +112,19 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [hasBeenModified, setHasBeenModified] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  
+  const generateDefaultName = () => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const timeStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const num = evaluationNumber ?? "–";
+    const coach = coachName || "";
+    return `Débrief N°${num} – ${playerName} – ${coach} – ${dateStr} ${timeStr}`;
+  };
+  
   const [evaluationName, setEvaluationName] = useState(
-    existingEvaluation?.name || `MATCHS360-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
+    existingEvaluation?.name || generateDefaultName()
   );
 
   // Initialize scores state
