@@ -326,17 +326,45 @@ export function EvaluationHistory({
             </div>
           )}
           {canEvaluate && isArchived && (
+            <div className="flex items-center gap-2">
+              {onPrintEvaluation && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPrintEvaluation(evaluation);
+                  }}
+                >
+                  <Printer className="w-4 h-4 mr-1" />
+                  Imprimer
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2 text-success border-success/30 hover:bg-success/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRestoreEvaluation(evaluation.id);
+                }}
+              >
+                <ArchiveRestore className="w-4 h-4" />
+                Restaurer
+              </Button>
+            </div>
+          )}
+          {!isCoachType && !isArchived && onPrintEvaluation && (
             <Button
               size="sm"
               variant="outline"
-              className="gap-2 text-success border-success/30 hover:bg-success/10"
               onClick={(e) => {
                 e.stopPropagation();
-                handleRestoreEvaluation(evaluation.id);
+                onPrintEvaluation(evaluation);
               }}
             >
-              <ArchiveRestore className="w-4 h-4" />
-              Restaurer
+              <Printer className="w-4 h-4 mr-1" />
+              Imprimer
             </Button>
           )}
         </div>
