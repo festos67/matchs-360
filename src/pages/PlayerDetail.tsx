@@ -726,11 +726,6 @@ export default function PlayerDetail() {
                   Avis supporter
                 </Button>
               )}
-              {selectedEvaluation && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => handlePrint()} title="Imprimer ou exporter la fiche résultat">
-                  <Download className="w-3.5 h-3.5 text-primary" />Imprimer résultat
-                </Button>
-              )}
             </div>
             <div className="flex flex-col gap-1.5">
               {canMutate && (
@@ -840,22 +835,30 @@ export default function PlayerDetail() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-muted h-12 p-1 rounded-lg w-full max-w-2xl">
-          <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-            <TrendingUp className="w-4 h-4" />
-            Résultat
-          </TabsTrigger>
-          <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-            <RotateCcw className="w-4 h-4" />
-            Historique
-          </TabsTrigger>
-          {frameworkId && themes.length > 0 && (
-            <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-              <BookOpen className="w-4 h-4" />
-              Référentiel
+        <div className="flex items-center gap-3 max-w-2xl">
+          <TabsList className="bg-muted h-12 p-1 rounded-lg flex-1">
+            <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+              <TrendingUp className="w-4 h-4" />
+              Résultat
             </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+              <RotateCcw className="w-4 h-4" />
+              Historique
+            </TabsTrigger>
+            {frameworkId && themes.length > 0 && (
+              <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+                <BookOpen className="w-4 h-4" />
+                Référentiel
+              </TabsTrigger>
+            )}
+          </TabsList>
+          {selectedEvaluation && (
+            <Button variant="outline" size="sm" className="h-10 gap-2" onClick={() => handlePrint()} title="Imprimer ou exporter la fiche résultat">
+              <Download className="w-4 h-4" />
+              Imprimer résultat
+            </Button>
           )}
-        </TabsList>
+        </div>
 
         {/* Radar Tab */}
         <TabsContent value="radar" className="space-y-6">
