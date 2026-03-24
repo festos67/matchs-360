@@ -716,18 +716,6 @@ export default function PlayerDetail() {
         Retour
       </Button>
 
-      {/* History viewing banner */}
-      {isViewingHistory && (
-        <div className="mb-4 p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
-          <span className="text-sm text-warning">
-            📜 Vous consultez un débrief passé: <strong>{selectedEvaluation?.name}</strong>
-          </span>
-          <Button size="sm" variant="outline" onClick={handleReturnToCurrent} className="gap-2">
-            <RotateCcw className="w-4 h-4" />
-            Retour à la version actuelle
-          </Button>
-        </div>
-      )}
 
       {/* Player Header */}
       <div className="glass-card p-8 mb-8">
@@ -1086,6 +1074,17 @@ export default function PlayerDetail() {
 
         {/* Radar Tab */}
         <TabsContent value="radar" className="space-y-6">
+          {isViewingHistory && (
+            <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
+              <span className="text-sm text-warning">
+                📜 Vous consultez un débrief passé: <strong>{selectedEvaluation?.name}</strong>
+              </span>
+              <Button size="sm" variant="outline" onClick={handleReturnToCurrent} className="gap-2">
+                <RotateCcw className="w-4 h-4" />
+                Retour à la version actuelle
+              </Button>
+            </div>
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 glass-card p-6">
               <div className="flex items-center justify-between mb-4">
