@@ -1258,6 +1258,13 @@ export default function PlayerDetail() {
                 fetchPlayerData();
               }}
               readOnly={!canEvaluate || isViewingHistory}
+              coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
+              evaluationNumber={(() => {
+                const coachEvals = evaluations
+                  .filter(e => e.type === "coach_assessment" && !e.deleted_at)
+                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                return isCreatingNew ? coachEvals.length + 1 : coachEvals.findIndex(e => e.id === selectedEvaluation?.id) + 1;
+              })()}
             />
           ) : (
             <div className="glass-card p-12 text-center">
