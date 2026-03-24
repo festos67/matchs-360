@@ -103,6 +103,7 @@ export default function PlayerDetail() {
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newEvalKey, setNewEvalKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [canEvaluate, setCanEvaluate] = useState(false);
   const [canMutate, setCanMutate] = useState(false);
