@@ -6,7 +6,7 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
   Tooltip,
-  Legend,
+  
 } from "recharts";
 
 interface RadarDataPoint {
