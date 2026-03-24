@@ -796,14 +796,14 @@ export default function PlayerDetail() {
                 )}
                 {/* Débrief joueur */}
                 {canEvaluate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" onClick={() => { toast.info("Demande d'auto-débrief envoyée au joueur"); }} title="Envoyer une demande d'auto-débrief au joueur">
-                    <Star className="w-4 h-4 text-emerald-500" />
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10" onClick={() => { toast.info("Demande d'auto-débrief envoyée au joueur"); }} title="Envoyer une demande d'auto-débrief au joueur">
+                    <Star className="w-4 h-4" />
                     Débrief joueur
                   </Button>
                 )}
                 {/* Débrief supporter */}
                 {canEvaluate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-warning/50 text-white bg-warning/80 hover:bg-warning/90" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
                     <Heart className="w-4 h-4" />
                     Débrief supporter
                   </Button>
