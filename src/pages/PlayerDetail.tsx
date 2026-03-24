@@ -743,12 +743,12 @@ export default function PlayerDetail() {
 
           <div className="flex items-start gap-2">
             <div className="flex flex-col gap-1.5">
-              {/* Row 1: Débrief - full width */}
+              {/* Row 1: Débrief coach - full width */}
               {canEvaluate && teamMembership && !isViewingHistory && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="lg" className="w-full gap-3 justify-center bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-medium text-2xl px-10 h-14" title="Créer un nouveau débrief pour ce joueur">
-                      <Plus className="w-6 h-6" />Débrief
+                    <Button size="lg" className="w-full gap-3 justify-center bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-medium text-2xl px-10 h-14" title="Créer un nouveau débrief coach pour ce joueur">
+                      <Plus className="w-6 h-6" />Débrief coach
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -792,17 +792,26 @@ export default function PlayerDetail() {
                   </AlertDialogContent>
                 </AlertDialog>
               )}
-              {/* Row 2: Supporter + Avis supporter side by side */}
+              {/* Row 2: Débrief joueur */}
               {canEvaluate && teamMembership && (
-                <div className="flex gap-1.5">
-                  <Button variant="outline" size="sm" className="gap-2 justify-center flex-1" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
-                    <Plus className="w-3.5 h-3.5 text-primary" />Supporter
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2 justify-center flex-1 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un avis d'évaluation à un supporter">
-                    <Heart className="w-3.5 h-3.5" />
-                    Avis supporter
-                  </Button>
-                </div>
+                <Button variant="outline" size="sm" className="w-full gap-2 justify-center" onClick={() => { /* TODO: send self-eval request to player */ toast.info("Demande d'auto-débrief envoyée au joueur"); }} title="Envoyer une demande d'auto-débrief au joueur">
+                  <Star className="w-3.5 h-3.5 text-emerald-500" />
+                  Débrief joueur
+                </Button>
+              )}
+              {/* Row 3: Débrief supporter */}
+              {canEvaluate && teamMembership && (
+                <Button variant="outline" size="sm" className="w-full gap-2 justify-center border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
+                  <Heart className="w-3.5 h-3.5" />
+                  Débrief supporter
+                </Button>
+              )}
+              {/* Row 4: Supporter management */}
+              {canEvaluate && teamMembership && (
+                <Button variant="outline" size="sm" className="w-full gap-2 justify-center" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
+                  <Users className="w-3.5 h-3.5 text-primary" />
+                  Supporter
+                </Button>
               )}
               {/* Row 3: Demande de transfert - full width */}
               {canMutate && teamMembership && (
