@@ -40,6 +40,12 @@ interface Evaluation {
   }>;
 }
 
+interface ComparisonDatasetForPrint {
+  label: string;
+  data: Array<{ theme: string; score: number; color: string }>;
+  color: string;
+}
+
 interface PrintablePlayerSheetProps {
   player: {
     first_name: string | null;
@@ -59,6 +65,7 @@ interface PrintablePlayerSheetProps {
   themes: Theme[];
   progressionPercent?: number | null;
   previousEvaluationDate?: string | null;
+  comparisonDatasets?: ComparisonDatasetForPrint[];
 }
 
 // Bleu primaire de l'interface numérique
