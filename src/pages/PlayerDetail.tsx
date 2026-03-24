@@ -698,36 +698,36 @@ export default function PlayerDetail() {
 
           <div className="flex items-start gap-2">
             {selectedEvaluation && (
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrint()}>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrint()} title="Exporter la fiche joueur en PDF">
                 <Download className="w-4 h-4" />
                 Télécharger PDF
               </Button>
             )}
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && !isViewingHistory && (
-                <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }} title="Créer un nouveau débrief pour ce joueur">
                   <Plus className="w-4 h-4" />+ Débrief
                 </Button>
               )}
               {canEvaluate && teamMembership && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)}>
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
                   <Plus className="w-3.5 h-3.5 text-primary" />Supporter
                 </Button>
               )}
               {canMutate && teamMembership && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowMutationModal(true)}>
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
                   <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Mutation
                 </Button>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setActiveTab("invitations")}>
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setActiveTab("invitations")} title="Voir et envoyer des invitations par email">
                   <Mail className="w-3.5 h-3.5 text-primary" />Invitations
                 </Button>
               )}
               {canEvaluate && teamMembership && (
-                <Button variant="outline" size="sm" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)}>
+                <Button variant="outline" size="sm" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un avis d'évaluation à un supporter">
                   <Heart className="w-3.5 h-3.5" />
                   Avis supporter
                 </Button>
@@ -735,7 +735,7 @@ export default function PlayerDetail() {
             </div>
             <div className="flex flex-col gap-1.5">
               {canMutate && (
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowEditModal(true)}>
+                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowEditModal(true)} title="Modifier les informations du joueur">
                   <Edit className="w-4 h-4" />
                 </Button>
               )}
