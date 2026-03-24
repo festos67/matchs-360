@@ -931,8 +931,8 @@ export default function PlayerDetail() {
                           ? `Comparaison: ${sources.join(" vs ")}` 
                           : "Sélectionnez au moins une source";
                       })()
-                    ) : showComparison && comparisonIds.some(id => id !== previousCoachEvaluation?.id) ? (
-                      `${selectedEvaluation?.name || "Évaluation"} + ${comparisonIds.filter(id => id !== previousCoachEvaluation?.id).length} comparaison(s)`
+                    ) : selectedEvaluation ? (
+                      selectedEvaluation.name
                     ) : selectedEvaluation ? (
                       selectedEvaluation.name
                     ) : (
