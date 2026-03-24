@@ -129,7 +129,7 @@ const formatDateFr = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
-  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate }, ref) => {
+  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [] }, ref) => {
     const getPlayerName = () => {
       if (player.nickname) return player.nickname;
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
