@@ -479,10 +479,28 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       {!readOnly && (
         <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
           <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-            <Button variant="outline" onClick={handleReset} disabled={saving}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Réinitialiser
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={saving}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Réinitialiser
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Réinitialiser le débrief</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Toutes les notes et commentaires saisis seront effacés. Cette action est irréversible.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Réinitialiser
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
