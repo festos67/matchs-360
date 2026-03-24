@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, Mail, ChevronUp, Save } from "lucide-react";
+import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, ChevronUp, Save } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -18,7 +18,7 @@ import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
-import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
+
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -804,11 +804,6 @@ export default function PlayerDetail() {
             </div>
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setActiveTab("invitations")} title="Voir et envoyer des invitations par email">
-                  <Mail className="w-3.5 h-3.5 text-primary" />Invitations
-                </Button>
-              )}
-              {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un avis d'évaluation à un supporter">
                   <Heart className="w-3.5 h-3.5" />
                   Avis supporter
@@ -897,6 +892,13 @@ export default function PlayerDetail() {
           playerName={getPlayerName()}
           clubId={teamMembership.team.club_id}
           onSuccess={fetchPlayerData}
+          onViewEvaluation={(evaluationId) => {
+            const evaluation = evaluations.find(e => e.id === evaluationId);
+            if (evaluation) {
+              setShowSupportersModal(false);
+              handleViewEvaluation(evaluation);
+            }
+          }}
         />
       )}
 
@@ -1312,21 +1314,7 @@ export default function PlayerDetail() {
           />
         </TabsContent>
 
-        {/* Invitations Tab - Only for staff (admin/coach) */}
-        {canEvaluate && (
-          <TabsContent value="invitations">
-            <SupporterRequestsPanel
-              playerId={id!}
-              playerName={getPlayerName()}
-              onViewEvaluation={(evaluationId) => {
-                const evaluation = evaluations.find(e => e.id === evaluationId);
-                if (evaluation) {
-                  handleViewEvaluation(evaluation);
-                }
-              }}
-            />
-          </TabsContent>
-        )}
+
 
         {/* Framework Tab */}
         {frameworkId && themes.length > 0 && (
