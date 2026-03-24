@@ -199,6 +199,20 @@ export default function PlayerDetail() {
         setCanEvaluate(isAdmin || isClubAdmin || !!coachMembership);
         setCanMutate(isAdmin || isClubAdmin);
 
+        // Fetch referent coach
+        const { data: referentData } = await supabase
+          .from("team_members")
+          .select("user:profiles!team_members_user_id_fkey(first_name, last_name)")
+          .eq("team_id", membership.team_id)
+          .eq("member_type", "coach")
+          .eq("coach_role", "referent")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (referentData?.user) {
+          setReferentCoach(referentData.user as any);
+        }
+
         // Fetch framework
         const { data: framework } = await supabase
           .from("competence_frameworks")
