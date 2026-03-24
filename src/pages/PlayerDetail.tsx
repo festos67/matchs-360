@@ -824,7 +824,7 @@ export default function PlayerDetail() {
         <TabsList className="bg-muted h-12 p-1 rounded-lg w-full max-w-2xl">
           <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <TrendingUp className="w-4 h-4" />
-            Radar
+            Résultat
           </TabsTrigger>
           <TabsTrigger value="evaluation" disabled={isViewingHistory} className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <ClipboardList className="w-4 h-4" />
