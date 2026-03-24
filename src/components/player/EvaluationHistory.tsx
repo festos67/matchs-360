@@ -119,22 +119,13 @@ export function EvaluationHistory({
   const activeCoachEvaluations = coachEvaluations.filter(e => !e.deleted_at);
 
   const getEvaluationScore = (evaluation: Evaluation) => {
-    const themeScores: ThemeScores[] = themes.map(theme => ({
-      theme_id: theme.id,
-      theme_name: theme.name,
-      theme_color: theme.color,
-      skills: theme.skills.map(skill => {
-        const score = evaluation.scores.find(s => s.skill_id === skill.id);
-        return {
-          skill_id: skill.id,
-          score: score?.score ?? null,
-          is_not_observed: score?.is_not_observed ?? false,
-          comment: null,
-        };
-      }),
-      objective: null,
-    }));
-    return formatAverage(calculateOverallAverage(themeScores));
+    // Calculate score directly from evaluation scores (independent of current framework themes)
+    const validScores = evaluation.scores.filter(
+      s => !s.is_not_observed && s.score !== null && s.score > 0
+    );
+    if (validScores.length === 0) return "-";
+    const avg = validScores.reduce((acc, s) => acc + (s.score || 0), 0) / validScores.length;
+    return avg.toFixed(1);
   };
 
   const handleDeleteEvaluation = async (evaluationId: string) => {
