@@ -136,6 +136,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 
   // Update handlers - track modifications
   const handleScoreChange = (themeId: string, skillId: string, score: number) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId
