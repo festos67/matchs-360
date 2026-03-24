@@ -813,7 +813,7 @@ export default function PlayerDetail() {
                   Supporter
                 </Button>
               )}
-              {/* Row 3: Demande de transfert - full width */}
+              {/* Row 5: Demande de transfert - full width */}
               {canMutate && teamMembership && (
                 <Button variant="outline" size="sm" className="w-full gap-2 justify-center" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
                   <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Demande de transfert
