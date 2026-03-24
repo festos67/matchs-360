@@ -257,6 +257,8 @@ export default function PlayerDetail() {
               skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
             }));
             setThemes(sortedThemes);
+            setSelectedEvalThemes(sortedThemes);
+            setThemesCache(prev => ({ ...prev, [framework.id]: sortedThemes }));
           }
         }
       }
