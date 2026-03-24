@@ -659,7 +659,6 @@ export default function PlayerDetail() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl font-display font-bold">{getPlayerName()}</h1>
-              {teamMembership && <Badge variant="secondary">{teamMembership.team.name}</Badge>}
             </div>
             <p className="text-muted-foreground">{player.email}</p>
             {teamMembership && (
