@@ -152,6 +152,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   };
 
   const handleNotObservedChange = (themeId: string, skillId: string, isNotObserved: boolean) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId
