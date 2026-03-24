@@ -902,12 +902,18 @@ export default function PlayerDetail() {
                   {canEvaluate && !showComparison && (
                     <>
                       {/* Dernier débrief layer */}
-                      {latestCoachEvaluation && (
+                      {previousCoachEvaluation && (
                         <div className="flex items-center gap-2">
                           <Checkbox
                             id="coach-layer"
-                            checked={showCoachLayer}
-                            onCheckedChange={(checked) => setShowCoachLayer(checked as boolean)}
+                            checked={comparisonIds.includes(previousCoachEvaluation.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setComparisonIds(prev => [...prev, previousCoachEvaluation.id]);
+                              } else {
+                                setComparisonIds(prev => prev.filter(id => id !== previousCoachEvaluation.id));
+                              }
+                            }}
                           />
                           <Label 
                             htmlFor="coach-layer" 
