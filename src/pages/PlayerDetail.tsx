@@ -858,12 +858,6 @@ export default function PlayerDetail() {
               Référentiel
             </TabsTrigger>
           )}
-          {canEvaluate && (
-            <TabsTrigger value="invitations" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-              <Mail className="w-4 h-4" />
-              Invitations
-            </TabsTrigger>
-          )}
         </TabsList>
 
         {/* Radar Tab */}
