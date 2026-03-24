@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown, Shield, User, Users, UserCircle, Heart } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,8 +52,20 @@ const roleConfig = {
   },
 };
 
+const getDashboardPath = (role: string) => {
+  switch (role) {
+    case "admin": return "/admin/dashboard";
+    case "club_admin": return "/club/dashboard";
+    case "coach": return "/coach/dashboard";
+    case "player": return "/player/dashboard";
+    case "supporter": return "/supporter/dashboard";
+    default: return "/dashboard";
+  }
+};
+
 export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherProps) => {
   const [clubNames, setClubNames] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchClubNames();
@@ -83,6 +96,12 @@ export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherP
   const config = roleConfig[current.role];
   const Icon = config.icon;
 
+  const handleRoleSwitch = (role: UserRole) => {
+    onRoleChange(role);
+    // Navigate to the appropriate dashboard for the selected role
+    navigate(getDashboardPath(role.role));
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -108,7 +127,7 @@ export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherP
           return (
             <DropdownMenuItem
               key={role.id}
-              onClick={() => onRoleChange(role)}
+              onClick={() => handleRoleSwitch(role)}
               className={isActive ? "bg-primary/10" : ""}
             >
               <RoleIcon className={`w-4 h-4 mr-2 ${roleConf.color}`} />
