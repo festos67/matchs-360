@@ -697,12 +697,6 @@ export default function PlayerDetail() {
           </div>
 
           <div className="flex items-start gap-2">
-            {selectedEvaluation && (
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrint()} title="Exporter la fiche joueur en PDF">
-                <Download className="w-4 h-4" />
-                Télécharger PDF
-              </Button>
-            )}
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && !isViewingHistory && (
                 <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }} title="Créer un nouveau débrief pour ce joueur">
