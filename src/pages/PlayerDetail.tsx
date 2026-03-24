@@ -726,6 +726,11 @@ export default function PlayerDetail() {
                   Avis supporter
                 </Button>
               )}
+              {selectedEvaluation && (
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => handlePrint()} title="Imprimer ou exporter la fiche résultat">
+                  <Download className="w-3.5 h-3.5 text-primary" />Imprimer résultat
+                </Button>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               {canMutate && (
