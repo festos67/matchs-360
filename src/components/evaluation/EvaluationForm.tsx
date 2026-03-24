@@ -88,6 +88,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 }, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [hasBeenModified, setHasBeenModified] = useState(false);
   const [evaluationName, setEvaluationName] = useState(
     existingEvaluation?.name || `MATCHS360-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
   );
