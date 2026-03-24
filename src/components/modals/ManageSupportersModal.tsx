@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Heart, Plus, Trash2, UserPlus } from "lucide-react";
+import { Heart, Plus, Trash2, UserPlus, Mail } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -41,6 +42,7 @@ interface ManageSupportersModalProps {
   playerName: string;
   clubId: string;
   onSuccess?: () => void;
+  onViewEvaluation?: (evaluationId: string) => void;
 }
 
 export const ManageSupportersModal = ({
@@ -50,6 +52,7 @@ export const ManageSupportersModal = ({
   playerName,
   clubId,
   onSuccess,
+  onViewEvaluation,
 }: ManageSupportersModalProps) => {
   const [loading, setLoading] = useState(false);
   const [supporters, setSupporters] = useState<Supporter[]>([]);
@@ -165,7 +168,7 @@ export const ManageSupportersModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -176,13 +179,17 @@ export const ManageSupportersModal = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="list">
               Supporters ({supporters.length})
             </TabsTrigger>
             <TabsTrigger value="add">
               <Plus className="w-4 h-4 mr-2" />
               Ajouter
+            </TabsTrigger>
+            <TabsTrigger value="invitations">
+              <Mail className="w-4 h-4 mr-2" />
+              Invitations
             </TabsTrigger>
           </TabsList>
 
@@ -305,6 +312,14 @@ export const ManageSupportersModal = ({
                 </Button>
               </div>
             </form>
+          </TabsContent>
+
+          <TabsContent value="invitations" className="mt-4">
+            <SupporterRequestsPanel
+              playerId={playerId}
+              playerName={playerName}
+              onViewEvaluation={onViewEvaluation}
+            />
           </TabsContent>
         </Tabs>
       </DialogContent>
