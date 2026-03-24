@@ -184,6 +184,7 @@ export function EvaluationHistory({
     const isCompared = comparisonIds.includes(evaluation.id);
     const isCurrent = isCoachType && activeCoachEvaluations[0]?.id === evaluation.id;
     const isArchived = !!evaluation.deleted_at;
+    const isOldFramework = currentFrameworkId ? evaluation.framework_id !== currentFrameworkId : false;
 
     return (
       <div
