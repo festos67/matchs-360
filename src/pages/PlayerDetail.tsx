@@ -375,14 +375,14 @@ export default function PlayerDetail() {
     }));
   };
 
-  // For stats display, use latest COACH evaluation only (not self-assessments)
+  // For stats display, use latest COACH evaluation on CURRENT framework only
   const latestOfficialEvaluation = evaluations.find(
-    e => e.type === "coach_assessment" && !e.deleted_at
+    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
   
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
-  // Overall average for header stats = official evaluation only
-  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(latestOfficialEvaluation || null));
+  // Overall average for header stats = official evaluation on current framework only
+  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(latestOfficialEvaluation || null, themes));
 
   // Build comparison datasets
   const getComparisonDatasets = () => {
