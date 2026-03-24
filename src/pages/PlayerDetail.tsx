@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
+import { EvaluationForm, type EvaluationFormHandle } from "@/components/evaluation/EvaluationForm";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
