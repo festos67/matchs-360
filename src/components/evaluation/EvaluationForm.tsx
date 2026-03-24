@@ -170,6 +170,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   };
 
   const handleCommentChange = (themeId: string, skillId: string, comment: string) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId
