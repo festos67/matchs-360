@@ -494,8 +494,10 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  <AlertDialogAction onClick={handleReset} className="bg-muted text-muted-foreground hover:bg-muted/80 border border-border">
+                    Réinitialiser
+                  </AlertDialogAction>
+                  <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90 border-0">
                     Réinitialiser
                   </AlertDialogAction>
                 </AlertDialogFooter>
