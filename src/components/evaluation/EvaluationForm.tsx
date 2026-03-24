@@ -1,4 +1,12 @@
 import { useState, useEffect, useMemo, forwardRef, useImperativeHandle, useRef } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Save, RotateCcw, FileText, Calendar, Loader2 } from "lucide-react";
 import {
   AlertDialog,
@@ -78,6 +86,8 @@ interface EvaluationFormProps {
   previousScores?: Record<string, number | null>;
   onSaved?: () => void;
   readOnly?: boolean;
+  coachName?: string;
+  evaluationNumber?: number;
 }
 
 export interface EvaluationFormHandle {
@@ -96,12 +106,25 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   previousScores,
   onSaved,
   readOnly = false,
+  coachName,
+  evaluationNumber,
 }, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [hasBeenModified, setHasBeenModified] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  
+  const generateDefaultName = () => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const timeStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const num = evaluationNumber ?? "–";
+    const coach = coachName || "";
+    return `Débrief N°${num} – ${playerName} – ${coach} – ${dateStr} ${timeStr}`;
+  };
+  
   const [evaluationName, setEvaluationName] = useState(
-    existingEvaluation?.name || `MATCHS360-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
+    existingEvaluation?.name || generateDefaultName()
   );
 
   // Initialize scores state
@@ -503,7 +526,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={() => { setEvaluationName(existingEvaluation?.name || generateDefaultName()); setShowSaveDialog(true); }} disabled={saving}>
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
@@ -514,6 +537,35 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           </div>
         </div>
       )}
+
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enregistrer le débrief</DialogTitle>
+            <DialogDescription>
+              Confirmez ou modifiez le nom du débrief avant de sauvegarder.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="eval-name">Nom du débrief</Label>
+            <Input
+              id="eval-name"
+              value={evaluationName}
+              onChange={(e) => setEvaluationName(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={() => { setShowSaveDialog(false); handleSave(); }} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
