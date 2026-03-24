@@ -397,6 +397,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                                 {scoreData?.is_not_observed && (
                                   <span style={{ marginLeft: "6px", fontSize: "10px", color: "#9ca3af" }}>(Non observé)</span>
                                 )}
+                                {skill.definition && (
+                                  <div style={{ fontSize: "9px", color: "#6b7280", marginTop: "1px", lineHeight: 1.3, fontStyle: "italic" }}>
+                                    {skill.definition}
+                                  </div>
+                                )}
                               </td>
                               <td style={{ padding: "5px 10px", textAlign: "right" }}>
                                 {scoreData?.is_not_observed ? (
