@@ -41,9 +41,9 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
 
         {/* Header */}
         <div style={{ borderBottom: "3px solid #3B82F6", paddingBottom: "14px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-            <Activity style={{ width: "22px", height: "22px", color: "#3B82F6" }} />
-            <span style={{ fontSize: "15px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1px" }}>MATCHS360</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            <Activity style={{ width: "30px", height: "30px", color: "#3B82F6" }} />
+            <span style={{ fontSize: "20px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1.5px" }}>MATCHS360</span>
           </div>
           <h1 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 10px 0", lineHeight: 1.2 }}>{frameworkName}</h1>
           <div style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.8 }}>
