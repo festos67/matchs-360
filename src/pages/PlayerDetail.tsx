@@ -24,6 +24,7 @@ import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeS
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Player {
   id: string;
