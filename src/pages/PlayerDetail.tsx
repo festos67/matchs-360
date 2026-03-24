@@ -24,6 +24,7 @@ import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeS
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Player {
   id: string;
@@ -1161,89 +1162,118 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          {/* Objectives & Advice section from selected evaluation */}
+          {/* Detailed skills breakdown */}
           {selectedEvaluation && (
-            (selectedEvaluation.objectives?.length > 0 || selectedEvaluation.scores?.some(s => s.comment)) && (
-              <div className="glass-card p-6 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    <h3 className="font-display font-semibold text-lg">Objectifs & Conseils</h3>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {new Date(selectedEvaluation.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                  </Badge>
-                </div>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-primary" />
+                <h3 className="font-display font-semibold text-lg">Détail des compétences</h3>
+                <Badge variant="outline" className="text-xs ml-auto">
+                  {new Date(selectedEvaluation.date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                </Badge>
+              </div>
 
-                {/* Objectifs par thématique */}
-                {selectedEvaluation.objectives && selectedEvaluation.objectives.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4" />
-                      Objectifs par thématique
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedEvaluation.objectives.map((objective) => {
-                        const theme = themes.find(t => t.id === objective.theme_id);
+              {themes.map((theme) => {
+                const themeScoreData = getRadarDataFromEvaluation(selectedEvaluation).find(ts => ts.theme_id === theme.id);
+                if (!themeScoreData) return null;
+
+                const themeAvg = themeScoreData.skills.filter(s => !s.is_not_observed && s.score !== null && s.score > 0);
+                const avgScore = themeAvg.length > 0
+                  ? themeAvg.reduce((acc, s) => acc + (s.score || 0), 0) / themeAvg.length
+                  : null;
+
+                const hasComments = themeScoreData.skills.some(s => s.comment);
+                const objective = themeScoreData.objective;
+
+                return (
+                  <div key={theme.id} className="glass-card overflow-hidden">
+                    {/* Theme header */}
+                    <div 
+                      className="flex items-center justify-between px-4 py-3"
+                      style={{ backgroundColor: `${theme.color || "#3B82F6"}15` }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.color || "#3B82F6" }} />
+                        <span className="font-semibold text-sm">{theme.name}</span>
+                      </div>
+                      <span className="font-bold text-sm" style={{ color: theme.color || "#3B82F6" }}>
+                        {formatAverage(avgScore)}/5
+                      </span>
+                    </div>
+
+                    {/* Skills rows */}
+                    <div className="divide-y divide-border">
+                      {theme.skills.map((skill) => {
+                        const scoreData = themeScoreData.skills.find(s => s.skill_id === skill.id);
                         return (
-                          <div 
-                            key={objective.theme_id} 
-                            className="p-4 rounded-lg border-l-4 bg-muted/30"
-                            style={{ borderLeftColor: theme?.color || "#3B82F6" }}
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <div 
-                                className="w-2.5 h-2.5 rounded-full shrink-0" 
-                                style={{ backgroundColor: theme?.color || "#3B82F6" }} 
-                              />
-                              <span className="text-sm font-semibold text-foreground">{theme?.name || "Thème"}</span>
+                          <div key={skill.id} className="px-4 py-2.5 flex items-center justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <span className={cn("text-sm", scoreData?.is_not_observed && "text-muted-foreground")}>
+                                {skill.name}
+                              </span>
+                              {scoreData?.is_not_observed && (
+                                <span className="ml-2 text-xs text-muted-foreground">(Non observé)</span>
+                              )}
                             </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">
-                              {objective.content}
-                            </p>
+                            <div className="shrink-0">
+                              {scoreData?.is_not_observed ? (
+                                <span className="text-xs text-muted-foreground">N/O</span>
+                              ) : (
+                                <div className="flex items-center gap-0.5">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={cn(
+                                        "w-4 h-4",
+                                        star <= (scoreData?.score || 0)
+                                          ? "fill-warning text-warning"
+                                          : "fill-transparent text-muted-foreground/30"
+                                      )}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
-                )}
 
-                {/* Conseils par compétence */}
-                {selectedEvaluation.scores?.filter(s => s.comment).length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4" />
-                      Conseils par compétence
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedEvaluation.scores
-                        .filter(s => s.comment)
-                        .map((score) => {
-                          const skill = themes.flatMap(t => t.skills).find(s => s.id === score.skill_id);
-                          const theme = themes.find(t => t.skills.some(s => s.id === score.skill_id));
-                          return (
-                            <div 
-                              key={score.skill_id} 
-                              className="p-4 rounded-lg bg-primary/5 border border-primary/10"
-                            >
-                              <div className="flex items-center gap-2 mb-2">
-                                <div 
-                                  className="w-2 h-2 rounded-full shrink-0" 
-                                  style={{ backgroundColor: theme?.color || "hsl(var(--primary))" }} 
-                                />
-                                <span className="text-sm font-medium text-foreground">{skill?.name || "Compétence"}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">
-                                {score.comment}
-                              </p>
-                            </div>
-                          );
-                        })}
-                    </div>
+                    {/* Comments section */}
+                    {hasComments && (
+                      <div className="px-4 py-3 bg-muted/30 border-t border-border">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          Conseils
+                        </p>
+                        <div className="space-y-1">
+                          {themeScoreData.skills
+                            .filter(s => s.comment)
+                            .map(s => {
+                              const skill = theme.skills.find(sk => sk.id === s.skill_id);
+                              return (
+                                <p key={s.skill_id} className="text-sm text-muted-foreground">
+                                  <strong className="text-foreground">{skill?.name} :</strong> {s.comment}
+                                </p>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Objective section */}
+                    {objective && (
+                      <div className="px-4 py-3 bg-primary/5 border-t border-border">
+                        <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1.5">
+                          🎯 Objectifs
+                        </p>
+                        <p className="text-sm text-muted-foreground">{objective}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )
+                );
+              })}
+            </div>
           )}
         </TabsContent>
 
