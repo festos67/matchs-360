@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
+// Score calculation is now done directly from evaluation scores
 
 interface Evaluation {
   id: string;
