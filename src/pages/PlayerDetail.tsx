@@ -1190,7 +1190,7 @@ export default function PlayerDetail() {
           {frameworkId && themes.length > 0 ? (
             <EvaluationForm
               ref={evaluationFormRef}
-              key={isCreatingNew ? "new" : (selectedEvaluation?.id || "empty")}
+              key={isCreatingNew ? `new-${newEvalKey}` : (selectedEvaluation?.id || "empty")}
               playerId={player.id}
               playerName={getPlayerName()}
               teamId={teamMembership?.team_id || ""}
