@@ -74,6 +74,7 @@ interface EvaluationHistoryProps {
   comparisonIds: string[];
   teamColor: string;
   canEvaluate: boolean;
+  currentFrameworkId: string | null;
   onViewEvaluation: (evaluation: Evaluation) => void;
   onEditEvaluation: (evaluation: Evaluation) => void;
   onToggleComparison: (evalId: string) => void;
@@ -96,6 +97,7 @@ export function EvaluationHistory({
   comparisonIds,
   teamColor,
   canEvaluate,
+  currentFrameworkId,
   onViewEvaluation,
   onEditEvaluation,
   onToggleComparison,
