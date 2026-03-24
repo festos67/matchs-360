@@ -1174,7 +1174,7 @@ export default function PlayerDetail() {
             <div className="glass-card p-6">
               <h3 className="font-display font-semibold mb-4">Détail par thématique</h3>
               <div className="space-y-4">
-                {themes.map((theme) => {
+                {displayThemes.map((theme) => {
                   const themeData = radarData.find(d => d.theme === theme.name);
                   return (
                     <div key={theme.id}>
