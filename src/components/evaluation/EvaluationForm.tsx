@@ -124,11 +124,17 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
     }));
   });
 
+  // Expose save and hasChanges to parent via ref
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+    hasChanges: () => hasBeenModified,
+  }));
+
   // Calculate radar data in real-time
   const radarData = useMemo(() => calculateRadarData(themeScores), [themeScores]);
   const overallAverage = useMemo(() => calculateOverallAverage(themeScores), [themeScores]);
 
-  // Update handlers
+  // Update handlers - track modifications
   const handleScoreChange = (themeId: string, skillId: string, score: number) => {
     setThemeScores((prev) =>
       prev.map((theme) =>
