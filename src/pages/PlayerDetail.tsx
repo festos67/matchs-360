@@ -160,6 +160,40 @@ export default function PlayerDetail() {
     if (user && id) fetchPlayerData();
   }, [user, id]);
 
+  // Load themes from the selected evaluation's framework (for correct display of old evals)
+  const loadThemesForFramework = useCallback(async (fwId: string): Promise<Theme[]> => {
+    if (displayThemesCache[fwId]) return displayThemesCache[fwId];
+    
+    const { data: themesData } = await supabase
+      .from("themes")
+      .select("*, skills(*)")
+      .eq("framework_id", fwId)
+      .order("order_index");
+
+    if (themesData) {
+      const sorted = themesData.map(theme => ({
+        ...theme,
+        skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
+      }));
+      setDisplayThemesCache(prev => ({ ...prev, [fwId]: sorted }));
+      return sorted;
+    }
+    return [];
+  }, [displayThemesCache]);
+
+  useEffect(() => {
+    if (!selectedEvaluation) {
+      setDisplayThemes(themes);
+      return;
+    }
+    const fwId = selectedEvaluation.framework_id;
+    if (!fwId) {
+      setDisplayThemes(themes);
+      return;
+    }
+    loadThemesForFramework(fwId).then(setDisplayThemes);
+  }, [selectedEvaluation, themes]);
+
   const fetchPlayerData = async () => {
     try {
       // Fetch player profile
