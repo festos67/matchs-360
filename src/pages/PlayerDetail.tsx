@@ -856,7 +856,14 @@ export default function PlayerDetail() {
       )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(newTab) => {
+        // Intercept tab change if evaluation is in progress
+        if (activeTab === "evaluation" && newTab !== "evaluation" && evaluationFormRef.current?.hasChanges()) {
+          setPendingTabChange(newTab);
+          return;
+        }
+        setActiveTab(newTab);
+      }} className="space-y-6">
         <div className="flex items-center gap-3 max-w-2xl">
           <TabsList className="bg-muted h-12 p-1 rounded-lg flex-1">
             <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
