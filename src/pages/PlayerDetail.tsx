@@ -1212,7 +1212,7 @@ export default function PlayerDetail() {
                 </Badge>
               </div>
 
-              {themes.map((theme) => {
+              {displayThemes.map((theme) => {
                 const themeScoreData = getRadarDataFromEvaluation(selectedEvaluation).find(ts => ts.theme_id === theme.id);
                 if (!themeScoreData) return null;
 
