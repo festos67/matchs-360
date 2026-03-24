@@ -442,7 +442,11 @@ export default function PlayerDetail() {
 
   const handleViewEvaluation = async (evaluation: Evaluation) => {
     setSelectedEvaluation(evaluation);
-    setIsViewingHistory(evaluation.id !== evaluations[0]?.id);
+    // Consider "viewing history" only if it's not the latest coach eval on current framework
+    const latestCoachOnCurrentFw = evaluations.find(
+      e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+    );
+    setIsViewingHistory(evaluation.id !== latestCoachOnCurrentFw?.id);
     // Load correct themes for this evaluation's framework
     if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
       const evalThemes = await fetchThemesForFramework(evaluation.framework_id);
