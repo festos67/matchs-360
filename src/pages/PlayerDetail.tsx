@@ -328,11 +328,12 @@ export default function PlayerDetail() {
     return player.first_name || player.last_name || "Joueur";
   };
 
-  // Calculate radar data from selected evaluation
-  const getRadarDataFromEvaluation = (evaluation: Evaluation | null): ThemeScores[] => {
-    if (!evaluation || themes.length === 0) return [];
+  // Calculate radar data from selected evaluation using appropriate themes
+  const getRadarDataFromEvaluation = (evaluation: Evaluation | null, useThemes?: Theme[]): ThemeScores[] => {
+    const themesToUse = useThemes || displayThemes;
+    if (!evaluation || themesToUse.length === 0) return [];
     
-    return themes.map(theme => ({
+    return themesToUse.map(theme => ({
       theme_id: theme.id,
       theme_name: theme.name,
       theme_color: theme.color,
