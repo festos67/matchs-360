@@ -673,15 +673,15 @@ export default function PlayerDetail() {
             evaluation={selectedEvaluation}
             themes={selectedEvalThemes}
             progressionPercent={(() => {
-              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment" && e.framework_id === frameworkId);
               if (activeCoachEvals.length < 2) return null;
-              const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0]));
-              const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1]));
+              const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0], themes));
+              const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1], themes));
               if (currentAvg === null || previousAvg === null || previousAvg === 0) return null;
               return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
             })()}
             previousEvaluationDate={(() => {
-              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment" && e.framework_id === frameworkId);
               return activeCoachEvals.length >= 2 ? activeCoachEvals[1].date : null;
             })()}
             comparisonDatasets={comparisonDatasets
