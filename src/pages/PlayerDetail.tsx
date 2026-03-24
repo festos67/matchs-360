@@ -742,7 +742,7 @@ export default function PlayerDetail() {
               {isAdmin && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon" className="h-9 w-9">
+                    <Button variant="destructive" size="icon" className="h-9 w-9" title="Supprimer définitivement ce joueur">
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </AlertDialogTrigger>
