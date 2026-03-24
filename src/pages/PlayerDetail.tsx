@@ -399,6 +399,12 @@ export default function PlayerDetail() {
   const latestCoachEvaluation = evaluations.find(
     e => e.type === "coach_assessment" && !e.deleted_at
   );
+
+  // Get the PREVIOUS (second latest) coach evaluation for "Dernier débrief" button
+  const coachEvaluations = evaluations.filter(
+    e => e.type === "coach_assessment" && !e.deleted_at
+  );
+  const previousCoachEvaluation = coachEvaluations.length >= 2 ? coachEvaluations[1] : null;
   
   // Build datasets for self-evaluation overlay (2-way comparison)
   const getSelfEvalOverlayDatasets = () => {
