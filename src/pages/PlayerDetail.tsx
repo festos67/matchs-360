@@ -883,7 +883,7 @@ export default function PlayerDetail() {
                   {/* Multi-source checkboxes for admin/coach (god view) */}
                   {canEvaluate && !showComparison && (
                     <>
-                      {/* Coach layer */}
+                      {/* Dernier débrief layer */}
                       {latestCoachEvaluation && (
                         <div className="flex items-center gap-2">
                           <Checkbox
@@ -896,7 +896,7 @@ export default function PlayerDetail() {
                             className="text-sm cursor-pointer flex items-center gap-1.5"
                           >
                             <ClipboardList className="w-4 h-4 text-primary" />
-                            Coach
+                            Dernier débrief
                           </Label>
                         </div>
                       )}
