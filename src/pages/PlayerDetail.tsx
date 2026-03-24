@@ -311,11 +311,33 @@ export default function PlayerDetail() {
     return player.first_name || player.last_name || "Joueur";
   };
 
-  // Calculate radar data from selected evaluation
-  const getRadarDataFromEvaluation = (evaluation: Evaluation | null): ThemeScores[] => {
-    if (!evaluation || themes.length === 0) return [];
+  // Helper to fetch themes for a given framework (with caching)
+  const fetchThemesForFramework = async (fwId: string): Promise<Theme[]> => {
+    if (themesCache[fwId]) return themesCache[fwId];
     
-    return themes.map(theme => ({
+    const { data: themesData } = await supabase
+      .from("themes")
+      .select("*, skills(*)")
+      .eq("framework_id", fwId)
+      .order("order_index");
+    
+    if (!themesData) return [];
+    
+    const sorted = themesData.map(theme => ({
+      ...theme,
+      skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
+    }));
+    
+    setThemesCache(prev => ({ ...prev, [fwId]: sorted }));
+    return sorted;
+  };
+
+  // Calculate radar data from evaluation using specific themes
+  const getRadarDataFromEvaluation = (evaluation: Evaluation | null, useThemes?: Theme[]): ThemeScores[] => {
+    const t = useThemes || selectedEvalThemes;
+    if (!evaluation || t.length === 0) return [];
+    
+    return t.map(theme => ({
       theme_id: theme.id,
       theme_name: theme.name,
       theme_color: theme.color,
