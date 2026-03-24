@@ -21,7 +21,7 @@ interface Club {
 }
 
 export default function Clubs() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin } = useAuth();
   const navigate = useNavigate();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);

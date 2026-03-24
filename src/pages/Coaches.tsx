@@ -33,7 +33,7 @@ interface CoachData {
 }
 
 const Coaches = () => {
-  const { isAdmin, currentRole, user } = useAuth();
+  const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
   const [coaches, setCoaches] = useState<CoachData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState<CoachData | null>(null);

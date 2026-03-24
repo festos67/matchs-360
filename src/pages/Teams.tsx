@@ -25,7 +25,7 @@ import {
 import { toast } from "sonner";
 
 const Teams = () => {
-  const { user, isAdmin, currentRole, roles } = useAuth();
+  const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);

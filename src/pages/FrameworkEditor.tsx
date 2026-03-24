@@ -86,7 +86,7 @@ interface Team {
 
 export default function FrameworkEditor() {
   const { teamId } = useParams<{ teamId: string }>();
-  const { user, loading: authLoading, isAdmin, roles } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
 
   const [team, setTeam] = useState<Team | null>(null);

@@ -20,7 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, loading, isAdmin, profile } = useAuth();
+  const { user, loading, hasAdminRole: isAdmin, profile } = useAuth();
 
   // Redirect if not admin
   useEffect(() => {
