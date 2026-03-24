@@ -708,56 +708,56 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2">
-            <div className="flex flex-col gap-1.5">
-              {canEvaluate && teamMembership && !isViewingHistory && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" title="Créer un nouveau débrief pour ce joueur">
-                      <Plus className="w-4 h-4" />Débrief
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {hasDraftEvaluation
-                          ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
-                          : `Voulez-vous créer un nouveau débrief pour ${getPlayerName()} ?`
-                        }
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      {hasDraftEvaluation ? (
-                        <>
-                          <AlertDialogAction onClick={() => {
-                            setIsCreatingNew(true);
-                            setNewEvalKey(k => k + 1);
-                            setHasDraftEvaluation(false);
-                            setActiveTab("evaluation");
-                          }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                            Nouveau débrief
-                          </AlertDialogAction>
-                          <AlertDialogAction onClick={() => {
-                            setIsCreatingNew(false);
-                            setHasDraftEvaluation(false);
-                            setActiveTab("evaluation");
-                          }}>
-                            Poursuivre le débrief
-                          </AlertDialogAction>
-                        </>
-                      ) : (
-                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
-                          Confirmer
+          <div className="flex flex-col items-end gap-2">
+            {canEvaluate && teamMembership && !isViewingHistory && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="default" className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg font-semibold text-base px-6 py-3" title="Créer un nouveau débrief pour ce joueur">
+                    <Plus className="w-5 h-5" />Débrief
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {hasDraftEvaluation
+                        ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
+                        : `Voulez-vous créer un nouveau débrief pour ${getPlayerName()} ?`
+                      }
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    {hasDraftEvaluation ? (
+                      <>
+                        <AlertDialogAction onClick={() => {
+                          setIsCreatingNew(true);
+                          setNewEvalKey(k => k + 1);
+                          setHasDraftEvaluation(false);
+                          setActiveTab("evaluation");
+                        }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                          Nouveau débrief
                         </AlertDialogAction>
-                      )}
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+                        <AlertDialogAction onClick={() => {
+                          setIsCreatingNew(false);
+                          setHasDraftEvaluation(false);
+                          setActiveTab("evaluation");
+                        }}>
+                          Poursuivre le débrief
+                        </AlertDialogAction>
+                      </>
+                    ) : (
+                      <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
+                        Confirmer
+                      </AlertDialogAction>
+                    )}
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
                   <Plus className="w-3.5 h-3.5 text-primary" />Supporter
