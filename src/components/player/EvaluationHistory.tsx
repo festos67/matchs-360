@@ -192,6 +192,8 @@ export function EvaluationHistory({
         className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
           isArchived
             ? "bg-destructive/5 border border-destructive/20 opacity-70"
+            : isOldFramework
+            ? "opacity-60 bg-muted/20 hover:bg-muted/30"
             : isSelected
             ? "bg-primary/10 border border-primary/30"
             : isCompared
@@ -331,6 +333,20 @@ export function EvaluationHistory({
                 </AlertDialogContent>
               </AlertDialog>
             </div>
+          )}
+          {/* Old framework coach evals: print only, no edit */}
+          {canEvaluate && !isArchived && isCoachType && isOldFramework && onPrintEvaluation && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrintEvaluation(evaluation);
+              }}
+            >
+              <Printer className="w-4 h-4 mr-1" />
+              Imprimer
+            </Button>
           )}
           {canEvaluate && isArchived && (
             <div className="flex items-center gap-2">
