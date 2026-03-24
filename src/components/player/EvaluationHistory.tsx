@@ -99,6 +99,7 @@ export function EvaluationHistory({
   onEditEvaluation,
   onToggleComparison,
   onRefresh,
+  onPrintEvaluation,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
 
