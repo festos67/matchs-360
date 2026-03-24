@@ -40,6 +40,12 @@ interface Evaluation {
   }>;
 }
 
+interface ComparisonDatasetForPrint {
+  label: string;
+  data: Array<{ theme: string; score: number; color: string }>;
+  color: string;
+}
+
 interface PrintablePlayerSheetProps {
   player: {
     first_name: string | null;
@@ -59,6 +65,7 @@ interface PrintablePlayerSheetProps {
   themes: Theme[];
   progressionPercent?: number | null;
   previousEvaluationDate?: string | null;
+  comparisonDatasets?: ComparisonDatasetForPrint[];
 }
 
 // Bleu primaire de l'interface numérique
@@ -122,7 +129,7 @@ const formatDateFr = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
-  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate }, ref) => {
+  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [] }, ref) => {
     const getPlayerName = () => {
       if (player.nickname) return player.nickname;
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
@@ -286,7 +293,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </h2>
             <div style={{ width: "100%", height: "340px", display: "flex", justifyContent: "center" }}>
               <div style={{ width: "100%", maxWidth: "520px", height: "100%" }}>
-                <PrintableRadarChart data={radarData} />
+                <PrintableRadarChart data={radarData} comparisonDatasets={comparisonDatasets} />
               </div>
             </div>
           </div>

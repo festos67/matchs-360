@@ -595,6 +595,13 @@ export default function PlayerDetail() {
               const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
               return activeCoachEvals.length >= 2 ? activeCoachEvals[1].date : null;
             })()}
+            comparisonDatasets={comparisonDatasets
+              .filter(ds => !ds.isCurrent)
+              .map(ds => ({
+                label: ds.label,
+                data: ds.data,
+                color: ds.color,
+              }))}
           />
         )}
       </div>
