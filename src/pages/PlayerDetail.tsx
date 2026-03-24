@@ -796,10 +796,33 @@ export default function PlayerDetail() {
                 )}
                 {/* Débrief joueur */}
                 {canEvaluate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10" onClick={() => { toast.info("Demande d'auto-débrief envoyée au joueur"); }} title="Envoyer une demande d'auto-débrief au joueur">
-                    <Star className="w-4 h-4" />
-                    Débrief joueur
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10" title="Envoyer une demande d'auto-débrief au joueur">
+                        <Star className="w-4 h-4" />
+                        Débrief joueur
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Demande d'auto-débrief</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Envoyer une demande d'auto-débrief à {getPlayerName()} ? Le joueur recevra une notification pour réaliser son auto-évaluation.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-emerald-500 text-white hover:bg-emerald-600"
+                          onClick={() => {
+                            toast.success("Demande d'auto-débrief envoyée au joueur");
+                          }}
+                        >
+                          Envoyer la demande
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
                 {/* Débrief supporter */}
                 {canEvaluate && teamMembership && (
