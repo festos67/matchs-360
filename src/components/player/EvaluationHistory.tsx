@@ -39,6 +39,7 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
+  framework_id: string;
   type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
@@ -73,6 +74,7 @@ interface EvaluationHistoryProps {
   comparisonIds: string[];
   teamColor: string;
   canEvaluate: boolean;
+  currentFrameworkId: string | null;
   onViewEvaluation: (evaluation: Evaluation) => void;
   onEditEvaluation: (evaluation: Evaluation) => void;
   onToggleComparison: (evalId: string) => void;
@@ -95,6 +97,7 @@ export function EvaluationHistory({
   comparisonIds,
   teamColor,
   canEvaluate,
+  currentFrameworkId,
   onViewEvaluation,
   onEditEvaluation,
   onToggleComparison,
@@ -181,6 +184,7 @@ export function EvaluationHistory({
     const isCompared = comparisonIds.includes(evaluation.id);
     const isCurrent = isCoachType && activeCoachEvaluations[0]?.id === evaluation.id;
     const isArchived = !!evaluation.deleted_at;
+    const isOldFramework = currentFrameworkId ? evaluation.framework_id !== currentFrameworkId : false;
 
     return (
       <div
@@ -244,15 +248,18 @@ export function EvaluationHistory({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>
-                {evaluation.name}
-              </p>
-              {isArchived && (
-                <Badge variant="destructive" className="text-xs">Archivée</Badge>
-              )}
-              {isCurrent && !isArchived && (
-                <Badge variant="secondary" className="text-xs">Actuelle</Badge>
-              )}
+               <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>
+                 {evaluation.name}
+               </p>
+               {isArchived && (
+                 <Badge variant="destructive" className="text-xs">Archivée</Badge>
+               )}
+               {isOldFramework && !isArchived && (
+                 <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/30">Ancien référentiel</Badge>
+               )}
+               {isCurrent && !isArchived && (
+                 <Badge variant="secondary" className="text-xs">Actuelle</Badge>
+               )}
             </div>
             <p className="text-sm text-muted-foreground">
               {isCoachType 
@@ -268,7 +275,7 @@ export function EvaluationHistory({
             <p className="font-display font-bold text-lg">{getEvaluationScore(evaluation)}</p>
             <p className="text-xs text-muted-foreground">/5</p>
           </div>
-          {canEvaluate && !isArchived && isCoachType && (
+          {canEvaluate && !isArchived && isCoachType && !isOldFramework && (
             <div className="flex items-center gap-2">
               <Button
                 size="sm"

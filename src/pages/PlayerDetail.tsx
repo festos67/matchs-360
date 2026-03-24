@@ -65,6 +65,7 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
+  framework_id: string;
   type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
@@ -101,6 +102,8 @@ export default function PlayerDetail() {
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
   const [frameworkName, setFrameworkName] = useState<string>("");
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
+  const [themesCache, setThemesCache] = useState<Record<string, Theme[]>>({});
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
@@ -128,6 +131,7 @@ export default function PlayerDetail() {
   const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
   const evaluationFormRef = useRef<EvaluationFormHandle>(null);
   const [historyPrintEvaluation, setHistoryPrintEvaluation] = useState<Evaluation | null>(null);
+  const [historyPrintThemes, setHistoryPrintThemes] = useState<Theme[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -156,13 +160,33 @@ export default function PlayerDetail() {
     documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
   });
 
-  const handlePrintEvaluationFromHistory = useCallback((evaluation: Evaluation) => {
+  const handlePrintEvaluationFromHistory = useCallback(async (evaluation: Evaluation) => {
+    // Fetch correct themes for this evaluation's framework
+    let printThemes = themes;
+    if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
+      if (themesCache[evaluation.framework_id]) {
+        printThemes = themesCache[evaluation.framework_id];
+      } else {
+        const { data: themesData } = await supabase
+          .from("themes")
+          .select("*, skills(*)")
+          .eq("framework_id", evaluation.framework_id)
+          .order("order_index");
+        if (themesData) {
+          printThemes = themesData.map(theme => ({
+            ...theme,
+            skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
+          }));
+          setThemesCache(prev => ({ ...prev, [evaluation.framework_id]: printThemes }));
+        }
+      }
+    }
+    setHistoryPrintThemes(printThemes);
     setHistoryPrintEvaluation(evaluation);
-    // Wait for state to render the hidden component, then print
     setTimeout(() => {
       handlePrintHistory();
     }, 300);
-  }, [handlePrintHistory]);
+  }, [handlePrintHistory, themes, frameworkId, themesCache]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -254,6 +278,8 @@ export default function PlayerDetail() {
               skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
             }));
             setThemes(sortedThemes);
+            setSelectedEvalThemes(sortedThemes);
+            setThemesCache(prev => ({ ...prev, [framework.id]: sortedThemes }));
           }
         }
       }
@@ -266,6 +292,7 @@ export default function PlayerDetail() {
           name,
           date,
           deleted_at,
+          framework_id,
           type,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
@@ -305,11 +332,33 @@ export default function PlayerDetail() {
     return player.first_name || player.last_name || "Joueur";
   };
 
-  // Calculate radar data from selected evaluation
-  const getRadarDataFromEvaluation = (evaluation: Evaluation | null): ThemeScores[] => {
-    if (!evaluation || themes.length === 0) return [];
+  // Helper to fetch themes for a given framework (with caching)
+  const fetchThemesForFramework = async (fwId: string): Promise<Theme[]> => {
+    if (themesCache[fwId]) return themesCache[fwId];
     
-    return themes.map(theme => ({
+    const { data: themesData } = await supabase
+      .from("themes")
+      .select("*, skills(*)")
+      .eq("framework_id", fwId)
+      .order("order_index");
+    
+    if (!themesData) return [];
+    
+    const sorted = themesData.map(theme => ({
+      ...theme,
+      skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
+    }));
+    
+    setThemesCache(prev => ({ ...prev, [fwId]: sorted }));
+    return sorted;
+  };
+
+  // Calculate radar data from evaluation using specific themes
+  const getRadarDataFromEvaluation = (evaluation: Evaluation | null, useThemes?: Theme[]): ThemeScores[] => {
+    const t = useThemes || selectedEvalThemes;
+    if (!evaluation || t.length === 0) return [];
+    
+    return t.map(theme => ({
       theme_id: theme.id,
       theme_name: theme.name,
       theme_color: theme.color,
@@ -326,14 +375,14 @@ export default function PlayerDetail() {
     }));
   };
 
-  // For stats display, use latest COACH evaluation only (not self-assessments)
+  // For stats display, use latest COACH evaluation on CURRENT framework only
   const latestOfficialEvaluation = evaluations.find(
-    e => e.type === "coach_assessment" && !e.deleted_at
+    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
   
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
-  // Overall average for header stats = official evaluation only
-  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(latestOfficialEvaluation || null));
+  // Overall average for header stats = official evaluation on current framework only
+  const overallAverage = calculateOverallAverage(getRadarDataFromEvaluation(latestOfficialEvaluation || null, themes));
 
   // Build comparison datasets
   const getComparisonDatasets = () => {
@@ -391,9 +440,16 @@ export default function PlayerDetail() {
     });
   };
 
-  const handleViewEvaluation = (evaluation: Evaluation) => {
+  const handleViewEvaluation = async (evaluation: Evaluation) => {
     setSelectedEvaluation(evaluation);
     setIsViewingHistory(evaluation.id !== evaluations[0]?.id);
+    // Load correct themes for this evaluation's framework
+    if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
+      const evalThemes = await fetchThemesForFramework(evaluation.framework_id);
+      setSelectedEvalThemes(evalThemes);
+    } else {
+      setSelectedEvalThemes(themes);
+    }
     setActiveTab("radar");
   };
 
@@ -402,6 +458,7 @@ export default function PlayerDetail() {
       setSelectedEvaluation(evaluations[0]);
       setIsViewingHistory(false);
       setComparisonIds([]);
+      setSelectedEvalThemes(themes);
     }
   };
 
@@ -421,26 +478,26 @@ export default function PlayerDetail() {
   const comparisonDatasets = getComparisonDatasets();
   const showComparison = comparisonIds.length > 0;
   
-  // Get latest self-evaluation for comparison
+  // Get latest self-evaluation for comparison (on current framework)
   const latestSelfEvaluation = evaluations.find(
-    e => e.type === "player_self_assessment" && !e.deleted_at
+    e => e.type === "player_self_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
   
-  // Get latest supporter evaluation for comparison
+  // Get latest supporter evaluation for comparison (on current framework)
   const latestSupporterEvaluation = evaluations.find(
-    e => e.type === "supporter_assessment" && !e.deleted_at
+    e => e.type === "supporter_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
   
-  // Get latest coach evaluation (for the toggle comparison)
+  // Get latest coach evaluation on current framework (for the toggle comparison)
   const latestCoachEvaluation = evaluations.find(
-    e => e.type === "coach_assessment" && !e.deleted_at
+    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
 
-  // Get the PREVIOUS (second latest) coach evaluation for "Dernier débrief" button
-  const coachEvaluations = evaluations.filter(
-    e => e.type === "coach_assessment" && !e.deleted_at
+  // Get the PREVIOUS (second latest) coach evaluation on current framework for "Dernier débrief" button
+  const currentFrameworkCoachEvals = evaluations.filter(
+    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
-  const previousCoachEvaluation = coachEvaluations.length >= 2 ? coachEvaluations[1] : null;
+  const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
   
   // Build datasets for self-evaluation overlay (2-way comparison)
   const getSelfEvalOverlayDatasets = () => {
@@ -614,17 +671,17 @@ export default function PlayerDetail() {
             }}
             team={{ name: teamMembership.team.name }}
             evaluation={selectedEvaluation}
-            themes={themes}
+            themes={selectedEvalThemes}
             progressionPercent={(() => {
-              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment" && e.framework_id === frameworkId);
               if (activeCoachEvals.length < 2) return null;
-              const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0]));
-              const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1]));
+              const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0], themes));
+              const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1], themes));
               if (currentAvg === null || previousAvg === null || previousAvg === 0) return null;
               return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
             })()}
             previousEvaluationDate={(() => {
-              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment" && e.framework_id === frameworkId);
               return activeCoachEvals.length >= 2 ? activeCoachEvals[1].date : null;
             })()}
             comparisonDatasets={comparisonDatasets
@@ -648,7 +705,7 @@ export default function PlayerDetail() {
             }}
             team={{ name: teamMembership.team.name }}
             evaluation={historyPrintEvaluation}
-            themes={themes}
+            themes={historyPrintThemes.length > 0 ? historyPrintThemes : themes}
           />
         )}
       </div>
@@ -1165,7 +1222,7 @@ export default function PlayerDetail() {
             <div className="glass-card p-6">
               <h3 className="font-display font-semibold mb-4">Détail par thématique</h3>
               <div className="space-y-4">
-                {themes.map((theme) => {
+                {selectedEvalThemes.map((theme) => {
                   const themeData = radarData.find(d => d.theme === theme.name);
                   return (
                     <div key={theme.id}>
@@ -1203,7 +1260,7 @@ export default function PlayerDetail() {
                 </Badge>
               </div>
 
-              {themes.map((theme) => {
+              {selectedEvalThemes.map((theme) => {
                 const themeScoreData = getRadarDataFromEvaluation(selectedEvaluation).find(ts => ts.theme_id === theme.id);
                 if (!themeScoreData) return null;
 
@@ -1345,13 +1402,13 @@ export default function PlayerDetail() {
               previousEvaluation={(() => {
                 if (!isCreatingNew) return undefined;
                 const coachEvals = evaluations.filter(
-                  e => e.type === "coach_assessment" && !e.deleted_at
+                  e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
                 );
                 return coachEvals[0] || undefined;
               })()}
               previousScores={(() => {
                 const coachEvals = evaluations.filter(
-                  e => e.type === "coach_assessment" && !e.deleted_at
+                  e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
                 );
                 const previousEval = isCreatingNew 
                   ? coachEvals[0]
@@ -1371,7 +1428,7 @@ export default function PlayerDetail() {
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
                 const coachEvals = evaluations
-                  .filter(e => e.type === "coach_assessment" && !e.deleted_at)
+                  .filter(e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId)
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                 return isCreatingNew ? coachEvals.length + 1 : coachEvals.findIndex(e => e.id === selectedEvaluation?.id) + 1;
               })()}
@@ -1401,9 +1458,11 @@ export default function PlayerDetail() {
             comparisonIds={comparisonIds}
             teamColor={teamColor}
             canEvaluate={canEvaluate}
+            currentFrameworkId={frameworkId}
             onViewEvaluation={handleViewEvaluation}
             onEditEvaluation={(evaluation) => {
               setSelectedEvaluation(evaluation);
+              setSelectedEvalThemes(themes); // Edit is only available for current framework
               setIsCreatingNew(false);
               setIsViewingHistory(false);
               setActiveTab("evaluation");
