@@ -704,6 +704,11 @@ export default function PlayerDetail() {
               </Button>
             )}
             <div className="flex flex-col gap-1.5">
+              {canEvaluate && teamMembership && !isViewingHistory && (
+                <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                  <Plus className="w-4 h-4" />+ Débrief
+                </Button>
+              )}
               {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)}>
                   <Plus className="w-3.5 h-3.5 text-primary" />Supporter
@@ -840,10 +845,6 @@ export default function PlayerDetail() {
           <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <TrendingUp className="w-4 h-4" />
             Résultat
-          </TabsTrigger>
-          <TabsTrigger value="evaluation" disabled={isViewingHistory} className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all" onClick={() => { if (canEvaluate && teamMembership && !isViewingHistory) { setIsCreatingNew(true); } }}>
-            <Plus className="w-4 h-4" />
-            Débrief
           </TabsTrigger>
           <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <RotateCcw className="w-4 h-4" />
