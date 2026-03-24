@@ -248,15 +248,18 @@ export function EvaluationHistory({
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>
-                {evaluation.name}
-              </p>
-              {isArchived && (
-                <Badge variant="destructive" className="text-xs">Archivée</Badge>
-              )}
-              {isCurrent && !isArchived && (
-                <Badge variant="secondary" className="text-xs">Actuelle</Badge>
-              )}
+               <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>
+                 {evaluation.name}
+               </p>
+               {isArchived && (
+                 <Badge variant="destructive" className="text-xs">Archivée</Badge>
+               )}
+               {isOldFramework && !isArchived && (
+                 <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/30">Ancien référentiel</Badge>
+               )}
+               {isCurrent && !isArchived && (
+                 <Badge variant="secondary" className="text-xs">Actuelle</Badge>
+               )}
             </div>
             <p className="text-sm text-muted-foreground">
               {isCoachType 
@@ -272,7 +275,7 @@ export function EvaluationHistory({
             <p className="font-display font-bold text-lg">{getEvaluationScore(evaluation)}</p>
             <p className="text-xs text-muted-foreground">/5</p>
           </div>
-          {canEvaluate && !isArchived && isCoachType && (
+          {canEvaluate && !isArchived && isCoachType && !isOldFramework && (
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
