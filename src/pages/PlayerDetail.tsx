@@ -804,11 +804,6 @@ export default function PlayerDetail() {
             </div>
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setActiveTab("invitations")} title="Voir et envoyer des invitations par email">
-                  <Mail className="w-3.5 h-3.5 text-primary" />Invitations
-                </Button>
-              )}
-              {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un avis d'évaluation à un supporter">
                   <Heart className="w-3.5 h-3.5" />
                   Avis supporter
