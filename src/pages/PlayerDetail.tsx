@@ -92,6 +92,7 @@ export default function PlayerDetail() {
   const { user, loading: authLoading, isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
+  const historyPrintRef = useRef<HTMLDivElement>(null);
   const frameworkPrintRef = useRef<HTMLDivElement>(null);
   
   const [player, setPlayer] = useState<Player | null>(null);
@@ -126,6 +127,7 @@ export default function PlayerDetail() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
   const evaluationFormRef = useRef<EvaluationFormHandle>(null);
+  const [historyPrintEvaluation, setHistoryPrintEvaluation] = useState<Evaluation | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -148,6 +150,19 @@ export default function PlayerDetail() {
     contentRef: frameworkPrintRef,
     documentTitle: `Referentiel_${teamMembership?.team?.name || "Equipe"}_${new Date().toLocaleDateString("fr-FR")}`,
   });
+
+  const handlePrintHistory = useReactToPrint({
+    contentRef: historyPrintRef,
+    documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
+  });
+
+  const handlePrintEvaluationFromHistory = useCallback((evaluation: Evaluation) => {
+    setHistoryPrintEvaluation(evaluation);
+    // Wait for state to render the hidden component, then print
+    setTimeout(() => {
+      handlePrintHistory();
+    }, 300);
+  }, [handlePrintHistory]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -619,6 +634,21 @@ export default function PlayerDetail() {
                 data: ds.data,
                 color: ds.color,
               }))}
+          />
+        )}
+        {/* Hidden printable component for history */}
+        {historyPrintEvaluation && teamMembership && (
+          <PrintablePlayerSheet
+            ref={historyPrintRef}
+            player={player}
+            club={{
+              name: teamMembership.team.club?.name || "",
+              logo_url: teamMembership.team.club?.logo_url,
+              primary_color: teamColor,
+            }}
+            team={{ name: teamMembership.team.name }}
+            evaluation={historyPrintEvaluation}
+            themes={themes}
           />
         )}
       </div>
@@ -1380,6 +1410,7 @@ export default function PlayerDetail() {
             }}
             onToggleComparison={toggleComparison}
             onRefresh={fetchPlayerData}
+            onPrintEvaluation={handlePrintEvaluationFromHistory}
           />
         </TabsContent>
 
