@@ -636,6 +636,21 @@ export default function PlayerDetail() {
               }))}
           />
         )}
+        {/* Hidden printable component for history */}
+        {historyPrintEvaluation && teamMembership && (
+          <PrintablePlayerSheet
+            ref={historyPrintRef}
+            player={player}
+            club={{
+              name: teamMembership.team.club?.name || "",
+              logo_url: teamMembership.team.club?.logo_url,
+              primary_color: teamColor,
+            }}
+            team={{ name: teamMembership.team.name }}
+            evaluation={historyPrintEvaluation}
+            themes={themes}
+          />
+        )}
       </div>
 
       {/* Back Button */}
