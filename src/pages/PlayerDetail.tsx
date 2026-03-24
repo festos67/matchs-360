@@ -103,6 +103,7 @@ export default function PlayerDetail() {
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [newEvalKey, setNewEvalKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [canEvaluate, setCanEvaluate] = useState(false);
   const [canMutate, setCanMutate] = useState(false);
@@ -734,6 +735,7 @@ export default function PlayerDetail() {
                         <>
                           <AlertDialogAction onClick={() => {
                             setIsCreatingNew(true);
+                            setNewEvalKey(k => k + 1);
                             setHasDraftEvaluation(false);
                             setActiveTab("evaluation");
                           }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
@@ -748,7 +750,7 @@ export default function PlayerDetail() {
                           </AlertDialogAction>
                         </>
                       ) : (
-                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
                           Confirmer
                         </AlertDialogAction>
                       )}
@@ -1179,7 +1181,7 @@ export default function PlayerDetail() {
               <span className="text-sm text-blue-600 dark:text-blue-400">
                 📝 Modification de: <strong>{selectedEvaluation.name}</strong>
               </span>
-              <Button size="sm" variant="outline" onClick={() => setIsCreatingNew(true)}>
+              <Button size="sm" variant="outline" onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); }}>
                 <Plus className="w-4 h-4 mr-1" />
                 Créer une nouvelle
               </Button>
@@ -1189,7 +1191,7 @@ export default function PlayerDetail() {
           {frameworkId && themes.length > 0 ? (
             <EvaluationForm
               ref={evaluationFormRef}
-              key={isCreatingNew ? "new" : (selectedEvaluation?.id || "empty")}
+              key={isCreatingNew ? `new-${newEvalKey}` : (selectedEvaluation?.id || "empty")}
               playerId={player.id}
               playerName={getPlayerName()}
               teamId={teamMembership?.team_id || ""}
