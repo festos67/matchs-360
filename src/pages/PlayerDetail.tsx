@@ -118,6 +118,19 @@ export default function PlayerDetail() {
   const [showSelfEvaluation, setShowSelfEvaluation] = useState(false);
   const [showSupporterEvaluation, setShowSupporterEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
