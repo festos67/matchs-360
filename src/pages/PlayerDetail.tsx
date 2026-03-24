@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, Mail, ChevronUp } from "lucide-react";
+import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, Mail, ChevronUp, Save } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
+import { EvaluationForm, type EvaluationFormHandle } from "@/components/evaluation/EvaluationForm";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
@@ -119,6 +119,10 @@ export default function PlayerDetail() {
   const [showSupporterEvaluation, setShowSupporterEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [pendingTabChange, setPendingTabChange] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
+  const evaluationFormRef = useRef<EvaluationFormHandle>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -707,16 +711,40 @@ export default function PlayerDetail() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Nouveau débrief</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        {hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Voulez-vous créer un nouveau débrief pour {getPlayerName()} ?
+                        {hasDraftEvaluation
+                          ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
+                          : `Voulez-vous créer un nouveau débrief pour ${getPlayerName()} ?`
+                        }
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
-                        Confirmer
-                      </AlertDialogAction>
+                      {hasDraftEvaluation ? (
+                        <>
+                          <AlertDialogAction onClick={() => {
+                            setIsCreatingNew(true);
+                            setHasDraftEvaluation(false);
+                            setActiveTab("evaluation");
+                          }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                            Nouveau débrief
+                          </AlertDialogAction>
+                          <AlertDialogAction onClick={() => {
+                            setIsCreatingNew(false);
+                            setHasDraftEvaluation(false);
+                            setActiveTab("evaluation");
+                          }}>
+                            Poursuivre le débrief
+                          </AlertDialogAction>
+                        </>
+                      ) : (
+                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                          Confirmer
+                        </AlertDialogAction>
+                      )}
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -852,7 +880,14 @@ export default function PlayerDetail() {
       )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(newTab) => {
+        // Intercept tab change if evaluation is in progress
+        if (activeTab === "evaluation" && newTab !== "evaluation" && evaluationFormRef.current?.hasChanges()) {
+          setPendingTabChange(newTab);
+          return;
+        }
+        setActiveTab(newTab);
+      }} className="space-y-6">
         <div className="flex items-center gap-3 max-w-2xl">
           <TabsList className="bg-muted h-12 p-1 rounded-lg flex-1">
             <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
@@ -1146,6 +1181,7 @@ export default function PlayerDetail() {
           
           {frameworkId && themes.length > 0 ? (
             <EvaluationForm
+              ref={evaluationFormRef}
               key={isCreatingNew ? "new" : (selectedEvaluation?.id || "empty")}
               playerId={player.id}
               playerName={getPlayerName()}
@@ -1301,6 +1337,104 @@ export default function PlayerDetail() {
         )}
 
       </Tabs>
+
+      {/* Interception dialog when leaving evaluation tab */}
+      <AlertDialog open={!!pendingTabChange} onOpenChange={(open) => { if (!open) setPendingTabChange(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Débrief en cours</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous avez un débrief en cours avec des modifications non enregistrées. Que souhaitez-vous faire ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={async () => {
+                try {
+                  await evaluationFormRef.current?.save();
+                  setHasDraftEvaluation(true);
+                  toast.success("Débrief sauvegardé en brouillon");
+                } catch (e) {
+                  toast.error("Erreur lors de la sauvegarde");
+                }
+                const tab = pendingTabChange;
+                setPendingTabChange(null);
+                if (tab) setActiveTab(tab);
+              }}
+              className="w-full justify-start gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Sauvegarder et reprendre plus tard
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                try {
+                  await evaluationFormRef.current?.save();
+                  setIsCreatingNew(false);
+                  setHasDraftEvaluation(false);
+                  fetchPlayerData();
+                  toast.success("Débrief finalisé avec succès");
+                } catch (e) {
+                  toast.error("Erreur lors de la sauvegarde");
+                }
+                const tab = pendingTabChange;
+                setPendingTabChange(null);
+                if (tab) setActiveTab(tab);
+              }}
+              className="w-full justify-start gap-2"
+            >
+              <ClipboardList className="w-4 h-4" />
+              Finaliser le débrief
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCancelConfirm(true);
+              }}
+              className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4" />
+              Annuler le débrief en cours
+            </Button>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button variant="ghost" size="sm" onClick={() => setPendingTabChange(null)}>
+              Retour au débrief
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel confirmation dialog */}
+      <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir annuler ce débrief ? Toutes les modifications non enregistrées seront perdues. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowCancelConfirm(false)}>
+              Non, revenir
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowCancelConfirm(false);
+                setIsCreatingNew(false);
+                setHasDraftEvaluation(false);
+                const tab = pendingTabChange;
+                setPendingTabChange(null);
+                if (tab) setActiveTab(tab);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Oui, annuler le débrief
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {showScrollTop && (
         <Button
           onClick={scrollToTop}

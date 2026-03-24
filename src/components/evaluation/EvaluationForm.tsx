@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle, useRef } from "react";
 import { Save, RotateCcw, FileText, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,12 @@ interface EvaluationFormProps {
   readOnly?: boolean;
 }
 
-export const EvaluationForm = ({
+export interface EvaluationFormHandle {
+  save: () => Promise<void>;
+  hasChanges: () => boolean;
+}
+
+export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormProps>(({
   playerId,
   playerName,
   teamId,
@@ -80,9 +85,10 @@ export const EvaluationForm = ({
   previousScores,
   onSaved,
   readOnly = false,
-}: EvaluationFormProps) => {
+}, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [hasBeenModified, setHasBeenModified] = useState(false);
   const [evaluationName, setEvaluationName] = useState(
     existingEvaluation?.name || `MATCHS360-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
   );
@@ -118,12 +124,19 @@ export const EvaluationForm = ({
     }));
   });
 
+  // Expose save and hasChanges to parent via ref
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+    hasChanges: () => hasBeenModified,
+  }));
+
   // Calculate radar data in real-time
   const radarData = useMemo(() => calculateRadarData(themeScores), [themeScores]);
   const overallAverage = useMemo(() => calculateOverallAverage(themeScores), [themeScores]);
 
-  // Update handlers
+  // Update handlers - track modifications
   const handleScoreChange = (themeId: string, skillId: string, score: number) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId
@@ -139,6 +152,7 @@ export const EvaluationForm = ({
   };
 
   const handleNotObservedChange = (themeId: string, skillId: string, isNotObserved: boolean) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId
@@ -156,6 +170,7 @@ export const EvaluationForm = ({
   };
 
   const handleCommentChange = (themeId: string, skillId: string, comment: string) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId
@@ -171,6 +186,7 @@ export const EvaluationForm = ({
   };
 
   const handleObjectiveChange = (themeId: string, objective: string) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId ? { ...theme, objective } : theme
@@ -469,4 +485,6 @@ export const EvaluationForm = ({
       )}
     </div>
   );
-};
+});
+
+EvaluationForm.displayName = "EvaluationForm";
