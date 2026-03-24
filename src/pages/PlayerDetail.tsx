@@ -725,6 +725,11 @@ export default function PlayerDetail() {
             </div>
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && (
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setActiveTab("invitations")}>
+                  <Mail className="w-3.5 h-3.5 text-primary" />Invitations
+                </Button>
+              )}
+              {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)}>
                   <Heart className="w-3.5 h-3.5" />
                   Avis supporter
@@ -856,12 +861,6 @@ export default function PlayerDetail() {
             <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <BookOpen className="w-4 h-4" />
               Référentiel
-            </TabsTrigger>
-          )}
-          {canEvaluate && (
-            <TabsTrigger value="invitations" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-              <Mail className="w-4 h-4" />
-              Invitations
             </TabsTrigger>
           )}
         </TabsList>
