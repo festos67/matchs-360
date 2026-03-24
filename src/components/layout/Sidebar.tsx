@@ -9,7 +9,8 @@ import {
   Activity,
   Shield,
   ClipboardList,
-  UserCog
+  UserCog,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
