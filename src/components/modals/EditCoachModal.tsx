@@ -60,7 +60,7 @@ export const EditCoachModal = ({
   coach,
   onSuccess,
 }: EditCoachModalProps) => {
-  const { isAdmin, currentRole } = useAuth();
+  const { hasAdminRole: isAdmin, currentRole } = useAuth();
   const [loading, setLoading] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
