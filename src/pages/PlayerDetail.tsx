@@ -131,6 +131,7 @@ export default function PlayerDetail() {
   const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
   const evaluationFormRef = useRef<EvaluationFormHandle>(null);
   const [historyPrintEvaluation, setHistoryPrintEvaluation] = useState<Evaluation | null>(null);
+  const [historyPrintThemes, setHistoryPrintThemes] = useState<Theme[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -159,13 +160,33 @@ export default function PlayerDetail() {
     documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
   });
 
-  const handlePrintEvaluationFromHistory = useCallback((evaluation: Evaluation) => {
+  const handlePrintEvaluationFromHistory = useCallback(async (evaluation: Evaluation) => {
+    // Fetch correct themes for this evaluation's framework
+    let printThemes = themes;
+    if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
+      if (themesCache[evaluation.framework_id]) {
+        printThemes = themesCache[evaluation.framework_id];
+      } else {
+        const { data: themesData } = await supabase
+          .from("themes")
+          .select("*, skills(*)")
+          .eq("framework_id", evaluation.framework_id)
+          .order("order_index");
+        if (themesData) {
+          printThemes = themesData.map(theme => ({
+            ...theme,
+            skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
+          }));
+          setThemesCache(prev => ({ ...prev, [evaluation.framework_id]: printThemes }));
+        }
+      }
+    }
+    setHistoryPrintThemes(printThemes);
     setHistoryPrintEvaluation(evaluation);
-    // Wait for state to render the hidden component, then print
     setTimeout(() => {
       handlePrintHistory();
     }, 300);
-  }, [handlePrintHistory]);
+  }, [handlePrintHistory, themes, frameworkId, themesCache]);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -684,7 +705,7 @@ export default function PlayerDetail() {
             }}
             team={{ name: teamMembership.team.name }}
             evaluation={historyPrintEvaluation}
-            themes={themes}
+            themes={historyPrintThemes.length > 0 ? historyPrintThemes : themes}
           />
         )}
       </div>
@@ -1437,9 +1458,11 @@ export default function PlayerDetail() {
             comparisonIds={comparisonIds}
             teamColor={teamColor}
             canEvaluate={canEvaluate}
+            currentFrameworkId={frameworkId}
             onViewEvaluation={handleViewEvaluation}
             onEditEvaluation={(evaluation) => {
               setSelectedEvaluation(evaluation);
+              setSelectedEvalThemes(themes); // Edit is only available for current framework
               setIsCreatingNew(false);
               setIsViewingHistory(false);
               setActiveTab("evaluation");
