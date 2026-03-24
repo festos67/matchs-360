@@ -750,7 +750,7 @@ export default function PlayerDetail() {
                           </AlertDialogAction>
                         </>
                       ) : (
-                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
                           Confirmer
                         </AlertDialogAction>
                       )}
