@@ -366,6 +366,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       }
 
       toast.success("Débrief enregistré avec succès");
+      window.scrollTo({ top: 0, behavior: "smooth" });
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving evaluation:", error);
