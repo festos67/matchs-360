@@ -1410,6 +1410,7 @@ export default function PlayerDetail() {
             }}
             onToggleComparison={toggleComparison}
             onRefresh={fetchPlayerData}
+            onPrintEvaluation={handlePrintEvaluationFromHistory}
           />
         </TabsContent>
 
