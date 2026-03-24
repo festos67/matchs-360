@@ -119,6 +119,10 @@ export default function PlayerDetail() {
   const [showSupporterEvaluation, setShowSupporterEvaluation] = useState(false);
   const [activeTab, setActiveTab] = useState("radar");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [pendingTabChange, setPendingTabChange] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
+  const evaluationFormRef = useRef<EvaluationFormHandle>(null);
 
   useEffect(() => {
     const handleScroll = () => {
