@@ -95,6 +95,7 @@ export default function PlayerDetail() {
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
+  const [referentCoach, setReferentCoach] = useState<{ first_name: string | null; last_name: string | null } | null>(null);
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
   const [frameworkName, setFrameworkName] = useState<string>("");
   const [themes, setThemes] = useState<Theme[]>([]);
@@ -197,6 +198,20 @@ export default function PlayerDetail() {
         const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === membership.team?.club_id);
         setCanEvaluate(isAdmin || isClubAdmin || !!coachMembership);
         setCanMutate(isAdmin || isClubAdmin);
+
+        // Fetch referent coach
+        const { data: referentData } = await supabase
+          .from("team_members")
+          .select("user:profiles!team_members_user_id_fkey(first_name, last_name)")
+          .eq("team_id", membership.team_id)
+          .eq("member_type", "coach")
+          .eq("coach_role", "referent")
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (referentData?.user) {
+          setReferentCoach(referentData.user as any);
+        }
 
         // Fetch framework
         const { data: framework } = await supabase
@@ -644,11 +659,20 @@ export default function PlayerDetail() {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-3xl font-display font-bold">{getPlayerName()}</h1>
-              {teamMembership && <Badge variant="secondary">{teamMembership.team.name}</Badge>}
             </div>
             <p className="text-muted-foreground">{player.email}</p>
             {teamMembership && (
-              <p className="text-sm text-muted-foreground mt-1">{teamMembership.team.club?.name}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
+                <span>{teamMembership.team.club?.name}</span>
+                <span className="text-muted-foreground/50">·</span>
+                <span>{teamMembership.team.name}</span>
+                {referentCoach && (
+                  <>
+                    <span className="text-muted-foreground/50">·</span>
+                    <span>Coach {referentCoach.first_name} {referentCoach.last_name}</span>
+                  </>
+                )}
+              </div>
             )}
 
             <div className="flex gap-6 mt-6">
