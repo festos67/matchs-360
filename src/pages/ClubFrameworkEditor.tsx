@@ -292,10 +292,15 @@ export default function ClubFrameworkEditor() {
       }
 
       // Update framework name
-      await supabase
+      const { error: fwError } = await supabase
         .from("competence_frameworks")
         .update({ name: confirmedName })
         .eq("id", framework.id);
+
+      if (fwError) throw fwError;
+
+      // Track all persisted theme IDs (existing + newly created) for cleanup
+      const allPersistedThemeIds: string[] = [];
 
       // Save themes
       for (const theme of themes) {
@@ -313,6 +318,7 @@ export default function ClubFrameworkEditor() {
             .single();
 
           if (error) throw error;
+          allPersistedThemeIds.push(newTheme.id);
 
           // Create skills for new theme
           if (theme.skills.length > 0) {
@@ -322,11 +328,14 @@ export default function ClubFrameworkEditor() {
               definition: s.definition,
               order_index: s.order_index,
             }));
-            await supabase.from("skills").insert(skillsToInsert);
+            const { error: skillsError } = await supabase.from("skills").insert(skillsToInsert);
+            if (skillsError) throw skillsError;
           }
         } else {
+          allPersistedThemeIds.push(theme.id);
+
           // Update existing theme
-          await supabase
+          const { error: themeError } = await supabase
             .from("themes")
             .update({
               name: theme.name,
@@ -334,6 +343,8 @@ export default function ClubFrameworkEditor() {
               order_index: theme.order_index,
             })
             .eq("id", theme.id);
+
+          if (themeError) throw themeError;
 
           // Handle skills
           const persistedSkillIds: string[] = [];
@@ -376,7 +387,6 @@ export default function ClubFrameworkEditor() {
               .eq("theme_id", theme.id)
               .not("id", "in", `(${persistedSkillIds.join(",")})`);
           } else {
-            // If none exist, delete all existing skills for this theme
             await supabase
               .from("skills")
               .delete()
@@ -385,14 +395,13 @@ export default function ClubFrameworkEditor() {
         }
       }
 
-      // Delete removed themes (handled by cascade for skills)
-      const currentThemeIds = themes.filter(t => !t.isNew).map(t => t.id);
-      if (currentThemeIds.length > 0) {
+      // Delete removed themes - uses ALL persisted IDs (existing + new)
+      if (allPersistedThemeIds.length > 0) {
         await supabase
           .from("themes")
           .delete()
           .eq("framework_id", framework.id)
-          .not("id", "in", `(${currentThemeIds.join(",")})`);
+          .not("id", "in", `(${allPersistedThemeIds.join(",")})`);
       }
 
       toast.success("Référentiel sauvegardé avec succès");
