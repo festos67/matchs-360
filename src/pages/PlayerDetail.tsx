@@ -661,16 +661,14 @@ export default function PlayerDetail() {
           </div>
 
           <div className="flex-1">
-            <div className="mb-2">
-              <h1 className="text-3xl font-display font-bold">
-                {player.first_name || player.last_name
-                  ? `${player.first_name || ""} ${player.last_name || ""}`.trim()
-                  : player.nickname || "Joueur"}
-              </h1>
-              {player.nickname && (player.first_name || player.last_name) && (
-                <p className="text-sm text-muted-foreground italic">{player.nickname}</p>
-              )}
-            </div>
+            <h1 className="text-3xl font-display font-bold mb-2">
+              {player.first_name || player.last_name
+                ? `${player.first_name || ""} ${player.last_name || ""}`.trim()
+                : player.nickname || "Joueur"}
+            </h1>
+            {player.nickname && (player.first_name || player.last_name) && (
+              <p className="text-muted-foreground italic">{player.nickname}</p>
+            )}
             <p className="text-muted-foreground">{player.email}</p>
             {teamMembership && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
