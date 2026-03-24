@@ -699,9 +699,27 @@ export default function PlayerDetail() {
           <div className="flex items-start gap-2">
             <div className="flex flex-col gap-1.5">
               {canEvaluate && teamMembership && !isViewingHistory && (
-                <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }} title="Créer un nouveau débrief pour ce joueur">
-                  <Plus className="w-4 h-4" />Débrief
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" className="gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold" title="Créer un nouveau débrief pour ce joueur">
+                      <Plus className="w-4 h-4" />Débrief
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Nouveau débrief</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Voulez-vous créer un nouveau débrief pour {getPlayerName()} ?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                        Confirmer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
