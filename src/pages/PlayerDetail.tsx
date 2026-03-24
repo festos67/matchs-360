@@ -864,10 +864,6 @@ export default function PlayerDetail() {
               Invitations
             </TabsTrigger>
           )}
-          <TabsTrigger value="advice" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-            <Star className="w-4 h-4" />
-            Conseils
-          </TabsTrigger>
         </TabsList>
 
         {/* Radar Tab */}
