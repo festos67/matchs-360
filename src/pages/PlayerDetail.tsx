@@ -846,10 +846,6 @@ export default function PlayerDetail() {
             <TrendingUp className="w-4 h-4" />
             Résultat
           </TabsTrigger>
-          <TabsTrigger value="evaluation" disabled={isViewingHistory} className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all" onClick={() => { if (canEvaluate && teamMembership && !isViewingHistory) { setIsCreatingNew(true); } }}>
-            <Plus className="w-4 h-4" />
-            Débrief
-          </TabsTrigger>
           <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <RotateCcw className="w-4 h-4" />
             Historique
