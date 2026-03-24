@@ -560,7 +560,7 @@ export default function PlayerDetail() {
   const hasSupporterEvaluation = !!latestSupporterEvaluation;
   
   // Check if multi-source mode is active (any layer besides default coach)
-  const isMultiSourceMode = showCoachLayer || showSelfEvalLayer || showSupporterLayer;
+  const isMultiSourceMode = showSelfEvalLayer || showSupporterLayer;
 
 
   return (
