@@ -69,7 +69,12 @@ interface EvaluationFormProps {
   readOnly?: boolean;
 }
 
-export const EvaluationForm = ({
+export interface EvaluationFormHandle {
+  save: () => Promise<void>;
+  hasChanges: () => boolean;
+}
+
+export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormProps>(({
   playerId,
   playerName,
   teamId,
@@ -80,7 +85,7 @@ export const EvaluationForm = ({
   previousScores,
   onSaved,
   readOnly = false,
-}: EvaluationFormProps) => {
+}, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [evaluationName, setEvaluationName] = useState(
