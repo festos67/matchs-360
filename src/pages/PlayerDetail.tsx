@@ -1402,13 +1402,13 @@ export default function PlayerDetail() {
               previousEvaluation={(() => {
                 if (!isCreatingNew) return undefined;
                 const coachEvals = evaluations.filter(
-                  e => e.type === "coach_assessment" && !e.deleted_at
+                  e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
                 );
                 return coachEvals[0] || undefined;
               })()}
               previousScores={(() => {
                 const coachEvals = evaluations.filter(
-                  e => e.type === "coach_assessment" && !e.deleted_at
+                  e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
                 );
                 const previousEval = isCreatingNew 
                   ? coachEvals[0]
@@ -1428,7 +1428,7 @@ export default function PlayerDetail() {
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
                 const coachEvals = evaluations
-                  .filter(e => e.type === "coach_assessment" && !e.deleted_at)
+                  .filter(e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId)
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                 return isCreatingNew ? coachEvals.length + 1 : coachEvals.findIndex(e => e.id === selectedEvaluation?.id) + 1;
               })()}
