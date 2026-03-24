@@ -735,6 +735,7 @@ export default function PlayerDetail() {
                         <>
                           <AlertDialogAction onClick={() => {
                             setIsCreatingNew(true);
+                            setNewEvalKey(k => k + 1);
                             setHasDraftEvaluation(false);
                             setActiveTab("evaluation");
                           }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
