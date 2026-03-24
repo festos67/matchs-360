@@ -248,6 +248,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 {getPlayerName()}
               </h1>
               <p style={{ fontSize: "14px", color: "#6b7280", margin: 0 }}>
+                {club.name}
+              </p>
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: 0 }}>
                 {team.name}
               </p>
             </div>
