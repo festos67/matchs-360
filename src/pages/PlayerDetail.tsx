@@ -870,7 +870,6 @@ export default function PlayerDetail() {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={async () => {
                           try {
@@ -895,10 +894,11 @@ export default function PlayerDetail() {
                             toast.error("Erreur lors de la suppression");
                           }
                         }}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="bg-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground border border-destructive/30"
                       >
                         Supprimer
                       </AlertDialogAction>
+                      <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">Annuler</AlertDialogCancel>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
