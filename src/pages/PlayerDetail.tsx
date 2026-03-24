@@ -950,7 +950,7 @@ export default function PlayerDetail() {
             )}
           </TabsList>
           {selectedEvaluation && (
-            <Button variant="outline" size="sm" className="h-10 gap-2" onClick={() => handlePrint()} title="Imprimer ou exporter la fiche résultat">
+            <Button variant="outline" size="sm" className="h-10 gap-2 border-primary/30 bg-primary/10 text-primary hover:bg-primary/20" onClick={() => handlePrint()} title="Imprimer ou exporter la fiche résultat">
               <Download className="w-4 h-4" />
               Imprimer résultat
             </Button>
