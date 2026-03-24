@@ -1288,67 +1288,6 @@ export default function PlayerDetail() {
           </TabsContent>
         )}
 
-        {/* Advice Tab */}
-        <TabsContent value="advice">
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-display font-semibold">Conseils personnalisés</h2>
-              <Button size="sm" variant="outline" className="gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Générer des conseils
-              </Button>
-            </div>
-            
-            {selectedEvaluation ? (
-              <div className="space-y-4">
-                {/* Show objectives from selected evaluation */}
-                {selectedEvaluation.objectives.length > 0 ? (
-                  selectedEvaluation.objectives.map((obj) => {
-                    const theme = themes.find(t => t.id === obj.theme_id);
-                    return (
-                      <div
-                        key={obj.theme_id}
-                        className="p-4 rounded-lg bg-primary/10 border border-primary/20"
-                      >
-                        <h4 className="font-medium text-primary mb-2 flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme?.color || "#3B82F6" }} />
-                          {theme?.name || "Thématique"}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">{obj.content}</p>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Aucun objectif défini pour cette évaluation
-                  </div>
-                )}
-
-                {/* Show skill comments */}
-                {selectedEvaluation.scores.filter(s => s.comment).length > 0 && (
-                  <>
-                    <h3 className="font-medium mt-6 pt-4 border-t border-border">Conseils par compétence</h3>
-                    {selectedEvaluation.scores
-                      .filter(s => s.comment)
-                      .map((score) => {
-                        const skill = themes.flatMap(t => t.skills).find(s => s.id === score.skill_id);
-                        return (
-                          <div key={score.skill_id} className="p-4 rounded-lg bg-muted/30">
-                            <h4 className="font-medium text-sm mb-1">{skill?.name || "Compétence"}</h4>
-                            <p className="text-sm text-muted-foreground">{score.comment}</p>
-                          </div>
-                        );
-                      })}
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                Sélectionnez une évaluation pour voir les conseils
-              </div>
-            )}
-          </div>
-        </TabsContent>
       </Tabs>
       {showScrollTop && (
         <Button
