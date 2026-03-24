@@ -86,6 +86,8 @@ interface EvaluationFormProps {
   previousScores?: Record<string, number | null>;
   onSaved?: () => void;
   readOnly?: boolean;
+  coachName?: string;
+  evaluationNumber?: number;
 }
 
 export interface EvaluationFormHandle {
