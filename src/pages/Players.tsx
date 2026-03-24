@@ -27,7 +27,7 @@ interface PlayerData {
 }
 
 const Players = () => {
-  const { isAdmin, currentRole } = useAuth();
+  const { hasAdminRole: isAdmin, currentRole } = useAuth();
   const navigate = useNavigate();
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);

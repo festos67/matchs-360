@@ -84,7 +84,7 @@ interface Club {
 
 export default function ClubFrameworkEditor() {
   const { clubId } = useParams<{ clubId: string }>();
-  const { user, loading: authLoading, isAdmin, roles } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
 
   const [club, setClub] = useState<Club | null>(null);

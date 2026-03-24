@@ -52,7 +52,7 @@ interface Framework {
 
 export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading, isAdmin, roles } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);

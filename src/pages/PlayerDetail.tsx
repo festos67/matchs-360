@@ -90,7 +90,7 @@ const COMPARISON_COLORS = [
 
 export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading, isAdmin, roles } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
   const historyPrintRef = useRef<HTMLDivElement>(null);

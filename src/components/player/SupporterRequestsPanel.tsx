@@ -39,7 +39,7 @@ export function SupporterRequestsPanel({
   playerName,
   onViewEvaluation,
 }: SupporterRequestsPanelProps) {
-  const { user, isAdmin, roles } = useAuth();
+  const { user, hasAdminRole: isAdmin, roles } = useAuth();
   const [requests, setRequests] = useState<SupporterRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [resending, setResending] = useState<string | null>(null);

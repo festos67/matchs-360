@@ -25,7 +25,10 @@ interface AuthContextType {
   roles: UserRole[];
   currentRole: UserRole | null;
   loading: boolean;
+  /** True only when the CURRENTLY SELECTED role is admin (for UI display) */
   isAdmin: boolean;
+  /** True if the user HAS an admin role at all (for permission/security checks) */
+  hasAdminRole: boolean;
   signOut: () => Promise<void>;
   setCurrentRole: (role: UserRole) => void;
 }
@@ -62,7 +65,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (error) {
       console.error("Error fetching user roles:", error);
-      // Don't clear roles on error - might be a temporary issue
       return;
     }
     
@@ -81,27 +83,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Expose a refetch function for roles
-  const refetchRoles = async () => {
-    if (user) {
-      await fetchRoles(user.id);
-    }
-  };
-
   const setCurrentRole = (role: UserRole) => {
     setCurrentRoleState(role);
     localStorage.setItem(CURRENT_ROLE_KEY, role.id);
   };
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Defer data fetching
           setTimeout(() => {
             fetchProfile(session.user.id);
             fetchRoles(session.user.id);
@@ -116,7 +109,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -141,7 +133,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem(CURRENT_ROLE_KEY);
   };
 
-  const isAdmin = roles.some((r) => r.role === "admin");
+  // isAdmin = currently ACTING as admin (for UI)
+  const isAdmin = currentRole?.role === "admin";
+  // hasAdminRole = user HAS admin role (for security/permission checks)
+  const hasAdminRole = roles.some((r) => r.role === "admin");
 
   return (
     <AuthContext.Provider
@@ -153,6 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         currentRole,
         loading,
         isAdmin,
+        hasAdminRole,
         signOut,
         setCurrentRole,
       }}

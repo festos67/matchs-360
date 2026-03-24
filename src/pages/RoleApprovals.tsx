@@ -41,7 +41,7 @@ const roleConfig: Record<string, { label: string; icon: React.ElementType; color
 
 export default function RoleApprovals() {
   const navigate = useNavigate();
-  const { isAdmin, loading: authLoading } = useAuth();
+  const { hasAdminRole: isAdmin, loading: authLoading } = useAuth();
   const [requests, setRequests] = useState<RoleRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"pending" | "all">("pending");

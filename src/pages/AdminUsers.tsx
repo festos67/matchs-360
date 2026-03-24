@@ -98,7 +98,7 @@ const statusColors: Record<string, string> = {
 const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
 
 export default function AdminUsers() {
-  const { isAdmin, loading: authLoading, user: currentUser } = useAuth();
+  const { hasAdminRole: isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
