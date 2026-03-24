@@ -31,7 +31,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
       <div ref={ref} className="print-framework bg-white text-black" style={{ width: "210mm", margin: "0 auto" }}>
         <style>{`
           @media print {
-            @page { size: A4 portrait; margin: 12mm 10mm; }
+            @page { size: A4 portrait; margin: 12mm 10mm; margin-top: 8mm; margin-bottom: 8mm; }
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .print-framework { width: 100% !important; }
             .print-no-break { break-inside: avoid; }
