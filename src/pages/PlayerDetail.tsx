@@ -65,7 +65,6 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
-  framework_id: string;
   type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
@@ -100,9 +99,7 @@ export default function PlayerDetail() {
   const [referentCoach, setReferentCoach] = useState<{ first_name: string | null; last_name: string | null } | null>(null);
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
   const [frameworkName, setFrameworkName] = useState<string>("");
-   const [themes, setThemes] = useState<Theme[]>([]); // current active framework themes (for new evals)
-   const [displayThemes, setDisplayThemes] = useState<Theme[]>([]); // themes for the selected evaluation's framework
-   const themesCache = useRef<Record<string, Theme[]>>({});
+  const [themes, setThemes] = useState<Theme[]>([]);
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
@@ -159,40 +156,6 @@ export default function PlayerDetail() {
   useEffect(() => {
     if (user && id) fetchPlayerData();
   }, [user, id]);
-
-  // Load themes from the selected evaluation's framework (for correct display of old evals)
-  const loadThemesForFramework = useCallback(async (fwId: string): Promise<Theme[]> => {
-    if (themesCache.current[fwId]) return themesCache.current[fwId];
-    
-    const { data: themesData } = await supabase
-      .from("themes")
-      .select("*, skills(*)")
-      .eq("framework_id", fwId)
-      .order("order_index");
-
-    if (themesData) {
-      const sorted = themesData.map(theme => ({
-        ...theme,
-        skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
-      }));
-      themesCache.current[fwId] = sorted;
-      return sorted;
-    }
-    return [];
-  }, []);
-
-  useEffect(() => {
-    if (!selectedEvaluation) {
-      setDisplayThemes(themes);
-      return;
-    }
-    const fwId = selectedEvaluation.framework_id;
-    if (!fwId) {
-      setDisplayThemes(themes);
-      return;
-    }
-    loadThemesForFramework(fwId).then(setDisplayThemes);
-  }, [selectedEvaluation, themes]);
 
   const fetchPlayerData = async () => {
     try {
@@ -276,8 +239,6 @@ export default function PlayerDetail() {
               skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
             }));
             setThemes(sortedThemes);
-            // Cache these themes for their framework_id
-            themesCache.current[framework.id] = sortedThemes;
           }
         }
       }
@@ -290,7 +251,6 @@ export default function PlayerDetail() {
           name,
           date,
           deleted_at,
-          framework_id,
           type,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
@@ -330,12 +290,11 @@ export default function PlayerDetail() {
     return player.first_name || player.last_name || "Joueur";
   };
 
-  // Calculate radar data from selected evaluation using appropriate themes
-  const getRadarDataFromEvaluation = (evaluation: Evaluation | null, useThemes?: Theme[]): ThemeScores[] => {
-    const themesToUse = useThemes || displayThemes;
-    if (!evaluation || themesToUse.length === 0) return [];
+  // Calculate radar data from selected evaluation
+  const getRadarDataFromEvaluation = (evaluation: Evaluation | null): ThemeScores[] => {
+    if (!evaluation || themes.length === 0) return [];
     
-    return themesToUse.map(theme => ({
+    return themes.map(theme => ({
       theme_id: theme.id,
       theme_name: theme.name,
       theme_color: theme.color,
@@ -640,7 +599,7 @@ export default function PlayerDetail() {
             }}
             team={{ name: teamMembership.team.name }}
             evaluation={selectedEvaluation}
-            themes={displayThemes}
+            themes={themes}
             progressionPercent={(() => {
               const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
               if (activeCoachEvals.length < 2) return null;
@@ -1176,7 +1135,7 @@ export default function PlayerDetail() {
             <div className="glass-card p-6">
               <h3 className="font-display font-semibold mb-4">Détail par thématique</h3>
               <div className="space-y-4">
-                {displayThemes.map((theme) => {
+                {themes.map((theme) => {
                   const themeData = radarData.find(d => d.theme === theme.name);
                   return (
                     <div key={theme.id}>
@@ -1214,7 +1173,7 @@ export default function PlayerDetail() {
                 </Badge>
               </div>
 
-              {displayThemes.map((theme) => {
+              {themes.map((theme) => {
                 const themeScoreData = getRadarDataFromEvaluation(selectedEvaluation).find(ts => ts.theme_id === theme.id);
                 if (!themeScoreData) return null;
 
