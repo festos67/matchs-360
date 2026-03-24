@@ -747,7 +747,7 @@ export default function PlayerDetail() {
               {canEvaluate && teamMembership && !isViewingHistory && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="lg" className="w-full gap-2 justify-center bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold text-base px-8" title="Créer un nouveau débrief pour ce joueur">
+                    <Button size="lg" className="w-full gap-2 justify-center bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-bold text-lg px-8" title="Créer un nouveau débrief pour ce joueur">
                       <Plus className="w-5 h-5" />Débrief
                     </Button>
                   </AlertDialogTrigger>
