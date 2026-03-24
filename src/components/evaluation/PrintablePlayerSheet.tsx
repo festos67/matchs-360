@@ -291,8 +291,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 8px 0", textTransform: "uppercase", letterSpacing: "0.03em" }}>
               Analyse des compétences
             </h2>
-            <div style={{ width: "100%", height: "340px", display: "flex", justifyContent: "center" }}>
-              <div style={{ width: "100%", maxWidth: "520px", height: "100%" }}>
+            <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+              <div style={{ width: "100%", maxWidth: "520px" }}>
                 <PrintableRadarChart data={radarData} comparisonDatasets={comparisonDatasets} />
               </div>
             </div>
