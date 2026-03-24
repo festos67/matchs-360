@@ -498,8 +498,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
                     Réinitialiser
                   </AlertDialogAction>
                   <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90 border-0">
-                    Réinitialiser
-                  </AlertDialogAction>
+                    Annuler
+                  </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
