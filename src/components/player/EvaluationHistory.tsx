@@ -334,6 +334,20 @@ export function EvaluationHistory({
               </AlertDialog>
             </div>
           )}
+          {/* Old framework coach evals: print only, no edit */}
+          {canEvaluate && !isArchived && isCoachType && isOldFramework && onPrintEvaluation && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPrintEvaluation(evaluation);
+              }}
+            >
+              <Printer className="w-4 h-4 mr-1" />
+              Imprimer
+            </Button>
+          )}
           {canEvaluate && isArchived && (
             <div className="flex items-center gap-2">
               {onPrintEvaluation && (
