@@ -399,6 +399,12 @@ export default function PlayerDetail() {
   const latestCoachEvaluation = evaluations.find(
     e => e.type === "coach_assessment" && !e.deleted_at
   );
+
+  // Get the PREVIOUS (second latest) coach evaluation for "Dernier débrief" button
+  const coachEvaluations = evaluations.filter(
+    e => e.type === "coach_assessment" && !e.deleted_at
+  );
+  const previousCoachEvaluation = coachEvaluations.length >= 2 ? coachEvaluations[1] : null;
   
   // Build datasets for self-evaluation overlay (2-way comparison)
   const getSelfEvalOverlayDatasets = () => {
@@ -554,7 +560,7 @@ export default function PlayerDetail() {
   const hasSupporterEvaluation = !!latestSupporterEvaluation;
   
   // Check if multi-source mode is active (any layer besides default coach)
-  const isMultiSourceMode = showCoachLayer || showSelfEvalLayer || showSupporterLayer;
+  const isMultiSourceMode = showSelfEvalLayer || showSupporterLayer;
 
 
   return (
@@ -896,12 +902,18 @@ export default function PlayerDetail() {
                   {canEvaluate && !showComparison && (
                     <>
                       {/* Dernier débrief layer */}
-                      {latestCoachEvaluation && (
+                      {previousCoachEvaluation && (
                         <div className="flex items-center gap-2">
                           <Checkbox
                             id="coach-layer"
-                            checked={showCoachLayer}
-                            onCheckedChange={(checked) => setShowCoachLayer(checked as boolean)}
+                            checked={comparisonIds.includes(previousCoachEvaluation.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setComparisonIds(prev => [...prev, previousCoachEvaluation.id]);
+                              } else {
+                                setComparisonIds(prev => prev.filter(id => id !== previousCoachEvaluation.id));
+                              }
+                            }}
                           />
                           <Label 
                             htmlFor="coach-layer" 
