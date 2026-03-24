@@ -749,8 +749,8 @@ export default function PlayerDetail() {
                 {canEvaluate && teamMembership && !isViewingHistory && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" className="w-full gap-2 justify-start text-sm bg-primary text-primary-foreground hover:bg-primary/90 shadow-md" title="Créer un nouveau débrief coach pour ce joueur">
-                        <ClipboardList className="w-4 h-4" />Débrief coach
+                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" title="Créer un nouveau débrief coach pour ce joueur">
+                        <ClipboardList className="w-4 h-4 text-primary" />Débrief coach
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -798,8 +798,8 @@ export default function PlayerDetail() {
                 {canEvaluate && teamMembership && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10" title="Envoyer une demande d'auto-débrief au joueur">
-                        <Star className="w-4 h-4" />
+                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" title="Envoyer une demande d'auto-débrief au joueur">
+                        <Star className="w-4 h-4 text-emerald-500" />
                         Débrief joueur
                       </Button>
                     </AlertDialogTrigger>
@@ -826,8 +826,8 @@ export default function PlayerDetail() {
                 )}
                 {/* Débrief supporter */}
                 {canEvaluate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm border-warning/50 text-white bg-warning/80 hover:bg-warning/90" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
-                    <Heart className="w-4 h-4" />
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
+                    <Heart className="w-4 h-4 text-warning" />
                     Débrief supporter
                   </Button>
                 )}
