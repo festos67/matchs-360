@@ -1181,7 +1181,7 @@ export default function PlayerDetail() {
               <span className="text-sm text-blue-600 dark:text-blue-400">
                 📝 Modification de: <strong>{selectedEvaluation.name}</strong>
               </span>
-              <Button size="sm" variant="outline" onClick={() => setIsCreatingNew(true)}>
+              <Button size="sm" variant="outline" onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); }}>
                 <Plus className="w-4 h-4 mr-1" />
                 Créer une nouvelle
               </Button>
