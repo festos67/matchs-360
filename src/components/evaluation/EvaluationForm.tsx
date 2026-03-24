@@ -52,6 +52,18 @@ interface EvaluationFormProps {
       content: string;
     }>;
   } | null;
+  previousEvaluation?: {
+    scores: Array<{
+      skill_id: string;
+      score: number | null;
+      is_not_observed: boolean;
+      comment: string | null;
+    }>;
+    objectives: Array<{
+      theme_id: string;
+      content: string;
+    }>;
+  };
   previousScores?: Record<string, number | null>;
   onSaved?: () => void;
   readOnly?: boolean;
@@ -64,6 +76,7 @@ export const EvaluationForm = ({
   frameworkId,
   themes,
   existingEvaluation,
+  previousEvaluation,
   previousScores,
   onSaved,
   readOnly = false,
@@ -76,22 +89,30 @@ export const EvaluationForm = ({
 
   // Initialize scores state
   const [themeScores, setThemeScores] = useState<ThemeScores[]>(() => {
+    // For existing evaluations: load their scores
+    // For new evaluations: scores at null, but carry over comments & objectives from previous
+    const sourceEval = existingEvaluation || null;
+    const commentSource = existingEvaluation ? existingEvaluation : previousEvaluation;
+    
     return themes.map((theme) => ({
       theme_id: theme.id,
       theme_name: theme.name,
       theme_color: theme.color,
       skills: theme.skills.map((skill) => {
-        const existingScore = existingEvaluation?.scores.find(
+        const existingScore = sourceEval?.scores.find(
+          (s) => s.skill_id === skill.id
+        );
+        const prevComment = commentSource?.scores.find(
           (s) => s.skill_id === skill.id
         );
         return {
           skill_id: skill.id,
           score: existingScore?.score ?? null,
           is_not_observed: existingScore?.is_not_observed ?? false,
-          comment: existingScore?.comment ?? null,
+          comment: prevComment?.comment ?? null,
         };
       }),
-      objective: existingEvaluation?.objectives.find(
+      objective: (existingEvaluation || previousEvaluation)?.objectives.find(
         (o) => o.theme_id === theme.id
       )?.content ?? null,
     }));

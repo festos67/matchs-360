@@ -1132,14 +1132,20 @@ export default function PlayerDetail() {
               frameworkId={frameworkId}
               themes={themes}
               existingEvaluation={isCreatingNew ? null : selectedEvaluation}
+              previousEvaluation={(() => {
+                if (!isCreatingNew) return undefined;
+                const coachEvals = evaluations.filter(
+                  e => e.type === "coach_assessment" && !e.deleted_at
+                );
+                return coachEvals[0] || undefined;
+              })()}
               previousScores={(() => {
-                // Find the previous coach evaluation to show last scores
                 const coachEvals = evaluations.filter(
                   e => e.type === "coach_assessment" && !e.deleted_at
                 );
                 const previousEval = isCreatingNew 
-                  ? coachEvals[0]  // When creating new, the "previous" is the latest
-                  : coachEvals[1]; // When editing, the "previous" is the one before
+                  ? coachEvals[0]
+                  : coachEvals[1];
                 if (!previousEval) return undefined;
                 const map: Record<string, number | null> = {};
                 previousEval.scores.forEach(s => {
