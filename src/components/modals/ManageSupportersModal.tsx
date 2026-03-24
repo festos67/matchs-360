@@ -168,8 +168,8 @@ export const ManageSupportersModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto min-h-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl h-[85vh] sm:h-[640px] sm:max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Heart className="w-5 h-5 text-primary" />
@@ -178,8 +178,8 @@ export const ManageSupportersModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex min-h-0 flex-1 flex-col">
+          <TabsList className="grid w-full grid-cols-3 shrink-0">
             <TabsTrigger value="list">
               Supporters ({supporters.length})
             </TabsTrigger>
@@ -193,9 +193,9 @@ export const ManageSupportersModal = ({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="list" className="mt-4">
+          <TabsContent value="list" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             {supporters.length > 0 ? (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+              <div className="space-y-2">
                 {supporters.map((supporter) => (
                   <div
                     key={supporter.id}
@@ -241,7 +241,7 @@ export const ManageSupportersModal = ({
             )}
           </TabsContent>
 
-          <TabsContent value="add" className="mt-4">
+          <TabsContent value="add" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -314,7 +314,7 @@ export const ManageSupportersModal = ({
             </form>
           </TabsContent>
 
-          <TabsContent value="invitations" className="mt-4">
+          <TabsContent value="invitations" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             <SupporterRequestsPanel
               playerId={playerId}
               playerName={playerName}
