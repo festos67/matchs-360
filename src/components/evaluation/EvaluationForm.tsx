@@ -526,7 +526,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button onClick={() => { setEvaluationName(existingEvaluation?.name || generateDefaultName()); setShowSaveDialog(true); }} disabled={saving}>
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
@@ -537,6 +537,35 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           </div>
         </div>
       )}
+
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enregistrer le débrief</DialogTitle>
+            <DialogDescription>
+              Confirmez ou modifiez le nom du débrief avant de sauvegarder.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="eval-name">Nom du débrief</Label>
+            <Input
+              id="eval-name"
+              value={evaluationName}
+              onChange={(e) => setEvaluationName(e.target.value)}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={() => { setShowSaveDialog(false); handleSave(); }} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
