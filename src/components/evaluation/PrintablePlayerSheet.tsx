@@ -293,7 +293,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </h2>
             <div style={{ width: "100%", height: "340px", display: "flex", justifyContent: "center" }}>
               <div style={{ width: "100%", maxWidth: "520px", height: "100%" }}>
-                <PrintableRadarChart data={radarData} />
+                <PrintableRadarChart data={radarData} comparisonDatasets={comparisonDatasets} />
               </div>
             </div>
           </div>
