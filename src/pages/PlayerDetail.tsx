@@ -100,7 +100,9 @@ export default function PlayerDetail() {
   const [referentCoach, setReferentCoach] = useState<{ first_name: string | null; last_name: string | null } | null>(null);
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
   const [frameworkName, setFrameworkName] = useState<string>("");
-  const [themes, setThemes] = useState<Theme[]>([]);
+   const [themes, setThemes] = useState<Theme[]>([]); // current active framework themes (for new evals)
+   const [displayThemes, setDisplayThemes] = useState<Theme[]>([]); // themes for the selected evaluation's framework
+   const [displayThemesCache, setDisplayThemesCache] = useState<Record<string, Theme[]>>({}); // cache by framework_id
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
@@ -252,6 +254,7 @@ export default function PlayerDetail() {
           name,
           date,
           deleted_at,
+          framework_id,
           type,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
