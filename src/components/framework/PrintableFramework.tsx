@@ -31,7 +31,7 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
       <div ref={ref} className="print-framework bg-white text-black" style={{ width: "210mm", margin: "0 auto" }}>
         <style>{`
           @media print {
-            @page { size: A4 portrait; margin: 12mm 10mm; }
+            @page { size: A4 portrait; margin: 12mm 10mm; margin-top: 8mm; margin-bottom: 8mm; }
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .print-framework { width: 100% !important; }
             .print-no-break { break-inside: avoid; }
@@ -40,22 +40,16 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
         `}</style>
 
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "3px solid #3B82F6", paddingBottom: "12px", marginBottom: "16px" }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <Activity style={{ width: "20px", height: "20px", color: "#3B82F6" }} />
-              <span style={{ fontSize: "14px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1px" }}>MATCHS360</span>
-            </div>
-            <h1 style={{ fontSize: "22px", fontWeight: 700, margin: 0, lineHeight: 1.3 }}>{frameworkName}</h1>
-            <p style={{ fontSize: "12px", color: "#6B7280", margin: "4px 0 0 0" }}>
-              {teamName} • {clubName}
-            </p>
+        <div style={{ borderBottom: "3px solid #3B82F6", paddingBottom: "14px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+            <Activity style={{ width: "22px", height: "22px", color: "#3B82F6" }} />
+            <span style={{ fontSize: "15px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1px" }}>MATCHS360</span>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: "11px", color: "#6B7280" }}>{themes.length} thématiques • {totalSkills} compétences</div>
-            <div style={{ fontSize: "11px", color: "#6B7280", marginTop: "2px" }}>
-              Généré le {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-            </div>
+          <h1 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 10px 0", lineHeight: 1.2 }}>{frameworkName}</h1>
+          <div style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.8 }}>
+            {clubName} — {teamName}<br />
+            {themes.length} thématiques — {totalSkills} compétences<br />
+            Généré le {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
           </div>
         </div>
 
@@ -153,9 +147,6 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
             <Activity style={{ width: "12px", height: "12px", color: "#3B82F6" }} />
             <span style={{ fontSize: "9px", color: "#9CA3AF", fontWeight: 600 }}>MATCHS360</span>
           </div>
-          <span style={{ fontSize: "9px", color: "#9CA3AF" }}>
-            {frameworkName} — {teamName}
-          </span>
         </div>
       </div>
     );
