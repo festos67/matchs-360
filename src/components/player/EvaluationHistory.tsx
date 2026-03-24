@@ -14,6 +14,7 @@ import {
   ClipboardCheck,
   User,
   Heart,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +77,7 @@ interface EvaluationHistoryProps {
   onEditEvaluation: (evaluation: Evaluation) => void;
   onToggleComparison: (evalId: string) => void;
   onRefresh: () => void;
+  onPrintEvaluation?: (evaluation: Evaluation) => void;
 }
 
 // Predefined colors for comparison
@@ -278,6 +280,19 @@ export function EvaluationHistory({
                 <Edit className="w-4 h-4 mr-1" />
                 Modifier
               </Button>
+              {onPrintEvaluation && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPrintEvaluation(evaluation);
+                  }}
+                >
+                  <Printer className="w-4 h-4 mr-1" />
+                  Imprimer
+                </Button>
+              )}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
