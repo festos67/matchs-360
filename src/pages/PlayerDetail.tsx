@@ -711,16 +711,40 @@ export default function PlayerDetail() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Nouveau débrief</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        {hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Voulez-vous créer un nouveau débrief pour {getPlayerName()} ?
+                        {hasDraftEvaluation
+                          ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
+                          : `Voulez-vous créer un nouveau débrief pour ${getPlayerName()} ?`
+                        }
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
-                        Confirmer
-                      </AlertDialogAction>
+                      {hasDraftEvaluation ? (
+                        <>
+                          <AlertDialogAction onClick={() => {
+                            setIsCreatingNew(true);
+                            setHasDraftEvaluation(false);
+                            setActiveTab("evaluation");
+                          }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                            Nouveau débrief
+                          </AlertDialogAction>
+                          <AlertDialogAction onClick={() => {
+                            setIsCreatingNew(false);
+                            setHasDraftEvaluation(false);
+                            setActiveTab("evaluation");
+                          }}>
+                            Poursuivre le débrief
+                          </AlertDialogAction>
+                        </>
+                      ) : (
+                        <AlertDialogAction onClick={() => { setIsCreatingNew(true); setActiveTab("evaluation"); }}>
+                          Confirmer
+                        </AlertDialogAction>
+                      )}
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
