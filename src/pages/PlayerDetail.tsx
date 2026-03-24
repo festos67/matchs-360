@@ -952,7 +952,7 @@ export default function PlayerDetail() {
             <div className="lg:col-span-2 glass-card p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-display font-semibold">Analyse des compétences</h2>
+                  <h2 className="text-xl font-display font-semibold">Analyse des résultats</h2>
                   <p className="text-sm text-muted-foreground mt-1">
                     {isMultiSourceMode ? (
                       (() => {
@@ -965,9 +965,19 @@ export default function PlayerDetail() {
                           : "Sélectionnez au moins une source";
                       })()
                     ) : selectedEvaluation ? (
-                      selectedEvaluation.name
-                    ) : selectedEvaluation ? (
-                      selectedEvaluation.name
+                      (() => {
+                        const coachEvals = evaluations
+                          .filter(e => e.type === "coach_assessment" && !e.deleted_at)
+                          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                        const evalIndex = coachEvals.findIndex(e => e.id === selectedEvaluation.id);
+                        const evalNumber = evalIndex >= 0 ? evalIndex + 1 : "–";
+                        const playerName = player ? `${player.first_name || ""} ${player.last_name || ""}`.trim() : "";
+                        const coachName = referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : "";
+                        const evalDate = new Date(selectedEvaluation.date);
+                        const dateStr = evalDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+                        const timeStr = evalDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+                        return `Débrief N°${evalNumber} – ${playerName} – ${coachName} – ${dateStr} ${timeStr}`;
+                      })()
                     ) : (
                       "Aucune évaluation"
                     )}
