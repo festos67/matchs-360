@@ -141,7 +141,7 @@ export const GlobalSearch = () => {
       {/* Search trigger */}
       <button
         onClick={() => setOpen(true)}
-        className="relative w-96 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-transparent hover:border-primary/30 transition-colors text-left"
+        className="relative w-full md:w-96 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-transparent hover:border-primary/30 transition-colors text-left min-w-0"
       >
         <Search className="w-4 h-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground flex-1">

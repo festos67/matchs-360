@@ -12,6 +12,7 @@ import {
 import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { MobileSidebar } from "./MobileSidebar";
 
 export const TopBar = () => {
   const { user, profile, roles, currentRole, setCurrentRole, signOut } = useAuth();
@@ -23,12 +24,15 @@ export const TopBar = () => {
   };
 
   return (
-    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-xl px-6 flex items-center justify-between">
-      {/* Search */}
-      <GlobalSearch />
+    <header className="h-16 border-b border-border bg-card/50 backdrop-blur-xl px-4 md:px-6 flex items-center justify-between gap-2">
+      {/* Mobile menu + Search */}
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <MobileSidebar />
+        <GlobalSearch />
+      </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         {/* Role Switcher - only shows if multiple roles */}
         <RoleSwitcher
           roles={roles}
@@ -45,7 +49,7 @@ export const TopBar = () => {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-3 px-3">
+            <Button variant="ghost" className="flex items-center gap-3 px-2 md:px-3">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                 {profile?.photo_url ? (
                   <img
