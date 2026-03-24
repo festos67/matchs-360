@@ -747,7 +747,7 @@ export default function PlayerDetail() {
               {canEvaluate && teamMembership && !isViewingHistory && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button size="lg" className="w-full gap-2 justify-center bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold text-base px-8" title="Créer un nouveau débrief pour ce joueur">
+                    <Button size="lg" className="w-full gap-2 justify-center bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-bold text-lg px-8" title="Créer un nouveau débrief pour ce joueur">
                       <Plus className="w-5 h-5" />Débrief
                     </Button>
                   </AlertDialogTrigger>
@@ -795,19 +795,19 @@ export default function PlayerDetail() {
               {/* Row 2: Supporter + Avis supporter side by side */}
               {canEvaluate && teamMembership && (
                 <div className="flex gap-1.5">
-                  <Button variant="outline" size="sm" className="gap-2 justify-start flex-1" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
+                  <Button variant="outline" size="sm" className="gap-2 justify-center flex-1" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
                     <Plus className="w-3.5 h-3.5 text-primary" />Supporter
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-2 flex-1 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un avis d'évaluation à un supporter">
+                  <Button variant="outline" size="sm" className="gap-2 justify-center flex-1 border-warning/50 text-warning hover:bg-warning/10" onClick={() => setShowRequestSupporterModal(true)} title="Demander un avis d'évaluation à un supporter">
                     <Heart className="w-3.5 h-3.5" />
                     Avis supporter
                   </Button>
                 </div>
               )}
-              {/* Row 3: Mutation - full width */}
+              {/* Row 3: Demande de transfert - full width */}
               {canMutate && teamMembership && (
-                <Button variant="outline" size="sm" className="w-full gap-2 justify-start" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
-                  <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Mutation
+                <Button variant="outline" size="sm" className="w-full gap-2 justify-center" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
+                  <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Demande de transfert
                 </Button>
               )}
             </div>
