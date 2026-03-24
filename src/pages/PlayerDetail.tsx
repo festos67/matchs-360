@@ -478,26 +478,26 @@ export default function PlayerDetail() {
   const comparisonDatasets = getComparisonDatasets();
   const showComparison = comparisonIds.length > 0;
   
-  // Get latest self-evaluation for comparison
+  // Get latest self-evaluation for comparison (on current framework)
   const latestSelfEvaluation = evaluations.find(
-    e => e.type === "player_self_assessment" && !e.deleted_at
+    e => e.type === "player_self_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
   
-  // Get latest supporter evaluation for comparison
+  // Get latest supporter evaluation for comparison (on current framework)
   const latestSupporterEvaluation = evaluations.find(
-    e => e.type === "supporter_assessment" && !e.deleted_at
+    e => e.type === "supporter_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
   
-  // Get latest coach evaluation (for the toggle comparison)
+  // Get latest coach evaluation on current framework (for the toggle comparison)
   const latestCoachEvaluation = evaluations.find(
-    e => e.type === "coach_assessment" && !e.deleted_at
+    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
 
-  // Get the PREVIOUS (second latest) coach evaluation for "Dernier débrief" button
-  const coachEvaluations = evaluations.filter(
-    e => e.type === "coach_assessment" && !e.deleted_at
+  // Get the PREVIOUS (second latest) coach evaluation on current framework for "Dernier débrief" button
+  const currentFrameworkCoachEvals = evaluations.filter(
+    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
   );
-  const previousCoachEvaluation = coachEvaluations.length >= 2 ? coachEvaluations[1] : null;
+  const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
   
   // Build datasets for self-evaluation overlay (2-way comparison)
   const getSelfEvalOverlayDatasets = () => {
