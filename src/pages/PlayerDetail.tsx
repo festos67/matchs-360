@@ -1334,6 +1334,16 @@ export default function PlayerDetail() {
           </div>
         </TabsContent>
       </Tabs>
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          size="icon"
+          className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg h-12 w-12"
+          aria-label="Retour en haut"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </Button>
+      )}
     </AppLayout>
   );
 }
