@@ -76,6 +76,7 @@ export const EvaluationForm = ({
   frameworkId,
   themes,
   existingEvaluation,
+  previousEvaluation,
   previousScores,
   onSaved,
   readOnly = false,
