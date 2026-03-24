@@ -267,6 +267,7 @@ export default function PlayerDetail() {
           name,
           date,
           deleted_at,
+          framework_id,
           type,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
