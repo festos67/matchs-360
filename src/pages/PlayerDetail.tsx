@@ -111,7 +111,7 @@ export default function PlayerDetail() {
   const [showSupportersModal, setShowSupportersModal] = useState(false);
   const [showRequestSupporterModal, setShowRequestSupporterModal] = useState(false);
   // Multi-source radar overlay checkboxes (for admin/coach god view)
-  const [showCoachLayer, setShowCoachLayer] = useState(true);
+  const [showCoachLayer, setShowCoachLayer] = useState(false);
   const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
   const [showSupporterLayer, setShowSupporterLayer] = useState(false);
   // Legacy toggle states (kept for backward compat)
