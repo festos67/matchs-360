@@ -106,6 +106,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   previousScores,
   onSaved,
   readOnly = false,
+  coachName,
+  evaluationNumber,
 }, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
