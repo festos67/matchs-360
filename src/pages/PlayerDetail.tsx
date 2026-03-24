@@ -704,14 +704,6 @@ export default function PlayerDetail() {
               </Button>
             )}
             <div className="flex flex-col gap-1.5">
-              {canEvaluate && teamMembership && !isViewingHistory && (
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => {
-                  setIsCreatingNew(true);
-                  setActiveTab("evaluation");
-                }}>
-                  <Plus className="w-3.5 h-3.5 text-primary" />Débrief
-                </Button>
-              )}
               {canEvaluate && teamMembership && (
                 <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupportersModal(true)}>
                   <Plus className="w-3.5 h-3.5 text-primary" />Supporter
