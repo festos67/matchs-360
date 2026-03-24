@@ -169,21 +169,6 @@ export const ComparisonRadar = ({
               }}
             />
 
-            {datasets.length > 1 && (
-              <Legend
-                wrapperStyle={{
-                  paddingTop: "20px",
-                }}
-                formatter={(value: string) => {
-                  const dataset = datasets.find(d => d.id === value);
-                  return (
-                    <span style={{ color: "hsl(215, 20%, 65%)", fontSize: "12px" }}>
-                      {dataset?.label || value}
-                    </span>
-                  );
-                }}
-              />
-            )}
           </RechartsRadarChart>
         </ResponsiveContainer>
       </div>
