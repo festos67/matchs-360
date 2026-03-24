@@ -663,7 +663,17 @@ export default function PlayerDetail() {
             </div>
             <p className="text-muted-foreground">{player.email}</p>
             {teamMembership && (
-              <p className="text-sm text-muted-foreground mt-1">{teamMembership.team.club?.name}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1 flex-wrap">
+                <span>{teamMembership.team.club?.name}</span>
+                <span className="text-muted-foreground/50">·</span>
+                <span>{teamMembership.team.name}</span>
+                {referentCoach && (
+                  <>
+                    <span className="text-muted-foreground/50">·</span>
+                    <span>Coach {referentCoach.first_name} {referentCoach.last_name}</span>
+                  </>
+                )}
+              </div>
             )}
 
             <div className="flex gap-6 mt-6">
