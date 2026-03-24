@@ -9,7 +9,6 @@ import {
   Activity,
   Shield,
   ClipboardList,
-  User,
   UserCog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,7 +18,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Navigation items by role
 const getNavItems = (role: string | undefined, isAdmin: boolean) => {
-  // Admin gets full access
   if (isAdmin) {
     return [
       { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
@@ -59,7 +57,11 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
   }
 };
 
-export const Sidebar = () => {
+interface SidebarContentProps {
+  onNavigate?: () => void;
+}
+
+export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
@@ -71,7 +73,6 @@ export const Sidebar = () => {
     navigate("/auth");
   };
 
-  // Determine dashboard path based on role
   const getDashboardPath = () => {
     if (isAdmin) return "/admin/dashboard";
     switch (currentRole?.role) {
@@ -83,11 +84,15 @@ export const Sidebar = () => {
     }
   };
 
+  const handleLinkClick = () => {
+    onNavigate?.();
+  };
+
   return (
-    <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <>
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
-        <Link to={getDashboardPath()} className="flex items-center gap-3">
+        <Link to={getDashboardPath()} className="flex items-center gap-3" onClick={handleLinkClick}>
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
             <Activity className="w-6 h-6 text-primary-foreground" />
           </div>
@@ -112,6 +117,7 @@ export const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
+              onClick={handleLinkClick}
               className={cn(
                 "nav-item",
                 isActive && "active"
@@ -131,6 +137,7 @@ export const Sidebar = () => {
             </span>
             <Link
               to="/admin/users"
+              onClick={handleLinkClick}
               className={cn(
                 "nav-item mt-2",
                 location.pathname === "/admin/users" && "active"
@@ -141,6 +148,7 @@ export const Sidebar = () => {
             </Link>
             <Link
               to="/role-approvals"
+              onClick={handleLinkClick}
               className={cn(
                 "nav-item",
                 location.pathname === "/role-approvals" && "active"
@@ -157,6 +165,7 @@ export const Sidebar = () => {
       <div className="p-4 border-t border-sidebar-border space-y-1">
         <Link
           to="/settings"
+          onClick={handleLinkClick}
           className={cn(
             "nav-item",
             location.pathname === "/settings" && "active"
@@ -173,6 +182,14 @@ export const Sidebar = () => {
           <span className="font-medium">Déconnexion</span>
         </button>
       </div>
+    </>
+  );
+};
+
+export const Sidebar = () => {
+  return (
+    <aside className="hidden md:flex w-64 bg-sidebar border-r border-sidebar-border flex-col">
+      <SidebarContent />
     </aside>
   );
 };
