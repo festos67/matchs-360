@@ -131,9 +131,10 @@ const formatDateFr = (dateStr: string) =>
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
   ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [] }, ref) => {
     const getPlayerName = () => {
-      if (player.nickname) return player.nickname;
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
-      return player.first_name || player.last_name || "Joueur";
+      if (player.first_name || player.last_name) return player.first_name || player.last_name || "Joueur";
+      if (player.nickname) return player.nickname;
+      return "Joueur";
     };
 
     const getCoachName = () => {
