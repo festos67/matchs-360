@@ -475,4 +475,6 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       )}
     </div>
   );
-};
+});
+
+EvaluationForm.displayName = "EvaluationForm";
