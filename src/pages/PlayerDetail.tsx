@@ -419,9 +419,16 @@ export default function PlayerDetail() {
     });
   };
 
-  const handleViewEvaluation = (evaluation: Evaluation) => {
+  const handleViewEvaluation = async (evaluation: Evaluation) => {
     setSelectedEvaluation(evaluation);
     setIsViewingHistory(evaluation.id !== evaluations[0]?.id);
+    // Load correct themes for this evaluation's framework
+    if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
+      const evalThemes = await fetchThemesForFramework(evaluation.framework_id);
+      setSelectedEvalThemes(evalThemes);
+    } else {
+      setSelectedEvalThemes(themes);
+    }
     setActiveTab("radar");
   };
 
@@ -430,7 +437,9 @@ export default function PlayerDetail() {
       setSelectedEvaluation(evaluations[0]);
       setIsViewingHistory(false);
       setComparisonIds([]);
+      setSelectedEvalThemes(themes);
     }
+  };
   };
 
   if (authLoading || loading) {
