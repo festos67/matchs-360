@@ -52,6 +52,18 @@ interface EvaluationFormProps {
       content: string;
     }>;
   } | null;
+  previousEvaluation?: {
+    scores: Array<{
+      skill_id: string;
+      score: number | null;
+      is_not_observed: boolean;
+      comment: string | null;
+    }>;
+    objectives: Array<{
+      theme_id: string;
+      content: string;
+    }>;
+  };
   previousScores?: Record<string, number | null>;
   onSaved?: () => void;
   readOnly?: boolean;
