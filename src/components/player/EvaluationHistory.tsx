@@ -39,6 +39,7 @@ interface Evaluation {
   name: string;
   date: string;
   deleted_at: string | null;
+  framework_id: string;
   type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
