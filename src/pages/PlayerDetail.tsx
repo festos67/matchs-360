@@ -741,16 +741,16 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2">
-            <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-2 -ml-2">
+            <div className="flex flex-col gap-4 min-w-[220px]">
               {/* Bloc Débriefs */}
               <div className="flex flex-col gap-1.5">
                 {/* Débrief coach */}
                 {canEvaluate && teamMembership && !isViewingHistory && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" title="Créer un nouveau débrief coach pour ce joueur">
-                        <ClipboardList className="w-4 h-4 text-primary" />Débrief coach
+                      <Button className="w-full gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-base px-4" title="Créer un nouveau débrief coach pour ce joueur">
+                        <ClipboardList className="w-5 h-5" />Débrief coach
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -798,7 +798,7 @@ export default function PlayerDetail() {
                 {canEvaluate && teamMembership && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" title="Envoyer une demande d'auto-débrief au joueur">
+                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" title="Envoyer une demande d'auto-débrief au joueur">
                         <Star className="w-4 h-4 text-emerald-500" />
                         Débrief joueur
                       </Button>
@@ -826,7 +826,7 @@ export default function PlayerDetail() {
                 )}
                 {/* Débrief supporter */}
                 {canEvaluate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
                     <Heart className="w-4 h-4 text-warning" />
                     Débrief supporter
                   </Button>
@@ -836,13 +836,13 @@ export default function PlayerDetail() {
               {/* Bloc Gestion */}
               <div className="flex flex-col gap-1.5">
                 {canEvaluate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
                     <Users className="w-4 h-4 text-primary" />
                     Gestion des supporters
                   </Button>
                 )}
                 {canMutate && teamMembership && (
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
                     <ArrowRightLeft className="w-4 h-4 text-primary" />
                     Demande de transfert
                   </Button>
