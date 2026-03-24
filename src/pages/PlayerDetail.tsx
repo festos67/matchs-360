@@ -653,12 +653,23 @@ export default function PlayerDetail() {
               color: "white",
             }}
           >
-            {!player.photo_url && getPlayerName().split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+            {!player.photo_url && (() => {
+              const fullName = `${player.first_name || ""} ${player.last_name || ""}`.trim();
+              const initials = (fullName || player.nickname || "J").split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+              return initials;
+            })()}
           </div>
 
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-display font-bold">{getPlayerName()}</h1>
+            <div className="mb-2">
+              <h1 className="text-3xl font-display font-bold">
+                {player.first_name || player.last_name
+                  ? `${player.first_name || ""} ${player.last_name || ""}`.trim()
+                  : player.nickname || "Joueur"}
+              </h1>
+              {player.nickname && (player.first_name || player.last_name) && (
+                <p className="text-sm text-muted-foreground italic">{player.nickname}</p>
+              )}
             </div>
             <p className="text-muted-foreground">{player.email}</p>
             {teamMembership && (
