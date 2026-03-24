@@ -1337,6 +1337,104 @@ export default function PlayerDetail() {
         )}
 
       </Tabs>
+
+      {/* Interception dialog when leaving evaluation tab */}
+      <AlertDialog open={!!pendingTabChange} onOpenChange={(open) => { if (!open) setPendingTabChange(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Débrief en cours</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous avez un débrief en cours avec des modifications non enregistrées. Que souhaitez-vous faire ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button
+              onClick={async () => {
+                try {
+                  await evaluationFormRef.current?.save();
+                  setHasDraftEvaluation(true);
+                  toast.success("Débrief sauvegardé en brouillon");
+                } catch (e) {
+                  toast.error("Erreur lors de la sauvegarde");
+                }
+                const tab = pendingTabChange;
+                setPendingTabChange(null);
+                if (tab) setActiveTab(tab);
+              }}
+              className="w-full justify-start gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Sauvegarder et reprendre plus tard
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                try {
+                  await evaluationFormRef.current?.save();
+                  setIsCreatingNew(false);
+                  setHasDraftEvaluation(false);
+                  fetchPlayerData();
+                  toast.success("Débrief finalisé avec succès");
+                } catch (e) {
+                  toast.error("Erreur lors de la sauvegarde");
+                }
+                const tab = pendingTabChange;
+                setPendingTabChange(null);
+                if (tab) setActiveTab(tab);
+              }}
+              className="w-full justify-start gap-2"
+            >
+              <ClipboardList className="w-4 h-4" />
+              Finaliser le débrief
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCancelConfirm(true);
+              }}
+              className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4" />
+              Annuler le débrief en cours
+            </Button>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button variant="ghost" size="sm" onClick={() => setPendingTabChange(null)}>
+              Retour au débrief
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel confirmation dialog */}
+      <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir annuler ce débrief ? Toutes les modifications non enregistrées seront perdues. Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowCancelConfirm(false)}>
+              Non, revenir
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowCancelConfirm(false);
+                setIsCreatingNew(false);
+                setHasDraftEvaluation(false);
+                const tab = pendingTabChange;
+                setPendingTabChange(null);
+                if (tab) setActiveTab(tab);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Oui, annuler le débrief
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {showScrollTop && (
         <Button
           onClick={scrollToTop}
