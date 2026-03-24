@@ -942,17 +942,6 @@ export default function PlayerDetail() {
                       )}
                     </>
                   )}
-                  {teamMembership && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="gap-2 text-muted-foreground hover:text-foreground"
-                      onClick={() => navigate(`/teams/${teamMembership.team_id}/framework`)}
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      Voir le référentiel
-                    </Button>
-                  )}
                   {showComparison && (
                     <Button variant="outline" size="sm" onClick={() => setComparisonIds([])}>
                       Effacer comparaison
