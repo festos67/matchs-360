@@ -1314,21 +1314,7 @@ export default function PlayerDetail() {
           />
         </TabsContent>
 
-        {/* Invitations Tab - Only for staff (admin/coach) */}
-        {canEvaluate && (
-          <TabsContent value="invitations">
-            <SupporterRequestsPanel
-              playerId={id!}
-              playerName={getPlayerName()}
-              onViewEvaluation={(evaluationId) => {
-                const evaluation = evaluations.find(e => e.id === evaluationId);
-                if (evaluation) {
-                  handleViewEvaluation(evaluation);
-                }
-              }}
-            />
-          </TabsContent>
-        )}
+
 
         {/* Framework Tab */}
         {frameworkId && themes.length > 0 && (
