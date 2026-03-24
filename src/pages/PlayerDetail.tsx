@@ -95,6 +95,7 @@ export default function PlayerDetail() {
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
+  const [referentCoach, setReferentCoach] = useState<{ first_name: string | null; last_name: string | null } | null>(null);
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
   const [frameworkName, setFrameworkName] = useState<string>("");
   const [themes, setThemes] = useState<Theme[]>([]);
