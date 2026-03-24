@@ -638,7 +638,7 @@ export default function PlayerDetail() {
             }}
             team={{ name: teamMembership.team.name }}
             evaluation={selectedEvaluation}
-            themes={themes}
+            themes={displayThemes}
             progressionPercent={(() => {
               const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
               if (activeCoachEvals.length < 2) return null;
