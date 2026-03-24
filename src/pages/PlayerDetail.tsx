@@ -897,6 +897,13 @@ export default function PlayerDetail() {
           playerName={getPlayerName()}
           clubId={teamMembership.team.club_id}
           onSuccess={fetchPlayerData}
+          onViewEvaluation={(evaluationId) => {
+            const evaluation = evaluations.find(e => e.id === evaluationId);
+            if (evaluation) {
+              setShowSupportersModal(false);
+              handleViewEvaluation(evaluation);
+            }
+          }}
         />
       )}
 
