@@ -440,7 +440,6 @@ export default function PlayerDetail() {
       setSelectedEvalThemes(themes);
     }
   };
-  };
 
   if (authLoading || loading) {
     return (
