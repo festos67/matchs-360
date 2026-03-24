@@ -162,7 +162,7 @@ export default function PlayerDetail() {
 
   // Load themes from the selected evaluation's framework (for correct display of old evals)
   const loadThemesForFramework = useCallback(async (fwId: string): Promise<Theme[]> => {
-    if (displayThemesCache[fwId]) return displayThemesCache[fwId];
+    if (themesCache.current[fwId]) return themesCache.current[fwId];
     
     const { data: themesData } = await supabase
       .from("themes")
@@ -175,11 +175,11 @@ export default function PlayerDetail() {
         ...theme,
         skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
       }));
-      setDisplayThemesCache(prev => ({ ...prev, [fwId]: sorted }));
+      themesCache.current[fwId] = sorted;
       return sorted;
     }
     return [];
-  }, [displayThemesCache]);
+  }, []);
 
   useEffect(() => {
     if (!selectedEvaluation) {
