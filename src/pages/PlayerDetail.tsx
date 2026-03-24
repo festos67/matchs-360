@@ -499,38 +499,50 @@ export default function PlayerDetail() {
       isCurrent?: boolean;
     }> = [];
 
-    // Add coach evaluation if checkbox is checked
-    if (showCoachLayer && latestCoachEvaluation) {
+    // Always add the currently selected evaluation as the base
+    if (selectedEvaluation) {
       datasets.push({
-        id: latestCoachEvaluation.id,
-        label: "Débrief Coach",
-        date: latestCoachEvaluation.date,
-        data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
+        id: selectedEvaluation.id,
+        label: selectedEvaluation.name,
+        date: selectedEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation)),
         color: teamColor,
         isCurrent: true,
       });
     }
 
+    // Add latest coach evaluation as overlay if checkbox is checked (and different from selected)
+    if (showCoachLayer && latestCoachEvaluation && latestCoachEvaluation.id !== selectedEvaluation?.id) {
+      datasets.push({
+        id: latestCoachEvaluation.id,
+        label: "Dernier débrief",
+        date: latestCoachEvaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(latestCoachEvaluation)),
+        color: "#6366F1", // Indigo for previous coach debrief
+        isCurrent: false,
+      });
+    }
+
     // Add self-evaluation if checkbox is checked
-    if (showSelfEvalLayer && latestSelfEvaluation) {
+    if (showSelfEvalLayer && latestSelfEvaluation && latestSelfEvaluation.id !== selectedEvaluation?.id) {
       datasets.push({
         id: latestSelfEvaluation.id,
         label: "Auto-débrief",
         date: latestSelfEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
-        color: "#F59E0B", // Amber/Yellow
+        color: "#F59E0B",
         isCurrent: false,
       });
     }
 
     // Add supporter evaluation if checkbox is checked
-    if (showSupporterLayer && latestSupporterEvaluation) {
+    if (showSupporterLayer && latestSupporterEvaluation && latestSupporterEvaluation.id !== selectedEvaluation?.id) {
       datasets.push({
         id: latestSupporterEvaluation.id,
         label: "Débrief Supporter",
         date: latestSupporterEvaluation.date,
         data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
-        color: "#F97316", // Orange
+        color: "#F97316",
         isCurrent: false,
       });
     }
