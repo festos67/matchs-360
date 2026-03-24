@@ -186,6 +186,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   };
 
   const handleObjectiveChange = (themeId: string, objective: string) => {
+    setHasBeenModified(true);
     setThemeScores((prev) =>
       prev.map((theme) =>
         theme.theme_id === themeId ? { ...theme, objective } : theme
