@@ -448,6 +448,16 @@ export default function AdminUsers() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-orange-600 hover:text-orange-700"
+                        onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
+                        disabled={actionLoading === user.id}
+                        title="Réinitialiser le mot de passe"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
                       {/* Promote to Super Admin - only visible to super admin, hidden if user already admin */}
                       {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
                         <Button
