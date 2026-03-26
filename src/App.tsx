@@ -31,6 +31,7 @@ import NotFound from "./pages/NotFound";
 import Stats from "./pages/Stats";
 import AdminUsers from "./pages/AdminUsers";
 import ResetPassword from "./pages/ResetPassword";
+import MyTeamRedirect from "./pages/MyTeamRedirect";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
             <Route path="/supporter/dashboard" element={<SupporterDashboard />} />
             <Route path="/supporter/evaluate/:requestId" element={<SupporterEvaluation />} />
+            <Route path="/my-team" element={<MyTeamRedirect />} />
             
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubDetail />} />
