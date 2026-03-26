@@ -241,7 +241,25 @@ export default function AdminUsers() {
     }
   };
 
-  const handlePromoteAdmin = async (targetUser: AdminUser) => {
+  const handleResetPassword = async (targetUser: AdminUser) => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    try {
+      setActionLoading(targetUser.id);
+      await callAdminAction("update-password", { userId: targetUser.id, newPassword });
+      toast.success(`Mot de passe réinitialisé pour ${getUserDisplayName(targetUser)}`);
+      setResetPasswordUser(null);
+      setNewPassword("");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la réinitialisation");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+
     try {
       setActionLoading(targetUser.id);
       await callAdminAction("promote-admin", { userId: targetUser.id });
