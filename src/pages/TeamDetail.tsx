@@ -75,6 +75,7 @@ export default function TeamDetail() {
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
   const isReferentCoach = members.some(m => m.member_type === "coach" && m.profile.id === user?.id && m.coach_role === "referent");
+  const isPlayerViewing = !isAdmin && !isClubAdmin && !isCoachOfTeam && members.some(m => m.member_type === "player" && m.profile.id === user?.id);
   const canManageTeam = isAdmin || isClubAdmin || isCoachOfTeam;
   const canEditFramework = isAdmin || isClubAdmin || isReferentCoach;
   const canMutatePlayers = isAdmin || isClubAdmin;
