@@ -16,9 +16,10 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 
 // Navigation items by role
-const getNavItems = (role: string | undefined, isAdmin: boolean) => {
+const getNavItems = (role: string | undefined, isAdmin: boolean, playerTeamId?: string | null) => {
   if (isAdmin) {
     return [
       { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
@@ -49,11 +50,16 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
-    case "supporter":
-      return [
+    case "supporter": {
+      const items = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
-        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
       ];
+      if (playerTeamId) {
+        items.push({ icon: Users, label: "Mon Équipe", path: `/teams/${playerTeamId}` });
+      }
+      items.push({ icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" });
+      return items;
+    }
     default:
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
