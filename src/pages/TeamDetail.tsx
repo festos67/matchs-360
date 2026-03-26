@@ -75,6 +75,7 @@ export default function TeamDetail() {
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
   const isReferentCoach = members.some(m => m.member_type === "coach" && m.profile.id === user?.id && m.coach_role === "referent");
+  const isPlayerViewing = !isAdmin && !isClubAdmin && !isCoachOfTeam && members.some(m => m.member_type === "player" && m.profile.id === user?.id);
   const canManageTeam = isAdmin || isClubAdmin || isCoachOfTeam;
   const canEditFramework = isAdmin || isClubAdmin || isReferentCoach;
   const canMutatePlayers = isAdmin || isClubAdmin;
@@ -179,7 +180,12 @@ export default function TeamDetail() {
 
   return (
     <AppLayout>
-      <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
+      {!isPlayerViewing && (
+        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
+      )}
+      {isPlayerViewing && (
+        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate("/player/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour au dashboard</Button>
+      )}
 
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-8">
@@ -261,7 +267,7 @@ export default function TeamDetail() {
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {players.map((player, index) => (
                   <div key={player.id} className="animate-fade-in-up opacity-0 group relative" style={{ animationDelay: `${index * 0.05}s` }}>
-                    <CircleAvatar name={getMemberName(player)} imageUrl={player.profile.photo_url} color={teamColor} size="md" onClick={() => navigate(`/players/${player.profile.id}`)} />
+                    <CircleAvatar name={getMemberName(player)} imageUrl={player.profile.photo_url} color={teamColor} size="md" onClick={isPlayerViewing ? (player.profile.id === user?.id ? () => navigate(`/players/${player.profile.id}`) : undefined) : () => navigate(`/players/${player.profile.id}`)} className={isPlayerViewing && player.profile.id !== user?.id ? "cursor-default" : ""} />
                     {canMutatePlayers && (
                       <Button
                         variant="secondary"
