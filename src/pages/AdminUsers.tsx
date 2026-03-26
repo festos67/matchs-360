@@ -259,7 +259,7 @@ export default function AdminUsers() {
     }
   };
 
-
+  const handlePromoteAdmin = async (targetUser: AdminUser) => {
     try {
       setActionLoading(targetUser.id);
       await callAdminAction("promote-admin", { userId: targetUser.id });
@@ -653,3 +653,4 @@ export default function AdminUsers() {
     </AppLayout>
   );
 }
+
