@@ -16,9 +16,10 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 
 // Navigation items by role
-const getNavItems = (role: string | undefined, isAdmin: boolean) => {
+const getNavItems = (role: string | undefined, isAdmin: boolean, playerTeamId?: string | null) => {
   if (isAdmin) {
     return [
       { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
@@ -49,11 +50,16 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
-    case "supporter":
-      return [
+    case "supporter": {
+      const items = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
-        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
       ];
+      if (playerTeamId) {
+        items.push({ icon: Users, label: "Mon Équipe", path: `/teams/${playerTeamId}` });
+      }
+      items.push({ icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" });
+      return items;
+    }
     default:
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -68,9 +74,32 @@ interface SidebarContentProps {
 export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdmin, currentRole } = useAuth();
+  const { isAdmin, currentRole, user } = useAuth();
 
-  const navItems = getNavItems(currentRole?.role, isAdmin);
+  const isPlayerOrSupporter = currentRole?.role === "player" || currentRole?.role === "supporter";
+
+  const { data: playerTeamId } = useQuery({
+    queryKey: ["player-team-id", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const userId = currentRole?.role === "supporter"
+        ? await supabase.from("supporters_link").select("player_id").eq("supporter_id", user.id).limit(1).single().then(r => r.data?.player_id)
+        : user.id;
+      if (!userId) return null;
+      const { data } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", userId)
+        .eq("member_type", "player")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      return data?.team_id || null;
+    },
+    enabled: !!user && isPlayerOrSupporter,
+  });
+
+  const navItems = getNavItems(currentRole?.role, isAdmin, playerTeamId);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
