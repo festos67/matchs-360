@@ -180,7 +180,12 @@ export default function TeamDetail() {
 
   return (
     <AppLayout>
-      <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
+      {!isPlayerViewing && (
+        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
+      )}
+      {isPlayerViewing && (
+        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate("/player/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour au dashboard</Button>
+      )}
 
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-8">
