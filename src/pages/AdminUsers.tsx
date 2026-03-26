@@ -609,6 +609,47 @@ export default function AdminUsers() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reset Password Dialog */}
+      <AlertDialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-orange-600" />
+              Réinitialiser le mot de passe
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Définir un nouveau mot de passe pour <strong>{resetPasswordUser ? getUserDisplayName(resetPasswordUser) : ""}</strong> ({resetPasswordUser?.email})
+                </p>
+                <div>
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Nouveau mot de passe (min. 6 caractères)
+                  </label>
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              onClick={() => resetPasswordUser && handleResetPassword(resetPasswordUser)}
+              disabled={newPassword.length < 6 || actionLoading === resetPasswordUser?.id}
+              className="bg-orange-600 text-white hover:bg-orange-700"
+            >
+              <KeyRound className="w-4 h-4 mr-2" />
+              Réinitialiser
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
