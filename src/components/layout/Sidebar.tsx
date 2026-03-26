@@ -74,9 +74,32 @@ interface SidebarContentProps {
 export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAdmin, currentRole } = useAuth();
+  const { isAdmin, currentRole, user } = useAuth();
 
-  const navItems = getNavItems(currentRole?.role, isAdmin);
+  const isPlayerOrSupporter = currentRole?.role === "player" || currentRole?.role === "supporter";
+
+  const { data: playerTeamId } = useQuery({
+    queryKey: ["player-team-id", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const userId = currentRole?.role === "supporter"
+        ? await supabase.from("supporters_link").select("player_id").eq("supporter_id", user.id).limit(1).single().then(r => r.data?.player_id)
+        : user.id;
+      if (!userId) return null;
+      const { data } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", userId)
+        .eq("member_type", "player")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      return data?.team_id || null;
+    },
+    enabled: !!user && isPlayerOrSupporter,
+  });
+
+  const navItems = getNavItems(currentRole?.role, isAdmin, playerTeamId);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
