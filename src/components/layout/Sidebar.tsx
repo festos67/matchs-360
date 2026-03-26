@@ -79,13 +79,20 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const isPlayerOrSupporter = currentRole?.role === "player" || currentRole?.role === "supporter";
 
   const { data: playerTeamId } = useQuery({
-    queryKey: ["player-team-id", user?.id, currentRole?.role],
+    queryKey: ["sidebar-player-team-id", user?.id, currentRole?.id],
     queryFn: async () => {
-      if (!user) return null;
-      const userId = currentRole?.role === "supporter"
-        ? await supabase.from("supporters_link").select("player_id").eq("supporter_id", user.id).limit(1).single().then(r => r.data?.player_id)
-        : user.id;
-      if (!userId) return null;
+      if (!user || !currentRole) return null;
+      let userId = user.id;
+      if (currentRole.role === "supporter") {
+        const { data } = await supabase
+          .from("supporters_link")
+          .select("player_id")
+          .eq("supporter_id", user.id)
+          .limit(1)
+          .single();
+        if (!data?.player_id) return null;
+        userId = data.player_id;
+      }
       const { data } = await supabase
         .from("team_members")
         .select("team_id")
@@ -96,7 +103,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         .maybeSingle();
       return data?.team_id || null;
     },
-    enabled: !!user && isPlayerOrSupporter,
+    enabled: !!user && !!currentRole && isPlayerOrSupporter,
     staleTime: 1000 * 60 * 5,
   });
 
