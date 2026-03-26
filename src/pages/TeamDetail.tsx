@@ -267,7 +267,7 @@ export default function TeamDetail() {
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {players.map((player, index) => (
                   <div key={player.id} className="animate-fade-in-up opacity-0 group relative" style={{ animationDelay: `${index * 0.05}s` }}>
-                    <CircleAvatar name={getMemberName(player)} imageUrl={player.profile.photo_url} color={teamColor} size="md" onClick={() => navigate(`/players/${player.profile.id}`)} />
+                    <CircleAvatar name={getMemberName(player)} imageUrl={player.profile.photo_url} color={teamColor} size="md" onClick={isPlayerViewing && player.profile.id !== user?.id ? undefined : () => navigate(`/players/${player.profile.id}`)} className={isPlayerViewing && player.profile.id !== user?.id ? "cursor-default" : ""} />
                     {canMutatePlayers && (
                       <Button
                         variant="secondary"
