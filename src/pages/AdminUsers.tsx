@@ -108,6 +108,8 @@ export default function AdminUsers() {
   const [deleteConfirm, setDeleteConfirm] = useState<AdminUser | null>(null);
   const [promoteConfirm, setPromoteConfirm] = useState<AdminUser | null>(null);
   const [promoteInput, setPromoteInput] = useState("");
+  const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
