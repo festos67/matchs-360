@@ -28,6 +28,7 @@ import {
   RotateCcw,
   Mail,
   MailWarning,
+  KeyRound,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -107,6 +108,8 @@ export default function AdminUsers() {
   const [deleteConfirm, setDeleteConfirm] = useState<AdminUser | null>(null);
   const [promoteConfirm, setPromoteConfirm] = useState<AdminUser | null>(null);
   const [promoteInput, setPromoteInput] = useState("");
+  const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
+  const [newPassword, setNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
@@ -238,7 +241,25 @@ export default function AdminUsers() {
     }
   };
 
-  const handlePromoteAdmin = async (targetUser: AdminUser) => {
+  const handleResetPassword = async (targetUser: AdminUser) => {
+    if (!newPassword || newPassword.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    try {
+      setActionLoading(targetUser.id);
+      await callAdminAction("update-password", { userId: targetUser.id, newPassword });
+      toast.success(`Mot de passe réinitialisé pour ${getUserDisplayName(targetUser)}`);
+      setResetPasswordUser(null);
+      setNewPassword("");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors de la réinitialisation");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+
     try {
       setActionLoading(targetUser.id);
       await callAdminAction("promote-admin", { userId: targetUser.id });
@@ -427,6 +448,16 @@ export default function AdminUsers() {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-orange-600 hover:text-orange-700"
+                        onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
+                        disabled={actionLoading === user.id}
+                        title="Réinitialiser le mot de passe"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
                       {/* Promote to Super Admin - only visible to super admin, hidden if user already admin */}
                       {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
                         <Button
@@ -574,6 +605,47 @@ export default function AdminUsers() {
             >
               <ShieldPlus className="w-4 h-4 mr-2" />
               Promouvoir Super Admin
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reset Password Dialog */}
+      <AlertDialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-orange-600" />
+              Réinitialiser le mot de passe
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Définir un nouveau mot de passe pour <strong>{resetPasswordUser ? getUserDisplayName(resetPasswordUser) : ""}</strong> ({resetPasswordUser?.email})
+                </p>
+                <div>
+                  <label className="text-sm font-medium text-foreground block mb-2">
+                    Nouveau mot de passe (min. 6 caractères)
+                  </label>
+                  <Input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              onClick={() => resetPasswordUser && handleResetPassword(resetPasswordUser)}
+              disabled={newPassword.length < 6 || actionLoading === resetPasswordUser?.id}
+              className="bg-orange-600 text-white hover:bg-orange-700"
+            >
+              <KeyRound className="w-4 h-4 mr-2" />
+              Réinitialiser
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
