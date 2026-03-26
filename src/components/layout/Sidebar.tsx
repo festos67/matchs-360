@@ -79,7 +79,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const isPlayerOrSupporter = currentRole?.role === "player" || currentRole?.role === "supporter";
 
   const { data: playerTeamId } = useQuery({
-    queryKey: ["player-team-id", user?.id],
+    queryKey: ["player-team-id", user?.id, currentRole?.role],
     queryFn: async () => {
       if (!user) return null;
       const userId = currentRole?.role === "supporter"
@@ -97,6 +97,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       return data?.team_id || null;
     },
     enabled: !!user && isPlayerOrSupporter,
+    staleTime: 1000 * 60 * 5,
   });
 
   const navItems = getNavItems(currentRole?.role, isAdmin, playerTeamId);
