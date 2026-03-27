@@ -88,8 +88,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
       let objectiveId = objective?.id;
 
       if (objective) {
-        // Update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from("team_objectives")
           .update({
             title: title.trim(),
@@ -100,8 +99,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
           .eq("id", objective.id);
         if (error) throw error;
       } else {
-        // Create
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from("team_objectives")
           .insert({
             team_id: teamId,
@@ -122,7 +120,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
         const toRemove = objective?.attachments?.filter(a => removedAttachmentIds.includes(a.id)) || [];
         if (toRemove.length > 0) {
           await supabase.storage.from("objective-attachments").remove(toRemove.map(a => a.file_path));
-          await supabase.from("objective_attachments").delete().in("id", removedAttachmentIds);
+          await (supabase as any).from("objective_attachments").delete().in("id", removedAttachmentIds);
         }
       }
 
@@ -136,7 +134,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
           .upload(filePath, file);
         if (uploadError) throw uploadError;
 
-        const { error: insertError } = await supabase
+        const { error: insertError } = await (supabase as any)
           .from("objective_attachments")
           .insert({
             objective_id: objectiveId!,
