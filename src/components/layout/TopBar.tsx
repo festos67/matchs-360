@@ -1,4 +1,4 @@
-import { Bell, User, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import { RoleSwitcher } from "@/components/shared/RoleSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { MobileSidebar } from "./MobileSidebar";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export const TopBar = () => {
   const { user, profile, roles, currentRole, setCurrentRole, signOut } = useAuth();
@@ -41,10 +42,7 @@ export const TopBar = () => {
         />
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-        </Button>
+        <NotificationBell />
 
         {/* User Menu */}
         <DropdownMenu>
