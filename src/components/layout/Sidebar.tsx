@@ -50,6 +50,12 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
+      return [
+        { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
+        { icon: Users, label: "Mon Équipe", path: "/my-team" },
+        { icon: Heart, label: "Mes Supporters", path: "/my-supporters" },
+        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
+      ];
     case "supporter":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
