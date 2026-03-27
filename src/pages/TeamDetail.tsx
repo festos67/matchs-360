@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Edit, History, RotateCcw } from "lucide-react";
+import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Edit, History, RotateCcw, Target } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -20,6 +20,7 @@ import { useTeamProgression } from "@/hooks/useTeamProgression";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { useReactToPrint } from "react-to-print";
+import { ObjectivesList } from "@/components/objectives/ObjectivesList";
 
 interface Team {
   id: string;
@@ -76,9 +77,12 @@ export default function TeamDetail() {
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
   const isReferentCoach = members.some(m => m.member_type === "coach" && m.profile.id === user?.id && m.coach_role === "referent");
   const isPlayerViewing = !isAdmin && !isClubAdmin && !isCoachOfTeam && members.some(m => m.member_type === "player" && m.profile.id === user?.id);
+  const isSupporterViewing = roles.some(r => r.role === "supporter") && !isAdmin && !isClubAdmin && !isCoachOfTeam && !isPlayerViewing;
   const canManageTeam = isAdmin || isClubAdmin || isCoachOfTeam;
   const canEditFramework = isAdmin || isClubAdmin || isReferentCoach;
   const canMutatePlayers = isAdmin || isClubAdmin;
+  const canEditObjectives = isAdmin || isClubAdmin || isReferentCoach;
+  const canViewObjectives = canEditObjectives || isCoachOfTeam || isPlayerViewing;
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -230,7 +234,7 @@ export default function TeamDetail() {
       </div>
 
       <Tabs defaultValue="effectif" className="space-y-6">
-        <TabsList className="bg-muted h-12 p-1 rounded-lg w-full max-w-md">
+        <TabsList className={`bg-muted h-12 p-1 rounded-lg w-full ${canViewObjectives ? "max-w-xl" : "max-w-md"}`}>
           <TabsTrigger value="effectif" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <User className="w-4 h-4" />
             Effectif
@@ -239,6 +243,12 @@ export default function TeamDetail() {
             <TrendingUp className="w-4 h-4" />
             Performance
           </TabsTrigger>
+          {canViewObjectives && (
+            <TabsTrigger value="objectifs" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+              <Target className="w-4 h-4" />
+              Objectifs
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Effectif Tab */}
@@ -458,6 +468,13 @@ export default function TeamDetail() {
             </div>
           )}
         </TabsContent>
+
+        {/* Objectifs Tab */}
+        {canViewObjectives && (
+          <TabsContent value="objectifs" className="space-y-6">
+            <ObjectivesList teamId={id!} canEdit={canEditObjectives} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={fetchTeamData} />
