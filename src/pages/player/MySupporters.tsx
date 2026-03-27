@@ -50,7 +50,7 @@ export default function MySupporters() {
         <div>
           <h1 className="text-2xl font-bold">Mes Supporters</h1>
           <p className="text-muted-foreground">
-            Les personnes qui vous accompagnent dans votre progression
+            Les personnes qui suivent votre progression
           </p>
         </div>
 
