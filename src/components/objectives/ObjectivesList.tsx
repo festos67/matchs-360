@@ -65,7 +65,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
   const { data: objectives = [], isLoading } = useQuery({
     queryKey: ["team-objectives", teamId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("team_objectives")
         .select("*")
         .eq("team_id", teamId)
@@ -77,7 +77,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
       const ids = (data || []).map((o: any) => o.id);
       let attachments: any[] = [];
       if (ids.length > 0) {
-        const { data: att } = await supabase
+        const { data: att } = await (supabase as any)
           .from("objective_attachments")
           .select("*")
           .in("objective_id", ids);
@@ -105,7 +105,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
         await supabase.storage.from("objective-attachments").remove(paths);
         await supabase.from("objective_attachments").delete().eq("objective_id", id);
       }
-      const { error } = await supabase.from("team_objectives").delete().eq("id", id);
+      const { error } = await (supabase as any).from("team_objectives").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
