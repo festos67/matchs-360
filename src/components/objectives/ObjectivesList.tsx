@@ -103,7 +103,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
       if (obj?.attachments?.length) {
         const paths = obj.attachments.map(a => a.file_path);
         await supabase.storage.from("objective-attachments").remove(paths);
-        await supabase.from("objective_attachments").delete().eq("objective_id", id);
+        await (supabase as any).from("objective_attachments").delete().eq("objective_id", id);
       }
       const { error } = await (supabase as any).from("team_objectives").delete().eq("id", id);
       if (error) throw error;
