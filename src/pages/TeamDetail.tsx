@@ -468,6 +468,13 @@ export default function TeamDetail() {
             </div>
           )}
         </TabsContent>
+
+        {/* Objectifs Tab */}
+        {canViewObjectives && (
+          <TabsContent value="objectifs" className="space-y-6">
+            <ObjectivesList teamId={id!} canEdit={canEditObjectives} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={fetchTeamData} />
