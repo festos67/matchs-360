@@ -77,9 +77,12 @@ export default function TeamDetail() {
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
   const isReferentCoach = members.some(m => m.member_type === "coach" && m.profile.id === user?.id && m.coach_role === "referent");
   const isPlayerViewing = !isAdmin && !isClubAdmin && !isCoachOfTeam && members.some(m => m.member_type === "player" && m.profile.id === user?.id);
+  const isSupporterViewing = roles.some(r => r.role === "supporter") && !isAdmin && !isClubAdmin && !isCoachOfTeam && !isPlayerViewing;
   const canManageTeam = isAdmin || isClubAdmin || isCoachOfTeam;
   const canEditFramework = isAdmin || isClubAdmin || isReferentCoach;
   const canMutatePlayers = isAdmin || isClubAdmin;
+  const canEditObjectives = isAdmin || isClubAdmin || isReferentCoach;
+  const canViewObjectives = canEditObjectives || isCoachOfTeam || isPlayerViewing;
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
