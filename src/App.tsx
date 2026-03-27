@@ -32,6 +32,7 @@ import Stats from "./pages/Stats";
 import AdminUsers from "./pages/AdminUsers";
 import ResetPassword from "./pages/ResetPassword";
 import MyTeamRedirect from "./pages/MyTeamRedirect";
+import MySupporters from "./pages/player/MySupporters";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/supporter/dashboard" element={<SupporterDashboard />} />
             <Route path="/supporter/evaluate/:requestId" element={<SupporterEvaluation />} />
             <Route path="/my-team" element={<MyTeamRedirect />} />
+            <Route path="/my-supporters" element={<MySupporters />} />
             
             <Route path="/clubs" element={<Clubs />} />
             <Route path="/clubs/:id" element={<ClubDetail />} />
