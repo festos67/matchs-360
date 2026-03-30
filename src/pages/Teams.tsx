@@ -189,114 +189,140 @@ const Teams = () => {
             ))}
           </div>
         ) : filteredTeams && filteredTeams.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTeams.map((team) => (
-              <div key={team.id} className="relative group">
-                {showArchived ? (
-                  // Archived team card (non-clickable, with restore button)
-                  <Card className="opacity-60 bg-muted/50 border-dashed">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg flex items-center gap-2 text-muted-foreground">
-                          <div
-                            className="w-3 h-3 rounded-full opacity-50"
-                            style={{ backgroundColor: team.color || team.clubs?.primary_color || "#6366f1" }}
-                          />
-                          {team.name}
-                        </CardTitle>
-                        <Badge variant="outline" className="text-xs text-destructive border-destructive/30">
-                          Archivée
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <span>{team.clubs?.name}</span>
-                        {team.season && (
-                          <Badge variant="outline" className="text-xs opacity-50">
-                            {team.season}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            <span>{getTeamMemberCount(team)} joueurs</span>
-                          </div>
+          (() => {
+            // Group teams by club
+            const grouped: Record<string, { clubName: string; clubColor: string; teams: typeof filteredTeams }> = {};
+            filteredTeams!.forEach((team) => {
+              const clubId = team.clubs?.id || "no-club";
+              if (!grouped[clubId]) {
+                grouped[clubId] = {
+                  clubName: team.clubs?.name || "Sans club",
+                  clubColor: team.clubs?.primary_color || "#6366f1",
+                  teams: [],
+                };
+              }
+              grouped[clubId].teams!.push(team);
+            });
+            const sortedGroups = Object.values(grouped).sort((a, b) => a.clubName.localeCompare(b.clubName));
+
+            return (
+              <div className="space-y-6">
+                {sortedGroups.map((group) => (
+                  <div key={group.clubName}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: group.clubColor }} />
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{group.clubName}</h2>
+                      <span className="text-xs text-muted-foreground">({group.teams!.length})</span>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {group.teams!.map((team) => (
+                        <div key={team.id} className="relative group">
+                          {showArchived ? (
+                            <Card className="opacity-60 bg-muted/50 border-dashed">
+                              <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                  <CardTitle className="text-lg flex items-center gap-2 text-muted-foreground">
+                                    <div
+                                      className="w-3 h-3 rounded-full opacity-50"
+                                      style={{ backgroundColor: team.color || team.clubs?.primary_color || "#6366f1" }}
+                                    />
+                                    {team.name}
+                                  </CardTitle>
+                                  <Badge variant="outline" className="text-xs text-destructive border-destructive/30">
+                                    Archivée
+                                  </Badge>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                  <span>{team.clubs?.name}</span>
+                                  {team.season && (
+                                    <Badge variant="outline" className="text-xs opacity-50">
+                                      {team.season}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                      <Users className="w-4 h-4" />
+                                      <span>{getTeamMemberCount(team)} joueurs</span>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="gap-2 text-primary hover:text-primary"
+                                    onClick={() => handleRestoreTeam(team.id, team.name)}
+                                    disabled={isRestoring}
+                                  >
+                                    <RotateCcw className="w-4 h-4" />
+                                    Restaurer
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ) : (
+                            <>
+                              <Link to={`/teams/${team.id}`}>
+                                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                                  <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between">
+                                      <CardTitle className="text-lg flex items-center gap-2">
+                                        <div
+                                          className="w-3 h-3 rounded-full"
+                                          style={{ backgroundColor: team.color || team.clubs?.primary_color || "#6366f1" }}
+                                        />
+                                        {team.name}
+                                      </CardTitle>
+                                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                                    </div>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                      {team.season && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {team.season}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-4 text-sm">
+                                      <div className="flex items-center gap-1">
+                                        <Users className="w-4 h-4 text-muted-foreground" />
+                                        <span>{getTeamMemberCount(team)} joueurs</span>
+                                      </div>
+                                      <span className="text-muted-foreground">
+                                        {getCoachCount(team)} coach{getCoachCount(team) > 1 ? "s" : ""}
+                                      </span>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              </Link>
+                              
+                              {canDeleteTeam(team) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setTeamToDelete({ id: team.id, name: team.name });
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </>
+                          )}
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2 text-primary hover:text-primary"
-                          onClick={() => handleRestoreTeam(team.id, team.name)}
-                          disabled={isRestoring}
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                          Restaurer
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  // Active team card (clickable)
-                  <>
-                    <Link to={`/teams/${team.id}`}>
-                      <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: team.color || team.clubs?.primary_color || "#6366f1" }}
-                              />
-                              {team.name}
-                            </CardTitle>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            <span>{team.clubs?.name}</span>
-                            {team.season && (
-                              <Badge variant="outline" className="text-xs">
-                                {team.season}
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-sm">
-                            <div className="flex items-center gap-1">
-                              <Users className="w-4 h-4 text-muted-foreground" />
-                              <span>{getTeamMemberCount(team)} joueurs</span>
-                            </div>
-                            <span className="text-muted-foreground">
-                              {getCoachCount(team)} coach{getCoachCount(team) > 1 ? "s" : ""}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                    
-                    {/* Delete Button */}
-                    {canDeleteTeam(team) && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setTeamToDelete({ id: team.id, name: team.name });
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </>
-                )}
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()
         ) : teams && teams.length > 0 && filteredTeams?.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
