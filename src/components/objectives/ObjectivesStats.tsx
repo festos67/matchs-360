@@ -17,8 +17,10 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
       if (error) throw error;
       const succeeded = (data || []).filter((o: any) => o.status === "succeeded").length;
       const missed = (data || []).filter((o: any) => o.status === "missed").length;
+      const finalized = succeeded + missed;
       const total = (data || []).length;
-      return { succeeded, missed, total };
+      const percentage = finalized > 0 ? Math.round((succeeded / finalized) * 100) : null;
+      return { succeeded, missed, finalized, total, percentage };
     },
   });
 
