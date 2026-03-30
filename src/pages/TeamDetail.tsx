@@ -187,13 +187,13 @@ export default function TeamDetail() {
   return (
     <AppLayout>
       {!isPlayerViewing && (
-        <Button variant="ghost" className="mb-2 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
+        <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
       )}
       {isPlayerViewing && (
-        <Button variant="ghost" className="mb-2 -ml-2" onClick={() => navigate("/player/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour au dashboard</Button>
+        <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate("/player/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour au dashboard</Button>
       )}
 
-      <div className="glass-card p-6 mb-4">
+      <div className="glass-card p-6 mb-5">
         <div className="flex items-center gap-8">
           <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
           <div className="flex-1">
