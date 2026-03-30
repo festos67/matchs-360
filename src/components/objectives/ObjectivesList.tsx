@@ -120,48 +120,49 @@ function SortableObjectiveCard({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-0.5 flex-shrink-0">
+        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDuplicate(obj)}>
+              <Copy className="w-3 h-3" />
+            </Button>
+            {canEdit && (
+              <>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(obj)}>
+                  <Pencil className="w-3 h-3" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                      <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onDelete(obj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+          </div>
           {canEdit && (
-            <>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600 hover:bg-emerald-500/10"
-                onClick={() => onFinalize(obj.id, "succeeded")} title="Réussi">
-                <Check className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                onClick={() => onFinalize(obj.id, "succeeded")}>
+                <Check className="w-3 h-3" /> Réussi
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                onClick={() => onFinalize(obj.id, "missed")} title="Manqué">
-                <X className="w-3.5 h-3.5" />
+              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2 text-destructive border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+                onClick={() => onFinalize(obj.id, "missed")}>
+                <X className="w-3 h-3" /> Manqué
               </Button>
-              <div className="w-px h-4 bg-border/50 mx-0.5" />
-            </>
-          )}
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDuplicate(obj)}>
-            <Copy className="w-3 h-3" />
-          </Button>
-          {canEdit && (
-            <>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(obj)}>
-                <Pencil className="w-3 h-3" />
-              </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
-                    <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onDelete(obj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Supprimer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -389,7 +390,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-sm line-through text-muted-foreground">{obj.title}</h3>
+                          <h3 className="font-semibold text-sm text-muted-foreground">{obj.title}</h3>
                           <Badge className={`text-[10px] py-0 px-1.5 ${obj.status === "succeeded" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
                             {obj.status === "succeeded" ? "Réussi" : "Manqué"}
                           </Badge>
@@ -404,9 +405,9 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                       </div>
                       <div className="flex items-center gap-0.5 flex-shrink-0">
                         {canEdit && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })} title="Remettre en cours">
-                            <RotateCcw className="w-3 h-3" />
+                          <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2"
+                            onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })}>
+                            <RotateCcw className="w-3 h-3" /> Remettre en cours
                           </Button>
                         )}
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => duplicateMutation.mutate(obj)}>
