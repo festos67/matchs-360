@@ -17,8 +17,10 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
       if (error) throw error;
       const succeeded = (data || []).filter((o: any) => o.status === "succeeded").length;
       const missed = (data || []).filter((o: any) => o.status === "missed").length;
+      const finalized = succeeded + missed;
       const total = (data || []).length;
-      return { succeeded, missed, total };
+      const percentage = finalized > 0 ? Math.round((succeeded / finalized) * 100) : null;
+      return { succeeded, missed, finalized, total, percentage };
     },
   });
 
@@ -36,25 +38,38 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-              <Check className="w-5 h-5 text-emerald-600" />
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                <Check className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-emerald-600">{data.succeeded}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Réussi{data.succeeded > 1 ? "s" : ""}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-display font-bold text-emerald-600">{data.succeeded}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Réussi{data.succeeded > 1 ? "s" : ""}</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                <X className="w-5 h-5 text-destructive" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-destructive">{data.missed}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Manqué{data.missed > 1 ? "s" : ""}</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
-              <X className="w-5 h-5 text-destructive" />
+          {data.percentage !== null && (
+            <div className="flex items-center gap-2 pt-1 border-t border-border/50">
+              <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all"
+                  style={{ width: `${data.percentage}%` }}
+                />
+              </div>
+              <span className="text-sm font-semibold text-foreground whitespace-nowrap">{data.percentage}%</span>
             </div>
-            <div>
-              <p className="text-2xl font-display font-bold text-destructive">{data.missed}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Manqué{data.missed > 1 ? "s" : ""}</p>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>
