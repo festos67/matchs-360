@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -61,11 +61,23 @@ export const CreateEvaluationModal = ({
   const { user, hasAdminRole: isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [searchPlayer, setSearchPlayer] = useState("");
+  const [clubFilter, setClubFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [coachFilter, setCoachFilter] = useState("all");
+
+  // All players with their team/club/coach info
+  const [allPlayers, setAllPlayers] = useState<{
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    nickname: string | null;
+    team_id: string;
+    team_name: string;
+    club_id: string | null;
+    club_name: string | null;
+    coaches: { id: string; name: string }[];
+  }[]>([]);
 
   const {
     register,
@@ -85,121 +97,150 @@ export const CreateEvaluationModal = ({
 
   useEffect(() => {
     if (open) {
-      fetchTeams();
-      if (isAdmin) {
-        fetchAllPlayers();
-      }
+      fetchAllData();
     }
   }, [open]);
 
-  useEffect(() => {
-    if (preselectedTeamId) {
-      setSelectedTeam(preselectedTeamId);
-    } else if (selectedTeam && !teams.find(t => t.id === selectedTeam)) {
-      setSelectedTeam("");
-    }
-  }, [preselectedTeamId, teams]);
+  // Reset cascading filters
+  useEffect(() => { setTeamFilter("all"); setCoachFilter("all"); }, [clubFilter]);
+  useEffect(() => { setCoachFilter("all"); }, [teamFilter]);
 
-  useEffect(() => {
-    if (selectedTeam && !isAdmin) {
-      fetchPlayers(selectedTeam);
-    } else if (selectedTeam && isAdmin) {
-      // Filter allPlayers by selected team
-      setPlayers(allPlayers.filter(p => p.team_id === selectedTeam));
-    }
-  }, [selectedTeam]);
+  const fetchAllData = async () => {
+    // Fetch all team members (players + coaches)
+    const { data: teamMembers } = await supabase
+      .from("team_members")
+      .select(`
+        user_id,
+        team_id,
+        member_type,
+        teams:team_id (id, name, club_id, clubs:club_id (id, name))
+      `)
+      .eq("is_active", true);
 
-  const fetchTeams = async () => {
-    if (isAdmin) {
-      // Admin: fetch all teams
-      const { data } = await supabase
-        .from("teams")
-        .select("id, name")
-        .is("deleted_at", null)
-        .order("name");
-      if (data) setTeams(data);
-    } else {
-      // Coach: fetch only their teams
-      const { data } = await supabase
-        .from("team_members")
-        .select("team:teams(id, name)")
-        .eq("user_id", user?.id)
-        .eq("member_type", "coach")
-        .eq("is_active", true);
+    if (!teamMembers) return;
 
-      if (data) {
-        const uniqueTeams = data
-          .map((d: any) => d.team)
-          .filter((t: any) => t !== null);
-        setTeams(uniqueTeams);
-        if (uniqueTeams.length === 1) {
-          setSelectedTeam(uniqueTeams[0].id);
-        }
+    const playerMembers = teamMembers.filter((tm) => tm.member_type === "player");
+    const coachMembers = teamMembers.filter((tm) => tm.member_type === "coach");
+
+    // If not admin, only show players from coach's teams
+    const coachTeamIds = isAdmin
+      ? null
+      : coachMembers.filter((cm) => cm.user_id === user?.id).map((cm) => cm.team_id);
+
+    const relevantPlayerMembers = coachTeamIds
+      ? playerMembers.filter((pm) => coachTeamIds.includes(pm.team_id))
+      : playerMembers;
+
+    const userIds = [...new Set(relevantPlayerMembers.map((tm) => tm.user_id))];
+    if (userIds.length === 0) { setAllPlayers([]); return; }
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, nickname")
+      .in("id", userIds)
+      .is("deleted_at", null);
+
+    // Coach profiles for filter
+    const coachUserIds = [...new Set(coachMembers.map((tm) => tm.user_id))];
+    let coachProfiles: Record<string, string> = {};
+    if (coachUserIds.length > 0) {
+      const { data: cProfiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", coachUserIds);
+      if (cProfiles) {
+        cProfiles.forEach((p) => {
+          coachProfiles[p.id] = `${p.first_name || ""} ${p.last_name || ""}`.trim();
+        });
       }
     }
-  };
 
-  const fetchAllPlayers = async () => {
-    const { data } = await supabase
-      .from("team_members")
-      .select(`
-        user_id,
-        team:teams(id, name),
-        profile:profiles(id, first_name, last_name, nickname)
-      `)
-      .eq("member_type", "player")
-      .eq("is_active", true);
+    const playersList = (profiles || []).flatMap((profile) => {
+      const memberEntries = relevantPlayerMembers.filter((tm) => tm.user_id === profile.id && tm.teams);
+      return memberEntries.map((tm) => {
+        const team = tm.teams as any;
+        const playerTeamCoaches = coachMembers
+          .filter((cm) => cm.team_id === tm.team_id)
+          .map((cm) => ({ id: cm.user_id, name: coachProfiles[cm.user_id] || "Coach" }));
+        const uniqueCoaches = Array.from(new Map(playerTeamCoaches.map((c) => [c.id, c])).values());
 
-    if (data) {
-      const playersList: Player[] = data
-        .filter((d: any) => d.profile)
-        .map((d: any) => ({
-          id: d.profile.id,
-          first_name: d.profile.first_name,
-          last_name: d.profile.last_name,
-          nickname: d.profile.nickname,
-          team_id: d.team?.id,
-          team_name: d.team?.name,
-        }));
-      setAllPlayers(playersList);
-      setPlayers(playersList);
+        return {
+          id: profile.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          nickname: profile.nickname,
+          team_id: team?.id,
+          team_name: team?.name || "",
+          club_id: team?.club_id || null,
+          club_name: team?.clubs?.name || null,
+          coaches: uniqueCoaches,
+        };
+      });
+    });
+
+    // Deduplicate by player id (keep first entry, merge info)
+    const uniqueMap = new Map<string, typeof playersList[0]>();
+    playersList.forEach((p) => {
+      if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p);
+    });
+
+    setAllPlayers(playersList);
+
+    // If preselectedTeamId, set team filter
+    if (preselectedTeamId) {
+      setTeamFilter(preselectedTeamId);
     }
   };
 
-  const fetchPlayers = async (teamId: string) => {
-    const { data } = await supabase
-      .from("team_members")
-      .select(`
-        user_id,
-        team:teams(id, name),
-        profile:profiles(id, first_name, last_name, nickname)
-      `)
-      .eq("team_id", teamId)
-      .eq("member_type", "player")
-      .eq("is_active", true);
+  // Unique clubs, teams, coaches for filter dropdowns
+  const uniqueClubs = useMemo(() => {
+    const map = new Map<string, string>();
+    allPlayers.forEach((p) => { if (p.club_id && p.club_name) map.set(p.club_id, p.club_name); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [allPlayers]);
 
-    if (data) {
-      const playersList: Player[] = data
-        .filter((d: any) => d.profile)
-        .map((d: any) => ({
-          id: d.profile.id,
-          first_name: d.profile.first_name,
-          last_name: d.profile.last_name,
-          nickname: d.profile.nickname,
-          team_id: d.team?.id,
-          team_name: d.team?.name,
-        }));
-      setPlayers(playersList);
-    }
-  };
+  const uniqueTeams = useMemo(() => {
+    const map = new Map<string, string>();
+    allPlayers.forEach((p) => {
+      if (clubFilter !== "all" && p.club_id !== clubFilter) return;
+      if (p.team_id && p.team_name) map.set(p.team_id, p.team_name);
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [allPlayers, clubFilter]);
 
-  const filteredPlayers = (isAdmin && !selectedTeam ? allPlayers : players).filter((p) => {
-    if (!searchPlayer.trim()) return true;
-    const name = `${p.first_name || ""} ${p.last_name || ""} ${p.nickname || ""} ${p.team_name || ""}`.toLowerCase();
-    return name.includes(searchPlayer.toLowerCase());
-  });
+  const uniqueCoaches = useMemo(() => {
+    const map = new Map<string, string>();
+    allPlayers.forEach((p) => {
+      if (clubFilter !== "all" && p.club_id !== clubFilter) return;
+      if (teamFilter !== "all" && p.team_id !== teamFilter) return;
+      p.coaches.forEach((c) => map.set(c.id, c.name));
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [allPlayers, clubFilter, teamFilter]);
 
-  const selectedPlayer = [...allPlayers, ...players].find((p) => p.id === selectedPlayerId);
+  const filteredPlayers = useMemo(() => {
+    // Deduplicate by player id after filtering
+    const filtered = allPlayers.filter((p) => {
+      if (clubFilter !== "all" && p.club_id !== clubFilter) return false;
+      if (teamFilter !== "all" && p.team_id !== teamFilter) return false;
+      if (coachFilter !== "all" && !p.coaches.some((c) => c.id === coachFilter)) return false;
+      if (searchPlayer.trim()) {
+        const term = searchPlayer.toLowerCase();
+        const name = `${p.first_name || ""} ${p.last_name || ""} ${p.nickname || ""} ${p.team_name || ""}`.toLowerCase();
+        if (!name.includes(term)) return false;
+      }
+      return true;
+    });
+    // Deduplicate by player id
+    const seen = new Set<string>();
+    return filtered.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+  }, [allPlayers, clubFilter, teamFilter, coachFilter, searchPlayer]);
+
+  const selectedPlayer = allPlayers.find((p) => p.id === selectedPlayerId);
 
   const generateUniqueName = async (baseName: string, playerId: string): Promise<string> => {
     // Check if an evaluation with this name already exists for this player
@@ -239,11 +280,20 @@ export const CreateEvaluationModal = ({
 
     setLoading(true);
     try {
-      // Get the team's framework
+      // Find the player's team to get the framework
+      const playerEntry = allPlayers.find((p) => p.id === data.playerId);
+      const playerTeamId = teamFilter !== "all" ? teamFilter : playerEntry?.team_id;
+
+      if (!playerTeamId) {
+        toast.error("Impossible de déterminer l'équipe du joueur");
+        setLoading(false);
+        return;
+      }
+
       const { data: framework } = await supabase
         .from("competence_frameworks")
         .select("id")
-        .eq("team_id", selectedTeam)
+        .eq("team_id", playerTeamId)
         .eq("is_archived", false)
         .maybeSingle();
 
@@ -253,10 +303,8 @@ export const CreateEvaluationModal = ({
         return;
       }
 
-      // Generate unique name if needed
       const uniqueName = await generateUniqueName(data.name, data.playerId);
 
-      // Create the evaluation
       const { data: evaluation, error } = await supabase
         .from("evaluations")
         .insert({
@@ -274,8 +322,6 @@ export const CreateEvaluationModal = ({
       reset();
       onOpenChange(false);
       onSuccess?.();
-
-      // Navigate to player detail page to fill the evaluation
       navigate(`/players/${data.playerId}?evaluation=${evaluation.id}`);
     } catch (error: any) {
       console.error("Error creating evaluation:", error);
@@ -289,7 +335,7 @@ export const CreateEvaluationModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -299,7 +345,7 @@ export const CreateEvaluationModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nom du débrief</Label>
             <Input
@@ -312,115 +358,113 @@ export const CreateEvaluationModal = ({
             )}
           </div>
 
-          {/* Team selector - optional for admin, required for coach */}
-          {!preselectedTeamId && teams.length > 0 && (
-            <div className="space-y-2">
-              <Label>Équipe {isAdmin && <span className="text-muted-foreground text-xs">(optionnel)</span>}</Label>
-              <Select value={selectedTeam || "all"} onValueChange={(v) => { setSelectedTeam(v === "all" ? "" : v); setSearchPlayer(""); setValue("playerId", ""); }}>
-                <SelectTrigger>
+          {/* Filters */}
+          <div className="space-y-2">
+            <Label>Rechercher un joueur</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un joueur..."
+                value={searchPlayer}
+                onChange={(e) => setSearchPlayer(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={clubFilter} onValueChange={setClubFilter}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Tous les clubs" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les clubs</SelectItem>
+                  {uniqueClubs.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={teamFilter} onValueChange={setTeamFilter}>
+                <SelectTrigger className="text-xs h-9">
                   <SelectValue placeholder="Toutes les équipes" />
                 </SelectTrigger>
                 <SelectContent>
-                  {isAdmin && <SelectItem value="all">Toutes les équipes</SelectItem>}
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
+                  <SelectItem value="all">Toutes les équipes</SelectItem>
+                  {uniqueTeams.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={coachFilter} onValueChange={setCoachFilter}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Tous les coachs" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les coachs</SelectItem>
+                  {uniqueCoaches.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
+          </div>
 
-          {preselectedTeamId && teams.find(t => t.id === preselectedTeamId) && (
-            <div className="space-y-2">
-              <Label>Équipe</Label>
-              <div className="p-2 rounded-lg bg-muted/50 text-sm font-medium">
-                {teams.find(t => t.id === preselectedTeamId)?.name}
-              </div>
-            </div>
-          )}
-
-          {teams.length === 0 && !isAdmin && (
+          {/* Player list */}
+          {allPlayers.length === 0 && !isAdmin ? (
             <div className="p-4 rounded-lg bg-muted/50 text-center">
               <p className="text-sm text-muted-foreground">
                 Vous n'êtes coach d'aucune équipe.
               </p>
             </div>
-          )}
+          ) : (
+            <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+              {filteredPlayers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {searchPlayer ? "Aucun joueur trouvé" : "Aucun joueur disponible"}
+                </p>
+              ) : (
+                filteredPlayers.map((player) => {
+                  const name = player.nickname ||
+                    `${player.first_name || ""} ${player.last_name || ""}`.trim();
+                  const isSelected = selectedPlayerId === player.id;
 
-          {/* Player search - shown for admin always, for coach only when team selected */}
-          {(isAdmin || selectedTeam) && (
-            <div className="space-y-2">
-              <Label>Joueur</Label>
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher un joueur..."
-                  value={searchPlayer}
-                  onChange={(e) => setSearchPlayer(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-                {filteredPlayers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    {searchPlayer ? "Aucun joueur trouvé" : "Aucun joueur disponible"}
-                  </p>
-                ) : (
-                  filteredPlayers.map((player) => {
-                    const name = player.nickname ||
-                      `${player.first_name || ""} ${player.last_name || ""}`.trim();
-                    const isSelected = selectedPlayerId === player.id;
-
-                    return (
-                      <div
-                        key={`${player.id}-${player.team_id}`}
-                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-primary/20 border border-primary/30"
-                            : "hover:bg-muted/50"
-                        }`}
-                        onClick={() => {
-                          setValue("playerId", player.id);
-                          if (!selectedTeam && player.team_id) {
-                            setSelectedTeam(player.team_id);
-                          }
-                        }}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{name || "Joueur"}</span>
-                          {!selectedTeam && player.team_name && (
-                            <span className="text-xs text-muted-foreground">{player.team_name}</span>
-                          )}
-                        </div>
+                  return (
+                    <div
+                      key={`${player.id}-${player.team_id}`}
+                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                        isSelected
+                          ? "bg-primary/20 border border-primary/30"
+                          : "hover:bg-muted/50"
+                      }`}
+                      onClick={() => setValue("playerId", player.id)}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary" />
                       </div>
-                    );
-                  })
-                )}
-              </div>
-              {errors.playerId && (
-                <p className="text-sm text-destructive">{errors.playerId.message}</p>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{name || "Joueur"}</span>
+                        <span className="text-xs text-muted-foreground">{player.team_name}</span>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
+          )}
+          {errors.playerId && (
+            <p className="text-sm text-destructive">{errors.playerId.message}</p>
           )}
 
           {/* Preview */}
           {selectedPlayer && (
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="w-6 h-6 text-primary" />
+            <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/30">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium">
+                <p className="font-medium text-sm">
                   {selectedPlayer.nickname ||
                     `${selectedPlayer.first_name || ""} ${selectedPlayer.last_name || ""}`.trim()}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {selectedPlayer.team_name}
                 </p>
               </div>
@@ -437,7 +481,7 @@ export const CreateEvaluationModal = ({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !selectedPlayerId || teams.length === 0}
+              disabled={loading || !selectedPlayerId || allPlayers.length === 0}
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
