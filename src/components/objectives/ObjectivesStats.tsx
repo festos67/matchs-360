@@ -31,7 +31,7 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
             <Target className="w-5 h-5 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-3xl font-display font-bold text-muted-foreground">N/A</p>
+            <p className="text-2xl font-display font-bold text-muted-foreground">N/A</p>
             <p className="text-xs text-muted-foreground mt-0.5">Aucun objectif finalisé</p>
           </div>
         </div>
