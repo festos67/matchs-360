@@ -27,7 +27,7 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
       <p className="text-sm font-display font-semibold text-foreground uppercase tracking-wide mb-2">Bilan des objectifs</p>
       {!data || data.total === 0 ? (
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <Target className="w-6 h-6 text-muted-foreground" />
           </div>
           <div>
