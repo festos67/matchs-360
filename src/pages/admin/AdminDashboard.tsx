@@ -9,6 +9,7 @@ import {
   Building2, Users, Trophy, Plus, ChevronDown, ChevronRight,
   Target, BarChart3, Search, Calendar, User, Eye
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
