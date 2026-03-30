@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { ClipboardList, TrendingUp, Calendar, Eye, Star } from "lucide-react";
+import { ClipboardList, TrendingUp, Calendar, Eye, Star, UserCircle, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -136,8 +136,9 @@ const PlayerDashboard = () => {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">
-            {isSupporter ? "Suivi Joueur" : `Bonjour ${profile?.first_name || "Joueur"}`} ⚽
+          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+            {isSupporter ? "Suivi Joueur" : `Bonjour ${profile?.first_name || "Joueur"}`}
+            {isSupporter ? <Heart className="w-7 h-7 text-pink-500" /> : <UserCircle className="w-7 h-7 text-blue-500" />}
           </h1>
           <p className="text-muted-foreground mt-1">
             {isSupporter ? "Suivre un joueur (parent, etc.)" : team ? (

@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { Users, Trophy, UserCheck, Eye, Plus } from "lucide-react";
+import { Users, Trophy, UserCheck, Eye, Plus, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -176,8 +176,9 @@ const ClubDashboard = () => {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">
-            Bonjour {profile?.first_name || "Administrateur"} 🏢
+          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+            Bonjour {profile?.first_name || "Administrateur"}
+            <Building2 className="w-7 h-7 text-primary" />
           </h1>
           <p className="text-muted-foreground mt-1">
             Gérer mon club et ses équipes

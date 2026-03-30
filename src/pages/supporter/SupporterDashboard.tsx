@@ -149,8 +149,9 @@ const SupporterDashboard = () => {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">
-            Bonjour {profile?.first_name || "Supporter"} 💛
+          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+            Bonjour {profile?.first_name || "Supporter"}
+            <Heart className="w-7 h-7 text-pink-500" />
           </h1>
           <p className="text-muted-foreground mt-1">
             Suivi de mes joueurs

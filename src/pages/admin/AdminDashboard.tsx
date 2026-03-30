@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
   Building2, Users, Trophy, Plus, ChevronDown, ChevronRight,
-  Target, BarChart3, Search, Calendar, User, Eye, TrendingUp, UsersRound
+  Target, BarChart3, Search, Calendar, User, Eye, TrendingUp, UsersRound, Shield
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -252,8 +252,9 @@ const AdminDashboard = () => {
       <div className="space-y-4">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground">
-            Bonjour {profile?.first_name || "Admin"} 👋
+          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+            Bonjour {profile?.first_name || "Admin"}
+            <Shield className="w-7 h-7 text-red-500" />
           </h1>
           <p className="text-muted-foreground mt-1">Accès complet à la plateforme</p>
         </div>
