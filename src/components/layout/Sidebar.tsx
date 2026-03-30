@@ -27,7 +27,6 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
       { icon: Users, label: "Équipes", path: "/teams" },
       { icon: UserCog, label: "Coachs", path: "/coaches" },
       { icon: User, label: "Joueurs", path: "/players" },
-      { icon: Trophy, label: "Débriefs", path: "/evaluations" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
   }
