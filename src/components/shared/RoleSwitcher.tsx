@@ -38,7 +38,7 @@ const roleConfig = {
   coach: {
     icon: UserCog,
     label: "Coach",
-    color: "text-primary",
+    color: "text-orange-500",
   },
   player: {
     icon: UserCircle,
