@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Target, Paperclip, FileText, Image, ChevronDown, ChevronUp, Pencil, Trash2, Check, Clock, Circle } from "lucide-react";
+import { Plus, Target, Paperclip, FileText, Image, ChevronDown, ChevronUp, Pencil, Trash2, Check, Clock, Circle, Trophy } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -96,9 +97,23 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
     },
   });
 
+  const toggleAchievedMutation = useMutation({
+    mutationFn: async ({ id, currentStatus }: { id: string; currentStatus: string }) => {
+      const newStatus = currentStatus === "achieved" ? "todo" : "achieved";
+      const { error } = await (supabase as any)
+        .from("team_objectives")
+        .update({ status: newStatus })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["team-objectives", teamId] });
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour"),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Delete attachments from storage first
       const obj = objectives.find(o => o.id === id);
       if (obj?.attachments?.length) {
         const paths = obj.attachments.map(a => a.file_path);
