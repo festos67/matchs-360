@@ -351,7 +351,7 @@ const AdminDashboard = () => {
               }
             />
             <CollapsibleContent>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 <Table className="[&_td]:py-1.5 [&_th]:py-1.5">
                   <TableHeader>
                     <TableRow>
