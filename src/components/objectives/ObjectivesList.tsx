@@ -170,15 +170,15 @@ function SortableObjectiveCard({
 
       {/* Réussi / Manqué buttons at bottom */}
       {canEdit && (
-        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-          <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-emerald-600 border-emerald-300 hover:bg-emerald-50 h-8"
+        <div className="flex gap-1.5 mt-2 pt-2 border-t border-border/50 justify-end">
+          <Button variant="ghost" size="sm" className="gap-1 text-xs text-emerald-600 hover:bg-emerald-50 h-7 px-2.5"
             onClick={() => onFinalize(obj.id, "succeeded")}>
-            <Check className="w-3.5 h-3.5" />
+            <Check className="w-3 h-3" />
             Réussi
           </Button>
-          <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-destructive border-red-300 hover:bg-red-50 h-8"
+          <Button variant="ghost" size="sm" className="gap-1 text-xs text-destructive hover:bg-red-50 h-7 px-2.5"
             onClick={() => onFinalize(obj.id, "missed")}>
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3 h-3" />
             Manqué
           </Button>
         </div>
