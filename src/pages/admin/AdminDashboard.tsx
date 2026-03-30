@@ -198,7 +198,7 @@ const AdminDashboard = () => {
   });
 
   // Debriefs list
-  const { data: evaluations, isLoading: loadingEvalsList } = useQuery({
+  const { data: evaluations, isLoading: loadingEvalsList, refetch: refetchDebriefs } = useQuery({
     queryKey: ["admin-debriefs-list"],
     queryFn: async () => {
       const { data } = await supabase
