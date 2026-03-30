@@ -236,7 +236,7 @@ export default function TeamDetail() {
         </div>
       </div>
 
-      <Tabs defaultValue="effectif" className="space-y-6">
+      <Tabs defaultValue="effectif" className="space-y-3">
         <TabsList className="bg-muted/80 border border-border h-14 p-1.5 rounded-xl w-full shadow-sm">
           <TabsTrigger value="effectif" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
             <User className="w-4 h-4" />
