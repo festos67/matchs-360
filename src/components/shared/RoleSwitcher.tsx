@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Shield, User, Users, UserCircle, Heart } from "lucide-react";
+import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,12 +31,12 @@ const roleConfig = {
     color: "text-red-500",
   },
   club_admin: {
-    icon: User,
+    icon: Building2,
     label: "Responsable Club",
     color: "text-primary",
   },
   coach: {
-    icon: Users,
+    icon: UserCog,
     label: "Coach",
     color: "text-green-500",
   },

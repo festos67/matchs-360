@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Shield, Users, UserCircle, Heart } from "lucide-react";
+import { Building2, Shield, UserCog, UserCircle, Heart, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,13 +31,13 @@ const roleConfig = {
     color: "bg-red-500/10 text-red-500",
   },
   club_admin: {
-    icon: User,
+    icon: Building2,
     label: "Responsable Club",
     description: "Gestion du club",
     color: "bg-primary/10 text-primary",
   },
   coach: {
-    icon: Users,
+    icon: UserCog,
     label: "Coach",
     description: "Évaluation des joueurs",
     color: "bg-green-500/10 text-green-500",

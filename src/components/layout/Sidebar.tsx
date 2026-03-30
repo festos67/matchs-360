@@ -10,7 +10,7 @@ import {
   Shield,
   ClipboardList,
   UserCog,
-  User,
+  UserCircle,
   Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
       { icon: Building2, label: "Clubs", path: "/clubs" },
       { icon: Users, label: "Équipes", path: "/teams" },
       { icon: UserCog, label: "Coachs", path: "/coaches" },
-      { icon: User, label: "Joueurs", path: "/players" },
+      { icon: UserCircle, label: "Joueurs", path: "/players" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
   }
@@ -38,14 +38,14 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
         { icon: Building2, label: "Mon Club", path: "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
-        { icon: User, label: "Joueurs", path: "/players" },
-        { icon: Trophy, label: "Débriefs", path: "/evaluations" },
+      { icon: UserCircle, label: "Joueurs", path: "/players" },
+      { icon: Trophy, label: "Débriefs", path: "/evaluations" },
       ];
     case "coach":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/coach/dashboard" },
         { icon: Users, label: "Mes Équipes", path: "/teams" },
-        { icon: User, label: "Mes Joueurs", path: "/players" },
+        { icon: UserCircle, label: "Mes Joueurs", path: "/players" },
         { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
