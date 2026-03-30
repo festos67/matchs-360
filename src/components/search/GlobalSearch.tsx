@@ -435,11 +435,11 @@ export const GlobalSearch = () => {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-hidden p-0 shadow-lg max-w-lg">
+        <DialogContent className="overflow-hidden p-0 shadow-lg max-w-2xl h-[560px] flex flex-col">
           <VisuallyHidden>
             <DialogTitle>Recherche globale</DialogTitle>
           </VisuallyHidden>
-          <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+          <Command shouldFilter={false} className="flex flex-col h-full [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
             <CommandInput
               placeholder="Rechercher un club, une équipe, un coach, un joueur..."
               value={query}
@@ -483,7 +483,7 @@ export const GlobalSearch = () => {
               </div>
             )}
 
-            <CommandList>
+            <CommandList className="flex-1 max-h-none overflow-y-auto scrollbar-gutter-stable [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/40 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-border/60">
               {loading && (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
