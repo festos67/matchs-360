@@ -390,7 +390,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold text-sm line-through text-muted-foreground">{obj.title}</h3>
+                          <h3 className="font-semibold text-sm text-muted-foreground">{obj.title}</h3>
                           <Badge className={`text-[10px] py-0 px-1.5 ${obj.status === "succeeded" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
                             {obj.status === "succeeded" ? "Réussi" : "Manqué"}
                           </Badge>
