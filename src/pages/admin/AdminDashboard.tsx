@@ -253,9 +253,9 @@ const AdminDashboard = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            Bonjour, {profile?.first_name || "Admin"} 👋
+            Bonjour {profile?.first_name || "Admin"} 👋
           </h1>
-          <p className="text-muted-foreground mt-1">Vue d'ensemble de la plateforme</p>
+          <p className="text-muted-foreground mt-1">Accès complet à la plateforme</p>
         </div>
 
         {/* Section 1: Vue globale */}

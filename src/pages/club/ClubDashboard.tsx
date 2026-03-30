@@ -177,10 +177,10 @@ const ClubDashboard = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            {club?.name || "Mon Club"} 🏢
+            Bonjour {profile?.first_name || "Administrateur"} 🏢
           </h1>
           <p className="text-muted-foreground mt-1">
-            Bienvenue, {profile?.first_name || "Administrateur"}
+            Gérer mon club et ses équipes
           </p>
         </div>
 

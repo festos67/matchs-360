@@ -152,10 +152,10 @@ const CoachDashboard = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            Bonjour, Coach {profile?.first_name || ""} 🏆
+            Bonjour {profile?.first_name || "Coach"} 🏆
           </h1>
           <p className="text-muted-foreground mt-1">
-            Gérez vos équipes et suivez la progression de vos joueurs
+            Évaluer et suivre mes joueurs
           </p>
         </div>
 

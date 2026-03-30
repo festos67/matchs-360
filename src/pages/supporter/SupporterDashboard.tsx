@@ -150,10 +150,10 @@ const SupporterDashboard = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            Bonjour, {profile?.first_name || "Supporter"} 💛
+            Bonjour {profile?.first_name || "Supporter"} 💛
           </h1>
           <p className="text-muted-foreground mt-1">
-            Suivez la progression de vos joueurs et partagez votre perception
+            Suivi de mes joueurs
           </p>
         </div>
 
