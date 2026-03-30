@@ -22,6 +22,7 @@ import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { useReactToPrint } from "react-to-print";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
+import { ObjectivesStats } from "@/components/objectives/ObjectivesStats";
 
 interface Team {
   id: string;
