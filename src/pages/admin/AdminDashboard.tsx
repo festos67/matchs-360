@@ -315,7 +315,6 @@ const AdminDashboard = () => {
                         title="% objectif réussi"
                         value={loadingObj ? "-" : (objStats?.pct !== null ? `${objStats?.pct}%` : "N/A")}
                         icon={Target}
-                        color={objStats?.pct !== null && objStats?.pct !== undefined && objStats.pct >= 50 ? "success" : "warning"}
                       /></div>
                     </TooltipTrigger><TooltipContent>Pourcentage d'objectifs réussis parmi ceux finalisés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
