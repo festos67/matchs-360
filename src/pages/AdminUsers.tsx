@@ -364,15 +364,50 @@ export default function AdminUsers() {
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un utilisateur..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un utilisateur..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les clubs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les clubs</SelectItem>
+              {uniqueClubs.map(club => (
+                <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={coachFilter} onValueChange={setCoachFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les coachs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les coachs</SelectItem>
+              {uniqueCoaches.map(coach => (
+                <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={playerFilter} onValueChange={setPlayerFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les joueurs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les joueurs</SelectItem>
+              {uniquePlayers.map(player => (
+                <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Stats */}
