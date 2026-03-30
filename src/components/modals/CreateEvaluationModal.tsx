@@ -193,9 +193,10 @@ export const CreateEvaluationModal = ({
     }
   };
 
-  const filteredPlayers = players.filter((p) => {
-    const name = p.nickname || `${p.first_name || ""} ${p.last_name || ""}`;
-    return name.toLowerCase().includes(searchPlayer.toLowerCase());
+  const filteredPlayers = (isAdmin && !selectedTeam ? allPlayers : players).filter((p) => {
+    if (!searchPlayer.trim()) return true;
+    const name = `${p.first_name || ""} ${p.last_name || ""} ${p.nickname || ""} ${p.team_name || ""}`.toLowerCase();
+    return name.includes(searchPlayer.toLowerCase());
   });
 
   const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
