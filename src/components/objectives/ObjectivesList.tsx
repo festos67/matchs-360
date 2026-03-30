@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Target, Paperclip, FileText, Image, ChevronDown, ChevronUp, Pencil, Trash2, GripVertical, Check, X, Copy, Star } from "lucide-react";
+import { Plus, Target, Paperclip, FileText, Image, Pencil, Trash2, GripVertical, Check, X, Copy, Star, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
