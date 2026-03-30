@@ -174,7 +174,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [editingObjective, setEditingObjective] = useState<Objective | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
