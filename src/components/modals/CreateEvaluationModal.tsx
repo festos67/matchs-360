@@ -110,22 +110,59 @@ export const CreateEvaluationModal = ({
   }, [selectedTeam]);
 
   const fetchTeams = async () => {
-    // Get teams where user is a coach
+    if (isAdmin) {
+      // Admin: fetch all teams
+      const { data } = await supabase
+        .from("teams")
+        .select("id, name")
+        .is("deleted_at", null)
+        .order("name");
+      if (data) setTeams(data);
+    } else {
+      // Coach: fetch only their teams
+      const { data } = await supabase
+        .from("team_members")
+        .select("team:teams(id, name)")
+        .eq("user_id", user?.id)
+        .eq("member_type", "coach")
+        .eq("is_active", true);
+
+      if (data) {
+        const uniqueTeams = data
+          .map((d: any) => d.team)
+          .filter((t: any) => t !== null);
+        setTeams(uniqueTeams);
+        if (uniqueTeams.length === 1) {
+          setSelectedTeam(uniqueTeams[0].id);
+        }
+      }
+    }
+  };
+
+  const fetchAllPlayers = async () => {
     const { data } = await supabase
       .from("team_members")
-      .select("team:teams(id, name)")
-      .eq("user_id", user?.id)
-      .eq("member_type", "coach")
+      .select(`
+        user_id,
+        team:teams(id, name),
+        profile:profiles(id, first_name, last_name, nickname)
+      `)
+      .eq("member_type", "player")
       .eq("is_active", true);
 
     if (data) {
-      const uniqueTeams = data
-        .map((d: any) => d.team)
-        .filter((t: any) => t !== null);
-      setTeams(uniqueTeams);
-      if (uniqueTeams.length === 1) {
-        setSelectedTeam(uniqueTeams[0].id);
-      }
+      const playersList: Player[] = data
+        .filter((d: any) => d.profile)
+        .map((d: any) => ({
+          id: d.profile.id,
+          first_name: d.profile.first_name,
+          last_name: d.profile.last_name,
+          nickname: d.profile.nickname,
+          team_id: d.team?.id,
+          team_name: d.team?.name,
+        }));
+      setAllPlayers(playersList);
+      setPlayers(playersList);
     }
   };
 
