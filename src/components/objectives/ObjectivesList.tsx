@@ -422,35 +422,45 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                             </Badge>
                           )}
                         </div>
-                        {obj.description && <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{obj.description}</p>}
+                        {obj.description && <p className="text-sm text-muted-foreground mt-1">{obj.description}</p>}
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => duplicateMutation.mutate(obj)}>
                           <Copy className="w-3.5 h-3.5" />
                         </Button>
                         {canEdit && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
-                                <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteMutation.mutate(obj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                  Supprimer
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                                  <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteMutation.mutate(obj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
                         )}
                       </div>
                     </div>
+                    {canEdit && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <Button variant="outline" size="sm" className="w-full gap-1.5 text-muted-foreground h-8"
+                          onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })}>
+                          Remettre en cours
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
