@@ -430,13 +430,10 @@ export const GlobalSearch = () => {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="relative w-full md:w-96 flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 border border-transparent hover:border-primary/30 transition-colors text-left min-w-0"
+        className="relative w-full md:w-96 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-muted/70 border border-border hover:border-primary/40 hover:bg-muted transition-all text-left min-w-0 shadow-sm"
       >
-        <Search className="w-4 h-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground flex-1">Rechercher...</span>
-        <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-          <span className="text-xs">⌘</span>K
-        </kbd>
+        <Search className="w-4 h-4 text-primary" />
+        <span className="text-sm text-muted-foreground flex-1">Rechercher un club, une équipe, un joueur...</span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
