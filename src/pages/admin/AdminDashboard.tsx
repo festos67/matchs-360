@@ -19,6 +19,7 @@ import {
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 
 const SectionHeader = ({
   title,
