@@ -352,6 +352,17 @@ const AdminDashboard = () => {
               }
             />
             <CollapsibleContent>
+              <div className="px-4 md:px-5 pb-2">
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un club..."
+                    value={clubsSearch}
+                    onChange={(e) => setClubsSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
               <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 <Table className="[&_td]:py-1.5 [&_th]:py-1.5">
                   <TableHeader>
