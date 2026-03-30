@@ -369,8 +369,6 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                     <ReadOnlyObjectiveCard
                       key={obj.id}
                       obj={obj}
-                      expandedId={expandedId}
-                      setExpandedId={setExpandedId}
                       onDuplicate={(o) => duplicateMutation.mutate(o)}
                       getFileUrl={getFileUrl}
                       getFileIcon={getFileIcon}
@@ -383,64 +381,60 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
 
           {/* Finalized objectives */}
           {finalizedObjectives.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Objectifs finalisés</h3>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {finalizedObjectives.map((obj) => (
-                  <div key={obj.id} className={`glass-card p-4 transition-all border-l-4 ${obj.status === "succeeded" ? "border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/10" : "border-l-red-500 bg-red-50/30 dark:bg-red-950/10"}`}>
-                    <div className="flex items-start gap-3">
+                  <div key={obj.id} className={`glass-card p-3 transition-all border-l-4 ${obj.status === "succeeded" ? "border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/10" : "border-l-red-500 bg-red-50/30 dark:bg-red-950/10"}`}>
+                    <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold line-through text-muted-foreground">{obj.title}</h3>
-                          <Badge className={`text-xs ${obj.status === "succeeded" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
+                          <h3 className="font-semibold text-sm line-through text-muted-foreground">{obj.title}</h3>
+                          <Badge className={`text-[10px] py-0 px-1.5 ${obj.status === "succeeded" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
                             {obj.status === "succeeded" ? "Réussi" : "Manqué"}
                           </Badge>
                           {obj.is_priority && (
-                            <Badge className="text-xs bg-amber-500 text-white gap-1">
-                              <Star className="w-3 h-3" />
+                            <Badge className="text-[10px] bg-amber-500 text-white gap-0.5 py-0 px-1.5">
+                              <Star className="w-2.5 h-2.5" />
                               Prioritaire
                             </Badge>
                           )}
                         </div>
-                        {obj.description && <p className="text-sm text-muted-foreground mt-1">{obj.description}</p>}
+                        {obj.description && <p className="text-xs text-muted-foreground mt-1">{obj.description}</p>}
                       </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => duplicateMutation.mutate(obj)}>
-                          <Copy className="w-3.5 h-3.5" />
+                      <div className="flex items-center gap-0.5 flex-shrink-0">
+                        {canEdit && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })} title="Remettre en cours">
+                            <RotateCcw className="w-3 h-3" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => duplicateMutation.mutate(obj)}>
+                          <Copy className="w-3 h-3" />
                         </Button>
                         {canEdit && (
-                          <>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
-                                  <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteMutation.mutate(obj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                    Supprimer
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                                <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => deleteMutation.mutate(obj.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                  Supprimer
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         )}
                       </div>
                     </div>
-                    {canEdit && (
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <Button variant="outline" size="sm" className="w-full gap-1.5 text-muted-foreground h-8"
-                          onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })}>
-                          Remettre en cours
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -467,60 +461,46 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
 
 function ReadOnlyObjectiveCard({
   obj,
-  expandedId,
-  setExpandedId,
   onDuplicate,
   getFileUrl,
   getFileIcon,
 }: {
   obj: Objective;
-  expandedId: string | null;
-  setExpandedId: (id: string | null) => void;
   onDuplicate: (obj: Objective) => void;
   getFileUrl: (path: string) => string;
   getFileIcon: (type: string | null) => JSX.Element;
 }) {
-  const isExpanded = expandedId === obj.id;
   return (
-    <div className={`glass-card p-4 transition-all ${obj.is_priority ? "border-l-4 border-l-amber-500" : ""}`}>
-      <div className="flex items-start gap-3">
+    <div className={`glass-card p-3 transition-all ${obj.is_priority ? "border-l-4 border-l-amber-500" : ""}`}>
+      <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold">{obj.title}</h3>
+            <h3 className="font-semibold text-sm">{obj.title}</h3>
             {obj.is_priority && (
-              <Badge className="text-xs bg-amber-500 text-white gap-1">
-                <Star className="w-3 h-3" />
+              <Badge className="text-[10px] bg-amber-500 text-white gap-0.5 py-0 px-1.5">
+                <Star className="w-2.5 h-2.5" />
                 Prioritaire
               </Badge>
             )}
           </div>
           {obj.description && (
-            <p className={`text-sm text-muted-foreground mt-1 ${!isExpanded ? "line-clamp-2" : ""}`}>{obj.description}</p>
+            <p className="text-xs text-muted-foreground mt-1">{obj.description}</p>
           )}
-          {isExpanded && obj.attachments && obj.attachments.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+          {obj.attachments && obj.attachments.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
               {obj.attachments.map((att) => (
                 <a key={att.id} href={getFileUrl(att.file_path)} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted hover:bg-muted/80 text-xs transition-colors">
+                  className="flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/80 text-[11px] transition-colors">
                   {getFileIcon(att.file_type)}
-                  <span className="max-w-[150px] truncate">{att.file_name}</span>
+                  <span className="max-w-[120px] truncate">{att.file_name}</span>
                 </a>
               ))}
             </div>
           )}
-          {!isExpanded && obj.attachments && obj.attachments.length > 0 && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-              <Paperclip className="w-3 h-3" />
-              {obj.attachments.length} pièce{obj.attachments.length > 1 ? "s" : ""} jointe{obj.attachments.length > 1 ? "s" : ""}
-            </div>
-          )}
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDuplicate(obj)}>
-            <Copy className="w-3.5 h-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExpandedId(isExpanded ? null : obj.id)}>
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        <div className="flex items-center gap-0.5">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDuplicate(obj)}>
+            <Copy className="w-3 h-3" />
           </Button>
         </div>
       </div>
