@@ -405,9 +405,9 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                       </div>
                       <div className="flex items-center gap-0.5 flex-shrink-0">
                         {canEdit && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })} title="Remettre en cours">
-                            <RotateCcw className="w-3 h-3" />
+                          <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2"
+                            onClick={() => finalizeMutation.mutate({ id: obj.id, result: "active" as any })}>
+                            <RotateCcw className="w-3 h-3" /> Remettre en cours
                           </Button>
                         )}
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => duplicateMutation.mutate(obj)}>
