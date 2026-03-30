@@ -220,15 +220,16 @@ export default function TeamDetail() {
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
+                {(isAdmin || isClubAdmin || isReferentCoach) && (
+                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowTeamSettings(true)}>
+                    <Settings className="w-4 h-4" />
+                    Paramètres
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
                   <ClipboardList className="w-4 h-4" />
                   Débriefs
                 </Button>
-                {(isAdmin || isClubAdmin || isReferentCoach) && (
-                  <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowTeamSettings(true)}>
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                )}
               </div>
             </div>
           )}
