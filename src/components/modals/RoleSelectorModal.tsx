@@ -33,19 +33,19 @@ const roleConfig = {
   club_admin: {
     icon: Building2,
     label: "Responsable Club",
-    description: "Gestion du club",
+    description: "Gérer mon club et ses équipes",
     color: "bg-primary/10 text-primary",
   },
   coach: {
     icon: UserCog,
     label: "Coach",
-    description: "Évaluation des joueurs",
+    description: "Évaluer et suivre mes joueurs",
     color: "bg-green-500/10 text-green-500",
   },
   player: {
     icon: UserCircle,
     label: "Joueur",
-    description: "Consultation de ma fiche",
+    description: "Consulter mes évaluations",
     color: "bg-blue-500/10 text-blue-500",
   },
   supporter: {
