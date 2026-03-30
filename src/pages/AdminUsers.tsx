@@ -278,6 +278,14 @@ export default function AdminUsers() {
     }
   };
 
+  const getUserDisplayName = (user: AdminUser) => {
+    if (user.nickname) return user.nickname;
+    if (user.first_name || user.last_name) {
+      return `${user.first_name || ""} ${user.last_name || ""}`.trim();
+    }
+    return user.email.split("@")[0];
+  };
+
   // Extract unique clubs, coaches, players for filters
   const uniqueClubs = Array.from(new Map(
     users.flatMap(u => u.roles.filter(r => r.club_name).map(r => [r.club_id!, r.club_name!]))
@@ -311,13 +319,6 @@ export default function AdminUsers() {
 
     return matchesSearch && matchesClub && matchesCoach && matchesPlayer;
   });
-
-  const getUserDisplayName = (user: AdminUser) => {
-    if (user.nickname) return user.nickname;
-    if (user.first_name || user.last_name) {
-      return `${user.first_name || ""} ${user.last_name || ""}`.trim();
-    }
-    return user.email.split("@")[0];
   };
 
   if (authLoading || loading) {
