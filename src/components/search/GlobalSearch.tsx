@@ -353,13 +353,13 @@ export const GlobalSearch = () => {
     filterLoading: boolean
   ) => {
     const Icon = icon;
-    const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    let closeTimer: ReturnType<typeof setTimeout> | null = null;
 
     const handleMouseEnter = () => {
-      if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
     };
     const handleMouseLeave = () => {
-      closeTimer.current = setTimeout(() => setIsOpen(false), 200);
+      closeTimer = setTimeout(() => setIsOpen(false), 250);
     };
 
     return (
