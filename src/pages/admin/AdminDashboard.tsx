@@ -426,7 +426,20 @@ const AdminDashboard = () => {
         {/* Section 3: Débriefs */}
         <div className="bg-card rounded-xl border border-border">
           <Collapsible open={debriefsOpen} onOpenChange={setDebriefsOpen}>
-            <SectionHeader title="Débriefs" icon={Trophy} isOpen={debriefsOpen} onToggle={() => setDebriefsOpen(!debriefsOpen)} />
+            <SectionHeader
+              title="Débriefs"
+              icon={Trophy}
+              isOpen={debriefsOpen}
+              onToggle={() => setDebriefsOpen(!debriefsOpen)}
+              action={
+                <Button size="sm" asChild>
+                  <Link to="/evaluations">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Nouveau débrief
+                  </Link>
+                </Button>
+              }
+            />
             <CollapsibleContent>
               <div className="px-4 md:px-5 pb-2">
                 <div className="flex flex-col sm:flex-row gap-3 mb-4">
