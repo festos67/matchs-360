@@ -337,7 +337,7 @@ export default function TeamDetail() {
                   ) : progression?.value === null || progression?.value === undefined ? (
                     <p className="text-2xl font-display font-bold text-muted-foreground">N/A</p>
                   ) : (
-                    <p className={`text-3xl font-display font-bold ${
+                    <p className={`text-2xl font-display font-bold ${
                       progression.value > 0 ? "text-emerald-600"
                         : progression.value < 0 ? "text-destructive"
                         : "text-muted-foreground"
