@@ -426,11 +426,11 @@ export default function AdminUsers() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Identité</TableHead>
-                <TableHead>Rôles</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[220px] min-w-[220px]">Identité</TableHead>
+                <TableHead className="w-[280px] min-w-[280px]">Rôles</TableHead>
+                <TableHead className="w-[120px] min-w-[120px]">Email</TableHead>
+                <TableHead className="w-[100px] min-w-[100px]">Statut</TableHead>
+                <TableHead className="text-right w-[200px] min-w-[200px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
