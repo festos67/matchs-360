@@ -14,7 +14,7 @@ interface UserRole {
 const roleConfig = [
   { value: "admin", label: "Administrateur", description: "Accès complet à la plateforme", icon: Shield, color: "text-red-500", border: "border-red-500", bg: "bg-red-500/10" },
   { value: "club_admin", label: "Responsable Club", description: "Gérer mon club et ses équipes", icon: Building2, color: "text-primary", border: "border-primary", bg: "bg-primary/10" },
-  { value: "coach", label: "Coach", description: "Évaluer et suivre mes joueurs", icon: UserCog, color: "text-green-500", border: "border-green-500", bg: "bg-green-500/10" },
+  { value: "coach", label: "Coach", description: "Évaluer et suivre mes joueurs", icon: UserCog, color: "text-primary", border: "border-primary", bg: "bg-primary/10" },
   { value: "player", label: "Joueur", description: "Consulter mes évaluations", icon: UserCircle, color: "text-blue-500", border: "border-blue-500", bg: "bg-blue-500/10" },
   { value: "supporter", label: "Supporter", description: "Suivre un joueur (parent, etc.)", icon: Heart, color: "text-pink-500", border: "border-pink-500", bg: "bg-pink-500/10" },
 ];

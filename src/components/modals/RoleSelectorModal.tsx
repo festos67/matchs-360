@@ -40,7 +40,7 @@ const roleConfig = {
     icon: UserCog,
     label: "Coach",
     description: "Évaluer et suivre mes joueurs",
-    color: "bg-green-500/10 text-green-500",
+    color: "bg-primary/10 text-primary",
   },
   player: {
     icon: UserCircle,
