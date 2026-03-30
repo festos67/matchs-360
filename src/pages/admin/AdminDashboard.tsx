@@ -343,10 +343,10 @@ const AdminDashboard = () => {
               isOpen={clubsOpen}
               onToggle={() => setClubsOpen(!clubsOpen)}
               action={
-                <Button size="sm" asChild>
+                <Button size="sm" className="min-w-[160px]" asChild>
                   <Link to="/clubs">
                     <Plus className="w-4 h-4 mr-1" />
-                    Nouveau
+                    Nouveau club
                   </Link>
                 </Button>
               }
