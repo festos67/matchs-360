@@ -45,7 +45,7 @@ const roleConfig = {
   player: {
     icon: UserCircle,
     label: "Joueur",
-    description: "Consultation de ma fiche",
+    description: "Consulter mes évaluations",
     color: "bg-blue-500/10 text-blue-500",
   },
   supporter: {
