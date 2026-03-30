@@ -168,7 +168,8 @@ const AdminDashboard = () => {
       const pct = finalized > 0 ? Math.round((succeeded / finalized) * 100) : null;
       const uniqueTeams = new Set(all.map((o: any) => o.team_id)).size;
       const avgPerTeam = uniqueTeams > 0 ? (total / uniqueTeams).toFixed(1) : "N/A";
-      return { total, pct, avgPerTeam };
+      const pctMissed = finalized > 0 ? Math.round((missed / finalized) * 100) : null;
+      return { total, pct, pctMissed, avgPerTeam };
     },
     enabled: !!user && isAdmin,
   });
