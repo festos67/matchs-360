@@ -435,7 +435,7 @@ export const GlobalSearch = () => {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="overflow-hidden p-0 shadow-lg max-w-lg">
+        <DialogContent className="overflow-hidden p-0 shadow-lg max-w-2xl h-[560px] flex flex-col">
           <VisuallyHidden>
             <DialogTitle>Recherche globale</DialogTitle>
           </VisuallyHidden>
