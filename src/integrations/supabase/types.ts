@@ -788,6 +788,8 @@ export type Database = {
           created_by: string
           description: string | null
           id: string
+          is_priority: boolean
+          order_index: number
           priority: number
           status: string
           team_id: string
@@ -799,6 +801,8 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
+          is_priority?: boolean
+          order_index?: number
           priority?: number
           status?: string
           team_id: string
@@ -810,6 +814,8 @@ export type Database = {
           created_by?: string
           description?: string | null
           id?: string
+          is_priority?: boolean
+          order_index?: number
           priority?: number
           status?: string
           team_id?: string
