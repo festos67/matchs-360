@@ -66,8 +66,6 @@ interface ObjectivesListProps {
 function SortableObjectiveCard({
   obj,
   canEdit,
-  expandedId,
-  setExpandedId,
   onEdit,
   onDelete,
   onFinalize,
@@ -77,8 +75,6 @@ function SortableObjectiveCard({
 }: {
   obj: Objective;
   canEdit: boolean;
-  expandedId: string | null;
-  setExpandedId: (id: string | null) => void;
   onEdit: (obj: Objective) => void;
   onDelete: (id: string) => void;
   onFinalize: (id: string, result: "succeeded" | "missed") => void;
@@ -87,7 +83,6 @@ function SortableObjectiveCard({
   getFileIcon: (type: string | null) => JSX.Element;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: obj.id });
-  const isExpanded = expandedId === obj.id;
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
 
   return (
