@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Shield, UserCog, UserCircle, Heart } from "lucide-react";
+import { Building2, Shield, UserCog, UserCircle, Heart, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
