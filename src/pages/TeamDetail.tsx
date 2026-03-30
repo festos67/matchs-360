@@ -308,13 +308,13 @@ export default function TeamDetail() {
         </TabsContent>
 
         {/* Indicateurs Tab */}
-        <TabsContent value="indicateurs" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <TabsContent value="indicateurs" className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Team Progression KPI */}
-            <div className="glass-card p-6">
-              <p className="text-sm font-display font-semibold text-foreground uppercase tracking-wide mb-4">Progression de l'équipe</p>
+            <div className="glass-card p-4">
+              <p className="text-sm font-display font-semibold text-foreground uppercase tracking-wide mb-2">Progression de l'équipe</p>
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                   loadingProgression || progression?.value === null || progression?.value === undefined
                     ? "bg-muted text-muted-foreground"
                     : progression.value > 0
@@ -324,20 +324,20 @@ export default function TeamDetail() {
                         : "bg-muted text-muted-foreground"
                 }`}>
                   {progression?.value === null || progression?.value === undefined ? (
-                    <Minus className="w-6 h-6" />
+                    <Minus className="w-5 h-5" />
                   ) : progression.value >= 0 ? (
-                    <TrendingUp className="w-6 h-6" />
+                    <TrendingUp className="w-5 h-5" />
                   ) : (
-                    <TrendingDown className="w-6 h-6" />
+                    <TrendingDown className="w-5 h-5" />
                   )}
                 </div>
                 <div>
                   {loadingProgression ? (
-                    <p className="text-3xl font-display font-bold text-muted-foreground">…</p>
+                    <p className="text-2xl font-display font-bold text-muted-foreground">…</p>
                   ) : progression?.value === null || progression?.value === undefined ? (
-                    <p className="text-3xl font-display font-bold text-muted-foreground">N/A</p>
+                    <p className="text-2xl font-display font-bold text-muted-foreground">N/A</p>
                   ) : (
-                    <p className={`text-3xl font-display font-bold ${
+                    <p className={`text-2xl font-display font-bold ${
                       progression.value > 0 ? "text-emerald-600"
                         : progression.value < 0 ? "text-destructive"
                         : "text-muted-foreground"
