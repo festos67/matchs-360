@@ -436,16 +436,21 @@ export default function AdminUsers() {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <CircleAvatar
-                        imageUrl={user.photo_url}
-                        name={getUserDisplayName(user)}
-                        size="sm"
-                      />
-                      <div>
-                        <div className="font-medium">{getUserDisplayName(user)}</div>
-                        <div className="text-sm text-muted-foreground">
+                  <TableCell className="w-[260px] min-w-[260px]">
+                    <div
+                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-1 -m-1 transition-colors"
+                      onClick={() => setEditingUser(user)}
+                    >
+                      <div className="shrink-0">
+                        <CircleAvatar
+                          imageUrl={user.photo_url}
+                          name={getUserDisplayName(user)}
+                          size="sm"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{getUserDisplayName(user)}</div>
+                        <div className="text-sm text-muted-foreground truncate">
                           {user.email}
                         </div>
                       </div>
