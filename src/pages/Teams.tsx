@@ -119,7 +119,14 @@ const Teams = () => {
     }
   };
 
+  // Extract unique clubs for filter
+  const uniqueClubs = teams
+    ? Array.from(new Map(teams.filter(t => t.clubs).map(t => [t.clubs!.id, t.clubs!])).values())
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
   const filteredTeams = teams?.filter((team) => {
+    if (clubFilter !== "all" && team.clubs?.id !== clubFilter) return false;
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
