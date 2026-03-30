@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ const Teams = () => {
   const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [clubFilter, setClubFilter] = useState("all");
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -117,7 +119,14 @@ const Teams = () => {
     }
   };
 
+  // Extract unique clubs for filter
+  const uniqueClubs = teams
+    ? Array.from(new Map(teams.filter(t => t.clubs).map(t => [t.clubs!.id, t.clubs!])).values())
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+
   const filteredTeams = teams?.filter((team) => {
+    if (clubFilter !== "all" && team.clubs?.id !== clubFilter) return false;
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -141,15 +150,27 @@ const Teams = () => {
             </p>
           </div>
           
-          {/* Search Bar */}
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher une équipe..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un club..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={clubFilter} onValueChange={setClubFilter}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Tous les clubs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les clubs</SelectItem>
+                {uniqueClubs.map((club) => (
+                  <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
