@@ -91,36 +91,66 @@ function SortableObjectiveCard({
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
 
   return (
-    <div ref={setNodeRef} style={style} className={`glass-card p-4 transition-all ${obj.is_priority ? "border-l-4 border-l-amber-500" : ""}`}>
+    <div ref={setNodeRef} style={style} className={`glass-card p-3 transition-all ${obj.is_priority ? "border-l-4 border-l-amber-500" : ""}`}>
       {/* Header row: drag handle + title + actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-2">
         {canEdit && (
-          <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+          <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground mt-0.5">
             <GripVertical className="w-4 h-4" />
           </button>
         )}
-        <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-          <h3 className="font-semibold">{obj.title}</h3>
-          {obj.is_priority && (
-            <Badge className="text-xs bg-amber-500 text-white gap-1">
-              <Star className="w-3 h-3" />
-              Prioritaire
-            </Badge>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-sm">{obj.title}</h3>
+            {obj.is_priority && (
+              <Badge className="text-[10px] bg-amber-500 text-white gap-0.5 py-0 px-1.5">
+                <Star className="w-2.5 h-2.5" />
+                Prioritaire
+              </Badge>
+            )}
+          </div>
+          {obj.description && (
+            <p className="text-xs text-muted-foreground mt-1">{obj.description}</p>
+          )}
+          {/* Attachments - always visible */}
+          {obj.attachments && obj.attachments.length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {obj.attachments.map((att) => (
+                <a key={att.id} href={getFileUrl(att.file_path)} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/80 text-[11px] transition-colors">
+                  {getFileIcon(att.file_type)}
+                  <span className="max-w-[120px] truncate">{att.file_name}</span>
+                </a>
+              ))}
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDuplicate(obj)}>
-            <Copy className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          {canEdit && (
+            <>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600 hover:bg-emerald-500/10"
+                onClick={() => onFinalize(obj.id, "succeeded")} title="Réussi">
+                <Check className="w-3.5 h-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                onClick={() => onFinalize(obj.id, "missed")} title="Manqué">
+                <X className="w-3.5 h-3.5" />
+              </Button>
+              <div className="w-px h-4 bg-border/50 mx-0.5" />
+            </>
+          )}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDuplicate(obj)}>
+            <Copy className="w-3 h-3" />
           </Button>
           {canEdit && (
             <>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(obj)}>
-                <Pencil className="w-3.5 h-3.5" />
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(obj)}>
+                <Pencil className="w-3 h-3" />
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
-                    <Trash2 className="w-3.5 h-3.5" />
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive">
+                    <Trash2 className="w-3 h-3" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -138,51 +168,8 @@ function SortableObjectiveCard({
               </AlertDialog>
             </>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setExpandedId(isExpanded ? null : obj.id)}>
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </Button>
         </div>
       </div>
-
-      {/* Description - always fully visible */}
-      {obj.description && (
-        <p className="text-sm text-muted-foreground mt-2">{obj.description}</p>
-      )}
-
-      {/* Attachments (expanded) */}
-      {isExpanded && obj.attachments && obj.attachments.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {obj.attachments.map((att) => (
-            <a key={att.id} href={getFileUrl(att.file_path)} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-muted hover:bg-muted/80 text-xs transition-colors">
-              {getFileIcon(att.file_type)}
-              <span className="max-w-[150px] truncate">{att.file_name}</span>
-            </a>
-          ))}
-        </div>
-      )}
-      {!isExpanded && obj.attachments && obj.attachments.length > 0 && (
-        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-          <Paperclip className="w-3 h-3" />
-          {obj.attachments.length} pièce{obj.attachments.length > 1 ? "s" : ""} jointe{obj.attachments.length > 1 ? "s" : ""}
-        </div>
-      )}
-
-      {/* Réussi / Manqué buttons at bottom */}
-      {canEdit && (
-        <div className="flex gap-1.5 mt-2 pt-2 border-t border-border/50 justify-end">
-          <Button variant="ghost" size="sm" className="gap-1 text-xs text-emerald-600 hover:bg-emerald-50 h-7 px-2.5"
-            onClick={() => onFinalize(obj.id, "succeeded")}>
-            <Check className="w-3 h-3" />
-            Réussi
-          </Button>
-          <Button variant="ghost" size="sm" className="gap-1 text-xs text-destructive hover:bg-red-50 h-7 px-2.5"
-            onClick={() => onFinalize(obj.id, "missed")}>
-            <X className="w-3 h-3" />
-            Manqué
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
