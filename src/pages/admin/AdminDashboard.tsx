@@ -386,7 +386,7 @@ const AdminDashboard = () => {
                         </TableRow>
                       ))
                     ) : clubs && clubs.length > 0 ? (
-                      clubs.map((club) => (
+                      clubs.filter((club) => club.name.toLowerCase().includes(clubsSearch.toLowerCase()) || (club.referent_name || "").toLowerCase().includes(clubsSearch.toLowerCase())).map((club) => (
                         <TableRow key={club.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/clubs/${club.id}`)}>
                           <TableCell>
                             <CircleAvatar name={club.name} imageUrl={club.logo_url} color={club.primary_color} size="sm" />
