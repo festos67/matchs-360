@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { Users, Trophy, UserCheck, Eye, Plus } from "lucide-react";
+import { Users, Trophy, UserCheck, Eye, Plus, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
