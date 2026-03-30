@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Paperclip, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +23,7 @@ interface Objective {
   title: string;
   description: string | null;
   status: string;
-  priority: number;
+  is_priority: boolean;
   attachments?: Attachment[];
 }
 
@@ -32,28 +32,26 @@ interface ObjectiveModalProps {
   onOpenChange: (open: boolean) => void;
   teamId: string;
   objective: Objective | null;
+  nextOrderIndex: number;
   onSuccess: () => void;
 }
 
-export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSuccess }: ObjectiveModalProps) {
+export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrderIndex, onSuccess }: ObjectiveModalProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(objective?.title || "");
   const [description, setDescription] = useState(objective?.description || "");
-  const [status, setStatus] = useState(objective?.status || "todo");
-  const [priority, setPriority] = useState(String(objective?.priority || 2));
+  const [isPriority, setIsPriority] = useState(objective?.is_priority || false);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(objective?.attachments || []);
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // Reset form when modal opens
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
       setTitle(objective?.title || "");
       setDescription(objective?.description || "");
-      setStatus(objective?.status || "todo");
-      setPriority(String(objective?.priority || 2));
+      setIsPriority(objective?.is_priority || false);
       setNewFiles([]);
       setExistingAttachments(objective?.attachments || []);
       setRemovedAttachmentIds([]);
@@ -93,8 +91,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
           .update({
             title: title.trim(),
             description: description.trim() || null,
-            status,
-            priority: parseInt(priority),
+            is_priority: isPriority,
           })
           .eq("id", objective.id);
         if (error) throw error;
@@ -105,8 +102,10 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
             team_id: teamId,
             title: title.trim(),
             description: description.trim() || null,
-            status,
-            priority: parseInt(priority),
+            status: "active",
+            priority: isPriority ? 1 : 2,
+            is_priority: isPriority,
+            order_index: nextOrderIndex,
             created_by: user.id,
           })
           .select("id")
@@ -128,10 +127,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
       for (const file of newFiles) {
         const ext = file.name.split(".").pop();
         const filePath = `${teamId}/${objectiveId}/${crypto.randomUUID()}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("objective-attachments")
-          .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage.from("objective-attachments").upload(filePath, file);
         if (uploadError) throw uploadError;
 
         const { error: insertError } = await (supabase as any)
@@ -174,29 +170,9 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
             <Textarea id="obj-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description de l'objectif" rows={3} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>État</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todo">À réaliser</SelectItem>
-                  <SelectItem value="in_progress">En cours</SelectItem>
-                  <SelectItem value="achieved">Atteint</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Priorité</Label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">🔴 Priorité 1 — Très prioritaire</SelectItem>
-                  <SelectItem value="2">🟠 Priorité 2 — Intermédiaire</SelectItem>
-                  <SelectItem value="3">🟡 Priorité 3 — Peu prioritaire</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex items-center gap-2">
+            <Checkbox id="obj-priority" checked={isPriority} onCheckedChange={(checked) => setIsPriority(checked === true)} />
+            <Label htmlFor="obj-priority" className="cursor-pointer font-medium">Objectif prioritaire</Label>
           </div>
 
           <div>
@@ -220,14 +196,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, onSucces
                   </Button>
                 </div>
               ))}
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx"
-                className="hidden"
-                onChange={handleFileChange}
-              />
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx" className="hidden" onChange={handleFileChange} />
               <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
                 <Paperclip className="w-3.5 h-3.5" />
                 Ajouter un fichier
