@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { EditUserModal } from "@/components/modals/EditUserModal";
 import {
@@ -111,6 +112,9 @@ export default function AdminUsers() {
   const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [clubFilter, setClubFilter] = useState("all");
+  const [coachFilter, setCoachFilter] = useState("all");
+  const [playerFilter, setPlayerFilter] = useState("all");
 
   const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
 
@@ -274,14 +278,38 @@ export default function AdminUsers() {
     }
   };
 
+  // Extract unique clubs, coaches, players for filters
+  const uniqueClubs = Array.from(new Map(
+    users.flatMap(u => u.roles.filter(r => r.club_name).map(r => [r.club_id!, r.club_name!]))
+  ).entries()).map(([id, name]) => ({ id, name }));
+
+  const uniqueCoaches = users
+    .filter(u => u.team_memberships.some(m => m.member_type === "coach" && m.is_active))
+    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
+
+  const uniquePlayers = users
+    .filter(u => u.team_memberships.some(m => m.member_type === "player" && m.is_active))
+    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
+
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = !searchLower || 
       user.email.toLowerCase().includes(searchLower) ||
       user.first_name?.toLowerCase().includes(searchLower) ||
       user.last_name?.toLowerCase().includes(searchLower) ||
-      user.nickname?.toLowerCase().includes(searchLower)
-    );
+      user.nickname?.toLowerCase().includes(searchLower);
+
+    const matchesClub = clubFilter === "all" || 
+      user.roles.some(r => r.club_id === clubFilter) ||
+      user.team_memberships.some(m => m.is_active && users.find(u => 
+        u.roles.some(r => r.club_id === clubFilter) && 
+        u.team_memberships.some(tm => tm.team_id === m.team_id && tm.is_active)
+      ));
+
+    const matchesCoach = coachFilter === "all" || user.id === coachFilter;
+    const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
+
+    return matchesSearch && matchesClub && matchesCoach && matchesPlayer;
   });
 
   const getUserDisplayName = (user: AdminUser) => {
@@ -336,15 +364,50 @@ export default function AdminUsers() {
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un utilisateur..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un utilisateur..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les clubs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les clubs</SelectItem>
+              {uniqueClubs.map(club => (
+                <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={coachFilter} onValueChange={setCoachFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les coachs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les coachs</SelectItem>
+              {uniqueCoaches.map(coach => (
+                <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={playerFilter} onValueChange={setPlayerFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les joueurs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les joueurs</SelectItem>
+              {uniquePlayers.map(player => (
+                <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Stats */}
