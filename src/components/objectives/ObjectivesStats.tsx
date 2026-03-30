@@ -28,7 +28,7 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
       {!data || data.total === 0 ? (
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-            <Target className="w-6 h-6 text-muted-foreground" />
+            <Target className="w-5 h-5 text-muted-foreground" />
           </div>
           <div>
             <p className="text-3xl font-display font-bold text-muted-foreground">N/A</p>
