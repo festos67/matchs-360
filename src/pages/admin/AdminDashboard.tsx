@@ -297,7 +297,6 @@ const AdminDashboard = () => {
                         title="Progression moy."
                         value={loadingProgression ? "-" : (avgProgression !== null ? `${avgProgression > 0 ? "+" : ""}${avgProgression}%` : "N/A")}
                         icon={TrendingUp}
-                        color={avgProgression !== null && avgProgression !== undefined && avgProgression >= 0 ? "success" : "warning"}
                       /></div>
                     </TooltipTrigger><TooltipContent>Pourcentage moyen de progression des joueurs entre leurs deux derniers débriefs</TooltipContent></Tooltip>
                   </div>
@@ -316,7 +315,6 @@ const AdminDashboard = () => {
                         title="% objectif réussi"
                         value={loadingObj ? "-" : (objStats?.pct !== null ? `${objStats?.pct}%` : "N/A")}
                         icon={Target}
-                        color={objStats?.pct !== null && objStats?.pct !== undefined && objStats.pct >= 50 ? "success" : "warning"}
                       /></div>
                     </TooltipTrigger><TooltipContent>Pourcentage d'objectifs réussis parmi ceux finalisés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
@@ -324,7 +322,6 @@ const AdminDashboard = () => {
                         title="% objectif manqué"
                         value={loadingObj ? "-" : (objStats?.pctMissed !== null ? `${objStats?.pctMissed}%` : "N/A")}
                         icon={Target}
-                        color="destructive"
                       /></div>
                     </TooltipTrigger><TooltipContent>Pourcentage d'objectifs manqués parmi ceux finalisés</TooltipContent></Tooltip>
                   </div>
