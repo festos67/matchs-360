@@ -352,8 +352,6 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                           key={obj.id}
                           obj={obj}
                           canEdit={canEdit}
-                          expandedId={expandedId}
-                          setExpandedId={setExpandedId}
                           onEdit={(o) => { setEditingObjective(o); setShowModal(true); }}
                           onDelete={(id) => deleteMutation.mutate(id)}
                           onFinalize={(id, result) => finalizeMutation.mutate({ id, result })}
