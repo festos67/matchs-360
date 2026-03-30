@@ -137,10 +137,10 @@ const PlayerDashboard = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">
-            {isSupporter ? "Suivi Joueur" : `Bonjour, ${profile?.first_name || "Joueur"}`} ⚽
+            {isSupporter ? "Suivi Joueur" : `Bonjour ${profile?.first_name || "Joueur"}`} ⚽
           </h1>
           <p className="text-muted-foreground mt-1">
-            {team ? (
+            {isSupporter ? "Suivre un joueur (parent, etc.)" : team ? (
               <span className="flex items-center gap-2">
                 <span 
                   className="w-2 h-2 rounded-full inline-block" 
@@ -149,7 +149,7 @@ const PlayerDashboard = () => {
                 {team.name} - Saison {team.season || "2024-2025"}
               </span>
             ) : (
-              "Consultez vos évaluations et suivez votre progression"
+              "Consulter mes évaluations"
             )}
           </p>
         </div>
