@@ -271,8 +271,8 @@ export default function TeamDetail() {
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-6">
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-display font-semibold">Joueurs ({players.length})</h2>
               {canManageTeam && <Button size="sm" className="gap-2" onClick={() => setShowPlayerModal(true)}><Plus className="w-4 h-4" />Joueur</Button>}
             </div>
@@ -299,7 +299,7 @@ export default function TeamDetail() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-48 glass-card">
+              <div className="flex flex-col items-center justify-center h-48">
                 <User className="w-12 h-12 text-muted-foreground/50 mb-4" /><h3 className="text-lg font-medium text-muted-foreground">Aucun joueur</h3>
                 {canManageTeam && <Button className="mt-4 gap-2" onClick={() => setShowPlayerModal(true)}><Plus className="w-4 h-4" />Ajouter</Button>}
               </div>
