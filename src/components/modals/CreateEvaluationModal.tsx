@@ -312,14 +312,16 @@ export const CreateEvaluationModal = ({
             )}
           </div>
 
-          {teams.length > 1 && !preselectedTeamId && (
+          {/* Team selector - optional for admin, required for coach */}
+          {!preselectedTeamId && teams.length > 0 && (
             <div className="space-y-2">
-              <Label>Équipe</Label>
-              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <Label>Équipe {isAdmin && <span className="text-muted-foreground text-xs">(optionnel)</span>}</Label>
+              <Select value={selectedTeam || "all"} onValueChange={(v) => { setSelectedTeam(v === "all" ? "" : v); setSearchPlayer(""); setValue("playerId", ""); }}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une équipe" />
+                  <SelectValue placeholder="Toutes les équipes" />
                 </SelectTrigger>
                 <SelectContent>
+                  {isAdmin && <SelectItem value="all">Toutes les équipes</SelectItem>}
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name}
@@ -339,7 +341,7 @@ export const CreateEvaluationModal = ({
             </div>
           )}
 
-          {teams.length === 0 && (
+          {teams.length === 0 && !isAdmin && (
             <div className="p-4 rounded-lg bg-muted/50 text-center">
               <p className="text-sm text-muted-foreground">
                 Vous n'êtes coach d'aucune équipe.
@@ -347,7 +349,8 @@ export const CreateEvaluationModal = ({
             </div>
           )}
 
-          {selectedTeam && (
+          {/* Player search - shown for admin always, for coach only when team selected */}
+          {(isAdmin || selectedTeam) && (
             <div className="space-y-2">
               <Label>Joueur</Label>
               <div className="relative mb-2">
@@ -360,12 +363,10 @@ export const CreateEvaluationModal = ({
                 />
               </div>
               
-              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2">
+              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {filteredPlayers.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    {players.length === 0
-                      ? "Aucun joueur dans cette équipe"
-                      : "Aucun joueur trouvé"}
+                    {searchPlayer ? "Aucun joueur trouvé" : "Aucun joueur disponible"}
                   </p>
                 ) : (
                   filteredPlayers.map((player) => {
@@ -375,18 +376,28 @@ export const CreateEvaluationModal = ({
 
                     return (
                       <div
-                        key={player.id}
+                        key={`${player.id}-${player.team_id}`}
                         className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
                           isSelected
                             ? "bg-primary/20 border border-primary/30"
                             : "hover:bg-muted/50"
                         }`}
-                        onClick={() => setValue("playerId", player.id)}
+                        onClick={() => {
+                          setValue("playerId", player.id);
+                          if (!selectedTeam && player.team_id) {
+                            setSelectedTeam(player.team_id);
+                          }
+                        }}
                       >
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <User className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="font-medium">{name || "Joueur"}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{name || "Joueur"}</span>
+                          {!selectedTeam && player.team_name && (
+                            <span className="text-xs text-muted-foreground">{player.team_name}</span>
+                          )}
+                        </div>
                       </div>
                     );
                   })
