@@ -343,10 +343,10 @@ const AdminDashboard = () => {
             />
             <CollapsibleContent>
               <div className="overflow-x-auto">
-                <Table>
+                <Table className="[&_td]:py-1.5 [&_th]:py-1.5">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[60px]">Logo</TableHead>
+                      <TableHead className="w-[40px]">Logo</TableHead>
                       <TableHead>Nom du Club</TableHead>
                       <TableHead>Référent</TableHead>
                       <TableHead>Email</TableHead>
@@ -357,11 +357,11 @@ const AdminDashboard = () => {
                     {loadingClubsList ? (
                       Array.from({ length: 3 }).map((_, i) => (
                         <TableRow key={i}>
-                          <TableCell><Skeleton className="w-10 h-10 rounded-full" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                          <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                          <TableCell><Skeleton className="w-7 h-7 rounded-full" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-24" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-40" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-8 mx-auto" /></TableCell>
                         </TableRow>
                       ))
                     ) : clubs && clubs.length > 0 ? (
@@ -370,11 +370,11 @@ const AdminDashboard = () => {
                           <TableCell>
                             <CircleAvatar name={club.name} imageUrl={club.logo_url} color={club.primary_color} size="sm" />
                           </TableCell>
-                          <TableCell className="font-medium">{club.name}</TableCell>
-                          <TableCell className="text-muted-foreground">{club.referent_name || "-"}</TableCell>
-                          <TableCell className="text-muted-foreground">{club.referent_email || "-"}</TableCell>
+                          <TableCell className="font-medium text-sm">{club.name}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">{club.referent_name || "-"}</TableCell>
+                          <TableCell className="text-muted-foreground text-sm">{club.referent_email || "-"}</TableCell>
                           <TableCell className="text-center">
-                            <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">
+                            <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1.5 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
                               {club.teamsCount}
                             </span>
                           </TableCell>
