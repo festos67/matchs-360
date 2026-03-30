@@ -280,11 +280,20 @@ export const CreateEvaluationModal = ({
 
     setLoading(true);
     try {
-      // Get the team's framework
+      // Find the player's team to get the framework
+      const playerEntry = allPlayers.find((p) => p.id === data.playerId);
+      const playerTeamId = teamFilter !== "all" ? teamFilter : playerEntry?.team_id;
+
+      if (!playerTeamId) {
+        toast.error("Impossible de déterminer l'équipe du joueur");
+        setLoading(false);
+        return;
+      }
+
       const { data: framework } = await supabase
         .from("competence_frameworks")
         .select("id")
-        .eq("team_id", selectedTeam)
+        .eq("team_id", playerTeamId)
         .eq("is_archived", false)
         .maybeSingle();
 
@@ -294,10 +303,8 @@ export const CreateEvaluationModal = ({
         return;
       }
 
-      // Generate unique name if needed
       const uniqueName = await generateUniqueName(data.name, data.playerId);
 
-      // Create the evaluation
       const { data: evaluation, error } = await supabase
         .from("evaluations")
         .insert({
@@ -315,8 +322,6 @@ export const CreateEvaluationModal = ({
       reset();
       onOpenChange(false);
       onSuccess?.();
-
-      // Navigate to player detail page to fill the evaluation
       navigate(`/players/${data.playerId}?evaluation=${evaluation.id}`);
     } catch (error: any) {
       console.error("Error creating evaluation:", error);
@@ -330,7 +335,7 @@ export const CreateEvaluationModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -340,7 +345,7 @@ export const CreateEvaluationModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nom du débrief</Label>
             <Input
@@ -353,115 +358,113 @@ export const CreateEvaluationModal = ({
             )}
           </div>
 
-          {/* Team selector - optional for admin, required for coach */}
-          {!preselectedTeamId && teams.length > 0 && (
-            <div className="space-y-2">
-              <Label>Équipe {isAdmin && <span className="text-muted-foreground text-xs">(optionnel)</span>}</Label>
-              <Select value={selectedTeam || "all"} onValueChange={(v) => { setSelectedTeam(v === "all" ? "" : v); setSearchPlayer(""); setValue("playerId", ""); }}>
-                <SelectTrigger>
+          {/* Filters */}
+          <div className="space-y-2">
+            <Label>Rechercher un joueur</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un joueur..."
+                value={searchPlayer}
+                onChange={(e) => setSearchPlayer(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Select value={clubFilter} onValueChange={setClubFilter}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Tous les clubs" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les clubs</SelectItem>
+                  {uniqueClubs.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={teamFilter} onValueChange={setTeamFilter}>
+                <SelectTrigger className="text-xs h-9">
                   <SelectValue placeholder="Toutes les équipes" />
                 </SelectTrigger>
                 <SelectContent>
-                  {isAdmin && <SelectItem value="all">Toutes les équipes</SelectItem>}
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
+                  <SelectItem value="all">Toutes les équipes</SelectItem>
+                  {uniqueTeams.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={coachFilter} onValueChange={setCoachFilter}>
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Tous les coachs" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les coachs</SelectItem>
+                  {uniqueCoaches.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
+          </div>
 
-          {preselectedTeamId && teams.find(t => t.id === preselectedTeamId) && (
-            <div className="space-y-2">
-              <Label>Équipe</Label>
-              <div className="p-2 rounded-lg bg-muted/50 text-sm font-medium">
-                {teams.find(t => t.id === preselectedTeamId)?.name}
-              </div>
-            </div>
-          )}
-
-          {teams.length === 0 && !isAdmin && (
+          {/* Player list */}
+          {allPlayers.length === 0 && !isAdmin ? (
             <div className="p-4 rounded-lg bg-muted/50 text-center">
               <p className="text-sm text-muted-foreground">
                 Vous n'êtes coach d'aucune équipe.
               </p>
             </div>
-          )}
+          ) : (
+            <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+              {filteredPlayers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {searchPlayer ? "Aucun joueur trouvé" : "Aucun joueur disponible"}
+                </p>
+              ) : (
+                filteredPlayers.map((player) => {
+                  const name = player.nickname ||
+                    `${player.first_name || ""} ${player.last_name || ""}`.trim();
+                  const isSelected = selectedPlayerId === player.id;
 
-          {/* Player search - shown for admin always, for coach only when team selected */}
-          {(isAdmin || selectedTeam) && (
-            <div className="space-y-2">
-              <Label>Joueur</Label>
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher un joueur..."
-                  value={searchPlayer}
-                  onChange={(e) => setSearchPlayer(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-                {filteredPlayers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    {searchPlayer ? "Aucun joueur trouvé" : "Aucun joueur disponible"}
-                  </p>
-                ) : (
-                  filteredPlayers.map((player) => {
-                    const name = player.nickname ||
-                      `${player.first_name || ""} ${player.last_name || ""}`.trim();
-                    const isSelected = selectedPlayerId === player.id;
-
-                    return (
-                      <div
-                        key={`${player.id}-${player.team_id}`}
-                        className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                          isSelected
-                            ? "bg-primary/20 border border-primary/30"
-                            : "hover:bg-muted/50"
-                        }`}
-                        onClick={() => {
-                          setValue("playerId", player.id);
-                          if (!selectedTeam && player.team_id) {
-                            setSelectedTeam(player.team_id);
-                          }
-                        }}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{name || "Joueur"}</span>
-                          {!selectedTeam && player.team_name && (
-                            <span className="text-xs text-muted-foreground">{player.team_name}</span>
-                          )}
-                        </div>
+                  return (
+                    <div
+                      key={`${player.id}-${player.team_id}`}
+                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                        isSelected
+                          ? "bg-primary/20 border border-primary/30"
+                          : "hover:bg-muted/50"
+                      }`}
+                      onClick={() => setValue("playerId", player.id)}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary" />
                       </div>
-                    );
-                  })
-                )}
-              </div>
-              {errors.playerId && (
-                <p className="text-sm text-destructive">{errors.playerId.message}</p>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{name || "Joueur"}</span>
+                        <span className="text-xs text-muted-foreground">{player.team_name}</span>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
+          )}
+          {errors.playerId && (
+            <p className="text-sm text-destructive">{errors.playerId.message}</p>
           )}
 
           {/* Preview */}
           {selectedPlayer && (
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="w-6 h-6 text-primary" />
+            <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/30">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium">
+                <p className="font-medium text-sm">
                   {selectedPlayer.nickname ||
                     `${selectedPlayer.first_name || ""} ${selectedPlayer.last_name || ""}`.trim()}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {selectedPlayer.team_name}
                 </p>
               </div>
@@ -478,7 +481,7 @@ export const CreateEvaluationModal = ({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !selectedPlayerId || teams.length === 0}
+              disabled={loading || !selectedPlayerId || allPlayers.length === 0}
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
