@@ -153,7 +153,7 @@ const CoachDashboard = () => {
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
             Bonjour {profile?.first_name || "Coach"}
-            <UserCog className="w-7 h-7 text-primary" />
+            <UserCog className="w-7 h-7 text-orange-500" />
           </h1>
           <p className="text-muted-foreground mt-1">
             Évaluer et suivre mes joueurs

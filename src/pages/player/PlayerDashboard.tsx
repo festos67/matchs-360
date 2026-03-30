@@ -138,7 +138,7 @@ const PlayerDashboard = () => {
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
             {isSupporter ? "Suivi Joueur" : `Bonjour ${profile?.first_name || "Joueur"}`}
-            {isSupporter ? <Heart className="w-7 h-7 text-pink-500" /> : <UserCircle className="w-7 h-7 text-blue-500" />}
+            {isSupporter ? <Heart className="w-7 h-7 text-pink-500" /> : <UserCircle className="w-7 h-7 text-green-500" />}
           </h1>
           <p className="text-muted-foreground mt-1">
             {isSupporter ? "Suivre un joueur (parent, etc.)" : team ? (
