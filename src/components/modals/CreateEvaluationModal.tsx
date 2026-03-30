@@ -58,10 +58,11 @@ export const CreateEvaluationModal = ({
   onSuccess,
   preselectedTeamId,
 }: CreateEvaluationModalProps) => {
-  const { user } = useAuth();
+  const { user, hasAdminRole: isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [searchPlayer, setSearchPlayer] = useState("");
@@ -85,6 +86,9 @@ export const CreateEvaluationModal = ({
   useEffect(() => {
     if (open) {
       fetchTeams();
+      if (isAdmin) {
+        fetchAllPlayers();
+      }
     }
   }, [open]);
 
@@ -97,28 +101,68 @@ export const CreateEvaluationModal = ({
   }, [preselectedTeamId, teams]);
 
   useEffect(() => {
-    if (selectedTeam) {
+    if (selectedTeam && !isAdmin) {
       fetchPlayers(selectedTeam);
+    } else if (selectedTeam && isAdmin) {
+      // Filter allPlayers by selected team
+      setPlayers(allPlayers.filter(p => p.team_id === selectedTeam));
     }
   }, [selectedTeam]);
 
   const fetchTeams = async () => {
-    // Get teams where user is a coach
+    if (isAdmin) {
+      // Admin: fetch all teams
+      const { data } = await supabase
+        .from("teams")
+        .select("id, name")
+        .is("deleted_at", null)
+        .order("name");
+      if (data) setTeams(data);
+    } else {
+      // Coach: fetch only their teams
+      const { data } = await supabase
+        .from("team_members")
+        .select("team:teams(id, name)")
+        .eq("user_id", user?.id)
+        .eq("member_type", "coach")
+        .eq("is_active", true);
+
+      if (data) {
+        const uniqueTeams = data
+          .map((d: any) => d.team)
+          .filter((t: any) => t !== null);
+        setTeams(uniqueTeams);
+        if (uniqueTeams.length === 1) {
+          setSelectedTeam(uniqueTeams[0].id);
+        }
+      }
+    }
+  };
+
+  const fetchAllPlayers = async () => {
     const { data } = await supabase
       .from("team_members")
-      .select("team:teams(id, name)")
-      .eq("user_id", user?.id)
-      .eq("member_type", "coach")
+      .select(`
+        user_id,
+        team:teams(id, name),
+        profile:profiles(id, first_name, last_name, nickname)
+      `)
+      .eq("member_type", "player")
       .eq("is_active", true);
 
     if (data) {
-      const uniqueTeams = data
-        .map((d: any) => d.team)
-        .filter((t: any) => t !== null);
-      setTeams(uniqueTeams);
-      if (uniqueTeams.length === 1) {
-        setSelectedTeam(uniqueTeams[0].id);
-      }
+      const playersList: Player[] = data
+        .filter((d: any) => d.profile)
+        .map((d: any) => ({
+          id: d.profile.id,
+          first_name: d.profile.first_name,
+          last_name: d.profile.last_name,
+          nickname: d.profile.nickname,
+          team_id: d.team?.id,
+          team_name: d.team?.name,
+        }));
+      setAllPlayers(playersList);
+      setPlayers(playersList);
     }
   };
 
@@ -149,12 +193,13 @@ export const CreateEvaluationModal = ({
     }
   };
 
-  const filteredPlayers = players.filter((p) => {
-    const name = p.nickname || `${p.first_name || ""} ${p.last_name || ""}`;
-    return name.toLowerCase().includes(searchPlayer.toLowerCase());
+  const filteredPlayers = (isAdmin && !selectedTeam ? allPlayers : players).filter((p) => {
+    if (!searchPlayer.trim()) return true;
+    const name = `${p.first_name || ""} ${p.last_name || ""} ${p.nickname || ""} ${p.team_name || ""}`.toLowerCase();
+    return name.includes(searchPlayer.toLowerCase());
   });
 
-  const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
+  const selectedPlayer = [...allPlayers, ...players].find((p) => p.id === selectedPlayerId);
 
   const generateUniqueName = async (baseName: string, playerId: string): Promise<string> => {
     // Check if an evaluation with this name already exists for this player
@@ -267,14 +312,16 @@ export const CreateEvaluationModal = ({
             )}
           </div>
 
-          {teams.length > 1 && !preselectedTeamId && (
+          {/* Team selector - optional for admin, required for coach */}
+          {!preselectedTeamId && teams.length > 0 && (
             <div className="space-y-2">
-              <Label>Équipe</Label>
-              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <Label>Équipe {isAdmin && <span className="text-muted-foreground text-xs">(optionnel)</span>}</Label>
+              <Select value={selectedTeam || "all"} onValueChange={(v) => { setSelectedTeam(v === "all" ? "" : v); setSearchPlayer(""); setValue("playerId", ""); }}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une équipe" />
+                  <SelectValue placeholder="Toutes les équipes" />
                 </SelectTrigger>
                 <SelectContent>
+                  {isAdmin && <SelectItem value="all">Toutes les équipes</SelectItem>}
                   {teams.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name}
@@ -294,7 +341,7 @@ export const CreateEvaluationModal = ({
             </div>
           )}
 
-          {teams.length === 0 && (
+          {teams.length === 0 && !isAdmin && (
             <div className="p-4 rounded-lg bg-muted/50 text-center">
               <p className="text-sm text-muted-foreground">
                 Vous n'êtes coach d'aucune équipe.
@@ -302,7 +349,8 @@ export const CreateEvaluationModal = ({
             </div>
           )}
 
-          {selectedTeam && (
+          {/* Player search - shown for admin always, for coach only when team selected */}
+          {(isAdmin || selectedTeam) && (
             <div className="space-y-2">
               <Label>Joueur</Label>
               <div className="relative mb-2">
@@ -315,12 +363,10 @@ export const CreateEvaluationModal = ({
                 />
               </div>
               
-              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2">
+              <div className="max-h-48 overflow-y-auto space-y-1 border border-border rounded-lg p-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {filteredPlayers.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    {players.length === 0
-                      ? "Aucun joueur dans cette équipe"
-                      : "Aucun joueur trouvé"}
+                    {searchPlayer ? "Aucun joueur trouvé" : "Aucun joueur disponible"}
                   </p>
                 ) : (
                   filteredPlayers.map((player) => {
@@ -330,18 +376,28 @@ export const CreateEvaluationModal = ({
 
                     return (
                       <div
-                        key={player.id}
+                        key={`${player.id}-${player.team_id}`}
                         className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
                           isSelected
                             ? "bg-primary/20 border border-primary/30"
                             : "hover:bg-muted/50"
                         }`}
-                        onClick={() => setValue("playerId", player.id)}
+                        onClick={() => {
+                          setValue("playerId", player.id);
+                          if (!selectedTeam && player.team_id) {
+                            setSelectedTeam(player.team_id);
+                          }
+                        }}
                       >
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <User className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="font-medium">{name || "Joueur"}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{name || "Joueur"}</span>
+                          {!selectedTeam && player.team_name && (
+                            <span className="text-xs text-muted-foreground">{player.team_name}</span>
+                          )}
+                        </div>
                       </div>
                     );
                   })
