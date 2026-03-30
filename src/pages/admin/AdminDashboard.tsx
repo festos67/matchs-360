@@ -54,6 +54,7 @@ const AdminDashboard = () => {
   const [debriefsSearch, setDebriefsSearch] = useState("");
   const [clubsSearch, setClubsSearch] = useState("");
   const [debriefsTeamFilter, setDebriefsTeamFilter] = useState("all");
+  const [createEvalOpen, setCreateEvalOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
