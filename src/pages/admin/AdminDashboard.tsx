@@ -307,7 +307,7 @@ const AdminDashboard = () => {
                       <div><StatsCard title="Nombre d'objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total d'objectifs créés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Moy. obj./équipe" value={loadingObj ? "-" : (objStats?.avgPerTeam || "N/A")} icon={Target} /></div>
+                      <div><StatsCard title="Nb moy. obj. / équipe" value={loadingObj ? "-" : (objStats?.avgPerTeam || "N/A")} icon={Target} /></div>
                     </TooltipTrigger><TooltipContent>Nombre moyen d'objectifs par équipe</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard
