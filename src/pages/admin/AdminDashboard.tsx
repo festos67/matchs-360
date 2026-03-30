@@ -285,7 +285,7 @@ const AdminDashboard = () => {
                       <div><StatsCard title="Nombre de débriefs" value={loadingEvals ? "-" : String(evalStats?.total)} icon={Trophy} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de débriefs réalisés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Moy. débriefs/équipe" value={loadingEvals ? "-" : (evalStats?.avgPerTeam || "N/A")} icon={Trophy} /></div>
+                      <div><StatsCard title="Nb moy. débrief / équipe" value={loadingEvals ? "-" : (evalStats?.avgPerTeam || "N/A")} icon={Trophy} /></div>
                     </TooltipTrigger><TooltipContent>Nombre moyen de débriefs par équipe</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Score moyen" value={loadingEvals ? "-" : (evalStats?.avgScore || "N/A")} icon={BarChart3} /></div>
