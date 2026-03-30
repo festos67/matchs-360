@@ -33,7 +33,7 @@ const roleConfig = {
   club_admin: {
     icon: Building2,
     label: "Responsable Club",
-    description: "Gestion du club",
+    description: "Gérer mon club et ses équipes",
     color: "bg-primary/10 text-primary",
   },
   coach: {
