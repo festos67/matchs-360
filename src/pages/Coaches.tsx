@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -13,8 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Users, Loader2 } from "lucide-react";
+import { Pencil, Users, Loader2, Search } from "lucide-react";
 import { EditCoachModal } from "@/components/modals/EditCoachModal";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CoachData {
   id: string;
@@ -38,6 +40,9 @@ const Coaches = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState<CoachData | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [clubFilter, setClubFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
 
   useEffect(() => {
     fetchCoaches();
@@ -46,19 +51,16 @@ const Coaches = () => {
   const fetchCoaches = async () => {
     setLoading(true);
     try {
-      // Récupérer tous les utilisateurs avec le rôle coach
       let coachRolesQuery = supabase
         .from("user_roles")
         .select("user_id, club_id")
         .eq("role", "coach");
 
-      // Si club_admin, filtrer par club
       if (!isAdmin && currentRole?.role === "club_admin" && currentRole?.club_id) {
         coachRolesQuery = coachRolesQuery.eq("club_id", currentRole.club_id);
       }
 
       const { data: coachRoles, error: rolesError } = await coachRolesQuery;
-
       if (rolesError) throw rolesError;
 
       if (!coachRoles || coachRoles.length === 0) {
@@ -69,7 +71,6 @@ const Coaches = () => {
 
       const userIds = [...new Set(coachRoles.map((r) => r.user_id))];
 
-      // Récupérer les profils des coachs
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, email, first_name, last_name, photo_url, club_id")
@@ -78,7 +79,6 @@ const Coaches = () => {
 
       if (profilesError) throw profilesError;
 
-      // Récupérer les noms des clubs
       const clubIds = [...new Set(coachRoles.map((r) => r.club_id).filter(Boolean))] as string[];
       let clubsMap: Record<string, string> = {};
       
@@ -96,7 +96,6 @@ const Coaches = () => {
         }
       }
 
-      // Récupérer les affectations d'équipes
       const { data: teamMembers, error: tmError } = await supabase
         .from("team_members")
         .select(`
@@ -111,7 +110,6 @@ const Coaches = () => {
 
       if (tmError) throw tmError;
 
-      // Construire les données des coachs
       const coachesData: CoachData[] = (profiles || []).map((profile) => {
         const coachRole = coachRoles.find((r) => r.user_id === profile.id);
         const assignments = (teamMembers || [])
@@ -143,6 +141,48 @@ const Coaches = () => {
     }
   };
 
+  const uniqueClubs = useMemo(() => {
+    const map = new Map<string, string>();
+    coaches.forEach((c) => { if (c.club_id && c.club_name) map.set(c.club_id, c.club_name); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [coaches]);
+
+  const uniqueTeams = useMemo(() => {
+    const map = new Map<string, string>();
+    coaches.forEach((c) => {
+      if (clubFilter !== "all" && c.club_id !== clubFilter) return;
+      c.assignments.forEach((a) => map.set(a.team_id, a.team_name));
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [coaches, clubFilter]);
+
+  const filteredCoaches = useMemo(() => {
+    return coaches.filter((coach) => {
+      if (clubFilter !== "all" && coach.club_id !== clubFilter) return false;
+      if (teamFilter !== "all" && !coach.assignments.some((a) => a.team_id === teamFilter)) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const name = `${coach.first_name || ""} ${coach.last_name || ""}`.toLowerCase();
+        if (!name.includes(q) && !coach.email.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [coaches, clubFilter, teamFilter, searchQuery]);
+
+  const groupedCoaches = useMemo(() => {
+    const groups: Record<string, { clubName: string; coaches: CoachData[] }> = {};
+    filteredCoaches.forEach((coach) => {
+      const key = coach.club_id || "no-club";
+      if (!groups[key]) {
+        groups[key] = { clubName: coach.club_name || "Sans club", coaches: [] };
+      }
+      groups[key].coaches.push(coach);
+    });
+    return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
+  }, [filteredCoaches]);
+
+  useEffect(() => { setTeamFilter("all"); }, [clubFilter]);
+
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
     const last = lastName?.charAt(0) || "";
@@ -161,8 +201,7 @@ const Coaches = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-display font-bold">Gestion des Coachs</h1>
             <p className="text-muted-foreground mt-1">
@@ -173,105 +212,144 @@ const Coaches = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="rounded-lg border bg-card">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : coaches.length === 0 ? (
+        {/* Search & Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un coach..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Tous les clubs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les clubs</SelectItem>
+              {uniqueClubs.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Toutes les équipes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {uniqueTeams.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Coaches grouped by club */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredCoaches.length === 0 ? (
+          <div className="rounded-lg border bg-card">
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Users className="w-12 h-12 text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-semibold">Aucun coach trouvé</h3>
               <p className="text-muted-foreground text-sm mt-1">
-                {isAdmin
-                  ? "Aucun coach n'a encore été ajouté sur la plateforme."
-                  : "Aucun coach n'a encore été ajouté à votre club."}
+                {searchQuery || clubFilter !== "all" || teamFilter !== "all"
+                  ? "Aucun coach ne correspond aux filtres sélectionnés."
+                  : isAdmin
+                    ? "Aucun coach n'a encore été ajouté sur la plateforme."
+                    : "Aucun coach n'a encore été ajouté à votre club."}
               </p>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Coach</TableHead>
-                  {isAdmin && <TableHead>Club</TableHead>}
-                  <TableHead>Affectations</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {coaches.map((coach) => (
-                  <TableRow key={coach.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={coach.photo_url || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                            {getInitials(coach.first_name, coach.last_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">
-                            {coach.first_name || ""} {coach.last_name || ""}
-                          </p>
-                          <p className="text-sm text-muted-foreground">{coach.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    {isAdmin && (
-                      <TableCell>
-                        {coach.club_name ? (
-                          <span className="text-sm">{coach.club_name}</span>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1.5">
-                        {coach.assignments.length === 0 ? (
-                          <span className="text-sm text-muted-foreground">
-                            Aucune équipe assignée
-                          </span>
-                        ) : (
-                          coach.assignments.map((assignment) => (
-                            <Badge
-                              key={assignment.team_id}
-                              variant={assignment.coach_role === "referent" ? "default" : "secondary"}
-                              className={
-                                assignment.coach_role === "referent"
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-muted text-muted-foreground"
-                              }
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {groupedCoaches.map((group) => (
+              <div key={group.clubName}>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{group.clubName}</h2>
+                  <span className="text-xs text-muted-foreground">({group.coaches.length})</span>
+                </div>
+                <div className="rounded-lg border bg-card">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Coach</TableHead>
+                        <TableHead>Affectations</TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {group.coaches.map((coach) => (
+                        <TableRow key={coach.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarImage src={coach.photo_url || undefined} />
+                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                  {getInitials(coach.first_name, coach.last_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {coach.first_name || ""} {coach.last_name || ""}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{coach.email}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1.5">
+                              {coach.assignments.length === 0 ? (
+                                <span className="text-sm text-muted-foreground">
+                                  Aucune équipe assignée
+                                </span>
+                              ) : (
+                                coach.assignments.map((assignment) => (
+                                  <Badge
+                                    key={assignment.team_id}
+                                    variant={assignment.coach_role === "referent" ? "default" : "secondary"}
+                                    className={
+                                      assignment.coach_role === "referent"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-muted text-muted-foreground"
+                                    }
+                                  >
+                                    {assignment.team_name}
+                                    <span className="ml-1 opacity-70">
+                                      ({assignment.coach_role === "referent" ? "Réf" : "Ass"})
+                                    </span>
+                                  </Badge>
+                                ))
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(coach)}
                             >
-                              {assignment.team_name}
-                              <span className="ml-1 opacity-70">
-                                ({assignment.coach_role === "referent" ? "Réf" : "Ass"})
-                              </span>
-                            </Badge>
-                          ))
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(coach)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                        <span className="sr-only">Éditer</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
+                              <Pencil className="w-4 h-4" />
+                              <span className="sr-only">Éditer</span>
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Edit Modal */}
       {selectedCoach && (
         <EditCoachModal
           open={editModalOpen}
