@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Users, User, Loader2, Building2, UserCog, ChevronDown, Check, X } from "lucide-react";
 import {
@@ -14,11 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogTitle } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 type ResultType = "player" | "team" | "club" | "coach";
 
