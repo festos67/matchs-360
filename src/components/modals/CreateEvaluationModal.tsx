@@ -86,6 +86,9 @@ export const CreateEvaluationModal = ({
   useEffect(() => {
     if (open) {
       fetchTeams();
+      if (isAdmin) {
+        fetchAllPlayers();
+      }
     }
   }, [open]);
 
@@ -98,8 +101,11 @@ export const CreateEvaluationModal = ({
   }, [preselectedTeamId, teams]);
 
   useEffect(() => {
-    if (selectedTeam) {
+    if (selectedTeam && !isAdmin) {
       fetchPlayers(selectedTeam);
+    } else if (selectedTeam && isAdmin) {
+      // Filter allPlayers by selected team
+      setPlayers(allPlayers.filter(p => p.team_id === selectedTeam));
     }
   }, [selectedTeam]);
 
