@@ -154,11 +154,11 @@ function SortableObjectiveCard({
           </div>
           {canEdit && (
             <div className="flex flex-col items-stretch gap-0.5 w-full">
-              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 justify-center"
+              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2 text-emerald-600 border-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 justify-start"
                 onClick={() => onFinalize(obj.id, "succeeded")}>
                 <Check className="w-3 h-3" /> Réussi
               </Button>
-              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2 text-destructive border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 justify-center"
+              <Button variant="outline" size="sm" className="h-6 text-[11px] gap-1 px-2 text-destructive border-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 justify-start"
                 onClick={() => onFinalize(obj.id, "missed")}>
                 <X className="w-3 h-3" /> Manqué
               </Button>
