@@ -22,34 +22,41 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
     },
   });
 
-  if (!data || data.total === 0) return null;
-
   return (
-    <div className="glass-card p-4">
-      <div className="flex items-center gap-3 mb-3">
-        <Target className="w-5 h-5 text-primary" />
-        <h3 className="font-semibold text-sm">Bilan des objectifs</h3>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-            <Check className="w-5 h-5 text-emerald-600" />
+    <div className="glass-card p-6">
+      <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Bilan des objectifs</p>
+      {!data || data.total === 0 ? (
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+            <Target className="w-6 h-6 text-muted-foreground" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-emerald-600">{data.succeeded}</p>
-            <p className="text-xs text-muted-foreground">Réussi{data.succeeded > 1 ? "s" : ""}</p>
+            <p className="text-3xl font-display font-bold text-muted-foreground">N/A</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Aucun objectif finalisé</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-            <X className="w-5 h-5 text-destructive" />
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <Check className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-3xl font-display font-bold text-emerald-600">{data.succeeded}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Réussi{data.succeeded > 1 ? "s" : ""}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-destructive">{data.missed}</p>
-            <p className="text-xs text-muted-foreground">Manqué{data.missed > 1 ? "s" : ""}</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+              <X className="w-6 h-6 text-destructive" />
+            </div>
+            <div>
+              <p className="text-3xl font-display font-bold text-destructive">{data.missed}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Manqué{data.missed > 1 ? "s" : ""}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
