@@ -51,6 +51,7 @@ const AdminDashboard = () => {
   const [clubsOpen, setClubsOpen] = useState(false);
   const [debriefsOpen, setDebriefsOpen] = useState(false);
   const [debriefsSearch, setDebriefsSearch] = useState("");
+  const [clubsSearch, setClubsSearch] = useState("");
   const [debriefsTeamFilter, setDebriefsTeamFilter] = useState("all");
 
   useEffect(() => {
