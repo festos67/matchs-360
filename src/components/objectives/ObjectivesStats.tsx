@@ -36,22 +36,22 @@ export function ObjectivesStats({ teamId }: ObjectivesStatsProps) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-              <Check className="w-6 h-6 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <Check className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-3xl font-display font-bold text-emerald-600">{data.succeeded}</p>
+              <p className="text-2xl font-display font-bold text-emerald-600">{data.succeeded}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Réussi{data.succeeded > 1 ? "s" : ""}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
-              <X className="w-6 h-6 text-destructive" />
+            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+              <X className="w-5 h-5 text-destructive" />
             </div>
             <div>
-              <p className="text-3xl font-display font-bold text-destructive">{data.missed}</p>
+              <p className="text-2xl font-display font-bold text-destructive">{data.missed}</p>
               <p className="text-xs text-muted-foreground mt-0.5">Manqué{data.missed > 1 ? "s" : ""}</p>
             </div>
           </div>
