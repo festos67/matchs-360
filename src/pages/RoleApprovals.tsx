@@ -34,7 +34,7 @@ interface RoleRequest {
 
 const roleConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   club_admin: { label: "Admin Club", icon: Shield, color: "text-purple-500" },
-  coach: { label: "Coach", icon: Dumbbell, color: "text-blue-500" },
+  coach: { label: "Coach", icon: Dumbbell, color: "text-orange-500" },
   player: { label: "Joueur", icon: Users, color: "text-green-500" },
   supporter: { label: "Supporter", icon: Heart, color: "text-pink-500" },
 };

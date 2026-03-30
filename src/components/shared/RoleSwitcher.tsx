@@ -43,7 +43,7 @@ const roleConfig = {
   player: {
     icon: UserCircle,
     label: "Joueur",
-    color: "text-blue-500",
+    color: "text-green-500",
   },
   supporter: {
     icon: Heart,
