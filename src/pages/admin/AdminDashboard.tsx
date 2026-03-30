@@ -320,7 +320,7 @@ const AdminDashboard = () => {
                     </TooltipTrigger><TooltipContent>Pourcentage d'objectifs réussis parmi ceux finalisés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard
-                        title="Échec obj."
+                        title="% objectif manqué"
                         value={loadingObj ? "-" : (objStats?.pctMissed !== null ? `${objStats?.pctMissed}%` : "N/A")}
                         icon={Target}
                         color="destructive"
