@@ -48,7 +48,7 @@ const Players = () => {
     }
   });
 
-  const isCoach = currentRole === "coach";
+  const isCoach = currentRole?.role === "coach";
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
   const pageSubtitle = isAdmin
     ? "Tous les joueurs de la plateforme"
