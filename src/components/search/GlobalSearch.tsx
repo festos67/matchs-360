@@ -483,7 +483,7 @@ export const GlobalSearch = () => {
               </div>
             )}
 
-            <CommandList>
+            <CommandList className="flex-1 max-h-none overflow-y-auto scrollbar-gutter-stable [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/40 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-border/60">
               {loading && (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
