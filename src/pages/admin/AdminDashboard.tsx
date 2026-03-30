@@ -352,8 +352,8 @@ const AdminDashboard = () => {
               }
             />
             <CollapsibleContent>
-              <div className="px-4 md:px-5 pb-2">
-                <div className="relative max-w-md">
+              <div className="px-4 md:px-5 pb-2 flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Rechercher un club..."
@@ -362,6 +362,17 @@ const AdminDashboard = () => {
                     className="pl-10"
                   />
                 </div>
+                <Select value={clubsSearch ? "__search__" : "all"} onValueChange={(val) => { setClubsSearch(val === "all" ? "" : val === "__search__" ? clubsSearch : val); }}>
+                  <SelectTrigger className="w-full sm:w-[220px]">
+                    <SelectValue placeholder="Tous les clubs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les clubs</SelectItem>
+                    {(clubs || []).map((c) => (
+                      <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 <Table className="[&_td]:py-1.5 [&_th]:py-1.5">
