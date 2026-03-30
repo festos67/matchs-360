@@ -319,7 +319,6 @@ export default function AdminUsers() {
 
     return matchesSearch && matchesClub && matchesCoach && matchesPlayer;
   });
-  };
 
   if (authLoading || loading) {
     return (
