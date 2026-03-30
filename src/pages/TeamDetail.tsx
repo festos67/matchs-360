@@ -324,11 +324,11 @@ export default function TeamDetail() {
                         : "bg-muted text-muted-foreground"
                 }`}>
                   {progression?.value === null || progression?.value === undefined ? (
-                    <Minus className="w-6 h-6" />
+                    <Minus className="w-5 h-5" />
                   ) : progression.value >= 0 ? (
-                    <TrendingUp className="w-6 h-6" />
+                    <TrendingUp className="w-5 h-5" />
                   ) : (
-                    <TrendingDown className="w-6 h-6" />
+                    <TrendingDown className="w-5 h-5" />
                   )}
                 </div>
                 <div>
