@@ -208,20 +208,51 @@ const AdminDashboard = () => {
           <Collapsible open={overviewOpen} onOpenChange={setOverviewOpen}>
             <SectionHeader title="Vue globale" icon={Eye} isOpen={overviewOpen} onToggle={() => setOverviewOpen(!overviewOpen)} />
             <CollapsibleContent>
-              <div className="px-4 md:px-5 pb-5 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                <StatsCard title="Clubs" value={loadingClubs ? "-" : String(clubsCount)} icon={Building2} />
-                <StatsCard title="Équipes" value={loadingTeams ? "-" : String(teamsCount)} icon={Users} />
-                <StatsCard title="Joueurs" value={loadingPlayers ? "-" : String(playersCount)} icon={User} />
-                <StatsCard title="Débriefs" value={loadingEvals ? "-" : String(evalStats?.total)} icon={Trophy} />
-                <StatsCard title="Score moyen" value={loadingEvals ? "-" : (evalStats?.avgScore || "N/A")} icon={BarChart3} />
-                <StatsCard title="Objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} />
-                <StatsCard
-                  title="Réussite obj."
-                  value={loadingObj ? "-" : (objStats?.pct !== null ? `${objStats?.pct}%` : "N/A")}
-                  icon={Target}
-                  color={objStats?.pct !== null && objStats?.pct !== undefined && objStats.pct >= 50 ? "success" : "warning"}
-                />
-              </div>
+              <TooltipProvider delayDuration={200}>
+                <div className="px-4 md:px-5 pb-5 space-y-3">
+                  {/* Ligne 1 : Clubs, Équipes, Joueurs */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Clubs" value={loadingClubs ? "-" : String(clubsCount)} icon={Building2} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre total de clubs actifs sur la plateforme</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Équipes" value={loadingTeams ? "-" : String(teamsCount)} icon={Users} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre total d'équipes actives</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Joueurs" value={loadingPlayers ? "-" : String(playersCount)} icon={User} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre total de joueurs inscrits</TooltipContent></Tooltip>
+                  </div>
+                  {/* Ligne 2 : Débriefs, Moy/équipe, Score moyen */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Débriefs" value={loadingEvals ? "-" : String(evalStats?.total)} icon={Trophy} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre total de débriefs réalisés</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Moy. débriefs/équipe" value={loadingEvals ? "-" : (evalStats?.avgPerTeam || "N/A")} icon={Trophy} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre moyen de débriefs par équipe</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Score moyen" value={loadingEvals ? "-" : (evalStats?.avgScore || "N/A")} icon={BarChart3} /></div>
+                    </TooltipTrigger><TooltipContent>Score moyen de l'ensemble des évaluations</TooltipContent></Tooltip>
+                  </div>
+                  {/* Ligne 3 : Objectifs, Moy/équipe, Réussite */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre total d'objectifs créés</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Moy. obj./équipe" value={loadingObj ? "-" : (objStats?.avgPerTeam || "N/A")} icon={Target} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre moyen d'objectifs par équipe</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard
+                        title="Réussite obj."
+                        value={loadingObj ? "-" : (objStats?.pct !== null ? `${objStats?.pct}%` : "N/A")}
+                        icon={Target}
+                        color={objStats?.pct !== null && objStats?.pct !== undefined && objStats.pct >= 50 ? "success" : "warning"}
+                      /></div>
+                    </TooltipTrigger><TooltipContent>Pourcentage d'objectifs réussis parmi ceux finalisés</TooltipContent></Tooltip>
+                  </div>
+                </div>
+              </TooltipProvider>
             </CollapsibleContent>
           </Collapsible>
         </div>
