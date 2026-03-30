@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
   Building2, Users, Trophy, Plus, ChevronDown, ChevronRight,
-  Target, BarChart3, Search, Calendar, User, Eye
+  Target, BarChart3, Search, Calendar, User, Eye, TrendingUp, UsersRound
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
