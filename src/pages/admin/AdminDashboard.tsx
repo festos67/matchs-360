@@ -424,7 +424,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="px-4 md:px-5 pb-5 space-y-2">
+              <div className="px-4 md:px-5 pb-5 space-y-2 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                 {loadingEvalsList ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-muted/30">
