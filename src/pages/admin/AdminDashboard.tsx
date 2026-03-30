@@ -303,7 +303,7 @@ const AdminDashboard = () => {
 
                   {/* Sous-titre Objectifs */}
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1 pt-1">Objectifs</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Nombre d'objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total d'objectifs créés</TooltipContent></Tooltip>
@@ -318,6 +318,14 @@ const AdminDashboard = () => {
                         color={objStats?.pct !== null && objStats?.pct !== undefined && objStats.pct >= 50 ? "success" : "warning"}
                       /></div>
                     </TooltipTrigger><TooltipContent>Pourcentage d'objectifs réussis parmi ceux finalisés</TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard
+                        title="Échec obj."
+                        value={loadingObj ? "-" : (objStats?.pctMissed !== null ? `${objStats?.pctMissed}%` : "N/A")}
+                        icon={Target}
+                        color="destructive"
+                      /></div>
+                    </TooltipTrigger><TooltipContent>Pourcentage d'objectifs manqués parmi ceux finalisés</TooltipContent></Tooltip>
                   </div>
                 </div>
               </TooltipProvider>
