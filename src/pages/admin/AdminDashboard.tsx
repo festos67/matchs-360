@@ -297,7 +297,6 @@ const AdminDashboard = () => {
                         title="Progression moy."
                         value={loadingProgression ? "-" : (avgProgression !== null ? `${avgProgression > 0 ? "+" : ""}${avgProgression}%` : "N/A")}
                         icon={TrendingUp}
-                        color={avgProgression !== null && avgProgression !== undefined && avgProgression >= 0 ? "success" : "warning"}
                       /></div>
                     </TooltipTrigger><TooltipContent>Pourcentage moyen de progression des joueurs entre leurs deux derniers débriefs</TooltipContent></Tooltip>
                   </div>
