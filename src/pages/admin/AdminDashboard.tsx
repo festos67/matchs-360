@@ -88,7 +88,7 @@ const AdminDashboard = () => {
     enabled: !!user && isAdmin,
   });
 
-  // KPI: evaluations count + average score
+  // KPI: evaluations count + average score + avg per team
   const { data: evalStats, isLoading: loadingEvals } = useQuery({
     queryKey: ["admin-stats-evals"],
     queryFn: async () => {
@@ -96,7 +96,9 @@ const AdminDashboard = () => {
       const { data: scores } = await supabase.from("evaluation_scores").select("score").not("score", "is", null);
       const validScores = (scores || []).filter((s: any) => s.score !== null).map((s: any) => s.score as number);
       const avg = validScores.length > 0 ? (validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
-      return { total: count || 0, avgScore: avg ? avg.toFixed(1) : "N/A" };
+      const { count: tCount } = await supabase.from("teams").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      const avgPerTeam = tCount && tCount > 0 ? ((count || 0) / tCount).toFixed(1) : "N/A";
+      return { total: count || 0, avgScore: avg ? avg.toFixed(1) : "N/A", avgPerTeam };
     },
     enabled: !!user && isAdmin,
   });
@@ -105,14 +107,16 @@ const AdminDashboard = () => {
   const { data: objStats, isLoading: loadingObj } = useQuery({
     queryKey: ["admin-stats-objectives"],
     queryFn: async () => {
-      const { data } = await (supabase as any).from("team_objectives").select("status");
+      const { data } = await (supabase as any).from("team_objectives").select("status, team_id");
       const all = data || [];
       const total = all.length;
       const succeeded = all.filter((o: any) => o.status === "succeeded").length;
       const missed = all.filter((o: any) => o.status === "missed").length;
       const finalized = succeeded + missed;
       const pct = finalized > 0 ? Math.round((succeeded / finalized) * 100) : null;
-      return { total, pct };
+      const uniqueTeams = new Set(all.map((o: any) => o.team_id)).size;
+      const avgPerTeam = uniqueTeams > 0 ? (total / uniqueTeams).toFixed(1) : "N/A";
+      return { total, pct, avgPerTeam };
     },
     enabled: !!user && isAdmin,
   });
