@@ -236,17 +236,17 @@ export default function TeamDetail() {
       </div>
 
       <Tabs defaultValue="effectif" className="space-y-6">
-        <TabsList className="bg-muted h-12 p-1 rounded-lg w-full">
-          <TabsTrigger value="effectif" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+        <TabsList className="bg-muted/80 border border-border h-14 p-1.5 rounded-xl w-full shadow-sm">
+          <TabsTrigger value="effectif" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
             <User className="w-4 h-4" />
             Effectif
           </TabsTrigger>
-          <TabsTrigger value="indicateurs" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+          <TabsTrigger value="indicateurs" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
             <TrendingUp className="w-4 h-4" />
             Performance
           </TabsTrigger>
           {canViewObjectives && (
-            <TabsTrigger value="objectifs" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <TabsTrigger value="objectifs" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
               <Target className="w-4 h-4" />
               Objectifs
             </TabsTrigger>
