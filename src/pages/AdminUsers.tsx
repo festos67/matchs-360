@@ -112,6 +112,9 @@ export default function AdminUsers() {
   const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [clubFilter, setClubFilter] = useState("all");
+  const [coachFilter, setCoachFilter] = useState("all");
+  const [playerFilter, setPlayerFilter] = useState("all");
 
   const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
 
