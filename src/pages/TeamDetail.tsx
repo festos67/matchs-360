@@ -351,6 +351,11 @@ export default function TeamDetail() {
             </div>
           </div>
 
+          {/* Objectives stats */}
+          {canViewObjectives && (
+            <ObjectivesStats teamId={id!} />
+          )}
+
           {/* Self-debrief button for players */}
           {isPlayerViewing && framework && (
             <Button
