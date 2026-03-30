@@ -314,7 +314,7 @@ export default function TeamDetail() {
             <div className="glass-card p-4">
               <p className="text-sm font-display font-semibold text-foreground uppercase tracking-wide mb-2">Progression de l'équipe</p>
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                   loadingProgression || progression?.value === null || progression?.value === undefined
                     ? "bg-muted text-muted-foreground"
                     : progression.value > 0
