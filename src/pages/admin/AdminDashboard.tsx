@@ -517,6 +517,11 @@ const AdminDashboard = () => {
           </Collapsible>
         </div>
       </div>
+      <CreateEvaluationModal
+        open={createEvalOpen}
+        onOpenChange={setCreateEvalOpen}
+        onSuccess={() => refetchDebriefs()}
+      />
     </AppLayout>
   );
 };
