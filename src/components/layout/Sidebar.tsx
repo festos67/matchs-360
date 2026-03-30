@@ -10,7 +10,7 @@ import {
   Shield,
   ClipboardList,
   UserCog,
-  User,
+  UserCircle,
   Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";

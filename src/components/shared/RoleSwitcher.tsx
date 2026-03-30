@@ -36,7 +36,7 @@ const roleConfig = {
     color: "text-primary",
   },
   coach: {
-    icon: Users,
+    icon: UserCog,
     label: "Coach",
     color: "text-green-500",
   },
