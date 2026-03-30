@@ -184,16 +184,14 @@ const AdminDashboard = () => {
                   ))
                 ) : clubs && clubs.length > 0 ? (
                   clubs.map((club) => (
-                    <TableRow key={club.id} className="hover:bg-muted/50">
+                    <TableRow key={club.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/clubs/${club.id}`)}>
                       <TableCell>
-                        <Link to={`/clubs/${club.id}`}>
                           <CircleAvatar
                             name={club.name}
                             imageUrl={club.logo_url}
                             color={club.primary_color}
                             size="sm"
                           />
-                        </Link>
                       </TableCell>
                       <TableCell className="font-medium">{club.name}</TableCell>
                       <TableCell className="text-muted-foreground">
