@@ -19,6 +19,7 @@ import {
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 
 const SectionHeader = ({
   title,
@@ -53,6 +54,7 @@ const AdminDashboard = () => {
   const [debriefsSearch, setDebriefsSearch] = useState("");
   const [clubsSearch, setClubsSearch] = useState("");
   const [debriefsTeamFilter, setDebriefsTeamFilter] = useState("all");
+  const [createEvalOpen, setCreateEvalOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -196,7 +198,7 @@ const AdminDashboard = () => {
   });
 
   // Debriefs list
-  const { data: evaluations, isLoading: loadingEvalsList } = useQuery({
+  const { data: evaluations, isLoading: loadingEvalsList, refetch: refetchDebriefs } = useQuery({
     queryKey: ["admin-debriefs-list"],
     queryFn: async () => {
       const { data } = await supabase
@@ -432,11 +434,9 @@ const AdminDashboard = () => {
               isOpen={debriefsOpen}
               onToggle={() => setDebriefsOpen(!debriefsOpen)}
               action={
-                <Button size="sm" asChild>
-                  <Link to="/evaluations">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Nouveau débrief
-                  </Link>
+                <Button size="sm" onClick={() => setCreateEvalOpen(true)}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nouveau débrief
                 </Button>
               }
             />
@@ -517,6 +517,11 @@ const AdminDashboard = () => {
           </Collapsible>
         </div>
       </div>
+      <CreateEvaluationModal
+        open={createEvalOpen}
+        onOpenChange={setCreateEvalOpen}
+        onSuccess={() => refetchDebriefs()}
+      />
     </AppLayout>
   );
 };
