@@ -453,9 +453,9 @@ export const GlobalSearch = () => {
 
             {/* Filter row */}
             <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border flex-wrap">
-              {renderFilterPopover("Clubs", Building2, clubPopover, setClubPopover, clubOptions, selectedClubs, setSelectedClubs, loadClubs, loadingFilters === "club")}
-              {renderFilterPopover("Équipes", Users, teamPopover, setTeamPopover, teamOptions, selectedTeams, setSelectedTeams, loadTeams, loadingFilters === "team")}
-              {renderFilterPopover("Coachs", UserCog, coachPopover, setCoachPopover, coachOptions, selectedCoaches, setSelectedCoaches, loadCoaches, loadingFilters === "coach")}
+              {renderFilterDropdown("Clubs", Building2, clubPopover, setClubPopover, clubOptions, selectedClubs, setSelectedClubs, loadClubs, loadingFilters === "club")}
+              {renderFilterDropdown("Équipes", Users, teamPopover, setTeamPopover, teamOptions, selectedTeams, setSelectedTeams, loadTeams, loadingFilters === "team")}
+              {renderFilterDropdown("Coachs", UserCog, coachPopover, setCoachPopover, coachOptions, selectedCoaches, setSelectedCoaches, loadCoaches, loadingFilters === "coach")}
               {totalFilters > 0 && (
                 <button
                   className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
