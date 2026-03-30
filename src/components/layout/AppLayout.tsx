@@ -8,11 +8,11 @@ interface AppLayoutProps {
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar />
-        <main className="flex-1 p-3 md:p-6 overflow-y-scroll overflow-x-hidden" style={{ scrollbarGutter: "stable both-edges" }}>
+        <main className="flex-1 p-3 md:p-6 overflow-y-scroll overflow-x-hidden custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
