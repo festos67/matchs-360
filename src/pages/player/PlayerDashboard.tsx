@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { ClipboardList, TrendingUp, Calendar, Eye, Star } from "lucide-react";
+import { ClipboardList, TrendingUp, Calendar, Eye, Star, UserCircle, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
