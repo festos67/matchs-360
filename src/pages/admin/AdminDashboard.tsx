@@ -48,7 +48,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, hasAdminRole: isAdmin, profile } = useAuth();
 
-  const [overviewOpen, setOverviewOpen] = useState(true);
+  const [overviewOpen, setOverviewOpen] = useState(false);
   const [clubsOpen, setClubsOpen] = useState(false);
   const [debriefsOpen, setDebriefsOpen] = useState(false);
   const [debriefsSearch, setDebriefsSearch] = useState("");
