@@ -31,7 +31,7 @@ const roleConfig = {
     color: "bg-red-500/10 text-red-500",
   },
   club_admin: {
-    icon: User,
+    icon: Building2,
     label: "Responsable Club",
     description: "Gestion du club",
     color: "bg-primary/10 text-primary",
