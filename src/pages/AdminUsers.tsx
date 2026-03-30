@@ -278,14 +278,38 @@ export default function AdminUsers() {
     }
   };
 
+  // Extract unique clubs, coaches, players for filters
+  const uniqueClubs = Array.from(new Map(
+    users.flatMap(u => u.roles.filter(r => r.club_name).map(r => [r.club_id!, r.club_name!]))
+  ).entries()).map(([id, name]) => ({ id, name }));
+
+  const uniqueCoaches = users
+    .filter(u => u.team_memberships.some(m => m.member_type === "coach" && m.is_active))
+    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
+
+  const uniquePlayers = users
+    .filter(u => u.team_memberships.some(m => m.member_type === "player" && m.is_active))
+    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
+
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch = !searchLower || 
       user.email.toLowerCase().includes(searchLower) ||
       user.first_name?.toLowerCase().includes(searchLower) ||
       user.last_name?.toLowerCase().includes(searchLower) ||
-      user.nickname?.toLowerCase().includes(searchLower)
-    );
+      user.nickname?.toLowerCase().includes(searchLower);
+
+    const matchesClub = clubFilter === "all" || 
+      user.roles.some(r => r.club_id === clubFilter) ||
+      user.team_memberships.some(m => m.is_active && users.find(u => 
+        u.roles.some(r => r.club_id === clubFilter) && 
+        u.team_memberships.some(tm => tm.team_id === m.team_id && tm.is_active)
+      ));
+
+    const matchesCoach = coachFilter === "all" || user.id === coachFilter;
+    const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
+
+    return matchesSearch && matchesClub && matchesCoach && matchesPlayer;
   });
 
   const getUserDisplayName = (user: AdminUser) => {
