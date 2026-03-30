@@ -434,11 +434,9 @@ const AdminDashboard = () => {
               isOpen={debriefsOpen}
               onToggle={() => setDebriefsOpen(!debriefsOpen)}
               action={
-                <Button size="sm" asChild>
-                  <Link to="/evaluations">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Nouveau débrief
-                  </Link>
+                <Button size="sm" onClick={() => setCreateEvalOpen(true)}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nouveau débrief
                 </Button>
               }
             />
