@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Shield, User, Users, UserCircle, Heart } from "lucide-react";
+import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
