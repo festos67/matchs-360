@@ -236,7 +236,7 @@ export default function TeamDetail() {
       </div>
 
       <Tabs defaultValue="effectif" className="space-y-6">
-        <TabsList className={`bg-muted h-12 p-1 rounded-lg w-full ${canViewObjectives ? "max-w-xl" : "max-w-md"}`}>
+        <TabsList className="bg-muted h-12 p-1 rounded-lg w-full">
           <TabsTrigger value="effectif" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
             <User className="w-4 h-4" />
             Effectif
