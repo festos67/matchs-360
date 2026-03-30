@@ -312,7 +312,7 @@ const AdminDashboard = () => {
                     </TooltipTrigger><TooltipContent>Nombre moyen d'objectifs par équipe</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard
-                        title="Réussite obj."
+                        title="% objectif réussi"
                         value={loadingObj ? "-" : (objStats?.pct !== null ? `${objStats?.pct}%` : "N/A")}
                         icon={Target}
                         color={objStats?.pct !== null && objStats?.pct !== undefined && objStats.pct >= 50 ? "success" : "warning"}
@@ -320,7 +320,7 @@ const AdminDashboard = () => {
                     </TooltipTrigger><TooltipContent>Pourcentage d'objectifs réussis parmi ceux finalisés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard
-                        title="Échec obj."
+                        title="% objectif manqué"
                         value={loadingObj ? "-" : (objStats?.pctMissed !== null ? `${objStats?.pctMissed}%` : "N/A")}
                         icon={Target}
                         color="destructive"
