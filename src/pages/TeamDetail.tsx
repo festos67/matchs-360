@@ -311,7 +311,7 @@ export default function TeamDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Team Progression KPI */}
             <div className="glass-card p-6">
-              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Progression de l'équipe</p>
+              <p className="text-sm font-display font-semibold text-foreground uppercase tracking-wide mb-4">Progression de l'équipe</p>
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                   loadingProgression || progression?.value === null || progression?.value === undefined
@@ -380,7 +380,7 @@ export default function TeamDetail() {
                       <BookOpen className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-base font-display font-semibold">{framework.name}</h2>
+                      <h2 className="text-sm font-display font-semibold text-foreground uppercase tracking-wide">{framework.name}</h2>
                       <p className="text-muted-foreground text-sm">
                         {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
                       </p>
