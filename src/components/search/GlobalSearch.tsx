@@ -341,7 +341,7 @@ export const GlobalSearch = () => {
 
   const totalFilters = selectedClubs.length + selectedTeams.length + selectedCoaches.length;
 
-  const renderFilterPopover = (
+  const renderFilterDropdown = (
     label: string,
     icon: React.ElementType,
     isOpen: boolean,
@@ -353,66 +353,76 @@ export const GlobalSearch = () => {
     filterLoading: boolean
   ) => {
     const Icon = icon;
+    const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleMouseEnter = () => {
+      if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
+    };
+    const handleMouseLeave = () => {
+      closeTimer.current = setTimeout(() => setIsOpen(false), 200);
+    };
+
     return (
-      <Popover open={isOpen} onOpenChange={(v) => { setIsOpen(v); if (v) onOpen(); }}>
-        <PopoverTrigger asChild>
-          <button
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer border ${
-              selected.length > 0
-                ? "bg-primary text-primary-foreground border-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground border-border"
-            }`}
-          >
-            <Icon className="w-3 h-3" />
-            {label}
+      <div className="relative" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <button
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer border ${
+            selected.length > 0
+              ? "bg-primary text-primary-foreground border-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground border-border"
+          }`}
+          onClick={() => { if (!isOpen) { setIsOpen(true); onOpen(); } else { setIsOpen(false); } }}
+        >
+          <Icon className="w-3 h-3" />
+          {label}
+          {selected.length > 0 && (
+            <span className="bg-primary-foreground/20 text-[10px] rounded-full px-1.5 min-w-[18px] text-center">
+              {selected.length}
+            </span>
+          )}
+          <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        </button>
+        {isOpen && (
+          <div className="absolute top-full left-0 mt-1 w-56 rounded-lg border border-border bg-popover shadow-lg z-50">
+            <div className="max-h-48 overflow-y-auto py-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/40 [&::-webkit-scrollbar-thumb]:rounded-full">
+              {filterLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : options.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">Aucun élément</p>
+              ) : (
+                options.map((opt) => {
+                  const isChecked = selected.some((s) => s.id === opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted transition-colors text-left cursor-pointer"
+                      onClick={() => toggleFilter(opt, selected, setSelected)}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                        isChecked ? "bg-primary border-primary" : "border-border"
+                      }`}>
+                        {isChecked && <Check className="w-3 h-3 text-primary-foreground" />}
+                      </div>
+                      <span className="truncate">{opt.name}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
             {selected.length > 0 && (
-              <span className="bg-primary-foreground/20 text-[10px] rounded-full px-1.5 min-w-[18px] text-center">
-                {selected.length}
-              </span>
-            )}
-            <ChevronDown className="w-3 h-3 ml-0.5" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-56 p-0" align="start">
-          <div className="max-h-48 overflow-y-auto py-1">
-            {filterLoading ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              <div className="border-t px-3 py-2">
+                <button
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  onClick={() => setSelected([])}
+                >
+                  Tout désélectionner
+                </button>
               </div>
-            ) : options.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">Aucun élément</p>
-            ) : (
-              options.map((opt) => {
-                const isChecked = selected.some((s) => s.id === opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted transition-colors text-left cursor-pointer"
-                    onClick={() => toggleFilter(opt, selected, setSelected)}
-                  >
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                      isChecked ? "bg-primary border-primary" : "border-border"
-                    }`}>
-                      {isChecked && <Check className="w-3 h-3 text-primary-foreground" />}
-                    </div>
-                    <span className="truncate">{opt.name}</span>
-                  </button>
-                );
-              })
             )}
           </div>
-          {selected.length > 0 && (
-            <div className="border-t px-3 py-2">
-              <button
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                onClick={() => setSelected([])}
-              >
-                Tout désélectionner
-              </button>
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
+        )}
+      </div>
     );
   };
 
