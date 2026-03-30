@@ -61,11 +61,23 @@ export const CreateEvaluationModal = ({
   const { user, hasAdminRole: isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [searchPlayer, setSearchPlayer] = useState("");
+  const [clubFilter, setClubFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [coachFilter, setCoachFilter] = useState("all");
+
+  // All players with their team/club/coach info
+  const [allPlayers, setAllPlayers] = useState<{
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    nickname: string | null;
+    team_id: string;
+    team_name: string;
+    club_id: string | null;
+    club_name: string | null;
+    coaches: { id: string; name: string }[];
+  }[]>([]);
 
   const {
     register,
@@ -85,121 +97,150 @@ export const CreateEvaluationModal = ({
 
   useEffect(() => {
     if (open) {
-      fetchTeams();
-      if (isAdmin) {
-        fetchAllPlayers();
-      }
+      fetchAllData();
     }
   }, [open]);
 
-  useEffect(() => {
-    if (preselectedTeamId) {
-      setSelectedTeam(preselectedTeamId);
-    } else if (selectedTeam && !teams.find(t => t.id === selectedTeam)) {
-      setSelectedTeam("");
-    }
-  }, [preselectedTeamId, teams]);
+  // Reset cascading filters
+  useEffect(() => { setTeamFilter("all"); setCoachFilter("all"); }, [clubFilter]);
+  useEffect(() => { setCoachFilter("all"); }, [teamFilter]);
 
-  useEffect(() => {
-    if (selectedTeam && !isAdmin) {
-      fetchPlayers(selectedTeam);
-    } else if (selectedTeam && isAdmin) {
-      // Filter allPlayers by selected team
-      setPlayers(allPlayers.filter(p => p.team_id === selectedTeam));
-    }
-  }, [selectedTeam]);
+  const fetchAllData = async () => {
+    // Fetch all team members (players + coaches)
+    const { data: teamMembers } = await supabase
+      .from("team_members")
+      .select(`
+        user_id,
+        team_id,
+        member_type,
+        teams:team_id (id, name, club_id, clubs:club_id (id, name))
+      `)
+      .eq("is_active", true);
 
-  const fetchTeams = async () => {
-    if (isAdmin) {
-      // Admin: fetch all teams
-      const { data } = await supabase
-        .from("teams")
-        .select("id, name")
-        .is("deleted_at", null)
-        .order("name");
-      if (data) setTeams(data);
-    } else {
-      // Coach: fetch only their teams
-      const { data } = await supabase
-        .from("team_members")
-        .select("team:teams(id, name)")
-        .eq("user_id", user?.id)
-        .eq("member_type", "coach")
-        .eq("is_active", true);
+    if (!teamMembers) return;
 
-      if (data) {
-        const uniqueTeams = data
-          .map((d: any) => d.team)
-          .filter((t: any) => t !== null);
-        setTeams(uniqueTeams);
-        if (uniqueTeams.length === 1) {
-          setSelectedTeam(uniqueTeams[0].id);
-        }
+    const playerMembers = teamMembers.filter((tm) => tm.member_type === "player");
+    const coachMembers = teamMembers.filter((tm) => tm.member_type === "coach");
+
+    // If not admin, only show players from coach's teams
+    const coachTeamIds = isAdmin
+      ? null
+      : coachMembers.filter((cm) => cm.user_id === user?.id).map((cm) => cm.team_id);
+
+    const relevantPlayerMembers = coachTeamIds
+      ? playerMembers.filter((pm) => coachTeamIds.includes(pm.team_id))
+      : playerMembers;
+
+    const userIds = [...new Set(relevantPlayerMembers.map((tm) => tm.user_id))];
+    if (userIds.length === 0) { setAllPlayers([]); return; }
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, nickname")
+      .in("id", userIds)
+      .is("deleted_at", null);
+
+    // Coach profiles for filter
+    const coachUserIds = [...new Set(coachMembers.map((tm) => tm.user_id))];
+    let coachProfiles: Record<string, string> = {};
+    if (coachUserIds.length > 0) {
+      const { data: cProfiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", coachUserIds);
+      if (cProfiles) {
+        cProfiles.forEach((p) => {
+          coachProfiles[p.id] = `${p.first_name || ""} ${p.last_name || ""}`.trim();
+        });
       }
     }
-  };
 
-  const fetchAllPlayers = async () => {
-    const { data } = await supabase
-      .from("team_members")
-      .select(`
-        user_id,
-        team:teams(id, name),
-        profile:profiles(id, first_name, last_name, nickname)
-      `)
-      .eq("member_type", "player")
-      .eq("is_active", true);
+    const playersList = (profiles || []).flatMap((profile) => {
+      const memberEntries = relevantPlayerMembers.filter((tm) => tm.user_id === profile.id && tm.teams);
+      return memberEntries.map((tm) => {
+        const team = tm.teams as any;
+        const playerTeamCoaches = coachMembers
+          .filter((cm) => cm.team_id === tm.team_id)
+          .map((cm) => ({ id: cm.user_id, name: coachProfiles[cm.user_id] || "Coach" }));
+        const uniqueCoaches = Array.from(new Map(playerTeamCoaches.map((c) => [c.id, c])).values());
 
-    if (data) {
-      const playersList: Player[] = data
-        .filter((d: any) => d.profile)
-        .map((d: any) => ({
-          id: d.profile.id,
-          first_name: d.profile.first_name,
-          last_name: d.profile.last_name,
-          nickname: d.profile.nickname,
-          team_id: d.team?.id,
-          team_name: d.team?.name,
-        }));
-      setAllPlayers(playersList);
-      setPlayers(playersList);
+        return {
+          id: profile.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          nickname: profile.nickname,
+          team_id: team?.id,
+          team_name: team?.name || "",
+          club_id: team?.club_id || null,
+          club_name: team?.clubs?.name || null,
+          coaches: uniqueCoaches,
+        };
+      });
+    });
+
+    // Deduplicate by player id (keep first entry, merge info)
+    const uniqueMap = new Map<string, typeof playersList[0]>();
+    playersList.forEach((p) => {
+      if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p);
+    });
+
+    setAllPlayers(playersList);
+
+    // If preselectedTeamId, set team filter
+    if (preselectedTeamId) {
+      setTeamFilter(preselectedTeamId);
     }
   };
 
-  const fetchPlayers = async (teamId: string) => {
-    const { data } = await supabase
-      .from("team_members")
-      .select(`
-        user_id,
-        team:teams(id, name),
-        profile:profiles(id, first_name, last_name, nickname)
-      `)
-      .eq("team_id", teamId)
-      .eq("member_type", "player")
-      .eq("is_active", true);
+  // Unique clubs, teams, coaches for filter dropdowns
+  const uniqueClubs = useMemo(() => {
+    const map = new Map<string, string>();
+    allPlayers.forEach((p) => { if (p.club_id && p.club_name) map.set(p.club_id, p.club_name); });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [allPlayers]);
 
-    if (data) {
-      const playersList: Player[] = data
-        .filter((d: any) => d.profile)
-        .map((d: any) => ({
-          id: d.profile.id,
-          first_name: d.profile.first_name,
-          last_name: d.profile.last_name,
-          nickname: d.profile.nickname,
-          team_id: d.team?.id,
-          team_name: d.team?.name,
-        }));
-      setPlayers(playersList);
-    }
-  };
+  const uniqueTeams = useMemo(() => {
+    const map = new Map<string, string>();
+    allPlayers.forEach((p) => {
+      if (clubFilter !== "all" && p.club_id !== clubFilter) return;
+      if (p.team_id && p.team_name) map.set(p.team_id, p.team_name);
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [allPlayers, clubFilter]);
 
-  const filteredPlayers = (isAdmin && !selectedTeam ? allPlayers : players).filter((p) => {
-    if (!searchPlayer.trim()) return true;
-    const name = `${p.first_name || ""} ${p.last_name || ""} ${p.nickname || ""} ${p.team_name || ""}`.toLowerCase();
-    return name.includes(searchPlayer.toLowerCase());
-  });
+  const uniqueCoaches = useMemo(() => {
+    const map = new Map<string, string>();
+    allPlayers.forEach((p) => {
+      if (clubFilter !== "all" && p.club_id !== clubFilter) return;
+      if (teamFilter !== "all" && p.team_id !== teamFilter) return;
+      p.coaches.forEach((c) => map.set(c.id, c.name));
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [allPlayers, clubFilter, teamFilter]);
 
-  const selectedPlayer = [...allPlayers, ...players].find((p) => p.id === selectedPlayerId);
+  const filteredPlayers = useMemo(() => {
+    // Deduplicate by player id after filtering
+    const filtered = allPlayers.filter((p) => {
+      if (clubFilter !== "all" && p.club_id !== clubFilter) return false;
+      if (teamFilter !== "all" && p.team_id !== teamFilter) return false;
+      if (coachFilter !== "all" && !p.coaches.some((c) => c.id === coachFilter)) return false;
+      if (searchPlayer.trim()) {
+        const term = searchPlayer.toLowerCase();
+        const name = `${p.first_name || ""} ${p.last_name || ""} ${p.nickname || ""} ${p.team_name || ""}`.toLowerCase();
+        if (!name.includes(term)) return false;
+      }
+      return true;
+    });
+    // Deduplicate by player id
+    const seen = new Set<string>();
+    return filtered.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+  }, [allPlayers, clubFilter, teamFilter, coachFilter, searchPlayer]);
+
+  const selectedPlayer = allPlayers.find((p) => p.id === selectedPlayerId);
 
   const generateUniqueName = async (baseName: string, playerId: string): Promise<string> => {
     // Check if an evaluation with this name already exists for this player
