@@ -58,10 +58,11 @@ export const CreateEvaluationModal = ({
   onSuccess,
   preselectedTeamId,
 }: CreateEvaluationModalProps) => {
-  const { user } = useAuth();
+  const { user, hasAdminRole: isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<string>("");
   const [searchPlayer, setSearchPlayer] = useState("");
