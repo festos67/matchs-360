@@ -43,31 +43,31 @@ export const StatsCard = ({
   className,
 }: StatsCardProps) => {
   return (
-    <div className={cn("stats-card", className)}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <p className="text-3xl font-display font-bold mt-2">{value}</p>
+    <div className={cn("stats-card py-2.5 px-3", className)}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground font-medium truncate">{title}</p>
+          <p className="text-xl font-display font-bold mt-0.5">{value}</p>
           {subtitle && (
-            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
           )}
           {trend && (
-            <div className={cn("flex items-center gap-1 mt-2", colorClasses[color].trend)}>
-              <span className="text-sm font-medium">
+            <div className={cn("flex items-center gap-1 mt-0.5", colorClasses[color].trend)}>
+              <span className="text-xs font-medium">
                 {trend.value > 0 ? "+" : ""}
                 {trend.value}%
               </span>
-              <span className="text-xs text-muted-foreground">{trend.label}</span>
+              <span className="text-[10px] text-muted-foreground">{trend.label}</span>
             </div>
           )}
         </div>
         <div
           className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center",
+            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
             colorClasses[color].icon
           )}
         >
-          <Icon className="w-6 h-6" />
+          <Icon className="w-4 h-4" />
         </div>
       </div>
     </div>

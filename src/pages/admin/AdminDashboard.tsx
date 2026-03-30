@@ -89,6 +89,16 @@ const AdminDashboard = () => {
     enabled: !!user && isAdmin,
   });
 
+  // KPI: total users
+  const { data: usersCount, isLoading: loadingUsers } = useQuery({
+    queryKey: ["admin-stats-users"],
+    queryFn: async () => {
+      const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      return count || 0;
+    },
+    enabled: !!user && isAdmin,
+  });
+
   // KPI: evaluations count + average score + avg per team
   const { data: evalStats, isLoading: loadingEvals } = useQuery({
     queryKey: ["admin-stats-evals"],
@@ -99,7 +109,48 @@ const AdminDashboard = () => {
       const avg = validScores.length > 0 ? (validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
       const { count: tCount } = await supabase.from("teams").select("*", { count: "exact", head: true }).is("deleted_at", null);
       const avgPerTeam = tCount && tCount > 0 ? ((count || 0) / tCount).toFixed(1) : "N/A";
-      return { total: count || 0, avgScore: avg ? avg.toFixed(1) : "N/A", avgPerTeam };
+      return { total: count || 0, avgScore: avg ? (avg.toFixed(1) + " / 5") : "N/A", avgPerTeam };
+    },
+    enabled: !!user && isAdmin,
+  });
+
+  // KPI: avg progression
+  const { data: avgProgression, isLoading: loadingProgression } = useQuery({
+    queryKey: ["admin-stats-progression"],
+    queryFn: async () => {
+      const { data: players } = await supabase.from("user_roles").select("user_id").eq("role", "player");
+      if (!players || players.length === 0) return null;
+      const progressions: number[] = [];
+      const calcAvg = (scores: Array<{ score: number | null; is_not_observed: boolean }>) => {
+        const valid = scores.filter((s) => !s.is_not_observed && s.score !== null && s.score > 0);
+        if (valid.length === 0) return null;
+        return valid.reduce((acc, s) => acc + (s.score || 0), 0) / valid.length;
+      };
+      await Promise.all(
+        players.slice(0, 100).map(async (p) => {
+          const { data: evals } = await supabase
+            .from("evaluations")
+            .select("id, date")
+            .eq("player_id", p.user_id)
+            .eq("type", "coach_assessment")
+            .is("deleted_at", null)
+            .order("date", { ascending: false })
+            .limit(2);
+          if (!evals || evals.length < 2) return;
+          const [latest, previous] = evals;
+          const [ls, ps] = await Promise.all([
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id),
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id),
+          ]);
+          const avgL = calcAvg(ls.data || []);
+          const avgP = calcAvg(ps.data || []);
+          if (avgL !== null && avgP !== null && avgP > 0) {
+            progressions.push(((avgL - avgP) / avgP) * 100);
+          }
+        })
+      );
+      if (progressions.length === 0) return null;
+      return Math.round((progressions.reduce((a, b) => a + b, 0) / progressions.length) * 10) / 10;
     },
     enabled: !!user && isAdmin,
   });
