@@ -199,7 +199,7 @@ export const CreateEvaluationModal = ({
     return name.includes(searchPlayer.toLowerCase());
   });
 
-  const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
+  const selectedPlayer = [...allPlayers, ...players].find((p) => p.id === selectedPlayerId);
 
   const generateUniqueName = async (baseName: string, playerId: string): Promise<string> => {
     // Check if an evaluation with this name already exists for this player
