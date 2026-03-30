@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
   Building2, Users, Trophy, Plus, ChevronDown, ChevronRight,
-  Target, BarChart3, Search, Calendar, User, Eye
+  Target, BarChart3, Search, Calendar, User, Eye, TrendingUp, UsersRound
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,16 @@ const AdminDashboard = () => {
     enabled: !!user && isAdmin,
   });
 
+  // KPI: total users
+  const { data: usersCount, isLoading: loadingUsers } = useQuery({
+    queryKey: ["admin-stats-users"],
+    queryFn: async () => {
+      const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
+      return count || 0;
+    },
+    enabled: !!user && isAdmin,
+  });
+
   // KPI: evaluations count + average score + avg per team
   const { data: evalStats, isLoading: loadingEvals } = useQuery({
     queryKey: ["admin-stats-evals"],
@@ -99,7 +109,48 @@ const AdminDashboard = () => {
       const avg = validScores.length > 0 ? (validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
       const { count: tCount } = await supabase.from("teams").select("*", { count: "exact", head: true }).is("deleted_at", null);
       const avgPerTeam = tCount && tCount > 0 ? ((count || 0) / tCount).toFixed(1) : "N/A";
-      return { total: count || 0, avgScore: avg ? avg.toFixed(1) : "N/A", avgPerTeam };
+      return { total: count || 0, avgScore: avg ? (avg.toFixed(1) + " / 5") : "N/A", avgPerTeam };
+    },
+    enabled: !!user && isAdmin,
+  });
+
+  // KPI: avg progression
+  const { data: avgProgression, isLoading: loadingProgression } = useQuery({
+    queryKey: ["admin-stats-progression"],
+    queryFn: async () => {
+      const { data: players } = await supabase.from("user_roles").select("user_id").eq("role", "player");
+      if (!players || players.length === 0) return null;
+      const progressions: number[] = [];
+      const calcAvg = (scores: Array<{ score: number | null; is_not_observed: boolean }>) => {
+        const valid = scores.filter((s) => !s.is_not_observed && s.score !== null && s.score > 0);
+        if (valid.length === 0) return null;
+        return valid.reduce((acc, s) => acc + (s.score || 0), 0) / valid.length;
+      };
+      await Promise.all(
+        players.slice(0, 100).map(async (p) => {
+          const { data: evals } = await supabase
+            .from("evaluations")
+            .select("id, date")
+            .eq("player_id", p.user_id)
+            .eq("type", "coach_assessment")
+            .is("deleted_at", null)
+            .order("date", { ascending: false })
+            .limit(2);
+          if (!evals || evals.length < 2) return;
+          const [latest, previous] = evals;
+          const [ls, ps] = await Promise.all([
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id),
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id),
+          ]);
+          const avgL = calcAvg(ls.data || []);
+          const avgP = calcAvg(ps.data || []);
+          if (avgL !== null && avgP !== null && avgP > 0) {
+            progressions.push(((avgL - avgP) / avgP) * 100);
+          }
+        })
+      );
+      if (progressions.length === 0) return null;
+      return Math.round((progressions.reduce((a, b) => a + b, 0) / progressions.length) * 10) / 10;
     },
     enabled: !!user && isAdmin,
   });
@@ -207,37 +258,53 @@ const AdminDashboard = () => {
         <div className="bg-card rounded-xl border border-border">
           <Collapsible open={overviewOpen} onOpenChange={setOverviewOpen}>
             <SectionHeader title="Vue globale" icon={Eye} isOpen={overviewOpen} onToggle={() => setOverviewOpen(!overviewOpen)} />
-            <CollapsibleContent>
+             <CollapsibleContent>
               <TooltipProvider delayDuration={200}>
-                <div className="px-4 md:px-5 pb-5 space-y-3">
-                  {/* Ligne 1 : Clubs, Équipes, Joueurs */}
-                  <div className="grid grid-cols-3 gap-3">
+                <div className="px-4 md:px-5 pb-4 space-y-1.5">
+                  {/* Sous-titre Effectif */}
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1">Effectif</p>
+                  <div className="grid grid-cols-4 gap-2">
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Clubs" value={loadingClubs ? "-" : String(clubsCount)} icon={Building2} /></div>
+                      <div><StatsCard title="Nombre de clubs" value={loadingClubs ? "-" : String(clubsCount)} icon={Building2} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de clubs actifs sur la plateforme</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Équipes" value={loadingTeams ? "-" : String(teamsCount)} icon={Users} /></div>
+                      <div><StatsCard title="Nombre d'équipes" value={loadingTeams ? "-" : String(teamsCount)} icon={Users} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total d'équipes actives</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Joueurs" value={loadingPlayers ? "-" : String(playersCount)} icon={User} /></div>
+                      <div><StatsCard title="Nombre de joueurs" value={loadingPlayers ? "-" : String(playersCount)} icon={User} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de joueurs inscrits</TooltipContent></Tooltip>
-                  </div>
-                  {/* Ligne 2 : Débriefs, Moy/équipe, Score moyen */}
-                  <div className="grid grid-cols-3 gap-3">
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Débriefs" value={loadingEvals ? "-" : String(evalStats?.total)} icon={Trophy} /></div>
+                      <div><StatsCard title="Nombre d'utilisateurs" value={loadingUsers ? "-" : String(usersCount)} icon={UsersRound} /></div>
+                    </TooltipTrigger><TooltipContent>Nombre total d'utilisateurs sur la plateforme</TooltipContent></Tooltip>
+                  </div>
+
+                  {/* Sous-titre Débriefs */}
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1 pt-1">Débriefs</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Nombre de débriefs" value={loadingEvals ? "-" : String(evalStats?.total)} icon={Trophy} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de débriefs réalisés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Moy. débriefs/équipe" value={loadingEvals ? "-" : (evalStats?.avgPerTeam || "N/A")} icon={Trophy} /></div>
                     </TooltipTrigger><TooltipContent>Nombre moyen de débriefs par équipe</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Score moyen" value={loadingEvals ? "-" : (evalStats?.avgScore || "N/A")} icon={BarChart3} /></div>
-                    </TooltipTrigger><TooltipContent>Score moyen de l'ensemble des évaluations</TooltipContent></Tooltip>
-                  </div>
-                  {/* Ligne 3 : Objectifs, Moy/équipe, Réussite */}
-                  <div className="grid grid-cols-3 gap-3">
+                    </TooltipTrigger><TooltipContent>Score moyen de l'ensemble des évaluations (sur 5)</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} /></div>
+                      <div><StatsCard
+                        title="Progression moy."
+                        value={loadingProgression ? "-" : (avgProgression !== null ? `${avgProgression > 0 ? "+" : ""}${avgProgression}%` : "N/A")}
+                        icon={TrendingUp}
+                        color={avgProgression !== null && avgProgression !== undefined && avgProgression >= 0 ? "success" : "warning"}
+                      /></div>
+                    </TooltipTrigger><TooltipContent>Pourcentage moyen de progression des joueurs entre leurs deux derniers débriefs</TooltipContent></Tooltip>
+                  </div>
+
+                  {/* Sous-titre Objectifs */}
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1 pt-1">Objectifs</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Tooltip><TooltipTrigger asChild>
+                      <div><StatsCard title="Nombre d'objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total d'objectifs créés</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Moy. obj./équipe" value={loadingObj ? "-" : (objStats?.avgPerTeam || "N/A")} icon={Target} /></div>
