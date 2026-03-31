@@ -12,6 +12,7 @@ interface CircleAvatarProps {
   icon?: ReactNode;
   badge?: ReactNode;
   className?: string;
+  showName?: boolean;
 }
 
 const sizeClasses = {
