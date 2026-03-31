@@ -104,17 +104,19 @@ export const CircleAvatar = ({
       </div>
       
       {/* Name */}
-      <p
-        className={cn(
-          "font-medium text-foreground text-center group-hover:text-primary transition-colors",
-          subtitleSizeClasses[size]
-        )}
-      >
-        {name}
-      </p>
+      {showName && (
+        <p
+          className={cn(
+            "font-medium text-foreground text-center group-hover:text-primary transition-colors",
+            subtitleSizeClasses[size]
+          )}
+        >
+          {name}
+        </p>
+      )}
       
       {/* Subtitle */}
-      {subtitle && (
+      {showName && subtitle && (
         <p className="text-xs text-muted-foreground text-center mt-0.5">
           {subtitle}
         </p>
