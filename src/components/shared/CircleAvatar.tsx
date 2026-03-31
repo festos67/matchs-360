@@ -47,6 +47,7 @@ export const CircleAvatar = ({
   icon,
   badge,
   className,
+  showName = true,
 }: CircleAvatarProps) => {
   const displayText = shortName || name
     .split(" ")
