@@ -426,7 +426,7 @@ export default function AdminUsers() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[260px] min-w-[260px]">Identité</TableHead>
+                <TableHead className="w-[280px] min-w-[280px]">Identité</TableHead>
                 <TableHead className="w-[300px] min-w-[300px]">Rôles</TableHead>
                 <TableHead className="w-[120px] min-w-[120px]">Email</TableHead>
                 <TableHead className="w-[100px] min-w-[100px]">Statut</TableHead>
@@ -436,21 +436,23 @@ export default function AdminUsers() {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="w-[260px] min-w-[260px]">
+                  <TableCell className="w-[280px] min-w-[280px]">
                     <div
-                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-1 -m-1 transition-colors"
+                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 -m-1.5 transition-colors"
                       onClick={() => setEditingUser(user)}
                     >
-                      <div className="shrink-0">
+                      <div className="shrink-0 w-10 h-10">
                         <CircleAvatar
                           imageUrl={user.photo_url}
                           name={getUserDisplayName(user)}
                           size="sm"
+                          showName={false}
+                          className="[&>div:first-child]:w-10 [&>div:first-child]:h-10"
                         />
                       </div>
-                      <div className="min-w-0">
-                        <div className="font-medium truncate">{getUserDisplayName(user)}</div>
-                        <div className="text-sm text-muted-foreground truncate">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate max-w-[180px]">{getUserDisplayName(user)}</div>
+                        <div className="text-sm text-muted-foreground truncate max-w-[180px]">
                           {user.email}
                         </div>
                       </div>
