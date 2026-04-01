@@ -275,9 +275,6 @@ export default function ClubDetail() {
 
   return (
     <AppLayout>
-      <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate("/clubs")}>
-        <ArrowLeft className="w-4 h-4 mr-2" />Retour aux clubs
-      </Button>
 
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-8">

@@ -1,4 +1,4 @@
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +73,16 @@ export const TopBar = () => {
             <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/profile")}>Profil</DropdownMenuItem>
+            
+            {currentRole?.role === "club_admin" && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/clubs")}>
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Gérer un autre club
+                </DropdownMenuItem>
+              </>
+            )}
             
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
