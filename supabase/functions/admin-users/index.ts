@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if user is admin
+    // Check if user is admin or club_admin
     const { data: adminRole } = await supabaseAdmin
       .from("user_roles")
       .select("id")
@@ -49,7 +49,18 @@ Deno.serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
 
-    if (!adminRole) {
+    // Check for club_admin role
+    const { data: clubAdminRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("id, club_id")
+      .eq("user_id", user.id)
+      .eq("role", "club_admin");
+
+    const isAdmin = !!adminRole;
+    const isClubAdmin = (clubAdminRoles && clubAdminRoles.length > 0) || false;
+    const clubAdminClubIds = clubAdminRoles?.map(r => r.club_id).filter(Boolean) as string[] || [];
+
+    if (!isAdmin && !isClubAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -57,9 +68,9 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const path = url.pathname.split("/").pop();
+    const clubIdFilter = url.searchParams.get("clubId");
 
-    // GET - List all users
+    // GET - List users
     if (req.method === "GET") {
       // Get all users from auth.users
       const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
@@ -135,7 +146,26 @@ Deno.serve(async (req) => {
         };
       });
 
-      return new Response(JSON.stringify({ users: combinedUsers }), {
+      // Filter by club if club_admin (not super admin) or explicit clubId filter
+      let filteredUsers = combinedUsers;
+      const effectiveClubFilter = !isAdmin ? clubAdminClubIds : (clubIdFilter ? [clubIdFilter] : null);
+      
+      if (effectiveClubFilter && effectiveClubFilter.length > 0) {
+        filteredUsers = combinedUsers.filter((u) => {
+          // User belongs to club via profile
+          if (u.club_id && effectiveClubFilter.includes(u.club_id)) return true;
+          // User has a role in the club
+          if (u.roles.some((r: { club_id: string | null }) => r.club_id && effectiveClubFilter.includes(r.club_id))) return true;
+          // User is a team member in the club
+          if (u.team_memberships.some((m: { team_id: string }) => {
+            const tm = teamMembers?.find((t) => t.id === m.team_id || t.team_id === m.team_id);
+            return tm?.teams?.club_id && effectiveClubFilter.includes(tm.teams.club_id);
+          })) return true;
+          return false;
+        });
+      }
+
+      return new Response(JSON.stringify({ users: filteredUsers }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -144,6 +174,15 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       const body = await req.json();
       const action = body.action;
+
+      // Restrict certain actions to super admin only
+      const adminOnlyActions = ["promote-admin", "test-update-password"];
+      if (!isAdmin && adminOnlyActions.includes(action)) {
+        return new Response(JSON.stringify({ error: "Forbidden: Super Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       // Force validate email
       if (action === "force-validate") {

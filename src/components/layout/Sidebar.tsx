@@ -39,8 +39,9 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: BookOpen, label: "Référentiel du club", path: clubId ? `/clubs/${clubId}/framework` : "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
-      { icon: UserCircle, label: "Joueurs", path: "/players" },
-      { icon: Trophy, label: "Débriefs", path: "/evaluations" },
+        { icon: UserCircle, label: "Joueurs", path: "/players" },
+        { icon: Trophy, label: "Débriefs", path: "/evaluations" },
+        { icon: Shield, label: "Utilisateurs", path: "/club/users" },
       ];
     case "coach":
       return [
