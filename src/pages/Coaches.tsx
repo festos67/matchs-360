@@ -366,6 +366,15 @@ const Coaches = () => {
           onSuccess={handleEditSuccess}
         />
       )}
+
+      {currentRole?.role === "club_admin" && currentRole?.club_id && (
+        <CreateCoachModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          clubId={currentRole.club_id}
+          onSuccess={fetchCoaches}
+        />
+      )}
     </AppLayout>
   );
 };
