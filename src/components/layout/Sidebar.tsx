@@ -35,7 +35,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
     case "club_admin":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/club/dashboard" },
-        { icon: Building2, label: "Mon Club", path: "/clubs" },
+        { icon: Building2, label: "Mon Club", path: clubId ? `/clubs/${clubId}` : "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
       { icon: UserCircle, label: "Joueurs", path: "/players" },
