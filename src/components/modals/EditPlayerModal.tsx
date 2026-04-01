@@ -46,27 +46,6 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     return (first + last).toUpperCase() || "?";
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La photo ne doit pas dépasser 5 Mo");
-      return;
-    }
-    setPhotoFile(file);
-    setRemovePhoto(false);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemovePhoto = () => {
-    setPhotoFile(null);
-    setPhotoPreview(null);
-    setRemovePhoto(true);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile) return null;
     const ext = photoFile.name.split(".").pop() || "png";
