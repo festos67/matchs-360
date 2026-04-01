@@ -126,6 +126,7 @@ const Supporters = () => {
           return {
             id: l.player_id,
             name: info?.name || "Joueur",
+            team_id: info?.team_id || null,
             team_name: info?.team_name || null,
           };
         });
