@@ -16,12 +16,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import {
-  ArrowLeft,
   Save,
   RotateCcw,
   Plus,
   FileText,
-  Building2,
+  BookOpen,
   FileQuestion,
   History,
   Trash2,
@@ -477,10 +476,6 @@ export default function ClubFrameworkEditor() {
   if (showTemplateSelector) {
     return (
       <AppLayout>
-        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(`/clubs/${clubId}`)}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour au club
-        </Button>
 
         <ClubTemplateSelector
           clubId={clubId!}
@@ -495,27 +490,23 @@ export default function ClubFrameworkEditor() {
     <AppLayout>
       <div className="pb-20">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="-ml-2" onClick={() => navigate(`/clubs/${clubId}`)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour
-            </Button>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-6 h-6 text-primary" />
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-primary flex-shrink-0" />
-                {canEdit ? (
-                  <Input
-                    value={frameworkName}
-                    onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
-                    placeholder="Nom du référentiel"
-                    className="text-2xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
-                  />
-                ) : (
-                  <h1 className="text-2xl font-display font-bold">{frameworkName || "Référentiel du Club"}</h1>
-                )}
-              </div>
-              <p className="text-muted-foreground text-sm">
+              {canEdit ? (
+                <Input
+                  value={frameworkName}
+                  onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
+                  placeholder="Nom du référentiel"
+                  className="text-3xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
+                />
+              ) : (
+                <h1 className="text-3xl font-display font-bold">{frameworkName || "Référentiel du Club"}</h1>
+              )}
+              <p className="text-muted-foreground mt-1">
                 {club.name} • Modèle du club
               </p>
             </div>
