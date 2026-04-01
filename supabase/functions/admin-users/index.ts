@@ -308,16 +308,21 @@ Deno.serve(async (req) => {
 
       // Update profile
       if (action === "update-profile") {
-        const { userId, firstName, lastName, nickname } = body;
+        const { userId, firstName, lastName, nickname, photoUrl } = body;
+
+        const updateData: Record<string, unknown> = {
+          first_name: firstName,
+          last_name: lastName,
+          nickname,
+          updated_at: new Date().toISOString(),
+        };
+        if (photoUrl !== undefined) {
+          updateData.photo_url = photoUrl;
+        }
 
         const { error } = await supabaseAdmin
           .from("profiles")
-          .update({
-            first_name: firstName,
-            last_name: lastName,
-            nickname,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq("id", userId);
 
         if (error) throw error;
