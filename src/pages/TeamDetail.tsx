@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Edit, History, RotateCcw, Target, Check, X } from "lucide-react";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -57,6 +57,7 @@ export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [framework, setFramework] = useState<Framework | null>(null);
@@ -236,7 +237,7 @@ export default function TeamDetail() {
         </div>
       </div>
 
-      <Tabs defaultValue="effectif" className="space-y-4">
+      <Tabs defaultValue={searchParams.get("tab") || "effectif"} className="space-y-4">
         <TabsList className="bg-muted/80 border border-border h-14 p-1.5 rounded-xl w-full shadow-sm">
           <TabsTrigger value="effectif" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
             <User className="w-4 h-4" />
