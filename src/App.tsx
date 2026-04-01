@@ -11,7 +11,7 @@ import Players from "./pages/Players";
 import Auth from "./pages/Auth";
 import { DashboardRedirect } from "./components/routing/DashboardRedirect";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ClubDashboard from "./pages/club/ClubDashboard";
+import ClubRedirectPage from "./pages/club/ClubRedirectPage";
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import PlayerDashboard from "./pages/player/PlayerDashboard";
 import SelfEvaluation from "./pages/player/SelfEvaluation";
@@ -51,7 +51,7 @@ const App = () => (
             
             {/* Role-based dashboards */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/club/dashboard" element={<ClubDashboard />} />
+            <Route path="/club/redirect" element={<ClubRedirectPage />} />
             <Route path="/coach/dashboard" element={<CoachDashboard />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
