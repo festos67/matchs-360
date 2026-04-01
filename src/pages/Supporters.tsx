@@ -102,17 +102,19 @@ const Supporters = () => {
       // Fetch player team memberships
       const { data: playerTeams } = await supabase
         .from("team_members")
-        .select("user_id, teams:team_id (name)")
+        .select("user_id, team_id, teams:team_id (id, name)")
         .in("user_id", playerIds)
         .eq("member_type", "player")
         .eq("is_active", true);
 
-      const playerMap = new Map<string, { name: string; team_name: string | null }>();
+      const playerMap = new Map<string, { name: string; team_id: string | null; team_name: string | null }>();
       (playerProfiles || []).forEach((p) => {
         const teamEntry = (playerTeams || []).find((t) => t.user_id === p.id);
+        const teamId = teamEntry ? (teamEntry.teams as any)?.id || null : null;
         const teamName = teamEntry ? (teamEntry.teams as any)?.name || null : null;
         playerMap.set(p.id, {
           name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Joueur",
+          team_id: teamId,
           team_name: teamName,
         });
       });
