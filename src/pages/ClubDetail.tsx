@@ -311,6 +311,13 @@ export default function ClubDetail() {
         </div>
       </div>
 
+      {/* Dashboard sections: Vue globale, Liste équipes, Mes Coachs */}
+      {canManageClub && id && (
+        <div className="mb-8">
+          <ClubDashboardSections clubId={id} onCreateTeam={() => setShowTeamModal(true)} />
+        </div>
+      )}
+
       {/* Club Framework Section */}
       {canManageClub && (
         <div className="mb-8">
