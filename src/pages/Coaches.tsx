@@ -13,8 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Users, Loader2, Search } from "lucide-react";
+import { Pencil, Users, Loader2, Search, Plus } from "lucide-react";
 import { EditCoachModal } from "@/components/modals/EditCoachModal";
+import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -40,6 +41,7 @@ const Coaches = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState<CoachData | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
@@ -210,6 +212,12 @@ const Coaches = () => {
                 : "Gérez les coachs de votre club"}
             </p>
           </div>
+          {(currentRole?.role === "club_admin" && currentRole?.club_id) && (
+            <Button onClick={() => setCreateModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un coach
+            </Button>
+          )}
         </div>
 
         {/* Search & Filters */}
@@ -356,6 +364,15 @@ const Coaches = () => {
           onOpenChange={setEditModalOpen}
           coach={selectedCoach}
           onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {currentRole?.role === "club_admin" && currentRole?.club_id && (
+        <CreateCoachModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          clubId={currentRole.club_id}
+          onSuccess={fetchCoaches}
         />
       )}
     </AppLayout>
