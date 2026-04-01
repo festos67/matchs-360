@@ -409,6 +409,24 @@ export const CreatePlayerModal = ({
             {/* Create new player tab */}
             <TabsContent value="create" className="mt-4">
               <form onSubmit={handleSubmit((d) => onSubmit(d))} className="space-y-6">
+                {/* Photo */}
+                <UserPhotoUpload
+                  photoPreview={photoPreview}
+                  initials={(() => {
+                    const f = watch("firstName")?.charAt(0) || "";
+                    const l = watch("lastName")?.charAt(0) || "";
+                    return (f + l).toUpperCase() || "?";
+                  })()}
+                  onFileSelected={(file, preview) => {
+                    setPhotoFile(file);
+                    setPhotoPreview(preview);
+                  }}
+                  onRemovePhoto={() => {
+                    setPhotoFile(null);
+                    setPhotoPreview(null);
+                  }}
+                  label="Ajouter une photo (optionnel)"
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Prénom</Label>
