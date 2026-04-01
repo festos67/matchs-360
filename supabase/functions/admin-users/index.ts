@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if user is admin
+    // Check if user is admin or club_admin
     const { data: adminRole } = await supabaseAdmin
       .from("user_roles")
       .select("id")
@@ -49,7 +49,18 @@ Deno.serve(async (req) => {
       .eq("role", "admin")
       .maybeSingle();
 
-    if (!adminRole) {
+    // Check for club_admin role
+    const { data: clubAdminRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("id, club_id")
+      .eq("user_id", user.id)
+      .eq("role", "club_admin");
+
+    const isAdmin = !!adminRole;
+    const isClubAdmin = (clubAdminRoles && clubAdminRoles.length > 0) || false;
+    const clubAdminClubIds = clubAdminRoles?.map(r => r.club_id).filter(Boolean) as string[] || [];
+
+    if (!isAdmin && !isClubAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
