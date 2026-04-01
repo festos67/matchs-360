@@ -469,9 +469,6 @@ const ClubDashboard = () => {
             </CollapsibleContent>
           </Collapsible>
         </div>
-      </div>
-        </div>
-      </div>
     </AppLayout>
   );
 };
