@@ -101,6 +101,8 @@ export const CreatePlayerModal = ({
   const [playerSelectOpen, setPlayerSelectOpen] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
 
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -345,7 +347,13 @@ export const CreatePlayerModal = ({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          setCancelConfirmOpen(true);
+        } else {
+          onOpenChange(true);
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
@@ -466,7 +474,7 @@ export const CreatePlayerModal = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => onOpenChange(false)}
+                    onClick={() => setCancelConfirmOpen(true)}
                   >
                     Annuler
                   </Button>
@@ -591,7 +599,7 @@ export const CreatePlayerModal = ({
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => onOpenChange(false)}
+                    onClick={() => setCancelConfirmOpen(true)}
                   >
                     Annuler
                   </Button>
@@ -631,6 +639,33 @@ export const CreatePlayerModal = ({
             <AlertDialogAction onClick={handleMutationConfirm}>
               Confirmer le transfert
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler la création ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Les informations saisies seront perdues. Voulez-vous vraiment annuler la création de ce joueur ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={() => setCancelConfirmOpen(false)}>
+              Continuer la saisie
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setCancelConfirmOpen(false);
+                reset();
+                setSelectedPlayer(null);
+                onOpenChange(false);
+              }}
+            >
+              Confirmer l'annulation
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
