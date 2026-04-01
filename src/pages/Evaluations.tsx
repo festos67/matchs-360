@@ -33,6 +33,7 @@ export default function Evaluations() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [coachFilter, setCoachFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [teamName, setTeamName] = useState<string | null>(null);
   const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
@@ -140,11 +141,27 @@ export default function Evaluations() {
     setLoading(false);
   };
 
+  // Unique coaches for filter
+  const coachOptions = (() => {
+    const map = new Map<string, string>();
+    evaluations.forEach((e) => {
+      const name = `${e.coach?.first_name || ""} ${e.coach?.last_name || ""}`.trim();
+      if (name) {
+        const key = name.toLowerCase();
+        if (!map.has(key)) map.set(key, name);
+      }
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  })();
+
   const filteredEvaluations = evaluations.filter((e) => {
     const playerName = e.player?.nickname || 
       `${e.player?.first_name || ""} ${e.player?.last_name || ""}`;
-    return playerName.toLowerCase().includes(search.toLowerCase()) ||
+    const coachName = `${e.coach?.first_name || ""} ${e.coach?.last_name || ""}`.trim().toLowerCase();
+    const matchSearch = playerName.toLowerCase().includes(search.toLowerCase()) ||
       e.name.toLowerCase().includes(search.toLowerCase());
+    const matchCoach = coachFilter === "all" || coachName === coachFilter;
+    return matchSearch && matchCoach;
   });
 
   const formatDate = (dateStr: string) => {
@@ -242,6 +259,17 @@ export default function Evaluations() {
             </SelectContent>
           </Select>
         )}
+        <Select value={coachFilter} onValueChange={setCoachFilter}>
+          <SelectTrigger className="w-full sm:w-[220px]">
+            <SelectValue placeholder="Tous les coachs" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les coachs</SelectItem>
+            {coachOptions.map(([key, name]) => (
+              <SelectItem key={key} value={key}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Evaluations List */}
