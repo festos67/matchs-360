@@ -41,6 +41,7 @@ const Coaches = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState<CoachData | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
