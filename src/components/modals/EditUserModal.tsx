@@ -204,15 +204,45 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     return response.json();
   };
 
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop() || "png";
+    const path = `${user.id}/photo.${ext}`;
+    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
+    return `${urlData.publicUrl}?t=${Date.now()}`;
+  };
+
+  const getInitials = () => {
+    const first = firstName?.charAt(0) || "";
+    const last = lastName?.charAt(0) || "";
+    return (first + last).toUpperCase() || "?";
+  };
+
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
-      await callAdminAction("update-profile", {
+
+      // Upload photo if needed
+      let photoUrl: string | null | undefined = undefined;
+      if (photoFile) {
+        photoUrl = await uploadPhoto();
+      } else if (removePhoto) {
+        photoUrl = null;
+      }
+
+      const payload: Record<string, unknown> = {
         userId: user.id,
         firstName,
         lastName,
         nickname,
-      });
+      };
+      if (photoUrl !== undefined) {
+        payload.photoUrl = photoUrl;
+      }
+
+      await callAdminAction("update-profile", payload);
       toast.success("Profil mis à jour");
       onUpdate();
     } catch (error: unknown) {
