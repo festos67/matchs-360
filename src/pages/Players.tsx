@@ -61,6 +61,8 @@ const Players = () => {
   });
 
   const isCoach = currentRole?.role === "coach";
+  const isClubAdmin = currentRole?.role === "club_admin";
+  const useTeamGrouping = isCoach || isClubAdmin;
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
   const pageSubtitle = isAdmin
     ? "Tous les joueurs de la plateforme"
@@ -226,9 +228,9 @@ const Players = () => {
     });
   }, [players, clubFilter, teamFilter, coachFilter, search]);
 
-  // Group by club for non-coach view
+  // Group by club for admin view only
   const clubGroups = useMemo(() => {
-    if (isCoach) return null;
+    if (useTeamGrouping) return null;
     const groups: Record<string, { clubName: string; players: PlayerData[] }> = {};
     filteredPlayers.forEach((player) => {
       const key = player.club_id || "no-club";
@@ -238,11 +240,11 @@ const Players = () => {
       groups[key].players.push(player);
     });
     return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
-  }, [filteredPlayers, isCoach]);
+  }, [filteredPlayers, useTeamGrouping]);
 
-  // Group players by team for coach view
+  // Group players by team for coach and club_admin view
   const teamGroups = useMemo(() => {
-    if (!isCoach) return null;
+    if (!useTeamGrouping) return null;
     const groups: Record<string, { teamName: string; players: PlayerData[] }> = {};
     filteredPlayers.forEach((player) => {
       player.teams.forEach((team) => {
@@ -255,7 +257,7 @@ const Players = () => {
       });
     });
     return Object.entries(groups).sort((a, b) => a[1].teamName.localeCompare(b[1].teamName));
-  }, [filteredPlayers, isCoach]);
+  }, [filteredPlayers, useTeamGrouping]);
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
@@ -407,7 +409,7 @@ const Players = () => {
                 : "Aucun joueur n'a encore été ajouté."}
             </p>
           </div>
-        ) : isCoach && teamGroups ? (
+        ) : useTeamGrouping && teamGroups ? (
           <div className="space-y-4">
             {teamGroups.map(([teamId, group]) => {
               const isOpen = collapsedTeams[teamId] !== true;
