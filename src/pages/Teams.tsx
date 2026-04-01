@@ -170,29 +170,46 @@ const Teams = () => {
               {isAdmin ? "Toutes les équipes" : "Vos équipes"}
             </p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher une équipe..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={clubFilter} onValueChange={setClubFilter}>
-              <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue placeholder="Tous les clubs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les clubs</SelectItem>
-                {uniqueClubs.map((club) => (
-                  <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {(isAdmin || currentRole?.role === "club_admin") && (
+            <Button onClick={() => setShowCreateTeam(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Nouvelle équipe
+            </Button>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher une équipe..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Tous les clubs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les clubs</SelectItem>
+              {uniqueClubs.map((club) => (
+                <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={coachFilter} onValueChange={setCoachFilter}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Tous les coachs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les coachs</SelectItem>
+              {uniqueCoaches.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Admin Toggle for Archived Teams */}
