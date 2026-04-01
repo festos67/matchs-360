@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Upload, X } from "lucide-react";
+import { Building2, Upload, X, Image } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,9 @@ interface CreateClubModalProps {
 
 export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubModalProps) => {
   const [loading, setLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -56,10 +59,42 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
   const watchName = watch("name");
   const watchShortName = watch("shortName");
 
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 2 Mo");
+      return;
+    }
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadLogo = async (clubId: string): Promise<string | null> => {
+    if (!logoFile) return null;
+    const ext = logoFile.name.split(".").pop() || "png";
+    const path = `${clubId}/logo.${ext}`;
+    const { error } = await supabase.storage.from("club-logos").upload(path, logoFile, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(path);
+    return urlData.publicUrl;
+  };
+
   const onSubmit = async (data: ClubFormData) => {
     setLoading(true);
     try {
-      // Create the club
       const { data: club, error: clubError } = await supabase
         .from("clubs")
         .insert({
@@ -75,6 +110,19 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
 
       if (clubError) throw clubError;
 
+      // Upload logo if provided
+      if (logoFile) {
+        try {
+          const logoUrl = await uploadLogo(club.id);
+          if (logoUrl) {
+            await supabase.from("clubs").update({ logo_url: logoUrl }).eq("id", club.id);
+          }
+        } catch (logoError) {
+          console.error("Logo upload failed:", logoError);
+          // Don't block club creation for logo failure
+        }
+      }
+
       // Invite the club admin
       const { data: inviteResult, error: inviteError } = await supabase.functions.invoke("send-invitation", {
         body: {
@@ -87,7 +135,6 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       });
 
       if (inviteError || inviteResult?.error) {
-        // Rollback club creation
         await supabase.from("clubs").delete().eq("id", club.id);
         const inviteErrorMessage = inviteResult?.error || await getEdgeFunctionErrorMessage(inviteError);
         throw new Error(inviteErrorMessage);
@@ -98,6 +145,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       });
       
       reset();
+      removeLogo();
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
@@ -156,6 +204,44 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
               </div>
             </div>
 
+            {/* Logo Upload */}
+            <div className="space-y-2">
+              <Label>Logo du club</Label>
+              <div className="flex items-center gap-4">
+                {logoPreview ? (
+                  <div className="relative w-16 h-16 rounded-xl border border-border overflow-hidden">
+                    <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
+                    <button
+                      type="button"
+                      onClick={removeLogo}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-16 h-16 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Image className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-[10px] text-muted-foreground">Logo</span>
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoSelect}
+                  className="hidden"
+                />
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG ou SVG — 2 Mo max
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primaryColor">Couleur principale</Label>
@@ -193,15 +279,21 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
 
             {/* Preview */}
             <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30">
-              <div
-                className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold"
-                style={{
-                  background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-                  color: "white",
-                }}
-              >
-                {watchShortName?.toUpperCase() || watchName?.slice(0, 2).toUpperCase() || "FC"}
-              </div>
+              {logoPreview ? (
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-white flex items-center justify-center border border-border">
+                  <img src={logoPreview} alt="Aperçu" className="w-full h-full object-contain" />
+                </div>
+              ) : (
+                <div
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold"
+                  style={{
+                    background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+                    color: "white",
+                  }}
+                >
+                  {watchShortName?.toUpperCase() || watchName?.slice(0, 2).toUpperCase() || "FC"}
+                </div>
+              )}
               <div>
                 <p className="font-medium">Aperçu</p>
                 <p className="text-sm text-muted-foreground">

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Image, X } from "lucide-react";
 
 interface EditClubModalProps {
   open: boolean;
@@ -29,7 +30,10 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
   const [referentName, setReferentName] = useState(club.referent_name || "");
   const [referentEmail, setReferentEmail] = useState(club.referent_email || "");
   const [logoUrl, setLogoUrl] = useState(club.logo_url || "");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -39,8 +43,46 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
       setReferentName(club.referent_name || "");
       setReferentEmail(club.referent_email || "");
       setLogoUrl(club.logo_url || "");
+      setLogoFile(null);
+      setLogoPreview(null);
     }
   }, [open, club]);
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Veuillez sélectionner une image");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("L'image ne doit pas dépasser 2 Mo");
+      return;
+    }
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    setLogoUrl("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile) return null;
+    const ext = logoFile.name.split(".").pop() || "png";
+    const path = `${club.id}/logo.${ext}`;
+    const { error } = await supabase.storage.from("club-logos").upload(path, logoFile, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(path);
+    return urlData.publicUrl;
+  };
+
+  const currentLogoDisplay = logoPreview || logoUrl;
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -49,6 +91,13 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
     }
     setSaving(true);
     try {
+      let finalLogoUrl = logoUrl.trim() || null;
+
+      if (logoFile) {
+        const uploaded = await uploadLogo();
+        if (uploaded) finalLogoUrl = uploaded;
+      }
+
       const { error } = await supabase
         .from("clubs")
         .update({
@@ -57,7 +106,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
           primary_color: primaryColor,
           referent_name: referentName.trim() || null,
           referent_email: referentEmail.trim() || null,
-          logo_url: logoUrl.trim() || null,
+          logo_url: finalLogoUrl,
         })
         .eq("id", club.id);
 
@@ -97,6 +146,55 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
               />
             </div>
           </div>
+
+          {/* Logo Upload */}
+          <div className="space-y-2">
+            <Label>Logo du club</Label>
+            <div className="flex items-center gap-4">
+              {currentLogoDisplay ? (
+                <div className="relative w-16 h-16 rounded-xl border border-border overflow-hidden bg-white">
+                  <img src={currentLogoDisplay} alt="Logo" className="w-full h-full object-contain" />
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-16 h-16 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Image className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Logo</span>
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoSelect}
+                className="hidden"
+              />
+              {currentLogoDisplay && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  Changer
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                JPG, PNG ou SVG — 2 Mo max
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="club-color">Couleur principale</Label>
             <div className="flex items-center gap-3">
@@ -109,10 +207,6 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
               />
               <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="flex-1" />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="club-logo">URL du logo</Label>
-            <Input id="club-logo" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="https://..." />
           </div>
           <div className="space-y-2">
             <Label htmlFor="club-referent">Nom du référent</Label>
