@@ -279,16 +279,16 @@ export default function ClubDetail() {
         <ArrowLeft className="w-4 h-4 mr-2" />Retour aux clubs
       </Button>
 
-      <div className="glass-card p-6 mb-8">
-        <div className="flex items-center gap-8">
-          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: club.logo_url ? `url(${club.logo_url}) center/cover` : `linear-gradient(135deg, ${club.primary_color} 0%, ${club.primary_color}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${club.primary_color}40` }}>
+      <div className="glass-card p-4 mb-8">
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-xl flex items-center justify-center text-2xl font-display font-bold flex-shrink-0" style={{ background: club.logo_url ? `url(${club.logo_url}) center/cover` : `linear-gradient(135deg, ${club.primary_color} 0%, ${club.primary_color}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${club.primary_color}40` }}>
             {!club.logo_url && (club.short_name || club.name.slice(0, 2).toUpperCase())}
           </div>
           <div className="flex-1">
-            <h1 className="text-4xl font-display font-bold">
+            <h1 className="text-2xl font-display font-bold">
               {club.name}
             </h1>
-            <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
+            <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground flex-wrap">
               {club.referent_name && <span className="flex items-center gap-1.5">Référent : {club.referent_name}</span>}
               <span className="flex items-center gap-1.5">• {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {coachCount} coach{coachCount > 1 ? "s" : ""}</span>
