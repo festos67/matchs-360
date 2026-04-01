@@ -103,6 +103,9 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
   const [lastName, setLastName] = useState(user.last_name || "");
   const [nickname, setNickname] = useState(user.nickname || "");
   const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(user.photo_url || null);
+  const [removePhoto, setRemovePhoto] = useState(false);
 
   // For adding new roles
   const [showAddRole, setShowAddRole] = useState(false);
