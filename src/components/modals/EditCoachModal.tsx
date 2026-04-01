@@ -73,7 +73,7 @@ export const EditCoachModal = ({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(coach.photo_url || null);
   const [removePhoto, setRemovePhoto] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
 
   useEffect(() => {
     if (open) {
