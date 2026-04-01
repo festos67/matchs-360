@@ -188,6 +188,11 @@ const ClubDashboard = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
+            title="Coachs"
+            value={loadingCoaches ? "-" : String(coachesCount)}
+            icon={UserCheck}
+          />
+          <StatsCard
             title="Équipes"
             value={loadingTeams ? "-" : String(teamsCount)}
             icon={Users}
@@ -196,11 +201,6 @@ const ClubDashboard = () => {
             title="Joueurs"
             value={loadingPlayers ? "-" : String(playersCount)}
             icon={Trophy}
-          />
-          <StatsCard
-            title="Coachs"
-            value={loadingCoaches ? "-" : String(coachesCount)}
-            icon={UserCheck}
           />
         </div>
 
