@@ -60,6 +60,8 @@ export const CreateSupporterModal = ({
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const {
     register,
