@@ -34,17 +34,19 @@ export function ColorPickerButton({ value, onChange, id }: ColorPickerButtonProp
           aria-label="Choisir une couleur"
         />
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-3 flex flex-col items-center gap-3" align="start">
+      <PopoverContent className="w-auto p-3 flex flex-col items-center gap-0" align="start" side="bottom">
         <input
           type="color"
           value={tempColor}
           onChange={(e) => setTempColor(e.target.value)}
           className="w-16 h-16 rounded-lg border-none cursor-pointer"
         />
-        <Button size="sm" onClick={handleValidate} className="gap-1.5 w-full">
-          <Check className="w-4 h-4" />
-          Valider
-        </Button>
+        <div className="w-full pt-3 mt-2 border-t border-border">
+          <Button size="sm" onClick={handleValidate} className="gap-1.5 w-full">
+            <Check className="w-4 h-4" />
+            Valider
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
