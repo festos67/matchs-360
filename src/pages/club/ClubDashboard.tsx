@@ -544,7 +544,7 @@ const ClubDashboard = () => {
           <Collapsible open={coachesOpen} onOpenChange={setCoachesOpen}>
             <SectionHeader
               title="Mes Coachs"
-              icon={UserCheck}
+              icon={UserCog}
               isOpen={coachesOpen}
               onToggle={() => setCoachesOpen(!coachesOpen)}
             />
