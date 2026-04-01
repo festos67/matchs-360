@@ -146,7 +146,26 @@ Deno.serve(async (req) => {
         };
       });
 
-      return new Response(JSON.stringify({ users: combinedUsers }), {
+      // Filter by club if club_admin (not super admin) or explicit clubId filter
+      let filteredUsers = combinedUsers;
+      const effectiveClubFilter = !isAdmin ? clubAdminClubIds : (clubIdFilter ? [clubIdFilter] : null);
+      
+      if (effectiveClubFilter && effectiveClubFilter.length > 0) {
+        filteredUsers = combinedUsers.filter((u) => {
+          // User belongs to club via profile
+          if (u.club_id && effectiveClubFilter.includes(u.club_id)) return true;
+          // User has a role in the club
+          if (u.roles.some((r: { club_id: string | null }) => r.club_id && effectiveClubFilter.includes(r.club_id))) return true;
+          // User is a team member in the club
+          if (u.team_memberships.some((m: { team_id: string }) => {
+            const tm = teamMembers?.find((t) => t.id === m.team_id || t.team_id === m.team_id);
+            return tm?.teams?.club_id && effectiveClubFilter.includes(tm.teams.club_id);
+          })) return true;
+          return false;
+        });
+      }
+
+      return new Response(JSON.stringify({ users: filteredUsers }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
