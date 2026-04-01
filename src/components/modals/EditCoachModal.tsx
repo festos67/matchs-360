@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { UserCog, User, Users } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { UserCog, User, Users, Camera, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
