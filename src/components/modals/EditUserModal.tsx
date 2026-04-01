@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { toast } from "sonner";
 import {
   Dialog,
