@@ -334,7 +334,7 @@ export const CreateTeamModal = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setCancelConfirmOpen(true)}
             >
               Annuler
             </Button>
@@ -349,5 +349,33 @@ export const CreateTeamModal = ({
         </form>
       </DialogContent>
     </Dialog>
+
+    {/* Cancel Confirmation */}
+    <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Annuler la création ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Les informations saisies seront perdues. Voulez-vous vraiment annuler la création de cette équipe ?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button onClick={() => setCancelConfirmOpen(false)}>
+            Continuer la saisie
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setCancelConfirmOpen(false);
+              reset();
+              onOpenChange(false);
+            }}
+          >
+            Confirmer l'annulation
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
