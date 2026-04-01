@@ -246,32 +246,49 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
     enabled: !!clubId,
   });
 
-  // Fetch coaches list
+  // Fetch coaches list — includes coaches from user_roles even if not assigned to a team
   const { data: coachesList, isLoading: loadingCoachesList } = useQuery({
     queryKey: ["club-coaches-list", clubId, clubTeamIds],
     queryFn: async () => {
-      if (!clubTeamIds || clubTeamIds.length === 0) return [];
-      const { data: coachMembers } = await supabase
-        .from("team_members")
-        .select("user_id, team_id, coach_role")
-        .in("team_id", clubTeamIds)
-        .eq("member_type", "coach")
-        .eq("is_active", true);
-      if (!coachMembers || coachMembers.length === 0) return [];
+      // 1. Get all coaches in the club via user_roles
+      const { data: clubCoachRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("club_id", clubId)
+        .eq("role", "coach");
+      
+      // 2. Get team assignments if there are teams
+      let coachMembers: Array<{ user_id: string; team_id: string; coach_role: string | null }> = [];
+      if (clubTeamIds && clubTeamIds.length > 0) {
+        const { data } = await supabase
+          .from("team_members")
+          .select("user_id, team_id, coach_role")
+          .in("team_id", clubTeamIds)
+          .eq("member_type", "coach")
+          .eq("is_active", true);
+        coachMembers = data || [];
+      }
 
-      const uniqueCoachIds = [...new Set(coachMembers.map((m) => m.user_id))];
+      // 3. Merge unique coach IDs from both sources
+      const coachIdsFromRoles = (clubCoachRoles || []).map((r) => r.user_id);
+      const coachIdsFromMembers = coachMembers.map((m) => m.user_id);
+      const uniqueCoachIds = [...new Set([...coachIdsFromRoles, ...coachIdsFromMembers])];
+      if (uniqueCoachIds.length === 0) return [];
+
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, photo_url, email")
         .in("id", uniqueCoachIds)
         .is("deleted_at", null);
 
-      const { data: teamsData } = await supabase
-        .from("teams")
-        .select("id, name")
-        .in("id", clubTeamIds);
-      const teamNameMap: Record<string, string> = {};
-      (teamsData || []).forEach((t) => { teamNameMap[t.id] = t.name; });
+      let teamNameMap: Record<string, string> = {};
+      if (clubTeamIds && clubTeamIds.length > 0) {
+        const { data: teamsData } = await supabase
+          .from("teams")
+          .select("id, name")
+          .in("id", clubTeamIds);
+        (teamsData || []).forEach((t) => { teamNameMap[t.id] = t.name; });
+      }
 
       return (profiles || []).map((p) => {
         const assignments = coachMembers
@@ -288,7 +305,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
         return nameA.localeCompare(nameB);
       });
     },
-    enabled: !!clubTeamIds && clubTeamIds.length > 0,
+    enabled: !!clubId,
   });
 
   const filteredCoaches = (coachesList || []).filter((coach) => {
