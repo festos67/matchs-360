@@ -1062,10 +1062,16 @@ export default function PlayerDetail() {
               <RotateCcw className="w-4 h-4" />
               Historique
             </TabsTrigger>
-            {frameworkId && themes.length > 0 && (
+             {frameworkId && themes.length > 0 && (
               <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
                 <BookOpen className="w-4 h-4" />
                 Référentiel
+              </TabsTrigger>
+            )}
+            {teamMembership && (
+              <TabsTrigger value="objectives" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+                <Target className="w-4 h-4" />
+                Objectifs
               </TabsTrigger>
             )}
           </TabsList>
