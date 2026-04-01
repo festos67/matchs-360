@@ -181,6 +181,14 @@ export const CreateCoachModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
+      // Upload photo if provided and user was created
+      if (photoFile && result?.userId) {
+        const photoUrl = await uploadPhotoForUser(result.userId);
+        if (photoUrl) {
+          await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        }
+      }
+
       const assignedTeamNames = assignedTeams
         .map((a) => teams.find((t) => t.id === a.teamId)?.name)
         .filter(Boolean);
@@ -194,6 +202,8 @@ export const CreateCoachModal = ({
 
       reset();
       setTeamAssignments([]);
+      setPhotoFile(null);
+      setPhotoPreview(null);
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
