@@ -197,6 +197,7 @@ export const CreateTeamModal = ({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(isOpen) => {
       if (!isOpen) {
         setCancelConfirmOpen(true);
