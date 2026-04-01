@@ -469,7 +469,7 @@ const AdminDashboard = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Select value={debriefsTeamFilter} onValueChange={setDebriefsTeamFilter}>
+                   <Select value={debriefsTeamFilter} onValueChange={setDebriefsTeamFilter}>
                     <SelectTrigger className="w-full sm:w-[220px]">
                       <SelectValue placeholder="Toutes les équipes" />
                     </SelectTrigger>
@@ -477,6 +477,17 @@ const AdminDashboard = () => {
                       <SelectItem value="all">Toutes les équipes</SelectItem>
                       {(teams || []).map((t) => (
                         <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={debriefsCoachFilter} onValueChange={setDebriefsCoachFilter}>
+                    <SelectTrigger className="w-full sm:w-[220px]">
+                      <SelectValue placeholder="Tous les coachs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les coachs</SelectItem>
+                      {coachOptions.map(([key, name]) => (
+                        <SelectItem key={key} value={key}>{name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
