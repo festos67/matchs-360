@@ -62,7 +62,7 @@ interface ClubFramework {
 
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, profile, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { user, profile, currentRole, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
