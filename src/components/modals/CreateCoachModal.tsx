@@ -65,6 +65,8 @@ export const CreateCoachModal = ({
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [teamAssignments, setTeamAssignments] = useState<TeamAssignment[]>([]);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const {
     register,
