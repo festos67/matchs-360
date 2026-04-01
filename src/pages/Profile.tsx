@@ -154,6 +154,7 @@ export default function Profile() {
         .eq("id", user.id);
 
       if (error) throw error;
+      await refreshProfile();
       toast.success("Profil mis à jour avec succès");
     } catch (error) {
       console.error("Error updating profile:", error);
