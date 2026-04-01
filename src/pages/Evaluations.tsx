@@ -259,6 +259,17 @@ export default function Evaluations() {
             </SelectContent>
           </Select>
         )}
+        <Select value={coachFilter} onValueChange={setCoachFilter}>
+          <SelectTrigger className="w-full sm:w-[220px]">
+            <SelectValue placeholder="Tous les coachs" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les coachs</SelectItem>
+            {coachOptions.map(([key, name]) => (
+              <SelectItem key={key} value={key}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Evaluations List */}
