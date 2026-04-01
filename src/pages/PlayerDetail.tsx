@@ -1552,6 +1552,17 @@ export default function PlayerDetail() {
           </TabsContent>
         )}
 
+        {/* Objectives Tab */}
+        {teamMembership && (
+          <TabsContent value="objectives">
+            <PlayerObjectivesList
+              playerId={id!}
+              teamId={teamMembership.team_id}
+              canEdit={canEvaluate}
+            />
+          </TabsContent>
+        )}
+
       </Tabs>
 
       {/* Interception dialog when leaving evaluation tab */}
