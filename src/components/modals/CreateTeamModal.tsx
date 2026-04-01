@@ -236,16 +236,8 @@ export const CreateTeamModal = ({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="color">Couleur</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  id="color"
-                  {...register("color")}
-                  className="w-10 h-10 rounded-lg border border-border cursor-pointer"
-                />
-                <Input {...register("color")} className="flex-1" />
-              </div>
+              <Label>Couleur</Label>
+              <ColorPickerButton value={watch("color") || "#000000"} onChange={(c) => setValue("color", c)} />
             </div>
           </div>
 
