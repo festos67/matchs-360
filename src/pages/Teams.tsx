@@ -46,7 +46,7 @@ const Teams = () => {
         .select(`
           *,
           clubs (id, name, logo_url, primary_color),
-          team_members (id, member_type, user_id)
+          team_members (id, member_type, user_id, profiles:user_id (first_name, last_name))
         `)
         .order("name");
 
