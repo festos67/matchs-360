@@ -77,7 +77,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
 
-  const navItems = getNavItems(currentRole?.role, isAdmin);
+  const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
