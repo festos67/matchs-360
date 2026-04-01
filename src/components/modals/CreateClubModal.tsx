@@ -304,6 +304,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
                   </div>
                 </div>
               </div>
+            </div>
 
 
             {/* Referent Info */}
