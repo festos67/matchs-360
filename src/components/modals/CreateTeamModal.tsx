@@ -69,6 +69,7 @@ export const CreateTeamModal = ({
   const [loading, setLoading] = useState(false);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loadingCoaches, setLoadingCoaches] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const { user, currentRole } = useAuth();
 
   // Determine if current user is a coach (they will be auto-assigned)
