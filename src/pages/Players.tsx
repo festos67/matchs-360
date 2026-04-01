@@ -242,9 +242,9 @@ const Players = () => {
     return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredPlayers, useTeamGrouping]);
 
-  // Group players by team for coach view
+  // Group players by team for coach and club_admin view
   const teamGroups = useMemo(() => {
-    if (!isCoach) return null;
+    if (!useTeamGrouping) return null;
     const groups: Record<string, { teamName: string; players: PlayerData[] }> = {};
     filteredPlayers.forEach((player) => {
       player.teams.forEach((team) => {
@@ -257,7 +257,7 @@ const Players = () => {
       });
     });
     return Object.entries(groups).sort((a, b) => a[1].teamName.localeCompare(b[1].teamName));
-  }, [filteredPlayers, isCoach]);
+  }, [filteredPlayers, useTeamGrouping]);
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
