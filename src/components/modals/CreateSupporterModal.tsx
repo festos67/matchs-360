@@ -191,6 +191,24 @@ export const CreateSupporterModal = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+          {/* Photo */}
+          <UserPhotoUpload
+            photoPreview={photoPreview}
+            initials={(() => {
+              const f = (document.getElementById("firstName") as HTMLInputElement)?.value?.charAt(0) || "";
+              const l = (document.getElementById("lastName") as HTMLInputElement)?.value?.charAt(0) || "";
+              return (f + l).toUpperCase() || "?";
+            })()}
+            onFileSelected={(file, preview) => {
+              setPhotoFile(file);
+              setPhotoPreview(preview);
+            }}
+            onRemovePhoto={() => {
+              setPhotoFile(null);
+              setPhotoPreview(null);
+            }}
+            label="Ajouter une photo (optionnel)"
+          />
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">Prénom</Label>
