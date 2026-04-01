@@ -124,7 +124,9 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
              item.path !== "/club/dashboard" && 
              item.path !== "/coach/dashboard" && 
              item.path !== "/player/dashboard" && 
-             location.pathname.startsWith(item.path));
+             location.pathname.startsWith(item.path) &&
+             // Avoid parent path matching when a more specific sibling path matches
+             !navItems.some(other => other.path !== item.path && other.path.startsWith(item.path) && location.pathname.startsWith(other.path)));
           return (
             <Link
               key={item.path}
