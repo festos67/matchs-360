@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, ChevronUp, Save } from "lucide-react";
+import { ArrowLeft, TrendingUp, MessageSquare, Edit, Plus, ClipboardList, Download, RotateCcw, BookOpen, Trash2, Heart, Star, ArrowRightLeft, Users, ChevronUp, Save, Target } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -18,6 +18,7 @@ import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
+import { PlayerObjectivesList } from "@/components/objectives/PlayerObjectivesList";
 
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
@@ -1061,10 +1062,16 @@ export default function PlayerDetail() {
               <RotateCcw className="w-4 h-4" />
               Historique
             </TabsTrigger>
-            {frameworkId && themes.length > 0 && (
+             {frameworkId && themes.length > 0 && (
               <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
                 <BookOpen className="w-4 h-4" />
                 Référentiel
+              </TabsTrigger>
+            )}
+            {teamMembership && (
+              <TabsTrigger value="objectives" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+                <Target className="w-4 h-4" />
+                Objectifs
               </TabsTrigger>
             )}
           </TabsList>
@@ -1542,6 +1549,17 @@ export default function PlayerDetail() {
                 themes={themes}
               />
             </div>
+          </TabsContent>
+        )}
+
+        {/* Objectives Tab */}
+        {teamMembership && (
+          <TabsContent value="objectives">
+            <PlayerObjectivesList
+              playerId={id!}
+              teamId={teamMembership.team_id}
+              canEdit={canEvaluate}
+            />
           </TabsContent>
         )}
 
