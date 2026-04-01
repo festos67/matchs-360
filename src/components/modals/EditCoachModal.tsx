@@ -364,40 +364,16 @@ export const EditCoachModal = ({
 
           <TabsContent value="profile" className="space-y-6 mt-6">
             {/* Avatar with photo upload */}
-            <div className="flex flex-col items-center gap-2">
-              <div className="relative group">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={photoPreview || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                >
-                  <Camera className="w-5 h-5 text-white" />
-                </button>
-                {photoPreview && (
-                  <button
-                    type="button"
-                    onClick={handleRemovePhoto}
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoChange}
-              />
-              <p className="text-xs text-muted-foreground">Cliquez pour changer la photo</p>
-            </div>
+            <UserPhotoUpload
+              photoPreview={photoPreview}
+              initials={getInitials()}
+              onFileSelected={(file, preview) => {
+                setPhotoFile(file);
+                setPhotoPreview(preview);
+                setRemovePhoto(false);
+              }}
+              onRemovePhoto={handleRemovePhoto}
+            />
 
             {/* Champs du profil */}
             <div className="grid grid-cols-2 gap-4">
