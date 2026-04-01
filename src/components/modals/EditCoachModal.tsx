@@ -186,6 +186,37 @@ export const EditCoachModal = ({
     );
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La photo ne doit pas dépasser 5 Mo");
+      return;
+    }
+    setPhotoFile(file);
+    setRemovePhoto(false);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setRemovePhoto(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop() || "png";
+    const path = `${coach.id}/photo.${ext}`;
+    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
+    return `${urlData.publicUrl}?t=${Date.now()}`;
+  };
+
   const getInitials = () => {
     const first = firstName?.charAt(0) || coach.first_name?.charAt(0) || "";
     const last = lastName?.charAt(0) || coach.last_name?.charAt(0) || "";
@@ -195,13 +226,26 @@ export const EditCoachModal = ({
   const handleSave = async () => {
     setLoading(true);
     try {
-      // 1. Mettre à jour le profil
+      // 1. Upload photo si nécessaire
+      let photoUrl: string | null | undefined = undefined;
+      if (photoFile) {
+        photoUrl = await uploadPhoto();
+      } else if (removePhoto) {
+        photoUrl = null;
+      }
+
+      // 2. Mettre à jour le profil
+      const updateData: Record<string, unknown> = {
+        first_name: firstName,
+        last_name: lastName,
+      };
+      if (photoUrl !== undefined) {
+        updateData.photo_url = photoUrl;
+      }
+
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-        })
+        .update(updateData)
         .eq("id", coach.id);
 
       if (profileError) throw profileError;
