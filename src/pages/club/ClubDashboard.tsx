@@ -48,7 +48,9 @@ const ClubDashboard = () => {
 
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [teamsOpen, setTeamsOpen] = useState(false);
+  const [coachesOpen, setCoachesOpen] = useState(false);
   const [teamsSearch, setTeamsSearch] = useState("");
+  const [coachesSearch, setCoachesSearch] = useState("");
 
   const clubId = currentRole?.club_id;
 
