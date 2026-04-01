@@ -155,17 +155,45 @@ const Supporters = () => {
     }
   };
 
+  // Unique teams and players for filters
+  const uniqueTeams = useMemo(() => {
+    const map = new Map<string, string>();
+    supporters.forEach((s) => {
+      s.players.forEach((p) => { if (p.team_id && p.team_name) map.set(p.team_id, p.team_name); });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [supporters]);
+
+  const uniquePlayers = useMemo(() => {
+    const map = new Map<string, string>();
+    supporters.forEach((s) => {
+      s.players.forEach((p) => {
+        if (teamFilter !== "all" && p.team_id !== teamFilter) return;
+        map.set(p.id, p.name);
+      });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [supporters, teamFilter]);
+
+  // Reset cascading filters
+  useEffect(() => { setPlayerFilter("all"); }, [teamFilter]);
+
   const filteredSupporters = useMemo(() => {
-    if (!search.trim()) return supporters;
-    const term = search.toLowerCase();
-    return supporters.filter(
-      (s) =>
-        s.first_name?.toLowerCase().includes(term) ||
-        s.last_name?.toLowerCase().includes(term) ||
-        s.email.toLowerCase().includes(term) ||
-        s.players.some((p) => p.name.toLowerCase().includes(term))
-    );
-  }, [supporters, search]);
+    return supporters.filter((s) => {
+      if (teamFilter !== "all" && !s.players.some((p) => p.team_id === teamFilter)) return false;
+      if (playerFilter !== "all" && !s.players.some((p) => p.id === playerFilter)) return false;
+      if (search.trim()) {
+        const term = search.toLowerCase();
+        return (
+          s.first_name?.toLowerCase().includes(term) ||
+          s.last_name?.toLowerCase().includes(term) ||
+          s.email.toLowerCase().includes(term) ||
+          s.players.some((p) => p.name.toLowerCase().includes(term))
+        );
+      }
+      return true;
+    });
+  }, [supporters, teamFilter, playerFilter, search]);
 
   // Group by player
   const playerGroups = useMemo(() => {
