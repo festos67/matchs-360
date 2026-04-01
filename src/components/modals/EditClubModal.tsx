@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Image, X } from "lucide-react";
+import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 
 interface EditClubModalProps {
   open: boolean;

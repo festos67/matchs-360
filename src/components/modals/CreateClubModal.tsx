@@ -89,6 +89,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
     reset,
     watch,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<ClubFormData>({
     resolver: zodResolver(clubSchema),

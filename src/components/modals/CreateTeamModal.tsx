@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Users, Star } from "lucide-react";
+import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 import {
   Dialog,
   DialogContent,
