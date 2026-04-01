@@ -285,6 +285,72 @@ const ClubDashboard = () => {
     enabled: !!clubId,
   });
 
+  // Fetch coaches list with team assignments
+  const { data: coachesList, isLoading: loadingCoachesList } = useQuery({
+    queryKey: ["club-coaches-list", clubId, clubTeamIds],
+    queryFn: async () => {
+      if (!clubTeamIds || clubTeamIds.length === 0) return [];
+
+      // Get coach team_members for this club's teams
+      const { data: coachMembers } = await supabase
+        .from("team_members")
+        .select("user_id, team_id, coach_role")
+        .in("team_id", clubTeamIds)
+        .eq("member_type", "coach")
+        .eq("is_active", true);
+
+      if (!coachMembers || coachMembers.length === 0) return [];
+
+      const uniqueCoachIds = [...new Set(coachMembers.map((m) => m.user_id))];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, photo_url, email")
+        .in("id", uniqueCoachIds)
+        .is("deleted_at", null);
+
+      // Get team names
+      const { data: teamsData } = await supabase
+        .from("teams")
+        .select("id, name")
+        .in("id", clubTeamIds);
+
+      const teamNameMap: Record<string, string> = {};
+      (teamsData || []).forEach((t) => { teamNameMap[t.id] = t.name; });
+
+      return (profiles || []).map((p) => {
+        const assignments = coachMembers
+          .filter((m) => m.user_id === p.id)
+          .map((m) => ({
+            team_id: m.team_id,
+            team_name: teamNameMap[m.team_id] || "Équipe",
+            coach_role: m.coach_role as "referent" | "assistant" | null,
+          }));
+
+        return {
+          id: p.id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          photo_url: p.photo_url,
+          email: p.email,
+          assignments,
+        };
+      }).sort((a, b) => {
+        const nameA = `${a.first_name || ""} ${a.last_name || ""}`.toLowerCase();
+        const nameB = `${b.first_name || ""} ${b.last_name || ""}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    },
+    enabled: !!clubTeamIds && clubTeamIds.length > 0,
+  });
+
+  const filteredCoaches = (coachesList || []).filter((coach) => {
+    if (!coachesSearch.trim()) return true;
+    const q = coachesSearch.toLowerCase();
+    const name = `${coach.first_name || ""} ${coach.last_name || ""}`.toLowerCase();
+    return name.includes(q) || coach.email.toLowerCase().includes(q);
+  });
+
   if (loading) {
     return (
       <AppLayout>
