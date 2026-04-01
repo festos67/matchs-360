@@ -409,7 +409,7 @@ const Players = () => {
                 : "Aucun joueur n'a encore été ajouté."}
             </p>
           </div>
-        ) : isCoach && teamGroups ? (
+        ) : useTeamGrouping && teamGroups ? (
           <div className="space-y-4">
             {teamGroups.map(([teamId, group]) => {
               const isOpen = collapsedTeams[teamId] !== true;
