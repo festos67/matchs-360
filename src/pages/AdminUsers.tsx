@@ -436,7 +436,7 @@ export default function AdminUsers() {
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="w-[280px] min-w-[280px]">
+                  <TableCell>
                     <div
                       className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 -m-1.5 transition-colors"
                       onClick={() => setEditingUser(user)}
