@@ -422,15 +422,15 @@ export default function AdminUsers() {
         </div>
 
         {/* Table */}
-        <div className="rounded-lg border bg-card">
-          <Table>
+        <div className="rounded-lg border bg-card overflow-x-auto">
+          <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[280px] min-w-[280px]">Identité</TableHead>
-                <TableHead className="w-[300px] min-w-[300px]">Rôles</TableHead>
-                <TableHead className="w-[120px] min-w-[120px]">Email</TableHead>
-                <TableHead className="w-[100px] min-w-[100px]">Statut</TableHead>
-                <TableHead className="text-right w-[200px] min-w-[200px]">Actions</TableHead>
+                <TableHead className="w-[30%]">Identité</TableHead>
+                <TableHead className="w-[30%]">Rôles</TableHead>
+                <TableHead className="w-[10%]">Email</TableHead>
+                <TableHead className="w-[10%]">Statut</TableHead>
+                <TableHead className="text-right w-[20%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
