@@ -62,7 +62,7 @@ interface ClubFramework {
 
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { user, profile, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -275,7 +275,9 @@ export default function ClubDetail() {
 
   return (
     <AppLayout>
-
+      <p className="text-lg font-medium mb-4">
+        Bonjour {profile?.first_name || user?.email?.split("@")[0]} 👋
+      </p>
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-8">
           <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: club.logo_url ? `url(${club.logo_url}) center/cover` : `linear-gradient(135deg, ${club.primary_color} 0%, ${club.primary_color}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${club.primary_color}40` }}>
