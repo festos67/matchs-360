@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { UserCog, User, Users } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { UserCog, User, Users, Camera, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -68,11 +68,18 @@ export const EditCoachModal = ({
   const [firstName, setFirstName] = useState(coach.first_name || "");
   const [lastName, setLastName] = useState(coach.last_name || "");
   const [activeTab, setActiveTab] = useState("profile");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(coach.photo_url || null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
       setFirstName(coach.first_name || "");
       setLastName(coach.last_name || "");
+      setPhotoPreview(coach.photo_url || null);
+      setPhotoFile(null);
+      setRemovePhoto(false);
       fetchTeams();
     }
   }, [open, coach]);
@@ -179,6 +186,37 @@ export const EditCoachModal = ({
     );
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La photo ne doit pas dépasser 5 Mo");
+      return;
+    }
+    setPhotoFile(file);
+    setRemovePhoto(false);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setRemovePhoto(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop() || "png";
+    const path = `${coach.id}/photo.${ext}`;
+    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
+    return `${urlData.publicUrl}?t=${Date.now()}`;
+  };
+
   const getInitials = () => {
     const first = firstName?.charAt(0) || coach.first_name?.charAt(0) || "";
     const last = lastName?.charAt(0) || coach.last_name?.charAt(0) || "";
@@ -188,13 +226,26 @@ export const EditCoachModal = ({
   const handleSave = async () => {
     setLoading(true);
     try {
-      // 1. Mettre à jour le profil
+      // 1. Upload photo si nécessaire
+      let photoUrl: string | null | undefined = undefined;
+      if (photoFile) {
+        photoUrl = await uploadPhoto();
+      } else if (removePhoto) {
+        photoUrl = null;
+      }
+
+      // 2. Mettre à jour le profil
+      const updateData: Record<string, unknown> = {
+        first_name: firstName,
+        last_name: lastName,
+      };
+      if (photoUrl !== undefined) {
+        updateData.photo_url = photoUrl;
+      }
+
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-        })
+        .update(updateData)
         .eq("id", coach.id);
 
       if (profileError) throw profileError;
@@ -325,14 +376,40 @@ export const EditCoachModal = ({
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6 mt-6">
-            {/* Avatar */}
-            <div className="flex justify-center">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={coach.photo_url || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
+            {/* Avatar with photo upload */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="relative group">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={photoPreview || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
+                    {getInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                >
+                  <Camera className="w-5 h-5 text-white" />
+                </button>
+                {photoPreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+              <p className="text-xs text-muted-foreground">Cliquez pour changer la photo</p>
             </div>
 
             {/* Champs du profil */}
