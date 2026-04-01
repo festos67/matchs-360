@@ -9,6 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +63,7 @@ export const CreateCoachModal = ({
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [teamAssignments, setTeamAssignments] = useState<TeamAssignment[]>([]);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   const {
     register,
@@ -191,8 +200,8 @@ export const CreateCoachModal = ({
 
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      reset();
-      setTeamAssignments([]);
+      setCancelConfirmOpen(true);
+      return;
     }
     onOpenChange(isOpen);
   };
@@ -200,6 +209,7 @@ export const CreateCoachModal = ({
   const assignedCount = getAssignedTeams().length;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -346,7 +356,7 @@ export const CreateCoachModal = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() => handleOpenChange(false)}
+              onClick={() => setCancelConfirmOpen(true)}
             >
               Annuler
             </Button>
@@ -361,5 +371,33 @@ export const CreateCoachModal = ({
         </form>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Annuler la création ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Les informations saisies seront perdues. Voulez-vous vraiment annuler la création de ce coach ?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button onClick={() => setCancelConfirmOpen(false)}>
+            Continuer la saisie
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setCancelConfirmOpen(false);
+              reset();
+              setTeamAssignments([]);
+              onOpenChange(false);
+            }}
+          >
+            Confirmer l'annulation
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
