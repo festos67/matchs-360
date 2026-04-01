@@ -104,6 +104,10 @@ export const CreatePlayerModal = ({
 
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
+  // Photo state
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
