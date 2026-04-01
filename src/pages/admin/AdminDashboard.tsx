@@ -227,12 +227,27 @@ const AdminDashboard = () => {
     enabled: !!user && isAdmin,
   });
 
+  // Unique coaches for filter
+  const coachOptions = (() => {
+    const map = new Map<string, string>();
+    (evaluations || []).forEach((e: any) => {
+      const name = `${e.coach?.first_name || ""} ${e.coach?.last_name || ""}`.trim();
+      if (name) {
+        const key = name.toLowerCase();
+        if (!map.has(key)) map.set(key, name);
+      }
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  })();
+
   // Filter debriefs
   const filteredEvals = (evaluations || []).filter((e: any) => {
     const playerName = e.player?.nickname || `${e.player?.first_name || ""} ${e.player?.last_name || ""}`;
+    const coachName = `${e.coach?.first_name || ""} ${e.coach?.last_name || ""}`.trim().toLowerCase();
     const matchSearch = playerName.toLowerCase().includes(debriefsSearch.toLowerCase()) ||
       e.name.toLowerCase().includes(debriefsSearch.toLowerCase());
-    return matchSearch;
+    const matchCoach = debriefsCoachFilter === "all" || coachName === debriefsCoachFilter;
+    return matchSearch && matchCoach;
   });
 
   const formatDate = (dateStr: string) =>
