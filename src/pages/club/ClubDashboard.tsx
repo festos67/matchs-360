@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
-  Users, Trophy, UserCheck, Eye, Plus, Building2, User, Search,
+  Users, Trophy, UserCog, Eye, Plus, Building2, User, Search,
   ChevronDown, ChevronRight, Target, BarChart3, TrendingUp, Shield,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
