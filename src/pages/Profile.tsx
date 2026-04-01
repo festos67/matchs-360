@@ -174,7 +174,7 @@ export default function Profile() {
       const dashboardPath = (() => {
         switch (currentRole?.role) {
           case "admin": return "/admin/dashboard";
-          case "club_admin": return "/club/dashboard";
+          case "club_admin": return "/club/redirect";
           case "coach": return "/coach/dashboard";
           case "player": return "/player/dashboard";
           case "supporter": return "/supporter/dashboard";
