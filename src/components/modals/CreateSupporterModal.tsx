@@ -143,12 +143,22 @@ export const CreateSupporterModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
+      // Upload photo if provided and user was created
+      if (photoFile && result?.userId) {
+        const photoUrl = await uploadPhotoForUser(result.userId);
+        if (photoUrl) {
+          await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        }
+      }
+
       toast.success(`Supporter invité avec succès !`, {
         description: `Une invitation a été envoyée à ${data.email}`,
       });
 
       reset();
       setSelectedPlayers([]);
+      setPhotoFile(null);
+      setPhotoPreview(null);
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
