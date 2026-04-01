@@ -76,6 +76,7 @@ const App = () => (
             <Route path="/invite/accept" element={<InviteAccept />} />
             <Route path="/stats" element={<Stats />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/club/users" element={<ClubUsers />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />

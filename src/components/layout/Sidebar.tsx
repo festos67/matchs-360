@@ -43,7 +43,6 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: Trophy, label: "Débriefs", path: "/evaluations" },
         { icon: Shield, label: "Utilisateurs", path: "/club/users" },
       ];
-      ];
     case "coach":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/coach/dashboard" },
