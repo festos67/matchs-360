@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,7 +30,7 @@ interface SupporterData {
   first_name: string | null;
   last_name: string | null;
   photo_url: string | null;
-  players: { id: string; name: string; team_name: string | null }[];
+  players: { id: string; name: string; team_id: string | null; team_name: string | null }[];
 }
 
 const STORAGE_KEY = "supporters-collapsed-players";
@@ -40,6 +41,8 @@ const Supporters = () => {
   const [supporters, setSupporters] = useState<SupporterData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [playerFilter, setPlayerFilter] = useState("all");
   const [showCreateSupporter, setShowCreateSupporter] = useState(false);
   const [collapsedPlayers, setCollapsedPlayers] = useState<Record<string, boolean>>(() => {
     try {
@@ -99,17 +102,19 @@ const Supporters = () => {
       // Fetch player team memberships
       const { data: playerTeams } = await supabase
         .from("team_members")
-        .select("user_id, teams:team_id (name)")
+        .select("user_id, team_id, teams:team_id (id, name)")
         .in("user_id", playerIds)
         .eq("member_type", "player")
         .eq("is_active", true);
 
-      const playerMap = new Map<string, { name: string; team_name: string | null }>();
+      const playerMap = new Map<string, { name: string; team_id: string | null; team_name: string | null }>();
       (playerProfiles || []).forEach((p) => {
         const teamEntry = (playerTeams || []).find((t) => t.user_id === p.id);
+        const teamId = teamEntry ? (teamEntry.teams as any)?.id || null : null;
         const teamName = teamEntry ? (teamEntry.teams as any)?.name || null : null;
         playerMap.set(p.id, {
           name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Joueur",
+          team_id: teamId,
           team_name: teamName,
         });
       });
@@ -121,6 +126,7 @@ const Supporters = () => {
           return {
             id: l.player_id,
             name: info?.name || "Joueur",
+            team_id: info?.team_id || null,
             team_name: info?.team_name || null,
           };
         });
@@ -149,17 +155,45 @@ const Supporters = () => {
     }
   };
 
+  // Unique teams and players for filters
+  const uniqueTeams = useMemo(() => {
+    const map = new Map<string, string>();
+    supporters.forEach((s) => {
+      s.players.forEach((p) => { if (p.team_id && p.team_name) map.set(p.team_id, p.team_name); });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [supporters]);
+
+  const uniquePlayers = useMemo(() => {
+    const map = new Map<string, string>();
+    supporters.forEach((s) => {
+      s.players.forEach((p) => {
+        if (teamFilter !== "all" && p.team_id !== teamFilter) return;
+        map.set(p.id, p.name);
+      });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [supporters, teamFilter]);
+
+  // Reset cascading filters
+  useEffect(() => { setPlayerFilter("all"); }, [teamFilter]);
+
   const filteredSupporters = useMemo(() => {
-    if (!search.trim()) return supporters;
-    const term = search.toLowerCase();
-    return supporters.filter(
-      (s) =>
-        s.first_name?.toLowerCase().includes(term) ||
-        s.last_name?.toLowerCase().includes(term) ||
-        s.email.toLowerCase().includes(term) ||
-        s.players.some((p) => p.name.toLowerCase().includes(term))
-    );
-  }, [supporters, search]);
+    return supporters.filter((s) => {
+      if (teamFilter !== "all" && !s.players.some((p) => p.team_id === teamFilter)) return false;
+      if (playerFilter !== "all" && !s.players.some((p) => p.id === playerFilter)) return false;
+      if (search.trim()) {
+        const term = search.toLowerCase();
+        return (
+          s.first_name?.toLowerCase().includes(term) ||
+          s.last_name?.toLowerCase().includes(term) ||
+          s.email.toLowerCase().includes(term) ||
+          s.players.some((p) => p.name.toLowerCase().includes(term))
+        );
+      }
+      return true;
+    });
+  }, [supporters, teamFilter, playerFilter, search]);
 
   // Group by player
   const playerGroups = useMemo(() => {
@@ -211,7 +245,7 @@ const Supporters = () => {
           )}
         </div>
 
-        {/* Search */}
+        {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -222,6 +256,28 @@ const Supporters = () => {
               className="pl-10"
             />
           </div>
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Toutes les équipes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {uniqueTeams.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={playerFilter} onValueChange={setPlayerFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Tous les joueurs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les joueurs</SelectItem>
+              {uniquePlayers.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Content */}
