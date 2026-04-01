@@ -145,6 +145,8 @@ export const CreatePlayerModal = ({
     if (!open) {
       setActiveTab("create");
       setSelectedPlayer(null);
+      setPhotoFile(null);
+      setPhotoPreview(null);
       reset();
     }
   }, [open, reset]);
