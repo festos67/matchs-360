@@ -77,6 +77,9 @@ export const EditCoachModal = ({
     if (open) {
       setFirstName(coach.first_name || "");
       setLastName(coach.last_name || "");
+      setPhotoPreview(coach.photo_url || null);
+      setPhotoFile(null);
+      setRemovePhoto(false);
       fetchTeams();
     }
   }, [open, coach]);
