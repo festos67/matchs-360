@@ -35,6 +35,7 @@ import ResetPassword from "./pages/ResetPassword";
 import MyTeamRedirect from "./pages/MyTeamRedirect";
 import MySupporters from "./pages/player/MySupporters";
 import Profile from "./pages/Profile";
+import Supporters from "./pages/Supporters";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />
             <Route path="/coaches" element={<Coaches />} />
             <Route path="/players" element={<Players />} />
+            <Route path="/supporters" element={<Supporters />} />
             <Route path="/players/:id" element={<PlayerDetail />} />
             <Route path="/evaluations" element={<Evaluations />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
