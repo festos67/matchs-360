@@ -73,7 +73,7 @@ export const TopBar = () => {
             <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/profile")}>Profil</DropdownMenuItem>
-            <DropdownMenuItem>Préférences</DropdownMenuItem>
+            
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
