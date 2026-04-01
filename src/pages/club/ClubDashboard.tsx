@@ -573,7 +573,7 @@ const ClubDashboard = () => {
                   </div>
                 ) : filteredCoaches.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <UserCheck className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                    <UserCog className="w-10 h-10 mx-auto mb-2 opacity-40" />
                     <p className="text-sm">Aucun coach trouvé</p>
                   </div>
                 ) : (
