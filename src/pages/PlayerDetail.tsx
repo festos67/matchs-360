@@ -18,6 +18,7 @@ import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
+import { PlayerObjectivesList } from "@/components/objectives/PlayerObjectivesList";
 
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
