@@ -20,9 +20,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Users, Loader2, User, ChevronDown, Plus } from "lucide-react";
+import { Search, Users, Loader2, User, ChevronDown, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
+import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 
 interface PlayerData {
   id: string;
@@ -49,6 +50,7 @@ const Players = () => {
   const [teamFilter, setTeamFilter] = useState("all");
   const [coachFilter, setCoachFilter] = useState("all");
   const [showCreatePlayer, setShowCreatePlayer] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<PlayerData | null>(null);
   const [collapsedTeams, setCollapsedTeams] = useState<Record<string, boolean>>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -306,6 +308,20 @@ const Players = () => {
           </div>
         </TableCell>
       )}
+      {(isAdmin || currentRole?.role === "club_admin") && (
+        <TableCell className="text-right">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingPlayer(player);
+            }}
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+        </TableCell>
+      )}
     </TableRow>
   );
 
@@ -410,6 +426,9 @@ const Players = () => {
                           <TableRow>
                             <TableHead>Joueur</TableHead>
                             <TableHead>Surnom</TableHead>
+                            {(isAdmin || currentRole?.role === "club_admin") && (
+                              <TableHead className="text-right">Actions</TableHead>
+                            )}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -438,6 +457,9 @@ const Players = () => {
                         <TableHead>Joueur</TableHead>
                         <TableHead>Surnom</TableHead>
                         <TableHead>Équipe(s)</TableHead>
+                        {(isAdmin || currentRole?.role === "club_admin") && (
+                          <TableHead className="text-right">Actions</TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -463,6 +485,14 @@ const Players = () => {
           open={showCreatePlayer}
           onOpenChange={setShowCreatePlayer}
           clubId={currentRole.club_id}
+          onSuccess={fetchPlayers}
+        />
+      )}
+      {editingPlayer && (
+        <EditPlayerModal
+          open={!!editingPlayer}
+          onOpenChange={(open) => { if (!open) setEditingPlayer(null); }}
+          player={editingPlayer}
           onSuccess={fetchPlayers}
         />
       )}
