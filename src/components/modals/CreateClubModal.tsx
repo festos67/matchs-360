@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, X, Image } from "lucide-react";
+import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 import {
   Dialog,
   DialogContent,
@@ -88,6 +89,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
     reset,
     watch,
     getValues,
+    setValue,
     formState: { errors },
   } = useForm<ClubFormData>({
     resolver: zodResolver(clubSchema),
@@ -292,16 +294,12 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="primaryColor">Couleur principale</Label>
-                  <div className="relative w-10 h-10">
-                    <input type="color" id="primaryColor" {...register("primaryColor")} className="absolute inset-0 w-full h-full rounded-lg border border-border cursor-pointer" />
-                  </div>
+                  <Label>Couleur principale</Label>
+                  <ColorPickerButton value={watch("primaryColor") || "#000000"} onChange={(c) => setValue("primaryColor", c)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="secondaryColor">Couleur secondaire</Label>
-                  <div className="relative w-10 h-10">
-                    <input type="color" id="secondaryColor" {...register("secondaryColor")} className="absolute inset-0 w-full h-full rounded-lg border border-border cursor-pointer" />
-                  </div>
+                  <Label>Couleur secondaire</Label>
+                  <ColorPickerButton value={watch("secondaryColor") || "#ffffff"} onChange={(c) => setValue("secondaryColor", c)} />
                 </div>
               </div>
             </div>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Image, X } from "lucide-react";
+import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 
 interface EditClubModalProps {
   open: boolean;
@@ -196,16 +197,8 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="club-color">Couleur principale</Label>
-            <div className="relative w-10 h-10">
-              <input
-                type="color"
-                id="club-color"
-                value={primaryColor}
-                onChange={(e) => setPrimaryColor(e.target.value)}
-                className="absolute inset-0 w-full h-full rounded-lg cursor-pointer border border-border"
-              />
-            </div>
+            <Label>Couleur principale</Label>
+            <ColorPickerButton value={primaryColor} onChange={setPrimaryColor} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="club-referent">Nom du référent</Label>
