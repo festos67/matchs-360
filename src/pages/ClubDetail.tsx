@@ -296,16 +296,14 @@ export default function ClubDetail() {
             </div>
           </div>
           {canManageClub && (
-            <div className="flex items-start gap-2">
-              <div className="flex flex-col gap-1.5">
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Coach</Button>
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowTeamModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Équipe</Button>
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowPlayerModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Joueur</Button>
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupporterModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Supporter</Button>
+            <div className="flex items-center gap-2">
+              <div className="grid grid-cols-2 gap-1">
+                <Button variant="outline" size="sm" className="gap-1.5 justify-start text-xs h-8" onClick={() => setShowCoachModal(true)}><Plus className="w-3 h-3 text-primary" />Coach</Button>
+                <Button variant="outline" size="sm" className="gap-1.5 justify-start text-xs h-8" onClick={() => setShowTeamModal(true)}><Plus className="w-3 h-3 text-primary" />Équipe</Button>
+                <Button variant="outline" size="sm" className="gap-1.5 justify-start text-xs h-8" onClick={() => setShowPlayerModal(true)}><Plus className="w-3 h-3 text-primary" />Joueur</Button>
+                <Button variant="outline" size="sm" className="gap-1.5 justify-start text-xs h-8" onClick={() => setShowSupporterModal(true)}><Plus className="w-3 h-3 text-primary" />Supporter</Button>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
-              </div>
+              <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
             </div>
           )}
         </div>
