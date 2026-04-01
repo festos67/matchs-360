@@ -113,6 +113,19 @@ export const CreateSupporterModal = ({
     setSelectedPlayers(playerIds);
   };
 
+  const uploadPhotoForUser = async (userId: string): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop() || "png";
+    const path = `${userId}/photo.${ext}`;
+    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    if (error) {
+      console.error("Photo upload error:", error);
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
+    return `${urlData.publicUrl}?t=${Date.now()}`;
+  };
+
   const onSubmit = async (data: SupporterFormData) => {
     setLoading(true);
     try {
