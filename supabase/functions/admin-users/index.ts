@@ -68,9 +68,9 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const path = url.pathname.split("/").pop();
+    const clubIdFilter = url.searchParams.get("clubId");
 
-    // GET - List all users
+    // GET - List users
     if (req.method === "GET") {
       // Get all users from auth.users
       const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
