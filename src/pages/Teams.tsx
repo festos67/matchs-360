@@ -164,10 +164,10 @@ const Teams = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">
-              {showArchived ? "Équipes archivées" : "Équipes"}
+              {showArchived ? "Équipes archivées" : currentRole?.role === "club_admin" ? "Les équipes du club" : "Équipes"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isAdmin ? "Toutes les équipes" : "Vos équipes"}
+              {isAdmin ? "Toutes les équipes" : currentRole?.role === "club_admin" ? "Gérez vos équipes" : "Vos équipes"}
             </p>
           </div>
           {(isAdmin || currentRole?.role === "club_admin") && (
