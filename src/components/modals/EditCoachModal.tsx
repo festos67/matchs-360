@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { UserCog, User, Users, Camera, X } from "lucide-react";
+import { UserCog, User, Users } from "lucide-react";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import {
   Dialog,
   DialogContent,
