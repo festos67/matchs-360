@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { UserCog, User, Users } from "lucide-react";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import {
