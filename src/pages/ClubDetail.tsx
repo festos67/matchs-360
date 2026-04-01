@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer } from "lucide-react";
+import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
@@ -309,6 +310,13 @@ export default function ClubDetail() {
           )}
         </div>
       </div>
+
+      {/* Dashboard sections: Vue globale, Liste équipes, Mes Coachs */}
+      {canManageClub && id && (
+        <div className="mb-8">
+          <ClubDashboardSections clubId={id} onCreateTeam={() => setShowTeamModal(true)} />
+        </div>
+      )}
 
       {/* Club Framework Section */}
       {canManageClub && (
