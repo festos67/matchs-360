@@ -22,6 +22,7 @@ import {
   KeyRound,
   Save,
 } from "lucide-react";
+import { PhotoCropModal } from "@/components/shared/PhotoCropModal";
 
 const roleConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   admin: { label: "Administrateur", icon: Shield, color: "bg-destructive text-destructive-foreground" },
@@ -42,6 +43,8 @@ export default function Profile() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Password change
@@ -99,11 +102,22 @@ export default function Profile() {
       toast.error("La photo ne doit pas dépasser 5 Mo");
       return;
     }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setCropImageSrc(ev.target?.result as string);
+      setShowCropModal(true);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCropComplete = (blob: Blob) => {
+    const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
     setPhotoFile(file);
     setRemovePhoto(false);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
+    setPhotoPreview(URL.createObjectURL(blob));
+    setShowCropModal(false);
+    setCropImageSrc(null);
   };
 
   const handleRemovePhoto = () => {
@@ -399,6 +413,15 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
+
+      {cropImageSrc && (
+        <PhotoCropModal
+          open={showCropModal}
+          imageSrc={cropImageSrc}
+          onClose={() => { setShowCropModal(false); setCropImageSrc(null); }}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </AppLayout>
   );
 }
