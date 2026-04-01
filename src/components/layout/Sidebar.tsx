@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 // Navigation items by role
-const getNavItems = (role: string | undefined, isAdmin: boolean) => {
+const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string | null) => {
   if (isAdmin) {
     return [
       { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
@@ -35,7 +35,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean) => {
     case "club_admin":
       return [
         { icon: LayoutDashboard, label: "Dashboard", path: "/club/dashboard" },
-        { icon: Building2, label: "Mon Club", path: "/clubs" },
+        { icon: Building2, label: "Mon Club", path: clubId ? `/clubs/${clubId}` : "/clubs" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
       { icon: UserCircle, label: "Joueurs", path: "/players" },
@@ -77,7 +77,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
 
-  const navItems = getNavItems(currentRole?.role, isAdmin);
+  const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
