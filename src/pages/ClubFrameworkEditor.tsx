@@ -501,7 +501,8 @@ export default function ClubFrameworkEditor() {
                   value={frameworkName}
                   onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
                   placeholder="Nom du référentiel"
-                  className="text-5xl font-display font-bold h-auto py-1 px-0 border-transparent hover:border-input focus:border-input bg-transparent"
+                  className="!text-4xl font-display font-bold h-auto py-1 px-0 border-transparent hover:border-input focus:border-input bg-transparent"
+                  style={{ fontSize: "2.25rem", lineHeight: "2.5rem" }}
                 />
               ) : (
                 <h1 className="text-3xl font-display font-bold">{frameworkName || "Référentiel du Club"}</h1>
