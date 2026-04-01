@@ -158,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hasAdminRole,
         signOut,
         setCurrentRole,
+        refreshProfile,
       }}
     >
       {children}
