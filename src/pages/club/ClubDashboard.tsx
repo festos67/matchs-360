@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
-  Users, Trophy, UserCheck, Eye, Plus, Building2, User, Search,
+  Users, Trophy, UserCog, Eye, Plus, Building2, User, Search,
   ChevronDown, ChevronRight, Target, BarChart3, TrendingUp, Shield,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -391,7 +391,7 @@ const ClubDashboard = () => {
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1">Effectif</p>
                   <div className="grid grid-cols-3 gap-2">
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Coachs" value={loadingCoaches ? "-" : String(coachesCount || 0)} icon={UserCheck} /></div>
+                      <div><StatsCard title="Coachs" value={loadingCoaches ? "-" : String(coachesCount || 0)} icon={UserCog} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de coachs actifs dans le club</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Équipes" value={String(teamsCount)} icon={Users} /></div>
@@ -544,7 +544,7 @@ const ClubDashboard = () => {
           <Collapsible open={coachesOpen} onOpenChange={setCoachesOpen}>
             <SectionHeader
               title="Mes Coachs"
-              icon={UserCheck}
+              icon={UserCog}
               isOpen={coachesOpen}
               onToggle={() => setCoachesOpen(!coachesOpen)}
             />
@@ -573,7 +573,7 @@ const ClubDashboard = () => {
                   </div>
                 ) : filteredCoaches.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    <UserCheck className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                    <UserCog className="w-10 h-10 mx-auto mb-2 opacity-40" />
                     <p className="text-sm">Aucun coach trouvé</p>
                   </div>
                 ) : (
