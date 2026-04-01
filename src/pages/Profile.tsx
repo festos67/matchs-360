@@ -158,7 +158,7 @@ export default function Profile() {
       toast.success("Profil mis à jour avec succès");
       // Redirect to role-specific dashboard
       const dashboardPath = (() => {
-        switch (currentRole) {
+        switch (currentRole?.role) {
           case "admin": return "/admin/dashboard";
           case "club_admin": return "/club/dashboard";
           case "coach": return "/coach/dashboard";
