@@ -5,6 +5,14 @@ import { z } from "zod";
 import { Users, Star } from "lucide-react";
 import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -61,6 +69,7 @@ export const CreateTeamModal = ({
   const [loading, setLoading] = useState(false);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loadingCoaches, setLoadingCoaches] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const { user, currentRole } = useAuth();
 
   // Determine if current user is a coach (they will be auto-assigned)
@@ -188,7 +197,14 @@ export const CreateTeamModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        setCancelConfirmOpen(true);
+      } else {
+        onOpenChange(true);
+      }
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
@@ -319,7 +335,7 @@ export const CreateTeamModal = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => setCancelConfirmOpen(true)}
             >
               Annuler
             </Button>
@@ -334,5 +350,33 @@ export const CreateTeamModal = ({
         </form>
       </DialogContent>
     </Dialog>
+
+    {/* Cancel Confirmation */}
+    <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Annuler la création ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Les informations saisies seront perdues. Voulez-vous vraiment annuler la création de cette équipe ?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button onClick={() => setCancelConfirmOpen(false)}>
+            Continuer la saisie
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setCancelConfirmOpen(false);
+              reset();
+              onOpenChange(false);
+            }}
+          >
+            Confirmer l'annulation
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
