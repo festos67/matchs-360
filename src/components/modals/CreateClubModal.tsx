@@ -245,33 +245,23 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primaryColor">Couleur principale</Label>
-                <div className="flex items-center gap-2">
+                <div className="relative w-10 h-10">
                   <input
                     type="color"
                     id="primaryColor"
                     {...register("primaryColor")}
-                    className="w-10 h-10 rounded-lg border border-border cursor-pointer"
-                  />
-                  <Input
-                    {...register("primaryColor")}
-                    placeholder="#3B82F6"
-                    className="flex-1"
+                    className="absolute inset-0 w-full h-full rounded-lg border border-border cursor-pointer"
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="secondaryColor">Couleur secondaire</Label>
-                <div className="flex items-center gap-2">
+                <div className="relative w-10 h-10">
                   <input
                     type="color"
                     id="secondaryColor"
                     {...register("secondaryColor")}
-                    className="w-10 h-10 rounded-lg border border-border cursor-pointer"
-                  />
-                  <Input
-                    {...register("secondaryColor")}
-                    placeholder="#0A1628"
-                    className="flex-1"
+                    className="absolute inset-0 w-full h-full rounded-lg border border-border cursor-pointer"
                   />
                 </div>
               </div>
