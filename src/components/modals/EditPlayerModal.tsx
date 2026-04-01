@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -10,9 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, X } from "lucide-react";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 
 interface Player {
   id: string;
@@ -39,33 +38,11 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(player.photo_url || null);
   const [removePhoto, setRemovePhoto] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getInitials = () => {
     const first = firstName?.charAt(0) || player.first_name?.charAt(0) || "";
     const last = lastName?.charAt(0) || player.last_name?.charAt(0) || "";
     return (first + last).toUpperCase() || "?";
-  };
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La photo ne doit pas dépasser 5 Mo");
-      return;
-    }
-    setPhotoFile(file);
-    setRemovePhoto(false);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemovePhoto = () => {
-    setPhotoFile(null);
-    setPhotoPreview(null);
-    setRemovePhoto(true);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const uploadPhoto = async (): Promise<string | null> => {
@@ -125,40 +102,20 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
 
         <div className="space-y-4">
           {/* Photo */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="relative group">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={photoPreview || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                  {getInitials()}
-                </AvatarFallback>
-              </Avatar>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-              >
-                <Camera className="w-5 h-5 text-white" />
-              </button>
-              {photoPreview && (
-                <button
-                  type="button"
-                  onClick={handleRemovePhoto}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-xs"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handlePhotoChange}
-            />
-            <p className="text-xs text-muted-foreground">Cliquez pour changer la photo</p>
-          </div>
+          <UserPhotoUpload
+            photoPreview={photoPreview}
+            initials={getInitials()}
+            onFileSelected={(file, preview) => {
+              setPhotoFile(file);
+              setPhotoPreview(preview);
+              setRemovePhoto(false);
+            }}
+            onRemovePhoto={() => {
+              setPhotoFile(null);
+              setPhotoPreview(null);
+              setRemovePhoto(true);
+            }}
+          />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

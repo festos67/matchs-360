@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { UserCog } from "lucide-react";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import {
   Dialog,
   DialogContent,
@@ -64,6 +65,8 @@ export const CreateCoachModal = ({
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [teamAssignments, setTeamAssignments] = useState<TeamAssignment[]>([]);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const {
     register,
@@ -134,6 +137,19 @@ export const CreateCoachModal = ({
     return teamAssignments.filter((a) => a.assigned);
   };
 
+  const uploadPhotoForUser = async (userId: string): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop() || "png";
+    const path = `${userId}/photo.${ext}`;
+    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    if (error) {
+      console.error("Photo upload error:", error);
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
+    return `${urlData.publicUrl}?t=${Date.now()}`;
+  };
+
   const onSubmit = async (data: CoachFormData) => {
     setLoading(true);
     try {
@@ -165,6 +181,14 @@ export const CreateCoachModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
+      // Upload photo if provided and user was created
+      if (photoFile && result?.userId) {
+        const photoUrl = await uploadPhotoForUser(result.userId);
+        if (photoUrl) {
+          await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        }
+      }
+
       const assignedTeamNames = assignedTeams
         .map((a) => teams.find((t) => t.id === a.teamId)?.name)
         .filter(Boolean);
@@ -178,6 +202,8 @@ export const CreateCoachModal = ({
 
       reset();
       setTeamAssignments([]);
+      setPhotoFile(null);
+      setPhotoPreview(null);
       onOpenChange(false);
       onSuccess?.();
     } catch (error: unknown) {
@@ -222,6 +248,24 @@ export const CreateCoachModal = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+          {/* Photo */}
+          <UserPhotoUpload
+            photoPreview={photoPreview}
+            initials={(() => {
+              const f = (document.getElementById("firstName") as HTMLInputElement)?.value?.charAt(0) || "";
+              const l = (document.getElementById("lastName") as HTMLInputElement)?.value?.charAt(0) || "";
+              return (f + l).toUpperCase() || "?";
+            })()}
+            onFileSelected={(file, preview) => {
+              setPhotoFile(file);
+              setPhotoPreview(preview);
+            }}
+            onRemovePhoto={() => {
+              setPhotoFile(null);
+              setPhotoPreview(null);
+            }}
+            label="Ajouter une photo (optionnel)"
+          />
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="firstName">Prénom</Label>

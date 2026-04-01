@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -102,6 +103,9 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
   const [lastName, setLastName] = useState(user.last_name || "");
   const [nickname, setNickname] = useState(user.nickname || "");
   const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(user.photo_url || null);
+  const [removePhoto, setRemovePhoto] = useState(false);
 
   // For adding new roles
   const [showAddRole, setShowAddRole] = useState(false);
@@ -200,15 +204,45 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     return response.json();
   };
 
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile) return null;
+    const ext = photoFile.name.split(".").pop() || "png";
+    const path = `${user.id}/photo.${ext}`;
+    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
+    return `${urlData.publicUrl}?t=${Date.now()}`;
+  };
+
+  const getInitials = () => {
+    const first = firstName?.charAt(0) || "";
+    const last = lastName?.charAt(0) || "";
+    return (first + last).toUpperCase() || "?";
+  };
+
   const handleSaveProfile = async () => {
     try {
       setSaving(true);
-      await callAdminAction("update-profile", {
+
+      // Upload photo if needed
+      let photoUrl: string | null | undefined = undefined;
+      if (photoFile) {
+        photoUrl = await uploadPhoto();
+      } else if (removePhoto) {
+        photoUrl = null;
+      }
+
+      const payload: Record<string, unknown> = {
         userId: user.id,
         firstName,
         lastName,
         nickname,
-      });
+      };
+      if (photoUrl !== undefined) {
+        payload.photoUrl = photoUrl;
+      }
+
+      await callAdminAction("update-profile", payload);
       toast.success("Profil mis à jour");
       onUpdate();
     } catch (error: unknown) {
@@ -391,6 +425,22 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
           {/* Profile Info */}
           <div className="space-y-4">
             <h3 className="font-semibold">Informations du profil</h3>
+
+            <UserPhotoUpload
+              photoPreview={photoPreview}
+              initials={getInitials()}
+              onFileSelected={(file, preview) => {
+                setPhotoFile(file);
+                setPhotoPreview(preview);
+                setRemovePhoto(false);
+              }}
+              onRemovePhoto={() => {
+                setPhotoFile(null);
+                setPhotoPreview(null);
+                setRemovePhoto(true);
+              }}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Prénom</Label>
