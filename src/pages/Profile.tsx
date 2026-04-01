@@ -102,11 +102,22 @@ export default function Profile() {
       toast.error("La photo ne doit pas dépasser 5 Mo");
       return;
     }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setCropImageSrc(ev.target?.result as string);
+      setShowCropModal(true);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCropComplete = (blob: Blob) => {
+    const file = new File([blob], "photo.jpg", { type: "image/jpeg" });
     setPhotoFile(file);
     setRemovePhoto(false);
-    const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
+    setPhotoPreview(URL.createObjectURL(blob));
+    setShowCropModal(false);
+    setCropImageSrc(null);
   };
 
   const handleRemovePhoto = () => {
