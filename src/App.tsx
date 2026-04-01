@@ -30,6 +30,7 @@ import InviteAccept from "./pages/InviteAccept";
 import NotFound from "./pages/NotFound";
 import Stats from "./pages/Stats";
 import AdminUsers from "./pages/AdminUsers";
+import ClubUsers from "./pages/ClubUsers";
 import ResetPassword from "./pages/ResetPassword";
 import MyTeamRedirect from "./pages/MyTeamRedirect";
 import MySupporters from "./pages/player/MySupporters";
