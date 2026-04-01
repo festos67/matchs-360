@@ -304,24 +304,8 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
                   </div>
                 </div>
               </div>
-
-              {/* Preview */}
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30">
-                {logoPreview ? (
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-white flex items-center justify-center border border-border">
-                    <img src={logoPreview} alt="Aperçu" className="w-full h-full object-contain" />
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 rounded-xl flex items-center justify-center text-xl font-bold" style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`, color: "white" }}>
-                    {watchShortName?.toUpperCase() || watchName?.slice(0, 2).toUpperCase() || "FC"}
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium">Aperçu</p>
-                  <p className="text-sm text-muted-foreground">Apparence du club dans l'application</p>
-                </div>
-              </div>
             </div>
+
 
             {/* Referent Info */}
             <div className="space-y-4">
