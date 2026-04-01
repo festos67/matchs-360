@@ -57,6 +57,7 @@ export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [framework, setFramework] = useState<Framework | null>(null);
