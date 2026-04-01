@@ -49,6 +49,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: LayoutDashboard, label: "Dashboard", path: "/coach/dashboard" },
         { icon: Users, label: "Mes Équipes", path: "/teams" },
         { icon: UserCircle, label: "Mes Joueurs", path: "/players" },
+        { icon: Heart, label: "Supporters", path: "/supporters" },
         { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
