@@ -10,8 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, X } from "lucide-react";
+import { AddRoleSection } from "@/components/shared/AddRoleSection";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
 
 interface Player {
