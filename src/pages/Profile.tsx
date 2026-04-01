@@ -413,6 +413,15 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
+
+      {cropImageSrc && (
+        <PhotoCropModal
+          open={showCropModal}
+          imageSrc={cropImageSrc}
+          onClose={() => { setShowCropModal(false); setCropImageSrc(null); }}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </AppLayout>
   );
 }
