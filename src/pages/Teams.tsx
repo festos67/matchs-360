@@ -128,8 +128,26 @@ const Teams = () => {
         .sort((a, b) => a.name.localeCompare(b.name))
     : [];
 
+  // Extract unique coaches for filter
+  const uniqueCoaches = (() => {
+    const map = new Map<string, string>();
+    teams?.forEach((team) => {
+      team.team_members?.filter((m: any) => m.member_type === "coach").forEach((m: any) => {
+        const name = `${m.profiles?.first_name || ""} ${m.profiles?.last_name || ""}`.trim();
+        if (name && m.user_id) {
+          map.set(m.user_id, name);
+        }
+      });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  })();
+
   const filteredTeams = teams?.filter((team) => {
     if (clubFilter !== "all" && team.clubs?.id !== clubFilter) return false;
+    if (coachFilter !== "all") {
+      const hasCoach = team.team_members?.some((m: any) => m.member_type === "coach" && m.user_id === coachFilter);
+      if (!hasCoach) return false;
+    }
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
