@@ -32,7 +32,7 @@ const roleConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 export default function Profile() {
-  const { user, profile, roles, loading: authLoading } = useAuth();
+  const { user, profile, roles, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
@@ -154,6 +154,7 @@ export default function Profile() {
         .eq("id", user.id);
 
       if (error) throw error;
+      await refreshProfile();
       toast.success("Profil mis à jour avec succès");
     } catch (error) {
       console.error("Error updating profile:", error);

@@ -31,6 +31,7 @@ interface AuthContextType {
   hasAdminRole: boolean;
   signOut: () => Promise<void>;
   setCurrentRole: (role: UserRole) => void;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,6 +124,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -151,6 +158,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hasAdminRole,
         signOut,
         setCurrentRole,
+        refreshProfile,
       }}
     >
       {children}
