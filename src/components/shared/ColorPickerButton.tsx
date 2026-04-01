@@ -31,7 +31,7 @@ export function ColorPickerButton({ value, onChange, id }: ColorPickerButtonProp
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverAnchor asChild>
+      <PopoverTrigger asChild>
         <div className="relative w-10 h-10">
           <input
             ref={inputRef}
@@ -47,7 +47,7 @@ export function ColorPickerButton({ value, onChange, id }: ColorPickerButtonProp
             style={{ backgroundColor: value }}
           />
         </div>
-      </PopoverAnchor>
+      </PopoverTrigger>
       <PopoverContent className="w-auto p-3 flex flex-col items-center gap-2" align="start" side="bottom">
         <p className="text-xs text-muted-foreground font-medium self-start">Sélectionner une couleur</p>
         <div
