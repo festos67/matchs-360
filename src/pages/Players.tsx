@@ -20,7 +20,9 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Users, Loader2, User, ChevronDown } from "lucide-react";
+import { Search, Users, Loader2, User, ChevronDown, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 
 interface PlayerData {
   id: string;
@@ -46,6 +48,7 @@ const Players = () => {
   const [clubFilter, setClubFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
   const [coachFilter, setCoachFilter] = useState("all");
+  const [showCreatePlayer, setShowCreatePlayer] = useState(false);
   const [collapsedTeams, setCollapsedTeams] = useState<Record<string, boolean>>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -315,6 +318,12 @@ const Players = () => {
             <h1 className="text-3xl font-display font-bold">{pageTitle}</h1>
             <p className="text-muted-foreground mt-1">{pageSubtitle}</p>
           </div>
+          {(isAdmin || currentRole?.role === "club_admin") && currentRole?.club_id && (
+            <Button onClick={() => setShowCreatePlayer(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Ajouter un joueur
+            </Button>
+          )}
         </div>
 
         {/* Search & Filters */}
@@ -449,6 +458,14 @@ const Players = () => {
           </p>
         )}
       </div>
+      {currentRole?.club_id && (
+        <CreatePlayerModal
+          open={showCreatePlayer}
+          onOpenChange={setShowCreatePlayer}
+          clubId={currentRole.club_id}
+          onSuccess={fetchPlayers}
+        />
+      )}
     </AppLayout>
   );
 };
