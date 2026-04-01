@@ -41,6 +41,8 @@ const Supporters = () => {
   const [supporters, setSupporters] = useState<SupporterData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [playerFilter, setPlayerFilter] = useState("all");
   const [showCreateSupporter, setShowCreateSupporter] = useState(false);
   const [collapsedPlayers, setCollapsedPlayers] = useState<Record<string, boolean>>(() => {
     try {
