@@ -121,7 +121,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           const isActive = location.pathname === item.path || 
             (item.path !== "/dashboard" && 
              item.path !== "/admin/dashboard" && 
-             item.path !== "/club/dashboard" && 
+             item.path !== "/club/redirect" && 
              item.path !== "/coach/dashboard" && 
              item.path !== "/player/dashboard" && 
              location.pathname.startsWith(item.path) &&
