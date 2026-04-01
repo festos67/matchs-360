@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Heart } from "lucide-react";
+import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import {
   Dialog,
   DialogContent,
