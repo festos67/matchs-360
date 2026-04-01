@@ -88,7 +88,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const getDashboardPath = () => {
     if (isAdmin) return "/admin/dashboard";
     switch (currentRole?.role) {
-      case "club_admin": return "/club/dashboard";
+      case "club_admin": return "/club/redirect";
       case "coach": return "/coach/dashboard";
       case "player":
       case "supporter": return "/player/dashboard";
@@ -121,7 +121,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           const isActive = location.pathname === item.path || 
             (item.path !== "/dashboard" && 
              item.path !== "/admin/dashboard" && 
-             item.path !== "/club/dashboard" && 
+             item.path !== "/club/redirect" && 
              item.path !== "/coach/dashboard" && 
              item.path !== "/player/dashboard" && 
              location.pathname.startsWith(item.path) &&
