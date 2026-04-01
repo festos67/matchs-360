@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { AddRoleSection } from "@/components/shared/AddRoleSection";
 
 interface Team {
   id: string;
@@ -439,6 +440,15 @@ export const EditCoachModal = ({
                 L'email ne peut pas être modifié
               </p>
             </div>
+
+            {coach.club_id && (
+              <AddRoleSection
+                userId={coach.id}
+                clubId={coach.club_id}
+                currentRole="coach"
+                onRoleAdded={onSuccess}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="assignments" className="space-y-4 mt-6">

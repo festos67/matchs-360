@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, X } from "lucide-react";
+import { AddRoleSection } from "@/components/shared/AddRoleSection";
 
 interface Player {
   id: string;
@@ -20,6 +21,7 @@ interface Player {
   nickname: string | null;
   email: string;
   photo_url?: string | null;
+  club_id?: string | null;
 }
 
 interface EditPlayerModalProps {
@@ -191,6 +193,15 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
             <Label>Email</Label>
             <Input value={player.email} disabled className="bg-muted" />
           </div>
+
+          {player.club_id && (
+            <AddRoleSection
+              userId={player.id}
+              clubId={player.club_id}
+              currentRole="player"
+              onRoleAdded={onSuccess}
+            />
+          )}
         </div>
 
         <div className="flex justify-end gap-2 mt-4">
