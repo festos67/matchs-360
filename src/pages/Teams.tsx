@@ -447,6 +447,15 @@ const Teams = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showCreateTeam && currentRole?.club_id && (
+        <CreateTeamModal
+          open={showCreateTeam}
+          onOpenChange={setShowCreateTeam}
+          clubId={currentRole.club_id}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["teams"] })}
+        />
+      )}
     </AppLayout>
   );
 };
