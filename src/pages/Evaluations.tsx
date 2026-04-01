@@ -33,6 +33,7 @@ export default function Evaluations() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [coachFilter, setCoachFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [teamName, setTeamName] = useState<string | null>(null);
   const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
