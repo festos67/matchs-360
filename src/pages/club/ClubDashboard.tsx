@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
-  Users, Trophy, UserCheck, Eye, Plus, Building2, User,
+  Users, Trophy, UserCheck, Eye, Plus, Building2, User, Search,
   ChevronDown, ChevronRight, Target, BarChart3, TrendingUp,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,7 +15,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { CircleAvatar } from "@/components/shared/CircleAvatar";
 
 const SectionHeader = ({
   title,
@@ -45,6 +47,8 @@ const ClubDashboard = () => {
   const { user, loading, currentRole, profile } = useAuth();
 
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [teamsOpen, setTeamsOpen] = useState(false);
+  const [teamsSearch, setTeamsSearch] = useState("");
 
   const clubId = currentRole?.club_id;
 
@@ -379,90 +383,91 @@ const ClubDashboard = () => {
           </Collapsible>
         </div>
 
-        {/* Teams List */}
+        {/* Section 2: Liste des équipes */}
         <div className="bg-card rounded-xl border border-border">
-          <div className="p-6 border-b border-border flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">Mes Équipes</h2>
-              <p className="text-sm text-muted-foreground">
-                Gérez les équipes de votre club
-              </p>
-            </div>
-            <Button asChild>
-              <Link to={clubId ? `/clubs/${clubId}` : "/clubs"}>
-                <Plus className="w-4 h-4 mr-2" />
-                Nouvelle Équipe
-              </Link>
-            </Button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Équipe</TableHead>
-                  <TableHead>Saison</TableHead>
-                  <TableHead className="text-center">Joueurs</TableHead>
-                  <TableHead className="text-center">Coachs</TableHead>
-                  <TableHead className="w-[100px]">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loadingTeamsList ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-16" /></TableCell>
+          <Collapsible open={teamsOpen} onOpenChange={setTeamsOpen}>
+            <SectionHeader
+              title="Liste des équipes"
+              icon={Users}
+              isOpen={teamsOpen}
+              onToggle={() => setTeamsOpen(!teamsOpen)}
+              action={
+                <Button size="sm" className="min-w-[160px]" asChild>
+                  <Link to={clubId ? `/clubs/${clubId}` : "/clubs"}>
+                    <Plus className="w-4 h-4 mr-1" />
+                    Nouvelle équipe
+                  </Link>
+                </Button>
+              }
+            />
+            <CollapsibleContent>
+              <div className="px-4 md:px-5 pb-2">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher une équipe..."
+                    value={teamsSearch}
+                    onChange={(e) => setTeamsSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                <Table className="[&_td]:py-1.5 [&_th]:py-1.5">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[40px]"></TableHead>
+                      <TableHead>Équipe</TableHead>
+                      <TableHead>Saison</TableHead>
+                      <TableHead className="text-center">Joueurs</TableHead>
+                      <TableHead className="text-center">Coachs</TableHead>
                     </TableRow>
-                  ))
-                ) : teams && teams.length > 0 ? (
-                  teams.map((team) => (
-                    <TableRow key={team.id} className="hover:bg-muted/50">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: team.color || "#3B82F6" }}
-                          />
-                          <span className="font-medium">{team.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {team.season || "-"}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full">
-                          {team.playersCount}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-1 text-sm font-medium bg-secondary/50 text-secondary-foreground rounded-full">
-                          {team.coachesCount}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/teams/${team.id}`}>
-                            <Eye className="w-4 h-4 mr-1" />
-                            Voir
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      Aucune équipe enregistrée
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {loadingTeamsList ? (
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <TableRow key={i}>
+                          <TableCell><Skeleton className="w-7 h-7 rounded-full" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-32" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-20" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-8 mx-auto" /></TableCell>
+                          <TableCell><Skeleton className="h-3.5 w-8 mx-auto" /></TableCell>
+                        </TableRow>
+                      ))
+                    ) : teams && teams.length > 0 ? (
+                      teams
+                        .filter((team) => team.name.toLowerCase().includes(teamsSearch.toLowerCase()))
+                        .map((team) => (
+                          <TableRow key={team.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/teams/${team.id}`)}>
+                            <TableCell>
+                              <CircleAvatar name={team.name} color={team.color || "#3B82F6"} size="sm" />
+                            </TableCell>
+                            <TableCell className="font-medium text-sm">{team.name}</TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{team.season || "-"}</TableCell>
+                            <TableCell className="text-center">
+                              <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1.5 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                                {team.playersCount}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1.5 py-0.5 text-xs font-medium bg-secondary/50 text-secondary-foreground rounded-full">
+                                {team.coachesCount}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          Aucune équipe enregistrée
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
     </AppLayout>
