@@ -141,11 +141,27 @@ export default function Evaluations() {
     setLoading(false);
   };
 
+  // Unique coaches for filter
+  const coachOptions = (() => {
+    const map = new Map<string, string>();
+    evaluations.forEach((e) => {
+      const name = `${e.coach?.first_name || ""} ${e.coach?.last_name || ""}`.trim();
+      if (name) {
+        const key = name.toLowerCase();
+        if (!map.has(key)) map.set(key, name);
+      }
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  })();
+
   const filteredEvaluations = evaluations.filter((e) => {
     const playerName = e.player?.nickname || 
       `${e.player?.first_name || ""} ${e.player?.last_name || ""}`;
-    return playerName.toLowerCase().includes(search.toLowerCase()) ||
+    const coachName = `${e.coach?.first_name || ""} ${e.coach?.last_name || ""}`.trim().toLowerCase();
+    const matchSearch = playerName.toLowerCase().includes(search.toLowerCase()) ||
       e.name.toLowerCase().includes(search.toLowerCase());
+    const matchCoach = coachFilter === "all" || coachName === coachFilter;
+    return matchSearch && matchCoach;
   });
 
   const formatDate = (dateStr: string) => {
