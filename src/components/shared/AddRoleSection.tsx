@@ -154,31 +154,35 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
 
       // 2. Ajouter dans team_members si nécessaire
       if ((newRole === "coach" || newRole === "player") && selectedTeam) {
-        // Vérifier s'il existe déjà
-        const { data: existing } = await supabase
+        const newMemberType = newRole === "coach" ? "coach" : "player";
+
+        // Vérifier s'il existe déjà un enregistrement pour ce user+team (peu importe le member_type)
+        const { data: existingAny } = await supabase
           .from("team_members")
-          .select("id, is_active")
+          .select("id, is_active, member_type")
           .eq("user_id", userId)
           .eq("team_id", selectedTeam)
-          .eq("member_type", newRole === "coach" ? "coach" : "player")
           .maybeSingle();
 
-        if (existing && !existing.is_active) {
+        if (existingAny) {
+          // Mettre à jour l'enregistrement existant (réactiver + changer le type si nécessaire)
           const { error: updateErr } = await supabase
             .from("team_members")
             .update({
               is_active: true,
               left_at: null,
+              member_type: newMemberType,
               coach_role: newRole === "coach" ? coachRole : null,
               joined_at: new Date().toISOString(),
+              archived_reason: null,
             })
-            .eq("id", existing.id);
+            .eq("id", existingAny.id);
           if (updateErr) throw updateErr;
-        } else if (!existing) {
+        } else {
           const { error: insertErr } = await supabase.from("team_members").insert({
             user_id: userId,
             team_id: selectedTeam,
-            member_type: newRole === "coach" ? "coach" : "player",
+            member_type: newMemberType,
             coach_role: newRole === "coach" ? coachRole : null,
             is_active: true,
           });
