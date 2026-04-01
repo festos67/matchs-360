@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive } from "lucide-react";
+import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive, UserCog } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,16 +24,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 
 const Teams = () => {
   const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
+  const [coachFilter, setCoachFilter] = useState("all");
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["teams", user?.id, currentRole?.role, showArchived],
@@ -43,7 +46,7 @@ const Teams = () => {
         .select(`
           *,
           clubs (id, name, logo_url, primary_color),
-          team_members (id, member_type, user_id)
+          team_members (id, member_type, user_id, profiles:user_id (first_name, last_name))
         `)
         .order("name");
 
@@ -125,8 +128,26 @@ const Teams = () => {
         .sort((a, b) => a.name.localeCompare(b.name))
     : [];
 
+  // Extract unique coaches for filter
+  const uniqueCoaches = (() => {
+    const map = new Map<string, string>();
+    teams?.forEach((team) => {
+      team.team_members?.filter((m: any) => m.member_type === "coach").forEach((m: any) => {
+        const name = `${m.profiles?.first_name || ""} ${m.profiles?.last_name || ""}`.trim();
+        if (name && m.user_id) {
+          map.set(m.user_id, name);
+        }
+      });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  })();
+
   const filteredTeams = teams?.filter((team) => {
     if (clubFilter !== "all" && team.clubs?.id !== clubFilter) return false;
+    if (coachFilter !== "all") {
+      const hasCoach = team.team_members?.some((m: any) => m.member_type === "coach" && m.user_id === coachFilter);
+      if (!hasCoach) return false;
+    }
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -149,29 +170,46 @@ const Teams = () => {
               {isAdmin ? "Toutes les équipes" : "Vos équipes"}
             </p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher une équipe..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={clubFilter} onValueChange={setClubFilter}>
-              <SelectTrigger className="w-full sm:w-[220px]">
-                <SelectValue placeholder="Tous les clubs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les clubs</SelectItem>
-                {uniqueClubs.map((club) => (
-                  <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {(isAdmin || currentRole?.role === "club_admin") && (
+            <Button onClick={() => setShowCreateTeam(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Nouvelle équipe
+            </Button>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher une équipe..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Tous les clubs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les clubs</SelectItem>
+              {uniqueClubs.map((club) => (
+                <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={coachFilter} onValueChange={setCoachFilter}>
+            <SelectTrigger className="w-full sm:w-[220px]">
+              <SelectValue placeholder="Tous les coachs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les coachs</SelectItem>
+              {uniqueCoaches.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Admin Toggle for Archived Teams */}
@@ -409,6 +447,15 @@ const Teams = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showCreateTeam && currentRole?.club_id && (
+        <CreateTeamModal
+          open={showCreateTeam}
+          onOpenChange={setShowCreateTeam}
+          clubId={currentRole.club_id}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["teams"] })}
+        />
+      )}
     </AppLayout>
   );
 };
