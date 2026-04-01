@@ -156,6 +156,18 @@ export default function Profile() {
       if (error) throw error;
       await refreshProfile();
       toast.success("Profil mis à jour avec succès");
+      // Redirect to role-specific dashboard
+      const dashboardPath = (() => {
+        switch (currentRole) {
+          case "admin": return "/admin/dashboard";
+          case "club_admin": return "/club/dashboard";
+          case "coach": return "/coach/dashboard";
+          case "player": return "/player/dashboard";
+          case "supporter": return "/supporter/dashboard";
+          default: return "/";
+        }
+      })();
+      navigate(dashboardPath);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Erreur lors de la mise à jour du profil");
