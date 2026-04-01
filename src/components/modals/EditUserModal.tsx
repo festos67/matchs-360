@@ -425,6 +425,22 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
           {/* Profile Info */}
           <div className="space-y-4">
             <h3 className="font-semibold">Informations du profil</h3>
+
+            <UserPhotoUpload
+              photoPreview={photoPreview}
+              initials={getInitials()}
+              onFileSelected={(file, preview) => {
+                setPhotoFile(file);
+                setPhotoPreview(preview);
+                setRemovePhoto(false);
+              }}
+              onRemovePhoto={() => {
+                setPhotoFile(null);
+                setPhotoPreview(null);
+                setRemovePhoto(true);
+              }}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Prénom</Label>
