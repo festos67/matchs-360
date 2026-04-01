@@ -7,8 +7,9 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import {
   Users, Trophy, UserCheck, Eye, Plus, Building2, User, Search,
-  ChevronDown, ChevronRight, Target, BarChart3, TrendingUp,
+  ChevronDown, ChevronRight, Target, BarChart3, TrendingUp, Shield,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +49,9 @@ const ClubDashboard = () => {
 
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [teamsOpen, setTeamsOpen] = useState(false);
+  const [coachesOpen, setCoachesOpen] = useState(false);
   const [teamsSearch, setTeamsSearch] = useState("");
+  const [coachesSearch, setCoachesSearch] = useState("");
 
   const clubId = currentRole?.club_id;
 
@@ -282,6 +285,72 @@ const ClubDashboard = () => {
     enabled: !!clubId,
   });
 
+  // Fetch coaches list with team assignments
+  const { data: coachesList, isLoading: loadingCoachesList } = useQuery({
+    queryKey: ["club-coaches-list", clubId, clubTeamIds],
+    queryFn: async () => {
+      if (!clubTeamIds || clubTeamIds.length === 0) return [];
+
+      // Get coach team_members for this club's teams
+      const { data: coachMembers } = await supabase
+        .from("team_members")
+        .select("user_id, team_id, coach_role")
+        .in("team_id", clubTeamIds)
+        .eq("member_type", "coach")
+        .eq("is_active", true);
+
+      if (!coachMembers || coachMembers.length === 0) return [];
+
+      const uniqueCoachIds = [...new Set(coachMembers.map((m) => m.user_id))];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, photo_url, email")
+        .in("id", uniqueCoachIds)
+        .is("deleted_at", null);
+
+      // Get team names
+      const { data: teamsData } = await supabase
+        .from("teams")
+        .select("id, name")
+        .in("id", clubTeamIds);
+
+      const teamNameMap: Record<string, string> = {};
+      (teamsData || []).forEach((t) => { teamNameMap[t.id] = t.name; });
+
+      return (profiles || []).map((p) => {
+        const assignments = coachMembers
+          .filter((m) => m.user_id === p.id)
+          .map((m) => ({
+            team_id: m.team_id,
+            team_name: teamNameMap[m.team_id] || "Équipe",
+            coach_role: m.coach_role as "referent" | "assistant" | null,
+          }));
+
+        return {
+          id: p.id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          photo_url: p.photo_url,
+          email: p.email,
+          assignments,
+        };
+      }).sort((a, b) => {
+        const nameA = `${a.first_name || ""} ${a.last_name || ""}`.toLowerCase();
+        const nameB = `${b.first_name || ""} ${b.last_name || ""}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    },
+    enabled: !!clubTeamIds && clubTeamIds.length > 0,
+  });
+
+  const filteredCoaches = (coachesList || []).filter((coach) => {
+    if (!coachesSearch.trim()) return true;
+    const q = coachesSearch.toLowerCase();
+    const name = `${coach.first_name || ""} ${coach.last_name || ""}`.toLowerCase();
+    return name.includes(q) || coach.email.toLowerCase().includes(q);
+  });
+
   if (loading) {
     return (
       <AppLayout>
@@ -465,6 +534,114 @@ const ClubDashboard = () => {
                     )}
                   </TableBody>
                 </Table>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+
+        {/* Section 3: Mes Coachs */}
+        <div className="bg-card rounded-xl border border-border">
+          <Collapsible open={coachesOpen} onOpenChange={setCoachesOpen}>
+            <SectionHeader
+              title="Mes Coachs"
+              icon={UserCheck}
+              isOpen={coachesOpen}
+              onToggle={() => setCoachesOpen(!coachesOpen)}
+            />
+            <CollapsibleContent>
+              <div className="px-4 md:px-5 pb-2">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un coach..."
+                    value={coachesSearch}
+                    onChange={(e) => setCoachesSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="px-4 md:px-5 pb-5">
+                {loadingCoachesList ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex flex-col items-center gap-2">
+                        <Skeleton className="w-20 h-20 rounded-full" />
+                        <Skeleton className="h-3 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredCoaches.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <UserCheck className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">Aucun coach trouvé</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    {filteredCoaches.map((coach) => (
+                      <div
+                        key={coach.id}
+                        className="flex flex-col items-center text-center group cursor-pointer"
+                        onClick={() => navigate(`/coaches`)}
+                      >
+                        {/* Avatar */}
+                        <div className="relative mb-2">
+                          {coach.photo_url ? (
+                            <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-border group-hover:ring-primary transition-colors">
+                              <img
+                                src={coach.photo_url}
+                                alt={`${coach.first_name || ""} ${coach.last_name || ""}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-border group-hover:ring-primary transition-colors">
+                              <span className="text-xl font-bold text-primary">
+                                {(coach.first_name?.charAt(0) || "").toUpperCase()}
+                                {(coach.last_name?.charAt(0) || "").toUpperCase() || "?"}
+                              </span>
+                            </div>
+                          )}
+                          {/* Referent indicator */}
+                          {coach.assignments.some((a) => a.coach_role === "referent") && (
+                            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                              <Shield className="w-3.5 h-3.5 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Name */}
+                        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                          {coach.first_name || ""} {coach.last_name || ""}
+                        </p>
+
+                        {/* Team assignments */}
+                        <div className="flex flex-wrap justify-center gap-1 mt-1.5">
+                          {coach.assignments.length === 0 ? (
+                            <span className="text-[11px] text-muted-foreground">Aucune équipe</span>
+                          ) : (
+                            coach.assignments.map((a) => (
+                              <Badge
+                                key={a.team_id}
+                                variant={a.coach_role === "referent" ? "default" : "secondary"}
+                                className={`text-[10px] px-1.5 py-0 ${
+                                  a.coach_role === "referent"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground"
+                                }`}
+                              >
+                                {a.team_name}
+                                <span className="ml-0.5 opacity-70">
+                                  {a.coach_role === "referent" ? "• Réf" : "• Ass"}
+                                </span>
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </CollapsibleContent>
           </Collapsible>
