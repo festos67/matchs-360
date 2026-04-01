@@ -164,7 +164,7 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           .maybeSingle();
 
         if (existing && !existing.is_active) {
-          await supabase
+          const { error: updateErr } = await supabase
             .from("team_members")
             .update({
               is_active: true,
@@ -173,14 +173,16 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
               joined_at: new Date().toISOString(),
             })
             .eq("id", existing.id);
+          if (updateErr) throw updateErr;
         } else if (!existing) {
-          await supabase.from("team_members").insert({
+          const { error: insertErr } = await supabase.from("team_members").insert({
             user_id: userId,
             team_id: selectedTeam,
             member_type: newRole === "coach" ? "coach" : "player",
             coach_role: newRole === "coach" ? coachRole : null,
             is_active: true,
           });
+          if (insertErr) throw insertErr;
         }
       }
 
