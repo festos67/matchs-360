@@ -39,7 +39,6 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(player.photo_url || null);
   const [removePhoto, setRemovePhoto] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getInitials = () => {
     const first = firstName?.charAt(0) || player.first_name?.charAt(0) || "";
