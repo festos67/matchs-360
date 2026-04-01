@@ -30,7 +30,7 @@ interface SupporterData {
   first_name: string | null;
   last_name: string | null;
   photo_url: string | null;
-  players: { id: string; name: string; team_name: string | null }[];
+  players: { id: string; name: string; team_id: string | null; team_name: string | null }[];
 }
 
 const STORAGE_KEY = "supporters-collapsed-players";
