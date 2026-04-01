@@ -31,6 +31,7 @@ interface AuthContextType {
   hasAdminRole: boolean;
   signOut: () => Promise<void>;
   setCurrentRole: (role: UserRole) => void;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
