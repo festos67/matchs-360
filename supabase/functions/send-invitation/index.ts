@@ -193,7 +193,7 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const emailResult = await resend.emails.send({
-        from: "MATCHS360 <onboarding@resend.dev>",
+        from: "MATCHS360 <noreply@notify.match360.com>",
         to: [email.toLowerCase()],
         subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
         html: `
@@ -385,7 +385,7 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const notificationResult = await resend.emails.send({
-        from: "MATCHS360 <onboarding@resend.dev>",
+        from: "MATCHS360 <noreply@notify.match360.com>",
         to: [email.toLowerCase()],
         subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
         html: `
