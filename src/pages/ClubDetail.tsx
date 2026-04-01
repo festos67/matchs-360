@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer } from "lucide-react";
+import { Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer, Shield, Building2, UserCircle } from "lucide-react";
 import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -62,7 +62,7 @@ interface ClubFramework {
 
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, profile, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { user, profile, currentRole, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
@@ -275,9 +275,17 @@ export default function ClubDetail() {
 
   return (
     <AppLayout>
-      <p className="text-lg font-medium mb-4">
-        Bonjour {profile?.first_name || user?.email?.split("@")[0]} 👋
-      </p>
+      <div className="mb-6">
+        <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+          Bonjour {profile?.first_name || user?.email?.split("@")[0]}
+          {currentRole?.role === "admin" && <Shield className="w-7 h-7 text-destructive" />}
+          {currentRole?.role === "club_admin" && <Building2 className="w-7 h-7 text-primary" />}
+          {currentRole?.role === "coach" && <UserCog className="w-7 h-7 text-orange-500" />}
+          {currentRole?.role === "player" && <UserCircle className="w-7 h-7 text-green-500" />}
+          {currentRole?.role === "supporter" && <Heart className="w-7 h-7 text-pink-500" />}
+        </h1>
+        <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
+      </div>
       <div className="glass-card p-6 mb-8">
         <div className="flex items-center gap-8">
           <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: club.logo_url ? `url(${club.logo_url}) center/cover` : `linear-gradient(135deg, ${club.primary_color} 0%, ${club.primary_color}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${club.primary_color}40` }}>
