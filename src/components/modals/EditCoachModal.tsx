@@ -68,6 +68,10 @@ export const EditCoachModal = ({
   const [firstName, setFirstName] = useState(coach.first_name || "");
   const [lastName, setLastName] = useState(coach.last_name || "");
   const [activeTab, setActiveTab] = useState("profile");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(coach.photo_url || null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
