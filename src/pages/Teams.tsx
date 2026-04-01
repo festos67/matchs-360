@@ -132,7 +132,7 @@ const Teams = () => {
   const uniqueCoaches = (() => {
     const map = new Map<string, string>();
     teams?.forEach((team) => {
-      team.team_members?.filter((m: any) => m.member_type === "coach").forEach((m: any) => {
+      team.team_members?.filter((m: any) => m.member_type === "coach" && m.is_active).forEach((m: any) => {
         const name = `${m.profiles?.first_name || ""} ${m.profiles?.last_name || ""}`.trim();
         if (name && m.user_id) {
           map.set(m.user_id, name);
@@ -145,7 +145,7 @@ const Teams = () => {
   const filteredTeams = teams?.filter((team) => {
     if (clubFilter !== "all" && team.clubs?.id !== clubFilter) return false;
     if (coachFilter !== "all") {
-      const hasCoach = team.team_members?.some((m: any) => m.member_type === "coach" && m.user_id === coachFilter);
+      const hasCoach = team.team_members?.some((m: any) => m.member_type === "coach" && m.is_active && m.user_id === coachFilter);
       if (!hasCoach) return false;
     }
     if (!searchQuery.trim()) return true;
