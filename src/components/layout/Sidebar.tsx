@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 // Navigation items by role
-const getNavItems = (role: string | undefined, isAdmin: boolean) => {
+const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string | null) => {
   if (isAdmin) {
     return [
       { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
