@@ -391,7 +391,7 @@ const ClubDashboard = () => {
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1">Effectif</p>
                   <div className="grid grid-cols-3 gap-2">
                     <Tooltip><TooltipTrigger asChild>
-                      <div><StatsCard title="Coachs" value={loadingCoaches ? "-" : String(coachesCount || 0)} icon={UserCheck} /></div>
+                      <div><StatsCard title="Coachs" value={loadingCoaches ? "-" : String(coachesCount || 0)} icon={UserCog} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de coachs actifs dans le club</TooltipContent></Tooltip>
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Équipes" value={String(teamsCount)} icon={Users} /></div>
