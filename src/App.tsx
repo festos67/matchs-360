@@ -51,7 +51,7 @@ const App = () => (
             
             {/* Role-based dashboards */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/club/dashboard" element={<ClubDashboard />} />
+            <Route path="/club/redirect" element={<ClubRedirectPage />} />
             <Route path="/coach/dashboard" element={<CoachDashboard />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
