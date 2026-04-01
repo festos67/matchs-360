@@ -16,12 +16,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import {
-  ArrowLeft,
   Save,
   RotateCcw,
   Plus,
   FileText,
-  Building2,
+  BookOpen,
   FileQuestion,
   History,
   Trash2,
