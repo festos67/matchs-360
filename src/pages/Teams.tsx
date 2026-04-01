@@ -64,11 +64,11 @@ const Teams = () => {
   });
 
   const getTeamMemberCount = (team: any) => {
-    return team.team_members?.filter((m: any) => m.member_type === "player").length || 0;
+    return team.team_members?.filter((m: any) => m.member_type === "player" && m.is_active).length || 0;
   };
 
   const getCoachCount = (team: any) => {
-    return team.team_members?.filter((m: any) => m.member_type === "coach").length || 0;
+    return team.team_members?.filter((m: any) => m.member_type === "coach" && m.is_active).length || 0;
   };
 
   const canDeleteTeam = (team: any) => {
