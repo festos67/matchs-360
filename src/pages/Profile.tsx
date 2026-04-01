@@ -22,6 +22,7 @@ import {
   KeyRound,
   Save,
 } from "lucide-react";
+import { PhotoCropModal } from "@/components/shared/PhotoCropModal";
 
 const roleConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   admin: { label: "Administrateur", icon: Shield, color: "bg-destructive text-destructive-foreground" },
