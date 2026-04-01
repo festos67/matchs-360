@@ -32,7 +32,7 @@ const roleConfig: Record<string, { label: string; icon: React.ElementType; color
 };
 
 export default function Profile() {
-  const { user, profile, roles, loading: authLoading } = useAuth();
+  const { user, profile, roles, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
