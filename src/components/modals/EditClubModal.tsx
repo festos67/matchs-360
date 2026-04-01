@@ -197,15 +197,14 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
 
           <div className="space-y-2">
             <Label htmlFor="club-color">Couleur principale</Label>
-            <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10">
               <input
                 type="color"
                 id="club-color"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
-                className="w-10 h-10 rounded cursor-pointer border border-border"
+                className="absolute inset-0 w-full h-full rounded-lg cursor-pointer border border-border"
               />
-              <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="flex-1" />
             </div>
           </div>
           <div className="space-y-2">
