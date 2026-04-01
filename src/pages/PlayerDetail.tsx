@@ -1052,8 +1052,8 @@ export default function PlayerDetail() {
         }
         setActiveTab(newTab);
       }} className="space-y-6">
-        <div className="flex items-center gap-3 max-w-2xl">
-          <TabsList className="bg-muted h-12 p-1 rounded-lg flex-1">
+        <div className="flex items-center gap-3 w-full">
+          <TabsList className="bg-muted h-12 p-1 rounded-lg w-full">
             <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <TrendingUp className="w-4 h-4" />
               Résultat
