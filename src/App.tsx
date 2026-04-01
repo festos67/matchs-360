@@ -33,6 +33,7 @@ import AdminUsers from "./pages/AdminUsers";
 import ResetPassword from "./pages/ResetPassword";
 import MyTeamRedirect from "./pages/MyTeamRedirect";
 import MySupporters from "./pages/player/MySupporters";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
