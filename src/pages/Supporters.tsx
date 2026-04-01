@@ -245,7 +245,7 @@ const Supporters = () => {
           )}
         </div>
 
-        {/* Search */}
+        {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -256,6 +256,28 @@ const Supporters = () => {
               className="pl-10"
             />
           </div>
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Toutes les équipes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {uniqueTeams.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={playerFilter} onValueChange={setPlayerFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Tous les joueurs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les joueurs</SelectItem>
+              {uniquePlayers.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Content */}
