@@ -6,7 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive } from "lucide-react";
+import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive, UserCog } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,16 +24,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 
 const Teams = () => {
   const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
+  const [coachFilter, setCoachFilter] = useState("all");
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["teams", user?.id, currentRole?.role, showArchived],
