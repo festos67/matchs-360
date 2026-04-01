@@ -13,8 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Users, Loader2, Search } from "lucide-react";
+import { Pencil, Users, Loader2, Search, Plus } from "lucide-react";
 import { EditCoachModal } from "@/components/modals/EditCoachModal";
+import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
