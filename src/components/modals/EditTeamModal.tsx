@@ -1,12 +1,32 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Users, Star, Trash2, UserPlus } from "lucide-react";
+import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, Users, Star, Trash2, UserPlus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -37,38 +57,22 @@ interface EditTeamModalProps {
     season: string | null;
     color: string | null;
     club_id: string;
+    description?: string | null;
   };
   onSuccess: () => void;
 }
-
-const TEAM_COLORS = [
-  { name: "Bleu", value: "#3B82F6" },
-  { name: "Rouge", value: "#EF4444" },
-  { name: "Vert", value: "#22C55E" },
-  { name: "Orange", value: "#F97316" },
-  { name: "Violet", value: "#8B5CF6" },
-  { name: "Rose", value: "#EC4899" },
-  { name: "Jaune", value: "#EAB308" },
-  { name: "Cyan", value: "#06B6D4" },
-  { name: "Indigo", value: "#6366F1" },
-  { name: "Lime", value: "#84CC16" },
-];
-
-const SEASONS = [
-  "2024-2025",
-  "2025-2026",
-  "2026-2027",
-];
 
 export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamModalProps) {
   const [name, setName] = useState(team.name);
   const [shortName, setShortName] = useState(team.short_name || "");
   const [color, setColor] = useState(team.color || "#3B82F6");
   const [season, setSeason] = useState(team.season || "2024-2025");
+  const [description, setDescription] = useState(team.description || "");
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [availableCoaches, setAvailableCoaches] = useState<AvailableCoach[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -76,6 +80,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
       setShortName(team.short_name || "");
       setColor(team.color || "#3B82F6");
       setSeason(team.season || "2024-2025");
+      setDescription(team.description || "");
       fetchCoaches();
       fetchAvailableCoaches();
     }
@@ -118,7 +123,6 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
 
   const fetchAvailableCoaches = async () => {
     try {
-      // Get all coaches in the club that are not already in this team
       const { data: clubCoaches, error } = await supabase
         .from("user_roles")
         .select(`
@@ -131,7 +135,6 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
 
       if (error) throw error;
 
-      // Get current team coaches
       const { data: teamCoaches } = await supabase
         .from("team_members")
         .select("user_id")
@@ -169,20 +172,16 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
       toast.error("Il y a déjà un coach référent dans cette équipe");
       return;
     }
-
     try {
       const { error } = await supabase
         .from("team_members")
         .update({ coach_role: newRole })
         .eq("id", coach.memberId);
-
       if (error) throw error;
-
       setCoaches((prev) =>
         prev.map((c) => (c.id === coach.id ? { ...c, coachRole: newRole } : c))
       );
       toast.success("Rôle mis à jour");
-      // Appeler onSuccess pour rafraîchir la page parente
       onSuccess();
     } catch (error: any) {
       console.error("Error updating role:", error);
@@ -196,16 +195,13 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
         .from("team_members")
         .update({ is_active: false, left_at: new Date().toISOString() })
         .eq("id", coach.memberId);
-
       if (error) throw error;
-
       setCoaches((prev) => prev.filter((c) => c.id !== coach.id));
       setAvailableCoaches((prev) => [
         ...prev,
         { id: coach.id, firstName: coach.firstName, lastName: coach.lastName, nickname: coach.nickname },
       ]);
       toast.success("Coach retiré de l'équipe");
-      // Appeler onSuccess pour rafraîchir la page parente immédiatement
       onSuccess();
     } catch (error: any) {
       console.error("Error removing coach:", error);
@@ -215,7 +211,6 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
 
   const handleAddCoach = async (coachId: string) => {
     try {
-      // Check if there's an existing inactive membership
       const { data: existing } = await supabase
         .from("team_members")
         .select("id")
@@ -226,29 +221,24 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
         .maybeSingle();
 
       if (existing) {
-        // Reactivate existing membership
         const { error } = await supabase
           .from("team_members")
           .update({ is_active: true, left_at: null, coach_role: "assistant" })
           .eq("id", existing.id);
-
         if (error) throw error;
       } else {
-        // Create new membership
         const { error } = await supabase.from("team_members").insert({
           team_id: team.id,
           user_id: coachId,
           member_type: "coach",
           coach_role: "assistant",
         });
-
         if (error) throw error;
       }
 
       await fetchCoaches();
       setAvailableCoaches((prev) => prev.filter((c) => c.id !== coachId));
       toast.success("Coach ajouté à l'équipe");
-      // Appeler onSuccess pour rafraîchir la page parente
       onSuccess();
     } catch (error: any) {
       console.error("Error adding coach:", error);
@@ -261,7 +251,6 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
       toast.error("Le nom de l'équipe est requis");
       return;
     }
-
     setSaving(true);
     try {
       const { error } = await supabase
@@ -271,11 +260,10 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
           short_name: shortName.trim().toUpperCase() || null,
           color,
           season,
+          description: description.trim() || null,
         })
         .eq("id", team.id);
-
       if (error) throw error;
-
       toast.success("Équipe mise à jour");
       onSuccess();
       onOpenChange(false);
@@ -288,104 +276,94 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Paramètres de l'équipe
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setCancelConfirmOpen(true);
+          } else {
+            onOpenChange(true);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              Paramètres de l'équipe
+            </DialogTitle>
+          </DialogHeader>
 
-        <Tabs defaultValue="general" className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Général
-            </TabsTrigger>
-            <TabsTrigger value="staff" className="gap-2">
-              <Users className="w-4 h-4" />
-              Staff
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="general" className="space-y-4 mt-4">
+          <div className="space-y-6 mt-4 max-h-[70vh] overflow-y-auto pr-1">
+            {/* Name + Short Name */}
             <div className="grid grid-cols-[1fr,auto] gap-4">
               <div className="space-y-2">
-                <Label htmlFor="team-name">Nom de l'équipe</Label>
+                <Label htmlFor="edit-team-name">Nom de l'équipe</Label>
                 <Input
-                  id="team-name"
+                  id="edit-team-name"
+                  placeholder="U15 A, Seniors B..."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: U13 Elite"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="team-short">Initiales</Label>
+                <Label htmlFor="edit-team-short">Initiales</Label>
                 <Input
-                  id="team-short"
+                  id="edit-team-short"
+                  placeholder="DR1"
+                  maxLength={3}
+                  className="w-20 text-center uppercase font-bold"
                   value={shortName}
                   onChange={(e) => setShortName(e.target.value.slice(0, 3))}
-                  maxLength={3}
-                  placeholder="DR1"
-                  className="w-20 text-center uppercase font-bold"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="team-season">Saison</Label>
-              <Select value={season} onValueChange={setSeason}>
-                <SelectTrigger id="team-season">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SEASONS.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Couleur de l'équipe</Label>
-              <div className="grid grid-cols-5 gap-2">
-                {TEAM_COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    className={`w-full aspect-square rounded-lg border-2 transition-all ${
-                      color === c.value
-                        ? "border-foreground scale-110 shadow-lg"
-                        : "border-transparent hover:scale-105"
-                    }`}
-                    style={{ backgroundColor: c.value }}
-                    onClick={() => setColor(c.value)}
-                    title={c.name}
-                  />
-                ))}
+            {/* Season + Color */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-team-season">Saison</Label>
+                <Input
+                  id="edit-team-season"
+                  placeholder="2024-2025"
+                  value={season}
+                  onChange={(e) => setSeason(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Couleur</Label>
+                <ColorPickerButton value={color} onChange={setColor} />
               </div>
             </div>
 
-            <div className="flex justify-end pt-4">
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? "Enregistrement..." : "Enregistrer"}
-              </Button>
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-team-desc">Description (optionnel)</Label>
+              <Textarea
+                id="edit-team-desc"
+                placeholder="Notes sur l'équipe..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+              />
             </div>
-          </TabsContent>
 
-          <TabsContent value="staff" className="space-y-4 mt-4">
-            {loading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              </div>
-            ) : (
-              <>
-                {/* Current coaches */}
-                <div className="space-y-3">
-                  <Label>Coachs de l'équipe</Label>
+            {/* Coach Management */}
+            <div className="space-y-3 pt-2 border-t border-border">
+              <Label className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-warning" />
+                Staff de l'équipe
+              </Label>
+
+              {loading ? (
+                <div className="flex items-center justify-center h-20">
+                  <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                </div>
+              ) : (
+                <>
                   {coaches.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Aucun coach assigné</p>
                   ) : (
@@ -397,28 +375,26 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
                         >
                           <div className="flex items-center gap-3">
                             <div
-                              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium"
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium shrink-0"
                               style={{ backgroundColor: color }}
                             >
                               {getCoachName(coach).slice(0, 2).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-medium">{getCoachName(coach)}</p>
-                              <div className="flex items-center gap-1">
-                                {coach.coachRole === "referent" && (
-                                  <Badge variant="secondary" className="text-xs gap-1">
-                                    <Star className="w-3 h-3" />
-                                    Référent
-                                  </Badge>
-                                )}
-                              </div>
+                              <p className="font-medium text-sm">{getCoachName(coach)}</p>
+                              {coach.coachRole === "referent" && (
+                                <Badge variant="secondary" className="text-xs gap-1 mt-0.5">
+                                  <Star className="w-3 h-3" />
+                                  Référent
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <div className="flex rounded-md border overflow-hidden">
                               <button
                                 type="button"
-                                className={`px-3 py-1.5 text-xs transition-colors ${
+                                className={`px-2 py-1 text-xs transition-colors ${
                                   coach.coachRole === "referent"
                                     ? "bg-primary text-primary-foreground"
                                     : hasReferent
@@ -427,30 +403,25 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
                                 }`}
                                 onClick={() => handleRoleChange(coach, "referent")}
                                 disabled={hasReferent && coach.coachRole !== "referent"}
-                                title={
-                                  hasReferent && coach.coachRole !== "referent"
-                                    ? "Il y a déjà un coach référent"
-                                    : ""
-                                }
                               >
-                                Référent
+                                Réf.
                               </button>
                               <button
                                 type="button"
-                                className={`px-3 py-1.5 text-xs transition-colors ${
+                                className={`px-2 py-1 text-xs transition-colors ${
                                   coach.coachRole === "assistant"
                                     ? "bg-primary text-primary-foreground"
                                     : "hover:bg-muted"
                                 }`}
                                 onClick={() => handleRoleChange(coach, "assistant")}
                               >
-                                Assistant
+                                Asst.
                               </button>
                             </div>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="text-destructive hover:text-destructive"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
                               onClick={() => handleRemoveCoach(coach)}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -460,45 +431,101 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
                       ))}
                     </div>
                   )}
-                </div>
 
-                {/* Add coach */}
-                {availableCoaches.length > 0 && (
-                  <div className="space-y-3 pt-4 border-t">
-                    <Label>Ajouter un coach</Label>
-                    <div className="space-y-2">
+                  {availableCoaches.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <p className="text-xs text-muted-foreground">Ajouter un coach</p>
                       {availableCoaches.map((coach) => (
                         <div
                           key={coach.id}
-                          className="flex items-center justify-between p-3 rounded-lg border bg-muted/50"
+                          className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
                         >
                           <div className="flex items-center gap-3">
-                            <div
-                              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium bg-muted-foreground/30"
-                            >
+                            <div className="w-9 h-9 rounded-full flex items-center justify-center text-foreground/50 bg-muted font-medium text-sm shrink-0">
                               {getCoachName(coach).slice(0, 2).toUpperCase()}
                             </div>
-                            <p className="font-medium">{getCoachName(coach)}</p>
+                            <p className="font-medium text-sm">{getCoachName(coach)}</p>
                           </div>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="gap-2"
+                            className="gap-1 h-8"
                             onClick={() => handleAddCoach(coach.id)}
                           >
-                            <UserPlus className="w-4 h-4" />
+                            <UserPlus className="w-3.5 h-3.5" />
                             Ajouter
                           </Button>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-              </>
-            )}
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Preview */}
+            <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/30">
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold shrink-0"
+                style={{
+                  background: `linear-gradient(135deg, ${color} 0%, ${color}88 100%)`,
+                  color: "white",
+                }}
+              >
+                {shortName?.toUpperCase() || name?.slice(0, 2).toUpperCase() || "EQ"}
+              </div>
+              <div>
+                <p className="font-medium">{name || "Équipe"}</p>
+                <p className="text-sm text-muted-foreground">{season}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCancelConfirmOpen(true)}
+            >
+              Annuler
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                "Enregistrer"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation */}
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Annuler les modifications ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Les modifications non enregistrées seront perdues. Voulez-vous vraiment annuler ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={() => setCancelConfirmOpen(false)}>
+              Continuer la saisie
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setCancelConfirmOpen(false);
+                onOpenChange(false);
+              }}
+            >
+              Confirmer l'annulation
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
