@@ -47,6 +47,8 @@ const ClubDashboard = () => {
   const { user, loading, currentRole, profile } = useAuth();
 
   const [overviewOpen, setOverviewOpen] = useState(false);
+  const [teamsOpen, setTeamsOpen] = useState(false);
+  const [teamsSearch, setTeamsSearch] = useState("");
 
   const clubId = currentRole?.club_id;
 
