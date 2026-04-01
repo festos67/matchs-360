@@ -11,7 +11,7 @@ import Players from "./pages/Players";
 import Auth from "./pages/Auth";
 import { DashboardRedirect } from "./components/routing/DashboardRedirect";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import ClubDashboard from "./pages/club/ClubDashboard";
+import ClubRedirectPage from "./pages/club/ClubRedirectPage";
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import PlayerDashboard from "./pages/player/PlayerDashboard";
 import SelfEvaluation from "./pages/player/SelfEvaluation";
