@@ -5,6 +5,7 @@ import {
   Users, 
   Trophy, 
   Settings, 
+  BookOpen,
   LogOut,
   Activity,
   Shield,
