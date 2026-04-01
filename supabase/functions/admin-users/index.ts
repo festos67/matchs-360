@@ -175,6 +175,15 @@ Deno.serve(async (req) => {
       const body = await req.json();
       const action = body.action;
 
+      // Restrict certain actions to super admin only
+      const adminOnlyActions = ["promote-admin", "test-update-password"];
+      if (!isAdmin && adminOnlyActions.includes(action)) {
+        return new Response(JSON.stringify({ error: "Forbidden: Super Admin access required" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       // Force validate email
       if (action === "force-validate") {
         const { userId } = body;
