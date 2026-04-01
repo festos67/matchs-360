@@ -212,6 +212,12 @@ const Coaches = () => {
                 : "Gérez les coachs de votre club"}
             </p>
           </div>
+          {(currentRole?.role === "club_admin" && currentRole?.club_id) && (
+            <Button onClick={() => setCreateModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un coach
+            </Button>
+          )}
         </div>
 
         {/* Search & Filters */}
