@@ -228,9 +228,9 @@ const Players = () => {
     });
   }, [players, clubFilter, teamFilter, coachFilter, search]);
 
-  // Group by club for non-coach view
+  // Group by club for admin view only
   const clubGroups = useMemo(() => {
-    if (isCoach) return null;
+    if (useTeamGrouping) return null;
     const groups: Record<string, { clubName: string; players: PlayerData[] }> = {};
     filteredPlayers.forEach((player) => {
       const key = player.club_id || "no-club";
@@ -240,7 +240,7 @@ const Players = () => {
       groups[key].players.push(player);
     });
     return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
-  }, [filteredPlayers, isCoach]);
+  }, [filteredPlayers, useTeamGrouping]);
 
   // Group players by team for coach view
   const teamGroups = useMemo(() => {
