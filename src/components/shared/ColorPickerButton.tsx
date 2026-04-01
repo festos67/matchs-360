@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, Pipette } from "lucide-react";
 import { RgbColorPicker, type RgbColor } from "react-colorful";
-import "react-colorful/dist/index.css";
 
 interface ColorPickerButtonProps {
   value: string;
