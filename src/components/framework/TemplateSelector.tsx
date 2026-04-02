@@ -270,7 +270,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
               <SelectValue placeholder="Choisir une équipe..." />
             </SelectTrigger>
             <SelectContent>
-              {teams.map((team) => (
+              {teamsWithFramework.map((team) => (
                 <SelectItem key={team.id} value={team.id}>
                   {team.name}
                 </SelectItem>
