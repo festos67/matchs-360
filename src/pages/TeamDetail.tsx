@@ -70,6 +70,7 @@ export default function TeamDetail() {
   const [showTeamSettings, setShowTeamSettings] = useState(false);
   const [mutationPlayer, setMutationPlayer] = useState<{ id: string; name: string } | null>(null);
   const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrintFramework = useReactToPrint({
@@ -374,104 +375,74 @@ export default function TeamDetail() {
           )}
 
           {framework ? (
-            <>
-              {/* Framework summary */}
-              <Card className="border-primary/20 bg-primary/5">
-                <CardHeader className="py-5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <BookOpen className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{framework.name}</CardTitle>
-                        <CardDescription>
-                          {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
-                        </CardDescription>
-                      </div>
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader className="py-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-primary" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      {canEditFramework && (
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/teams/${id}/framework`)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Éditer
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
-                        <Printer className="w-4 h-4 mr-2" />
-                        Imprimer
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
-                        <History className="w-4 h-4 mr-2" />
-                        Historique
-                      </Button>
-                      {isAdmin && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                              <RotateCcw className="w-4 h-4 mr-2" />
-                              Réinitialiser
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Annuler</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                Réinitialiser
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                    <div>
+                      <CardTitle className="text-base">{framework.name}</CardTitle>
+                      <CardDescription>
+                        {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
+                      </CardDescription>
                     </div>
                   </div>
-                </CardHeader>
-
-                {/* Themes grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 pb-6">
-                  {framework.themes.map((theme, index) => (
-                    <div 
-                      key={theme.id} 
-                      className="p-4 rounded-lg border animate-fade-in-up opacity-0"
-                      style={{ 
-                        animationDelay: `${index * 0.1}s`,
-                        borderColor: theme.color || teamColor,
-                        backgroundColor: `${theme.color || teamColor}10`
+                  <div className="flex items-center gap-2">
+                    {canEditFramework && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/teams/${id}/framework`);
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Éditer
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrintFramework();
                       }}
                     >
-                      <div className="flex items-center gap-3 mb-3">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: theme.color || teamColor }}
-                        />
-                        <h3 className="font-semibold">{theme.name}</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {theme.skills.length} compétence{theme.skills.length > 1 ? "s" : ""}
-                      </p>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {theme.skills.slice(0, 3).map(skill => (
-                          <Badge key={skill.id} variant="secondary" className="text-xs">
-                            {skill.name}
-                          </Badge>
-                        ))}
-                        {theme.skills.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{theme.skills.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimer
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowFrameworkHistory(true);
+                      }}
+                    >
+                      <History className="w-4 h-4 mr-2" />
+                      Historique
+                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowResetConfirm(true);
+                        }}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-2" />
+                        Réinitialiser
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </Card>
-            </>
+              </CardHeader>
+            </Card>
           ) : (
             /* CTA when no framework */
             <div className="glass-card p-8 flex flex-col items-center justify-center text-center">
@@ -540,6 +511,24 @@ export default function TeamDetail() {
         activeFrameworkId={framework?.id || null}
         onRestored={() => fetchTeamData()}
       />
+
+      {/* Reset Framework Confirmation */}
+      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Réinitialiser
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
