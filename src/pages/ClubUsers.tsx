@@ -108,8 +108,8 @@ export default function ClubUsers() {
   const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [coachFilter, setCoachFilter] = useState("all");
-  const [playerFilter, setPlayerFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [roleTypeFilter, setRoleTypeFilter] = useState("all");
 
   const isClubAdmin = currentRole?.role === "club_admin";
 
