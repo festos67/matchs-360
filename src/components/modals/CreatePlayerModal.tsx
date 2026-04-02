@@ -481,21 +481,44 @@ export const CreatePlayerModal = ({
                 {!defaultTeamId && (
                   <div className="space-y-2">
                     <Label>Équipe</Label>
-                    <Select 
-                      value={watch("teamId")}
-                      onValueChange={(value) => setValue("teamId", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une équipe" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teams.map((team) => (
-                          <SelectItem key={team.id} value={team.id}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={teamSelectOpen} onOpenChange={setTeamSelectOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={teamSelectOpen}
+                          className="w-full justify-between font-normal"
+                        >
+                          {watch("teamId")
+                            ? teams.find((t) => t.id === watch("teamId"))?.name
+                            : "Sélectionner une équipe"}
+                          <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Rechercher une équipe..." />
+                          <CommandList>
+                            <CommandEmpty>Aucune équipe trouvée</CommandEmpty>
+                            <CommandGroup>
+                              {teams.map((team) => (
+                                <CommandItem
+                                  key={team.id}
+                                  value={team.name}
+                                  onSelect={() => {
+                                    setValue("teamId", team.id);
+                                    setTeamSelectOpen(false);
+                                  }}
+                                >
+                                  <Check className={cn("mr-2 h-4 w-4", watch("teamId") === team.id ? "opacity-100" : "opacity-0")} />
+                                  {team.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     {errors.teamId && (
                       <p className="text-sm text-destructive">{errors.teamId.message}</p>
                     )}
