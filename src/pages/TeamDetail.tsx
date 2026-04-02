@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Edit, History, RotateCcw, Target, Check, X } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -375,63 +376,65 @@ export default function TeamDetail() {
           {framework ? (
             <>
               {/* Framework summary */}
-              <div className="glass-card p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-primary" />
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader className="py-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">{framework.name}</CardTitle>
+                        <CardDescription>
+                          {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-sm font-display font-semibold text-foreground uppercase tracking-wide">{framework.name}</h2>
-                      <p className="text-muted-foreground text-sm">
-                        {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {canEditFramework && (
-                      <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate(`/teams/${id}/framework`)}>
-                        <Edit className="w-4 h-4" />
-                        Éditer
+                    <div className="flex items-center gap-2">
+                      {canEditFramework && (
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/teams/${id}/framework`)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Éditer
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
+                        <Printer className="w-4 h-4 mr-2" />
+                        Imprimer
                       </Button>
-                    )}
-                    <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrintFramework()}>
-                      <Printer className="w-4 h-4" />
-                      Imprimer
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowFrameworkHistory(true)}>
-                      <History className="w-4 h-4" />
-                      Historique
-                    </Button>
-                    {isAdmin && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive">
-                            <RotateCcw className="w-4 h-4" />
-                            Réinitialiser
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
+                        <History className="w-4 h-4 mr-2" />
+                        Historique
+                      </Button>
+                      {isAdmin && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                              <RotateCcw className="w-4 h-4 mr-2" />
                               Réinitialiser
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Réinitialiser
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </CardHeader>
 
                 {/* Themes grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 pb-6">
                   {framework.themes.map((theme, index) => (
                     <div 
                       key={theme.id} 
@@ -467,7 +470,7 @@ export default function TeamDetail() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             </>
           ) : (
             /* CTA when no framework */
