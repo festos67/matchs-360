@@ -347,26 +347,27 @@ export default function ClubUsers() {
               className="pl-10"
             />
           </div>
-          <Select value={coachFilter} onValueChange={setCoachFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tous les coachs" />
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Toutes les équipes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les coachs</SelectItem>
-              {uniqueCoaches.map(coach => (
-                <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {uniqueTeams.map(team => (
+                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={playerFilter} onValueChange={setPlayerFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tous les joueurs" />
+          <Select value={roleTypeFilter} onValueChange={setRoleTypeFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Tous les types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les joueurs</SelectItem>
-              {uniquePlayers.map(player => (
-                <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
-              ))}
+              <SelectItem value="all">Tous les types</SelectItem>
+              <SelectItem value="club_admin">Responsable club</SelectItem>
+              <SelectItem value="coach">Coach</SelectItem>
+              <SelectItem value="player">Joueur</SelectItem>
+              <SelectItem value="supporter">Supporter</SelectItem>
             </SelectContent>
           </Select>
         </div>
