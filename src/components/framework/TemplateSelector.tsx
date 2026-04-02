@@ -36,6 +36,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [clubTemplates, setClubTemplates] = useState<Template[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [teamsWithFramework, setTeamsWithFramework] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
@@ -73,7 +74,18 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       .eq("club_id", clubId)
       .neq("id", teamId);
     
-    if (data) setTeams(data);
+    if (data) {
+      setTeams(data);
+      // Check which teams have a framework
+      const { data: frameworks } = await supabase
+        .from("competence_frameworks")
+        .select("team_id")
+        .eq("is_archived", false)
+        .in("team_id", data.map(t => t.id));
+      
+      const teamIdsWithFw = new Set((frameworks || []).map(f => f.team_id));
+      setTeamsWithFramework(data.filter(t => teamIdsWithFw.has(t.id)));
+    }
   };
 
   const fetchStandardStats = async () => {
@@ -190,12 +202,12 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       id: "team",
       icon: Users,
       title: "Copier une équipe",
-      description: teams.length > 0 
+      description: teamsWithFramework.length > 0 
         ? "Dupliquer le référentiel d'une autre équipe" 
-        : "Aucune autre équipe disponible",
+        : "Aucune équipe n'a encore paramétré son référentiel",
       color: "text-warning",
       bgColor: "bg-warning/10",
-      disabled: teams.length === 0,
+      disabled: teamsWithFramework.length === 0,
     },
     {
       id: "empty",
@@ -248,7 +260,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       </div>
 
       {/* Team selector when "team" is selected */}
-      {selectedOption === "team" && teams.length > 0 && (
+      {selectedOption === "team" && teamsWithFramework.length > 0 && (
         <div className="glass-card p-4 mb-8">
           <label className="text-sm font-medium mb-2 block">
             Sélectionner l'équipe source
@@ -258,7 +270,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
               <SelectValue placeholder="Choisir une équipe..." />
             </SelectTrigger>
             <SelectContent>
-              {teams.map((team) => (
+              {teamsWithFramework.map((team) => (
                 <SelectItem key={team.id} value={team.id}>
                   {team.name}
                 </SelectItem>
