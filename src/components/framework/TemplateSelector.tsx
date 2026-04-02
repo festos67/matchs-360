@@ -260,7 +260,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       </div>
 
       {/* Team selector when "team" is selected */}
-      {selectedOption === "team" && teams.length > 0 && (
+      {selectedOption === "team" && teamsWithFramework.length > 0 && (
         <div className="glass-card p-4 mb-8">
           <label className="text-sm font-medium mb-2 block">
             Sélectionner l'équipe source
