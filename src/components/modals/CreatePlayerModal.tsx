@@ -101,6 +101,7 @@ export const CreatePlayerModal = ({
   const [selectedPlayer, setSelectedPlayer] = useState<TransferablePlayer | null>(null);
   const [playerSelectOpen, setPlayerSelectOpen] = useState(false);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [teamSelectOpen, setTeamSelectOpen] = useState(false);
 
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
