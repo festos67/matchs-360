@@ -266,13 +266,11 @@ export default function ClubUsers() {
     return user.email.split("@")[0];
   };
 
-  const uniqueCoaches = users
-    .filter(u => u.team_memberships.some(m => m.member_type === "coach" && m.is_active))
-    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
-
-  const uniquePlayers = users
-    .filter(u => u.team_memberships.some(m => m.member_type === "player" && m.is_active))
-    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
+  const uniqueTeams = Array.from(
+    new Map(
+      users.flatMap(u => u.team_memberships.filter(m => m.is_active).map(m => [m.team_id, m.team_name]))
+    ).entries()
+  ).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
 
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
@@ -282,10 +280,16 @@ export default function ClubUsers() {
       user.last_name?.toLowerCase().includes(searchLower) ||
       user.nickname?.toLowerCase().includes(searchLower);
 
-    const matchesCoach = coachFilter === "all" || user.id === coachFilter;
-    const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
+    const matchesTeam = teamFilter === "all" || 
+      user.team_memberships.some(m => m.team_id === teamFilter && m.is_active);
 
-    return matchesSearch && matchesCoach && matchesPlayer;
+    const matchesRoleType = roleTypeFilter === "all" ||
+      (roleTypeFilter === "club_admin" && user.roles.some(r => r.role === "club_admin")) ||
+      (roleTypeFilter === "coach" && user.team_memberships.some(m => m.member_type === "coach" && m.is_active)) ||
+      (roleTypeFilter === "player" && user.team_memberships.some(m => m.member_type === "player" && m.is_active)) ||
+      (roleTypeFilter === "supporter" && user.roles.some(r => r.role === "supporter"));
+
+    return matchesSearch && matchesTeam && matchesRoleType;
   });
 
   if (authLoading || loading) {
