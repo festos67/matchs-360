@@ -74,7 +74,18 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       .eq("club_id", clubId)
       .neq("id", teamId);
     
-    if (data) setTeams(data);
+    if (data) {
+      setTeams(data);
+      // Check which teams have a framework
+      const { data: frameworks } = await supabase
+        .from("competence_frameworks")
+        .select("team_id")
+        .eq("is_archived", false)
+        .in("team_id", data.map(t => t.id));
+      
+      const teamIdsWithFw = new Set((frameworks || []).map(f => f.team_id));
+      setTeamsWithFramework(data.filter(t => teamIdsWithFw.has(t.id)));
+    }
   };
 
   const fetchStandardStats = async () => {
