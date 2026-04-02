@@ -425,7 +425,7 @@ export default function TeamDetail() {
                       <History className="w-4 h-4 mr-2" />
                       Historique
                     </Button>
-                    {isAdmin && (
+                    {canEditFramework && (
                       <Button
                         variant="outline"
                         size="sm"
