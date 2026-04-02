@@ -202,12 +202,12 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       id: "team",
       icon: Users,
       title: "Copier une équipe",
-      description: teams.length > 0 
+      description: teamsWithFramework.length > 0 
         ? "Dupliquer le référentiel d'une autre équipe" 
-        : "Aucune autre équipe disponible",
+        : "Aucune équipe n'a encore paramétré son référentiel",
       color: "text-warning",
       bgColor: "bg-warning/10",
-      disabled: teams.length === 0,
+      disabled: teamsWithFramework.length === 0,
     },
     {
       id: "empty",
