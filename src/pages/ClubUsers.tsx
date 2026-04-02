@@ -108,8 +108,8 @@ export default function ClubUsers() {
   const [resetPasswordUser, setResetPasswordUser] = useState<AdminUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [coachFilter, setCoachFilter] = useState("all");
-  const [playerFilter, setPlayerFilter] = useState("all");
+  const [teamFilter, setTeamFilter] = useState("all");
+  const [roleTypeFilter, setRoleTypeFilter] = useState("all");
 
   const isClubAdmin = currentRole?.role === "club_admin";
 
@@ -266,13 +266,11 @@ export default function ClubUsers() {
     return user.email.split("@")[0];
   };
 
-  const uniqueCoaches = users
-    .filter(u => u.team_memberships.some(m => m.member_type === "coach" && m.is_active))
-    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
-
-  const uniquePlayers = users
-    .filter(u => u.team_memberships.some(m => m.member_type === "player" && m.is_active))
-    .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
+  const uniqueTeams = Array.from(
+    new Map(
+      users.flatMap(u => u.team_memberships.filter(m => m.is_active).map(m => [m.team_id, m.team_name]))
+    ).entries()
+  ).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
 
   const filteredUsers = users.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
@@ -282,10 +280,16 @@ export default function ClubUsers() {
       user.last_name?.toLowerCase().includes(searchLower) ||
       user.nickname?.toLowerCase().includes(searchLower);
 
-    const matchesCoach = coachFilter === "all" || user.id === coachFilter;
-    const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
+    const matchesTeam = teamFilter === "all" || 
+      user.team_memberships.some(m => m.team_id === teamFilter && m.is_active);
 
-    return matchesSearch && matchesCoach && matchesPlayer;
+    const matchesRoleType = roleTypeFilter === "all" ||
+      (roleTypeFilter === "club_admin" && user.roles.some(r => r.role === "club_admin")) ||
+      (roleTypeFilter === "coach" && user.team_memberships.some(m => m.member_type === "coach" && m.is_active)) ||
+      (roleTypeFilter === "player" && user.team_memberships.some(m => m.member_type === "player" && m.is_active)) ||
+      (roleTypeFilter === "supporter" && user.roles.some(r => r.role === "supporter"));
+
+    return matchesSearch && matchesTeam && matchesRoleType;
   });
 
   if (authLoading || loading) {
@@ -343,26 +347,27 @@ export default function ClubUsers() {
               className="pl-10"
             />
           </div>
-          <Select value={coachFilter} onValueChange={setCoachFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tous les coachs" />
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Toutes les équipes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les coachs</SelectItem>
-              {uniqueCoaches.map(coach => (
-                <SelectItem key={coach.id} value={coach.id}>{coach.name}</SelectItem>
+              <SelectItem value="all">Toutes les équipes</SelectItem>
+              {uniqueTeams.map(team => (
+                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select value={playerFilter} onValueChange={setPlayerFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tous les joueurs" />
+          <Select value={roleTypeFilter} onValueChange={setRoleTypeFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Tous les types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les joueurs</SelectItem>
-              {uniquePlayers.map(player => (
-                <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
-              ))}
+              <SelectItem value="all">Tous les types</SelectItem>
+              <SelectItem value="club_admin">Responsable club</SelectItem>
+              <SelectItem value="coach">Coach</SelectItem>
+              <SelectItem value="player">Joueur</SelectItem>
+              <SelectItem value="supporter">Supporter</SelectItem>
             </SelectContent>
           </Select>
         </div>
