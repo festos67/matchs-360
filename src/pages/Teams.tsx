@@ -142,7 +142,17 @@ const Teams = () => {
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   })();
 
-  const filteredTeams = teams?.filter((team) => {
+  // When acting as coach, only show teams where user is coach
+  const roleFilteredTeams = (() => {
+    if (currentRole?.role === "coach" && user) {
+      return teams?.filter((team) =>
+        team.team_members?.some((m: any) => m.member_type === "coach" && m.is_active && m.user_id === user.id)
+      );
+    }
+    return teams;
+  })();
+
+  const filteredTeams = roleFilteredTeams?.filter((team) => {
     if (clubFilter !== "all" && team.clubs?.id !== clubFilter) return false;
     if (coachFilter !== "all") {
       const hasCoach = team.team_members?.some((m: any) => m.member_type === "coach" && m.is_active && m.user_id === coachFilter);
