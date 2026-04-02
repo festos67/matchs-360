@@ -444,7 +444,6 @@ export default function TeamDetail() {
               </CardHeader>
             </Card>
           )
-          ) : (
             /* CTA when no framework */
             <div className="glass-card p-8 flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
