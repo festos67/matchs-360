@@ -511,6 +511,24 @@ export default function TeamDetail() {
         activeFrameworkId={framework?.id || null}
         onRestored={() => fetchTeamData()}
       />
+
+      {/* Reset Framework Confirmation */}
+      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Réinitialiser
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
