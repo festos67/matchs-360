@@ -478,7 +478,7 @@ export const CreatePlayerModal = ({
                   </p>
                 </div>
 
-                {!defaultTeamId && (
+                {(
                   <div className="space-y-2">
                     <Label>Équipe</Label>
                     <Popover open={teamSelectOpen} onOpenChange={setTeamSelectOpen}>
