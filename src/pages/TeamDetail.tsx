@@ -470,7 +470,7 @@ export default function TeamDetail() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             </>
           ) : (
             /* CTA when no framework */
