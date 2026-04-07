@@ -932,9 +932,8 @@ export default function PlayerDetail() {
               {isAdmin && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" title="Supprimer définitivement ce joueur">
+                    <Button variant="destructive" size="icon" className="w-full h-9" title="Supprimer définitivement ce joueur">
                       <Trash2 className="w-4 h-4" />
-                      Supprimer joueur
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -982,7 +981,7 @@ export default function PlayerDetail() {
 
             {/* Bloc Gestion des supporters (isolé) */}
             {canEvaluate && teamMembership && (
-              <div>
+              <div className="self-start">
                 <Button variant="outline" size="sm" className="gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
                   <Users className="w-4 h-4 text-primary" />
                   Gestion des supporters
