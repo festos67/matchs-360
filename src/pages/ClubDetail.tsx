@@ -157,6 +157,14 @@ export default function ClubDetail() {
         .eq("club_id", id!);
       setPlayerCount(players || 0);
 
+      // Fetch supporter count (via user_roles with role=supporter in this club)
+      const { count: supporters } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "supporter")
+        .eq("club_id", id!);
+      setSupporterCount(supporters || 0);
+
       // Fetch club framework
       const { data: frameworkData } = await supabase
         .from("competence_frameworks")
