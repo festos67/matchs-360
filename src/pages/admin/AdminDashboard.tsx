@@ -20,6 +20,7 @@ import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
+import { CreateClubModal } from "@/components/modals/CreateClubModal";
 
 const SectionHeader = ({
   title,
@@ -56,6 +57,7 @@ const AdminDashboard = () => {
   const [debriefsTeamFilter, setDebriefsTeamFilter] = useState("all");
   const [debriefsCoachFilter, setDebriefsCoachFilter] = useState("all");
   const [createEvalOpen, setCreateEvalOpen] = useState(false);
+  const [createClubOpen, setCreateClubOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -359,11 +361,9 @@ const AdminDashboard = () => {
               isOpen={clubsOpen}
               onToggle={() => setClubsOpen(!clubsOpen)}
               action={
-                <Button size="sm" className="min-w-[160px]" asChild>
-                  <Link to="/clubs">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Nouveau club
-                  </Link>
+                <Button size="sm" className="min-w-[160px]" onClick={() => setCreateClubOpen(true)}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nouveau club
                 </Button>
               }
             />
@@ -549,6 +549,13 @@ const AdminDashboard = () => {
         open={createEvalOpen}
         onOpenChange={setCreateEvalOpen}
         onSuccess={() => refetchDebriefs()}
+      />
+      <CreateClubModal
+        open={createClubOpen}
+        onOpenChange={setCreateClubOpen}
+        onSuccess={() => {
+          setCreateClubOpen(false);
+        }}
       />
     </AppLayout>
   );
