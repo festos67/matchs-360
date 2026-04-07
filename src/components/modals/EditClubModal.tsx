@@ -52,8 +52,9 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Veuillez sélectionner une image");
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Format non supporté. Utilisez JPEG, PNG ou GIF");
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
@@ -176,7 +177,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif"
                 onChange={handleLogoSelect}
                 className="hidden"
               />
@@ -191,7 +192,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
                 </Button>
               )}
               <p className="text-xs text-muted-foreground">
-                JPG, PNG ou SVG — 2 Mo max
+                JPG, PNG ou GIF — 2 Mo max
               </p>
             </div>
           </div>

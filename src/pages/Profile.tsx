@@ -98,6 +98,11 @@ export default function Profile() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Format non supporté. Utilisez JPEG, PNG ou GIF");
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.error("La photo ne doit pas dépasser 5 Mo");
       return;
