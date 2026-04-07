@@ -97,6 +97,7 @@ export default function PlayerDetail() {
   const printRef = useRef<HTMLDivElement>(null);
   const historyPrintRef = useRef<HTMLDivElement>(null);
   const frameworkPrintRef = useRef<HTMLDivElement>(null);
+  const radarSectionRef = useRef<HTMLDivElement>(null);
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
@@ -145,6 +146,12 @@ export default function PlayerDetail() {
 
   const scrollToTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const scrollToRadar = useCallback(() => {
+    setTimeout(() => {
+      radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   }, []);
 
   const handlePrint = useReactToPrint({
@@ -855,23 +862,25 @@ export default function PlayerDetail() {
                             {hasDraftEvaluation ? (
                               <>
                                 <AlertDialogAction onClick={() => {
-                                  setIsCreatingNew(true);
+                                   setIsCreatingNew(true);
                                   setNewEvalKey(k => k + 1);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("evaluation");
+                                  setActiveTab("radar");
+                                  scrollToRadar();
                                 }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
                                   Nouveau débrief
                                 </AlertDialogAction>
                                 <AlertDialogAction onClick={() => {
                                   setIsCreatingNew(false);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("evaluation");
+                                  setActiveTab("radar");
+                                  scrollToRadar();
                                 }}>
                                   Poursuivre le débrief
                                 </AlertDialogAction>
                               </>
                             ) : (
-                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
+                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("radar"); scrollToRadar(); }}>
                                 Confirmer
                               </AlertDialogAction>
                             )}
@@ -1086,7 +1095,7 @@ export default function PlayerDetail() {
         </div>
 
         {/* Radar Tab */}
-        <TabsContent value="radar" className="space-y-6">
+        <TabsContent value="radar" className="space-y-6" ref={radarSectionRef}>
           {isViewingHistory && (
             <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
               <span className="text-sm text-warning">
