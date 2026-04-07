@@ -590,6 +590,14 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
           </CollapsibleContent>
         </Collapsible>
       </div>
+      {editCoach && (
+        <EditCoachModal
+          open={!!editCoach}
+          onOpenChange={(open) => { if (!open) setEditCoach(null); }}
+          coach={editCoach}
+          onSuccess={() => setEditCoach(null)}
+        />
+      )}
     </div>
   );
 };
