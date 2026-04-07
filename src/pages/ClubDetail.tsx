@@ -141,23 +141,30 @@ export default function ClubDetail() {
         setArchivedTeams(archivedData || []);
       }
 
-      // Fetch coach count (via user_roles with role=coach in this club)
-      const { count: coaches } = await supabase
-        .from("user_roles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "coach")
-        .eq("club_id", id!);
-      setCoachCount(coaches || 0);
+      // Fetch coach count (via team_members to match dashboard)
+      const activeTeamIds = (teamsData || []).map(t => t.id);
+      if (activeTeamIds.length > 0) {
+        const { count: coaches } = await supabase
+          .from("team_members")
+          .select("*", { count: "exact", head: true })
+          .in("team_id", activeTeamIds)
+          .eq("member_type", "coach")
+          .eq("is_active", true);
+        setCoachCount(coaches || 0);
 
-      // Fetch player count (via user_roles with role=player in this club)
-      const { count: players } = await supabase
-        .from("user_roles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "player")
-        .eq("club_id", id!);
-      setPlayerCount(players || 0);
+        const { count: players } = await supabase
+          .from("team_members")
+          .select("*", { count: "exact", head: true })
+          .in("team_id", activeTeamIds)
+          .eq("member_type", "player")
+          .eq("is_active", true);
+        setPlayerCount(players || 0);
+      } else {
+        setCoachCount(0);
+        setPlayerCount(0);
+      }
 
-      // Fetch supporter count (via user_roles with role=supporter in this club)
+      // Fetch supporter count (via user_roles, supporters aren't in team_members)
       const { count: supporters } = await supabase
         .from("user_roles")
         .select("*", { count: "exact", head: true })
