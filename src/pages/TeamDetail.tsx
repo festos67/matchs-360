@@ -211,7 +211,7 @@ export default function TeamDetail() {
               {team.season && <Badge variant="secondary">{team.season}</Badge>}
             </div>
           </div>
-          {canManageTeam && (
+          {canManageTeam && !isPlayerViewing && (
             <div className="flex items-start gap-2">
               <div className="flex flex-col gap-1.5">
                 {(isAdmin || isClubAdmin) && (
