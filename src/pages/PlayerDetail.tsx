@@ -1503,10 +1503,18 @@ export default function PlayerDetail() {
                     </p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrintFramework()}>
-                  <Download className="w-4 h-4" />
-                  Imprimer
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrintFramework()}>
+                    <Download className="w-4 h-4" />
+                    Imprimer
+                  </Button>
+                  {isPlayerViewingOwnProfile && (
+                    <Button size="sm" className="gap-2 bg-emerald-500 hover:bg-emerald-600 text-white" onClick={() => navigate("/player/self-evaluation")}>
+                      <Star className="w-4 h-4" />
+                      M'auto-débriefer
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">
