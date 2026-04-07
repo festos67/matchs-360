@@ -823,7 +823,7 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 -ml-2">
+          {!isPlayerViewingOwnProfile && <div className="flex items-start gap-2 -ml-2">
             <div className="flex flex-col gap-4 min-w-[220px]">
               {/* Bloc Débriefs */}
               <div className="flex flex-col gap-1.5">
