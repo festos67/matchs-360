@@ -41,7 +41,7 @@ interface PlayerData {
 const STORAGE_KEY = "players-collapsed-teams";
 
 const Players = () => {
-  const { hasAdminRole: isAdmin, currentRole } = useAuth();
+  const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
   const navigate = useNavigate();
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,8 +97,18 @@ const Players = () => {
 
       if (error) throw error;
 
-      const playerMembers = (teamMembers || []).filter((tm) => tm.member_type === "player");
-      const coachMembers = (teamMembers || []).filter((tm) => tm.member_type === "coach");
+      let allMembers = teamMembers || [];
+      
+      // If logged in as coach, restrict to only the teams where this user is a coach
+      if (currentRole?.role === "coach" && user) {
+        const coachTeamIds = allMembers
+          .filter((tm) => tm.member_type === "coach" && tm.user_id === user.id)
+          .map((tm) => tm.team_id);
+        allMembers = allMembers.filter((tm) => coachTeamIds.includes(tm.team_id));
+      }
+      
+      const playerMembers = allMembers.filter((tm) => tm.member_type === "player");
+      const coachMembers = allMembers.filter((tm) => tm.member_type === "coach");
 
       const userIds = [...new Set(playerMembers.map((tm) => tm.user_id))];
 
