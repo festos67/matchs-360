@@ -70,6 +70,7 @@ export default function ClubDetail() {
   const [clubFramework, setClubFramework] = useState<ClubFramework | null>(null);
   const [coachCount, setCoachCount] = useState(0);
   const [playerCount, setPlayerCount] = useState(0);
+  const [supporterCount, setSupporterCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
