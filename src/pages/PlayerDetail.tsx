@@ -873,7 +873,8 @@ export default function PlayerDetail() {
                                 <AlertDialogAction onClick={() => {
                                   setIsCreatingNew(false);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("evaluation");
+                                  setActiveTab("radar");
+                                  scrollToRadar();
                                 }}>
                                   Poursuivre le débrief
                                 </AlertDialogAction>
