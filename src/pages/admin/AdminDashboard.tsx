@@ -550,6 +550,13 @@ const AdminDashboard = () => {
         onOpenChange={setCreateEvalOpen}
         onSuccess={() => refetchDebriefs()}
       />
+      <CreateClubModal
+        open={createClubOpen}
+        onOpenChange={setCreateClubOpen}
+        onSuccess={() => {
+          setCreateClubOpen(false);
+        }}
+      />
     </AppLayout>
   );
 };
