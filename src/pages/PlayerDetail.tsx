@@ -1062,7 +1062,7 @@ export default function PlayerDetail() {
             </TabsTrigger>
             <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <RotateCcw className="w-4 h-4" />
-              Historique
+              Évolution
             </TabsTrigger>
              {frameworkId && themes.length > 0 && (
               <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
