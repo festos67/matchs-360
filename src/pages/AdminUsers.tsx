@@ -516,7 +516,7 @@ export default function AdminUsers() {
                         onClick={() => setEditingUser(user)}
                         title="Modifier"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4 text-blue-500" />
                       </Button>
                       <Button
                         size="sm"
