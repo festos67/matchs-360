@@ -309,6 +309,7 @@ export default function ClubDetail() {
               <span className="flex items-center gap-1.5">• {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {coachCount} coach{coachCount > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {playerCount} joueur{playerCount > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-1.5">• {supporterCount} supporter{supporterCount > 1 ? "s" : ""}</span>
             </div>
           </div>
           {canManageClub && (
