@@ -865,7 +865,7 @@ export default function PlayerDetail() {
                                    setIsCreatingNew(true);
                                   setNewEvalKey(k => k + 1);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("radar");
+                                  setActiveTab("evaluation");
                                   scrollToRadar();
                                 }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
                                   Nouveau débrief
@@ -873,14 +873,14 @@ export default function PlayerDetail() {
                                 <AlertDialogAction onClick={() => {
                                   setIsCreatingNew(false);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("radar");
+                                  setActiveTab("evaluation");
                                   scrollToRadar();
                                 }}>
                                   Poursuivre le débrief
                                 </AlertDialogAction>
                               </>
                             ) : (
-                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("radar"); scrollToRadar(); }}>
+                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); scrollToRadar(); }}>
                                 Confirmer
                               </AlertDialogAction>
                             )}
