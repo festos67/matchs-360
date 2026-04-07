@@ -986,7 +986,7 @@ export default function PlayerDetail() {
                 </AlertDialog>
               )}
             </div>
-          </div>
+          </div>}
         </div>
       </div>
 
