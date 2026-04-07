@@ -831,7 +831,7 @@ export default function PlayerDetail() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button className="w-full gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-base px-4" title="Créer un nouveau débrief coach pour ce joueur">
-                        <ClipboardList className="w-5 h-5" />Débrief coach
+                        <ClipboardList className="w-5 h-5" />Nouveau débrief coach
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
