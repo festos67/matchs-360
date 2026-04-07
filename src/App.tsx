@@ -13,6 +13,7 @@ import { DashboardRedirect } from "./components/routing/DashboardRedirect";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClubRedirectPage from "./pages/club/ClubRedirectPage";
 import CoachDashboard from "./pages/coach/CoachDashboard";
+import CoachMyClub from "./pages/coach/CoachMyClub";
 import PlayerDashboard from "./pages/player/PlayerDashboard";
 import SelfEvaluation from "./pages/player/SelfEvaluation";
 import SupporterDashboard from "./pages/supporter/SupporterDashboard";
@@ -54,7 +55,8 @@ const App = () => (
             {/* Role-based dashboards */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/club/redirect" element={<ClubRedirectPage />} />
-            <Route path="/coach/dashboard" element={<CoachDashboard />} />
+            <Route path="/coach/dashboard" element={<CoachMyClub />} />
+            <Route path="/coach/my-club" element={<CoachMyClub />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
             <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
             <Route path="/supporter/dashboard" element={<SupporterDashboard />} />
