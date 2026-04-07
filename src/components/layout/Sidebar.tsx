@@ -46,11 +46,11 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
       ];
     case "coach":
       return [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/coach/dashboard" },
+        { icon: Building2, label: "Mon Club", path: "/coach/my-club" },
         { icon: Users, label: "Mes Équipes", path: "/teams" },
         { icon: UserCircle, label: "Mes Joueurs", path: "/players" },
-        { icon: Heart, label: "Supporters", path: "/supporters" },
-        { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
+        { icon: Heart, label: "Les Supporters", path: "/supporters" },
+        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
       ];
     case "player":
       return [
@@ -92,7 +92,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
     if (isAdmin) return "/admin/dashboard";
     switch (currentRole?.role) {
       case "club_admin": return "/club/redirect";
-      case "coach": return "/coach/dashboard";
+      case "coach": return "/coach/my-club";
       case "player":
       case "supporter": return "/player/dashboard";
       default: return "/dashboard";
