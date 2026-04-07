@@ -862,10 +862,11 @@ export default function PlayerDetail() {
                             {hasDraftEvaluation ? (
                               <>
                                 <AlertDialogAction onClick={() => {
-                                  setIsCreatingNew(true);
+                                   setIsCreatingNew(true);
                                   setNewEvalKey(k => k + 1);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("evaluation");
+                                  setActiveTab("radar");
+                                  scrollToRadar();
                                 }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
                                   Nouveau débrief
                                 </AlertDialogAction>
@@ -878,7 +879,7 @@ export default function PlayerDetail() {
                                 </AlertDialogAction>
                               </>
                             ) : (
-                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
+                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("radar"); scrollToRadar(); }}>
                                 Confirmer
                               </AlertDialogAction>
                             )}
