@@ -276,7 +276,7 @@ export default function Profile() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/gif"
                 className="hidden"
                 onChange={handlePhotoChange}
               />
