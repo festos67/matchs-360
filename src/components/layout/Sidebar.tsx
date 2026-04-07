@@ -127,6 +127,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
              item.path !== "/club/redirect" && 
              item.path !== "/coach/dashboard" && 
              item.path !== "/player/dashboard" && 
+             item.path !== "/player/profile" && 
              location.pathname.startsWith(item.path) &&
              // Avoid parent path matching when a more specific sibling path matches
              !navItems.some(other => other.path !== item.path && other.path.startsWith(item.path) && location.pathname.startsWith(other.path)));
