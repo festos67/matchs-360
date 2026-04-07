@@ -148,6 +148,12 @@ export default function PlayerDetail() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  const scrollToRadar = useCallback(() => {
+    setTimeout(() => {
+      radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }, []);
+
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}`,
