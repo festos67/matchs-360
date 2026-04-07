@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
+import { EditCoachModal } from "@/components/modals/EditCoachModal";
 
 const SectionHeader = ({
   title,
@@ -54,7 +55,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
   const [coachesOpen, setCoachesOpen] = useState(false);
   const [teamsSearch, setTeamsSearch] = useState("");
   const [coachesSearch, setCoachesSearch] = useState("");
-
+  const [editCoach, setEditCoach] = useState<any>(null);
   // Helper: get team IDs for this club
   const { data: clubTeamIds } = useQuery({
     queryKey: ["club-team-ids", clubId],
@@ -519,7 +520,19 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
                     <div
                       key={coach.id}
                       className="flex flex-col items-center text-center group cursor-pointer"
-                      onClick={() => navigate(`/coaches`)}
+                      onClick={() => setEditCoach({
+                        id: coach.id,
+                        email: coach.email,
+                        first_name: coach.first_name,
+                        last_name: coach.last_name,
+                        photo_url: coach.photo_url,
+                        club_id: clubId,
+                        assignments: coach.assignments.map(a => ({
+                          team_id: a.team_id,
+                          team_name: a.team_name,
+                          coach_role: a.coach_role || "assistant",
+                        })),
+                      })}
                     >
                       <div className="relative mb-2">
                         {coach.photo_url ? (
@@ -577,6 +590,14 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
           </CollapsibleContent>
         </Collapsible>
       </div>
+      {editCoach && (
+        <EditCoachModal
+          open={!!editCoach}
+          onOpenChange={(open) => { if (!open) setEditCoach(null); }}
+          coach={editCoach}
+          onSuccess={() => setEditCoach(null)}
+        />
+      )}
     </div>
   );
 };
