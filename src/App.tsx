@@ -15,6 +15,7 @@ import ClubRedirectPage from "./pages/club/ClubRedirectPage";
 import CoachDashboard from "./pages/coach/CoachDashboard";
 import CoachMyClub from "./pages/coach/CoachMyClub";
 import PlayerDashboard from "./pages/player/PlayerDashboard";
+import PlayerProfileRedirect from "./pages/player/PlayerProfileRedirect";
 import SelfEvaluation from "./pages/player/SelfEvaluation";
 import SupporterDashboard from "./pages/supporter/SupporterDashboard";
 import SupporterEvaluation from "./pages/supporter/SupporterEvaluation";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/coach/dashboard" element={<CoachMyClub />} />
             <Route path="/coach/my-club" element={<CoachMyClub />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
+            <Route path="/player/profile" element={<PlayerProfileRedirect />} />
             <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
             <Route path="/supporter/dashboard" element={<SupporterDashboard />} />
             <Route path="/supporter/evaluate/:requestId" element={<SupporterEvaluation />} />

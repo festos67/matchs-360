@@ -54,7 +54,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
       ];
     case "player":
       return [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
+        { icon: UserCircle, label: "Mon Profil", path: "/player/profile" },
         { icon: Users, label: "Mon Équipe", path: "/my-team" },
         { icon: Heart, label: "Mes Supporters", path: "/my-supporters" },
         { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
@@ -93,7 +93,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
     switch (currentRole?.role) {
       case "club_admin": return "/club/redirect";
       case "coach": return "/coach/my-club";
-      case "player":
+      case "player": return "/player/profile";
       case "supporter": return "/player/dashboard";
       default: return "/dashboard";
     }
@@ -122,11 +122,14 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
+            // "Mon Profil" should be active when viewing own player detail page
+            (item.path === "/player/profile" && location.pathname.startsWith("/players/")) ||
             (item.path !== "/dashboard" && 
              item.path !== "/admin/dashboard" && 
              item.path !== "/club/redirect" && 
              item.path !== "/coach/dashboard" && 
              item.path !== "/player/dashboard" && 
+             item.path !== "/player/profile" && 
              location.pathname.startsWith(item.path) &&
              // Avoid parent path matching when a more specific sibling path matches
              !navItems.some(other => other.path !== item.path && other.path.startsWith(item.path) && location.pathname.startsWith(other.path)));

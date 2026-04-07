@@ -91,7 +91,8 @@ const COMPARISON_COLORS = [
 
 export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin, roles, currentRole } = useAuth();
+  const isPlayerViewingOwnProfile = currentRole?.role === "player" && user?.id === id;
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
   const historyPrintRef = useRef<HTMLDivElement>(null);
@@ -822,7 +823,7 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          <div className="flex items-start gap-2 -ml-2">
+          {!isPlayerViewingOwnProfile && <div className="flex items-start gap-2 -ml-2">
             <div className="flex flex-col gap-4 min-w-[220px]">
               {/* Bloc Débriefs */}
               <div className="flex flex-col gap-1.5">
@@ -985,7 +986,7 @@ export default function PlayerDetail() {
                 </AlertDialog>
               )}
             </div>
-          </div>
+          </div>}
         </div>
       </div>
 
