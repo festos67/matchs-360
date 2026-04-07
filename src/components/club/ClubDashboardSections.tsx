@@ -45,9 +45,10 @@ const SectionHeader = ({
 interface ClubDashboardSectionsProps {
   clubId: string;
   onCreateTeam?: () => void;
+  onCreateCoach?: () => void;
 }
 
-export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSectionsProps) => {
+export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: ClubDashboardSectionsProps) => {
   const navigate = useNavigate();
 
   const [overviewOpen, setOverviewOpen] = useState(false);
@@ -401,9 +402,9 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
             isOpen={teamsOpen}
             onToggle={() => setTeamsOpen(!teamsOpen)}
             action={
-              <Button size="sm" className="min-w-[160px]" onClick={onCreateTeam}>
-                <Plus className="w-4 h-4 mr-1" />
-                Nouvelle équipe
+              <Button variant="outline" size="sm" className="gap-2" onClick={onCreateTeam}>
+                <Plus className="w-3.5 h-3.5 text-primary" />
+                Équipe
               </Button>
             }
           />
@@ -485,6 +486,12 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam }: ClubDashboardSec
             icon={UserCog}
             isOpen={coachesOpen}
             onToggle={() => setCoachesOpen(!coachesOpen)}
+            action={
+              <Button variant="outline" size="sm" className="gap-2" onClick={onCreateCoach}>
+                <Plus className="w-3.5 h-3.5 text-primary" />
+                Coach
+              </Button>
+            }
           />
           <CollapsibleContent>
             <div className="px-4 md:px-5 pb-2">
