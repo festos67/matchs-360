@@ -97,6 +97,7 @@ export default function PlayerDetail() {
   const printRef = useRef<HTMLDivElement>(null);
   const historyPrintRef = useRef<HTMLDivElement>(null);
   const frameworkPrintRef = useRef<HTMLDivElement>(null);
+  const radarSectionRef = useRef<HTMLDivElement>(null);
   
   const [player, setPlayer] = useState<Player | null>(null);
   const [teamMembership, setTeamMembership] = useState<TeamMembership | null>(null);
@@ -1086,7 +1087,7 @@ export default function PlayerDetail() {
         </div>
 
         {/* Radar Tab */}
-        <TabsContent value="radar" className="space-y-6">
+        <TabsContent value="radar" className="space-y-6" ref={radarSectionRef}>
           {isViewingHistory && (
             <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
               <span className="text-sm text-warning">
