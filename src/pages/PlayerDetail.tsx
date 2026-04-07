@@ -865,7 +865,7 @@ export default function PlayerDetail() {
                                    setIsCreatingNew(true);
                                   setNewEvalKey(k => k + 1);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("radar");
+                                  setActiveTab("evaluation");
                                   scrollToRadar();
                                 }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
                                   Nouveau débrief
@@ -873,14 +873,14 @@ export default function PlayerDetail() {
                                 <AlertDialogAction onClick={() => {
                                   setIsCreatingNew(false);
                                   setHasDraftEvaluation(false);
-                                  setActiveTab("radar");
+                                  setActiveTab("evaluation");
                                   scrollToRadar();
                                 }}>
                                   Poursuivre le débrief
                                 </AlertDialogAction>
                               </>
                             ) : (
-                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("radar"); scrollToRadar(); }}>
+                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); scrollToRadar(); }}>
                                 Confirmer
                               </AlertDialogAction>
                             )}
@@ -1095,7 +1095,7 @@ export default function PlayerDetail() {
         </div>
 
         {/* Radar Tab */}
-        <TabsContent value="radar" className="space-y-6" ref={radarSectionRef}>
+        <TabsContent value="radar" className="space-y-6">
           {isViewingHistory && (
             <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between">
               <span className="text-sm text-warning">
@@ -1386,7 +1386,7 @@ export default function PlayerDetail() {
         </TabsContent>
 
         {/* Evaluation Tab */}
-        <TabsContent value="evaluation">
+        <TabsContent value="evaluation" ref={radarSectionRef}>
           {/* Mode indicator */}
           {isCreatingNew && (
             <div className="mb-4 p-3 bg-success/10 border border-success/30 rounded-lg flex items-center justify-between">
