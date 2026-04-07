@@ -41,7 +41,7 @@ interface PlayerData {
 const STORAGE_KEY = "players-collapsed-teams";
 
 const Players = () => {
-  const { hasAdminRole: isAdmin, currentRole } = useAuth();
+  const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
   const navigate = useNavigate();
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);
