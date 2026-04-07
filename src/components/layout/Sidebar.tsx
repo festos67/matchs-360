@@ -122,6 +122,8 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       <nav className="flex-1 p-4 space-y-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || 
+            // "Mon Profil" should be active when viewing own player detail page
+            (item.path === "/player/profile" && location.pathname.startsWith("/players/")) ||
             (item.path !== "/dashboard" && 
              item.path !== "/admin/dashboard" && 
              item.path !== "/club/redirect" && 
