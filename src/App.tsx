@@ -59,6 +59,7 @@ const App = () => (
             <Route path="/coach/dashboard" element={<CoachMyClub />} />
             <Route path="/coach/my-club" element={<CoachMyClub />} />
             <Route path="/player/dashboard" element={<PlayerDashboard />} />
+            <Route path="/player/profile" element={<PlayerProfileRedirect />} />
             <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
             <Route path="/supporter/dashboard" element={<SupporterDashboard />} />
             <Route path="/supporter/evaluate/:requestId" element={<SupporterEvaluation />} />
