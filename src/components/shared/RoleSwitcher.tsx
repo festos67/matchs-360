@@ -56,8 +56,8 @@ const getDashboardPath = (role: string) => {
   switch (role) {
     case "admin": return "/admin/dashboard";
     case "club_admin": return "/club/redirect";
-    case "coach": return "/coach/dashboard";
-    case "player": return "/player/dashboard";
+    case "coach": return "/coach/my-club";
+    case "player": return "/player/profile";
     case "supporter": return "/supporter/dashboard";
     default: return "/dashboard";
   }
