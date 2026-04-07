@@ -823,172 +823,171 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          {!isPlayerViewingOwnProfile && <div className="flex items-start gap-3 -ml-2">
-            {/* Bloc Débriefs */}
-            {canEvaluate && teamMembership && (
-              <div className="border border-border rounded-xl p-3 min-w-[220px]">
-                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Débriefs</p>
-                <div className="flex flex-col gap-1.5">
-                  {/* Débrief coach */}
-                  {!isViewingHistory && (
+          {!isPlayerViewingOwnProfile && (
+            <div className="flex items-start gap-3 ml-auto">
+              {/* Bloc Débriefs */}
+              {canEvaluate && teamMembership && (
+                <div className="border border-border rounded-xl p-3 min-w-[220px]">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Débriefs</p>
+                  <div className="flex flex-col gap-1.5">
+                    {/* Débrief coach */}
+                    {!isViewingHistory && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button className="w-full gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-base px-4" title="Créer un nouveau débrief coach pour ce joueur">
+                            <ClipboardList className="w-5 h-5" />Nouveau débrief coach
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {hasDraftEvaluation
+                                ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
+                                : `Voulez-vous créer un nouveau débrief pour ${getPlayerName()} ?`
+                              }
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            {hasDraftEvaluation ? (
+                              <>
+                                <AlertDialogAction onClick={() => {
+                                  setIsCreatingNew(true);
+                                  setNewEvalKey(k => k + 1);
+                                  setHasDraftEvaluation(false);
+                                  setActiveTab("evaluation");
+                                }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                                  Nouveau débrief
+                                </AlertDialogAction>
+                                <AlertDialogAction onClick={() => {
+                                  setIsCreatingNew(false);
+                                  setHasDraftEvaluation(false);
+                                  setActiveTab("evaluation");
+                                }}>
+                                  Poursuivre le débrief
+                                </AlertDialogAction>
+                              </>
+                            ) : (
+                              <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
+                                Confirmer
+                              </AlertDialogAction>
+                            )}
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                    {/* Débrief joueur */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button className="w-full gap-2 justify-start bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-base px-4" title="Créer un nouveau débrief coach pour ce joueur">
-                          <ClipboardList className="w-5 h-5" />Nouveau débrief coach
+                        <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" title="Envoyer une demande d'auto-débrief au joueur">
+                          <Star className="w-4 h-4 text-emerald-500" />
+                          Débrief joueur
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}
-                          </AlertDialogTitle>
+                          <AlertDialogTitle>Demande d'auto-débrief</AlertDialogTitle>
                           <AlertDialogDescription>
-                            {hasDraftEvaluation
-                              ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
-                              : `Voulez-vous créer un nouveau débrief pour ${getPlayerName()} ?`
-                            }
+                            Envoyer une demande d'auto-débrief à {getPlayerName()} ? Le joueur recevra une notification pour réaliser son auto-évaluation.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          {hasDraftEvaluation ? (
-                            <>
-                              <AlertDialogAction onClick={() => {
-                                setIsCreatingNew(true);
-                                setNewEvalKey(k => k + 1);
-                                setHasDraftEvaluation(false);
-                                setActiveTab("evaluation");
-                              }} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                                Nouveau débrief
-                              </AlertDialogAction>
-                              <AlertDialogAction onClick={() => {
-                                setIsCreatingNew(false);
-                                setHasDraftEvaluation(false);
-                                setActiveTab("evaluation");
-                              }}>
-                                Poursuivre le débrief
-                              </AlertDialogAction>
-                            </>
-                          ) : (
-                            <AlertDialogAction onClick={() => { setIsCreatingNew(true); setNewEvalKey(k => k + 1); setActiveTab("evaluation"); }}>
-                              Confirmer
-                            </AlertDialogAction>
-                          )}
+                          <AlertDialogAction
+                            className="bg-emerald-500 text-white hover:bg-emerald-600"
+                            onClick={() => {
+                              toast.success("Demande d'auto-débrief envoyée au joueur");
+                            }}
+                          >
+                            Envoyer la demande
+                          </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
-                  )}
-                  {/* Débrief joueur */}
+                    {/* Débrief supporter */}
+                    <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
+                      <Heart className="w-4 h-4 text-warning" />
+                      Débrief supporter
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Bloc Gestion joueur - centré verticalement */}
+              <div className="flex flex-col gap-1.5 justify-center self-center min-w-[200px]">
+                {canMutate && (
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowEditModal(true)} title="Modifier les informations du joueur">
+                    <Edit className="w-4 h-4 text-blue-500" />
+                    Modifier joueur
+                  </Button>
+                )}
+                {canMutate && teamMembership && (
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
+                    <ArrowRightLeft className="w-4 h-4 text-primary" />
+                    Transférer joueur
+                  </Button>
+                )}
+                {canEvaluate && teamMembership && (
+                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
+                    <Users className="w-4 h-4 text-primary" />
+                    Gestion des supporters
+                  </Button>
+                )}
+                {isAdmin && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" title="Envoyer une demande d'auto-débrief au joueur">
-                        <Star className="w-4 h-4 text-emerald-500" />
-                        Débrief joueur
+                      <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4 text-destructive hover:bg-destructive/10 border-destructive/30" title="Supprimer définitivement ce joueur">
+                        <Trash2 className="w-4 h-4" />
+                        Supprimer joueur
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Demande d'auto-débrief</AlertDialogTitle>
+                        <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Envoyer une demande d'auto-débrief à {getPlayerName()} ? Le joueur recevra une notification pour réaliser son auto-évaluation.
+                          Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction
-                          className="bg-emerald-500 text-white hover:bg-emerald-600"
-                          onClick={() => {
-                            toast.success("Demande d'auto-débrief envoyée au joueur");
+                        <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">Annuler</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={async () => {
+                            try {
+                              const { error: profileError } = await supabase
+                                .from("profiles")
+                                .update({ deleted_at: new Date().toISOString() })
+                                .eq("id", id);
+                              
+                              if (profileError) throw profileError;
+
+                              const { error: memberError } = await supabase
+                                .from("team_members")
+                                .update({ is_active: false, left_at: new Date().toISOString() })
+                                .eq("user_id", id);
+                              
+                              if (memberError) throw memberError;
+                              
+                              toast.success("Joueur supprimé avec succès");
+                              navigate(-1);
+                            } catch (error: unknown) {
+                              console.error("Error deleting player:", error);
+                              toast.error("Erreur lors de la suppression");
+                            }
                           }}
+                          className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border border-destructive/30"
                         >
-                          Envoyer la demande
+                          Supprimer
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                  {/* Débrief supporter */}
-                  <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowRequestSupporterModal(true)} title="Demander un débrief à un supporter">
-                    <Heart className="w-4 h-4 text-warning" />
-                    Débrief supporter
-                  </Button>
-                </div>
+                )}
               </div>
-            )}
-
-            {/* Bloc Gestion joueur */}
-            <div className="flex flex-col gap-1.5 min-w-[200px]">
-              {canMutate && (
-                <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowEditModal(true)} title="Modifier les informations du joueur">
-                  <Edit className="w-4 h-4" />
-                  Modifier joueur
-                </Button>
-              )}
-              {canMutate && teamMembership && (
-                <Button variant="outline" size="sm" className="w-full gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowMutationModal(true)} title="Transférer le joueur vers une autre équipe">
-                  <ArrowRightLeft className="w-4 h-4 text-primary" />
-                  Transférer joueur
-                </Button>
-              )}
-              {isAdmin && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon" className="w-full h-9" title="Supprimer définitivement ce joueur">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Cette action supprimera définitivement le joueur {getPlayerName()} ainsi que tous ses débriefs et données associées. Cette action est irréversible.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">Annuler</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={async () => {
-                          try {
-                            const { error: profileError } = await supabase
-                              .from("profiles")
-                              .update({ deleted_at: new Date().toISOString() })
-                              .eq("id", id);
-                            
-                            if (profileError) throw profileError;
-
-                            const { error: memberError } = await supabase
-                              .from("team_members")
-                              .update({ is_active: false, left_at: new Date().toISOString() })
-                              .eq("user_id", id);
-                            
-                            if (memberError) throw memberError;
-                            
-                            toast.success("Joueur supprimé avec succès");
-                            navigate(-1);
-                          } catch (error: unknown) {
-                            console.error("Error deleting player:", error);
-                            toast.error("Erreur lors de la suppression");
-                          }
-                        }}
-                        className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border border-destructive/30"
-                      >
-                        Supprimer
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
             </div>
-
-            {/* Bloc Gestion des supporters (isolé) */}
-            {canEvaluate && teamMembership && (
-              <div className="self-start">
-                <Button variant="outline" size="sm" className="gap-2 justify-start text-sm h-9 px-4" onClick={() => setShowSupportersModal(true)} title="Ajouter ou gérer les supporters liés au joueur">
-                  <Users className="w-4 h-4 text-primary" />
-                  Gestion des supporters
-                </Button>
-              </div>
-            )}
-          </div>}
+          )}
         </div>
       </div>
 
