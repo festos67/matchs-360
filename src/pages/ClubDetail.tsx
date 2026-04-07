@@ -70,6 +70,7 @@ export default function ClubDetail() {
   const [clubFramework, setClubFramework] = useState<ClubFramework | null>(null);
   const [coachCount, setCoachCount] = useState(0);
   const [playerCount, setPlayerCount] = useState(0);
+  const [supporterCount, setSupporterCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
@@ -155,6 +156,14 @@ export default function ClubDetail() {
         .eq("role", "player")
         .eq("club_id", id!);
       setPlayerCount(players || 0);
+
+      // Fetch supporter count (via user_roles with role=supporter in this club)
+      const { count: supporters } = await supabase
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "supporter")
+        .eq("club_id", id!);
+      setSupporterCount(supporters || 0);
 
       // Fetch club framework
       const { data: frameworkData } = await supabase
@@ -300,6 +309,7 @@ export default function ClubDetail() {
               <span className="flex items-center gap-1.5">• {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {coachCount} coach{coachCount > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {playerCount} joueur{playerCount > 1 ? "s" : ""}</span>
+              <span className="flex items-center gap-1.5">• {supporterCount} supporter{supporterCount > 1 ? "s" : ""}</span>
             </div>
           </div>
           {canManageClub && (
