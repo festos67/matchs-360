@@ -309,7 +309,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
             evaluator_id: user.id,
             framework_id: frameworkId,
             name: uniqueName,
-            type: "coach_assessment",
+            type: "coach",
           })
           .select()
           .single();

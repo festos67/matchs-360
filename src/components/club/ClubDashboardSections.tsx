@@ -169,7 +169,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             .from("evaluations")
             .select("id, date")
             .eq("player_id", pid)
-            .eq("type", "coach_assessment")
+            .eq("type", "coach")
             .is("deleted_at", null)
             .order("date", { ascending: false })
             .limit(2);

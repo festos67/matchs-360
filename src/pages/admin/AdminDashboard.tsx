@@ -138,7 +138,7 @@ const AdminDashboard = () => {
             .from("evaluations")
             .select("id, date")
             .eq("player_id", p.user_id)
-            .eq("type", "coach_assessment")
+            .eq("type", "coach")
             .is("deleted_at", null)
             .order("date", { ascending: false })
             .limit(2);

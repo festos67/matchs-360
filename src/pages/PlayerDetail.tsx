@@ -67,7 +67,7 @@ interface Evaluation {
   date: string;
   deleted_at: string | null;
   framework_id: string;
-  type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
+  type: "coach" | "self" | "supporter";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -314,7 +314,7 @@ export default function PlayerDetail() {
         setEvaluations(evalData as unknown as Evaluation[]);
         // Set selected to latest COACH evaluation (not self-assessment or supporter)
         const latestCoach = evalData.find(
-          e => e.type === "coach_assessment" && !e.deleted_at
+          e => e.type === "coach" && !e.deleted_at
         );
         if (latestCoach) {
           setSelectedEvaluation(latestCoach as unknown as Evaluation);
@@ -386,7 +386,7 @@ export default function PlayerDetail() {
 
   // For stats display, use latest COACH evaluation on CURRENT framework only
   const latestOfficialEvaluation = evaluations.find(
-    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+    e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
   );
   
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
@@ -453,7 +453,7 @@ export default function PlayerDetail() {
     setSelectedEvaluation(evaluation);
     // Consider "viewing history" only if it's not the latest coach eval on current framework
     const latestCoachOnCurrentFw = evaluations.find(
-      e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+      e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
     );
     setIsViewingHistory(evaluation.id !== latestCoachOnCurrentFw?.id);
     // Load correct themes for this evaluation's framework
@@ -493,22 +493,22 @@ export default function PlayerDetail() {
   
   // Get latest self-evaluation for comparison (on current framework)
   const latestSelfEvaluation = evaluations.find(
-    e => e.type === "player_self_assessment" && !e.deleted_at && e.framework_id === frameworkId
+    e => e.type === "self" && !e.deleted_at && e.framework_id === frameworkId
   );
   
   // Get latest supporter evaluation for comparison (on current framework)
   const latestSupporterEvaluation = evaluations.find(
-    e => e.type === "supporter_assessment" && !e.deleted_at && e.framework_id === frameworkId
+    e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId
   );
   
   // Get latest coach evaluation on current framework (for the toggle comparison)
   const latestCoachEvaluation = evaluations.find(
-    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+    e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
   );
 
   // Get the PREVIOUS (second latest) coach evaluation on current framework for "Dernier débrief" button
   const currentFrameworkCoachEvals = evaluations.filter(
-    e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+    e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
   );
   const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
   
@@ -686,7 +686,7 @@ export default function PlayerDetail() {
             evaluation={selectedEvaluation}
             themes={selectedEvalThemes}
             progressionPercent={(() => {
-              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment" && e.framework_id === frameworkId);
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach" && e.framework_id === frameworkId);
               if (activeCoachEvals.length < 2) return null;
               const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0], themes));
               const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1], themes));
@@ -694,7 +694,7 @@ export default function PlayerDetail() {
               return Math.round(((currentAvg - previousAvg) / previousAvg) * 100);
             })()}
             previousEvaluationDate={(() => {
-              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment" && e.framework_id === frameworkId);
+              const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach" && e.framework_id === frameworkId);
               return activeCoachEvals.length >= 2 ? activeCoachEvals[1].date : null;
             })()}
             comparisonDatasets={comparisonDatasets
@@ -780,14 +780,14 @@ export default function PlayerDetail() {
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
-                <p className="text-3xl font-display font-bold">{evaluations.filter(e => e.type === "coach_assessment" && !e.deleted_at).length}</p>
+                <p className="text-3xl font-display font-bold">{evaluations.filter(e => e.type === "coach" && !e.deleted_at).length}</p>
                 <p className="text-sm text-muted-foreground">Débriefs officiels</p>
               </div>
               <div className="w-px bg-border" />
               <div className="text-center">
                 {(() => {
                   // Compare current evaluation (t0) with previous one (t-1) - ONLY coach assessments
-                  const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach_assessment");
+                  const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach");
                   if (activeCoachEvals.length < 2) {
                     return (
                       <>
@@ -1126,7 +1126,7 @@ export default function PlayerDetail() {
                     ) : selectedEvaluation ? (
                       (() => {
                         const coachEvals = evaluations
-                          .filter(e => e.type === "coach_assessment" && !e.deleted_at)
+                          .filter(e => e.type === "coach" && !e.deleted_at)
                           .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                         const evalIndex = coachEvals.findIndex(e => e.id === selectedEvaluation.id);
                         const evalNumber = evalIndex >= 0 ? evalIndex + 1 : "–";
@@ -1423,13 +1423,13 @@ export default function PlayerDetail() {
               previousEvaluation={(() => {
                 if (!isCreatingNew) return undefined;
                 const coachEvals = evaluations.filter(
-                  e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+                  e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
                 );
                 return coachEvals[0] || undefined;
               })()}
               previousScores={(() => {
                 const coachEvals = evaluations.filter(
-                  e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId
+                  e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
                 );
                 const previousEval = isCreatingNew 
                   ? coachEvals[0]
@@ -1449,7 +1449,7 @@ export default function PlayerDetail() {
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
                 const coachEvals = evaluations
-                  .filter(e => e.type === "coach_assessment" && !e.deleted_at && e.framework_id === frameworkId)
+                  .filter(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId)
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                 return isCreatingNew ? coachEvals.length + 1 : coachEvals.findIndex(e => e.id === selectedEvaluation?.id) + 1;
               })()}

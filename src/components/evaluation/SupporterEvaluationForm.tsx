@@ -124,7 +124,7 @@ export function SupporterEvaluationForm({
           evaluator_id: user.id,
           framework_id: frameworkId,
           name: `Débrief Supporter - ${supporterName}`,
-          type: "supporter_assessment" as any,
+          type: "supporter" as any,
         })
         .select()
         .single();

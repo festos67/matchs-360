@@ -87,7 +87,7 @@ const PlayerDashboard = () => {
         .from("evaluations")
         .select("*", { count: "exact", head: true })
         .eq("player_id", playerId)
-        .eq("type", "coach_assessment");
+        .eq("type", "coach");
       if (error) throw error;
       return count || 0;
     },
@@ -110,7 +110,7 @@ const PlayerDashboard = () => {
           profiles:evaluator_id (first_name, last_name)
         `)
         .eq("player_id", playerId)
-        .eq("type", "coach_assessment")
+        .eq("type", "coach")
         .order("date", { ascending: false })
         .limit(10);
       if (error) throw error;

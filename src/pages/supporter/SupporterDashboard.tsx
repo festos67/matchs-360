@@ -118,7 +118,7 @@ const SupporterDashboard = () => {
         .from("evaluations")
         .select("id", { count: "exact", head: true })
         .eq("evaluator_id", user.id)
-        .eq("type", "supporter_assessment" as any);
+        .eq("type", "supporter" as any);
 
       if (error) throw error;
       return count || 0;
