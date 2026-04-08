@@ -70,7 +70,11 @@ export default function TeamDetail() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  // handlePrintFramework is declared after framework query below
+  // Declared here so it's at top level (hooks rule), framework ref resolved lazily
+  const handlePrintFramework = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Référentiel",
+  });
 
   // Fetch team data
   const { data: team, isLoading: loadingTeam } = useQuery({
