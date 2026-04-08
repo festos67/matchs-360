@@ -107,7 +107,7 @@ const PlayerDashboard = () => {
           date,
           notes,
           type,
-          profiles:coach_id (first_name, last_name)
+          profiles:evaluator_id (first_name, last_name)
         `)
         .eq("player_id", playerId)
         .eq("type", "coach_assessment")
