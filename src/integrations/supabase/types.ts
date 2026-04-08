@@ -283,10 +283,10 @@ export type Database = {
       }
       evaluations: {
         Row: {
-          coach_id: string
           created_at: string
           date: string
           deleted_at: string | null
+          evaluator_id: string
           framework_id: string
           id: string
           name: string
@@ -295,10 +295,10 @@ export type Database = {
           type: Database["public"]["Enums"]["evaluation_type"]
         }
         Insert: {
-          coach_id: string
           created_at?: string
           date?: string
           deleted_at?: string | null
+          evaluator_id: string
           framework_id: string
           id?: string
           name: string
@@ -307,10 +307,10 @@ export type Database = {
           type?: Database["public"]["Enums"]["evaluation_type"]
         }
         Update: {
-          coach_id?: string
           created_at?: string
           date?: string
           deleted_at?: string | null
+          evaluator_id?: string
           framework_id?: string
           id?: string
           name?: string
@@ -321,7 +321,7 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "evaluations_coach_id_fkey"
-            columns: ["coach_id"]
+            columns: ["evaluator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
