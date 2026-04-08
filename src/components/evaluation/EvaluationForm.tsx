@@ -251,6 +251,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       .from("evaluations")
       .select("name")
       .eq("player_id", playerId)
+      .is("deleted_at", null)
       .ilike("name", `${baseName}%`);
 
     if (!existingEvaluations || existingEvaluations.length === 0) {

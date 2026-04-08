@@ -118,7 +118,8 @@ const SupporterDashboard = () => {
         .from("evaluations")
         .select("id", { count: "exact", head: true })
         .eq("evaluator_id", user.id)
-        .eq("type", "supporter" as any);
+        .eq("type", "supporter" as any)
+        .is("deleted_at", null);
 
       if (error) throw error;
       return count || 0;
