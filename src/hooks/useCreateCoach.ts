@@ -170,7 +170,8 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
         const { data: existing } = await supabase.from("team_members").select("id, is_active, member_type").eq("user_id", selectedExistingUser.id).eq("team_id", assignment.teamId).maybeSingle();
         if (existing) {
           if (existing.member_type === "coach") {
-            await supabase.from("team_members").update({ is_active: true, left_at: null, coach_role: assignment.role, joined_at: new Date().toISOString() }).eq("id", existing.id);
+            const { error: updateErr } = await supabase.from("team_members").update({ is_active: true, left_at: null, coach_role: assignment.role, joined_at: new Date().toISOString() }).eq("id", existing.id);
+            if (updateErr) throw updateErr;
           } else {
             const { error: insertErr } = await supabase.from("team_members").insert({ user_id: selectedExistingUser.id, team_id: assignment.teamId, member_type: "coach", coach_role: assignment.role, is_active: true });
             if (insertErr) console.warn("Could not insert team_member:", insertErr);
@@ -183,7 +184,10 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
 
       if (photoFile) {
         const photoUrl = await uploadPhotoForUser(selectedExistingUser.id);
-        if (photoUrl) await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", selectedExistingUser.id);
+        if (photoUrl) {
+          const { error: photoErr } = await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", selectedExistingUser.id);
+          if (photoErr) console.warn("Could not update photo:", photoErr);
+        }
       }
 
       const assignedTeamNames = assignedTeams.map(a => teams.find(t => t.id === a.teamId)?.name).filter(Boolean);
@@ -220,7 +224,10 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
 
       if (photoFile && result?.userId) {
         const photoUrl = await uploadPhotoForUser(result.userId);
-        if (photoUrl) await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        if (photoUrl) {
+          const { error: photoErr } = await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+          if (photoErr) console.warn("Could not update photo:", photoErr);
+        }
       }
 
       const assignedTeamNames = assignedTeams.map(a => teams.find(t => t.id === a.teamId)?.name).filter(Boolean);

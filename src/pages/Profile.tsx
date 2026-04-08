@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,9 +54,6 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Club names for roles
-  const [clubNames, setClubNames] = useState<Record<string, string>>({});
-
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -71,23 +69,24 @@ export default function Profile() {
     }
   }, [profile]);
 
-  useEffect(() => {
-    const clubIds = roles
-      .filter((r) => r.club_id)
-      .map((r) => r.club_id!);
-    const uniqueIds = [...new Set(clubIds)];
-    if (uniqueIds.length > 0) {
-      supabase
+  const clubIds = roles.filter((r) => r.club_id).map((r) => r.club_id!);
+  const uniqueClubIds = [...new Set(clubIds)];
+
+  const { data: clubNames = {} } = useQuery({
+    queryKey: ["profile-club-names", uniqueClubIds.sort().join(",")],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("clubs")
         .select("id, name")
-        .in("id", uniqueIds)
-        .then(({ data }) => {
-          const map: Record<string, string> = {};
-          data?.forEach((c) => (map[c.id] = c.name));
-          setClubNames(map);
-        });
-    }
-  }, [roles]);
+        .in("id", uniqueClubIds);
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      data?.forEach((c) => (map[c.id] = c.name));
+      return map;
+    },
+    enabled: uniqueClubIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const getInitials = () => {
     const first = firstName?.charAt(0) || "";

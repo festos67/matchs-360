@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Edit, History, RotateCcw, Target, Check, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -58,12 +59,8 @@ export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const [team, setTeam] = useState<Team | null>(null);
-  const [members, setMembers] = useState<TeamMember[]>([]);
-  const [framework, setFramework] = useState<Framework | null>(null);
-  const [supporterCount, setSupporterCount] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showCoachModal, setShowCoachModal] = useState(false);
   const [showSupporterModal, setShowSupporterModal] = useState(false);
@@ -73,9 +70,74 @@ export default function TeamDetail() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
+  // Declared here so it's at top level (hooks rule), framework ref resolved lazily
   const handlePrintFramework = useReactToPrint({
     contentRef: printRef,
-    documentTitle: framework?.name || "Référentiel",
+    documentTitle: "Référentiel",
+  });
+
+  // Fetch team data
+  const { data: team, isLoading: loadingTeam } = useQuery({
+    queryKey: ["team-detail", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("teams").select("*, club:clubs(name, primary_color)").eq("id", id!).maybeSingle();
+      if (error) throw error;
+      if (!data) { toast.error("Équipe non trouvée"); navigate("/clubs"); return null; }
+      return data as Team;
+    },
+    enabled: !!user && !!id,
+  });
+
+  // Fetch members
+  const { data: members = [], isLoading: loadingMembers } = useQuery({
+    queryKey: ["team-members", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("team_members").select("id, member_type, coach_role, profile:profiles!inner(id, first_name, last_name, nickname, photo_url, deleted_at)").eq("team_id", id!).eq("is_active", true).is("profile.deleted_at", null);
+      if (error) throw error;
+      return (data || []) as TeamMember[];
+    },
+    enabled: !!user && !!id,
+  });
+
+  // Fetch framework
+  const { data: framework = null } = useQuery({
+    queryKey: ["team-framework", id],
+    queryFn: async () => {
+      const { data: frameworkData } = await supabase
+        .from("competence_frameworks")
+        .select("id, name")
+        .eq("team_id", id!)
+        .eq("is_archived", false)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!frameworkData) return null;
+
+      const { data: themesData } = await supabase
+        .from("themes")
+        .select("id, name, color, order_index, skills(id, name, definition, order_index)")
+        .eq("framework_id", frameworkData.id)
+        .order("order_index");
+
+      return { ...frameworkData, themes: themesData || [] } as Framework;
+    },
+    enabled: !!user && !!id,
+  });
+
+  // Fetch supporter count
+  const playerUserIds = members.filter(m => m.member_type === "player").map(m => m.profile.id);
+  const { data: supporterCount = 0 } = useQuery({
+    queryKey: ["team-supporter-count", id, playerUserIds],
+    queryFn: async () => {
+      if (playerUserIds.length === 0) return 0;
+      const { count } = await supabase
+        .from("supporters_link")
+        .select("id", { count: "exact", head: true })
+        .in("player_id", playerUserIds);
+      return count || 0;
+    },
+    enabled: playerUserIds.length > 0,
   });
 
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
@@ -88,65 +150,6 @@ export default function TeamDetail() {
   const canMutatePlayers = isAdmin || isClubAdmin;
   const canEditObjectives = isAdmin || isClubAdmin || isReferentCoach;
   const canViewObjectives = canEditObjectives || isCoachOfTeam || isPlayerViewing;
-
-  useEffect(() => {
-    if (!authLoading && !user) navigate("/auth");
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (user && id) fetchTeamData();
-  }, [user, id]);
-
-  const fetchTeamData = async () => {
-    try {
-      const { data: teamData, error: teamError } = await supabase.from("teams").select("*, club:clubs(name, primary_color)").eq("id", id).maybeSingle();
-      if (teamError) throw teamError;
-      if (!teamData) { toast.error("Équipe non trouvée"); navigate("/clubs"); return; }
-      setTeam(teamData);
-
-      const { data: membersData, error: membersError } = await supabase.from("team_members").select("id, member_type, coach_role, profile:profiles!inner(id, first_name, last_name, nickname, photo_url, deleted_at)").eq("team_id", id).eq("is_active", true).is("profile.deleted_at", null);
-      if (membersError) throw membersError;
-      setMembers(membersData as TeamMember[]);
-
-      // Fetch framework with themes and skills
-      const { data: frameworkData } = await supabase
-        .from("competence_frameworks")
-        .select("id, name")
-        .eq("team_id", id)
-        .eq("is_archived", false)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (frameworkData) {
-        const { data: themesData } = await supabase
-          .from("themes")
-          .select("id, name, color, order_index, skills(id, name, definition, order_index)")
-          .eq("framework_id", frameworkData.id)
-          .order("order_index");
-
-        setFramework({
-          ...frameworkData,
-          themes: themesData || []
-        });
-      }
-
-      // Fetch supporter count for team players
-      const playerUserIds = (membersData as TeamMember[]).filter(m => m.member_type === "player").map(m => m.profile.id);
-      if (playerUserIds.length > 0) {
-        const { count } = await supabase
-          .from("supporters_link")
-          .select("id", { count: "exact", head: true })
-          .in("player_id", playerUserIds);
-        setSupporterCount(count || 0);
-      }
-    } catch (error: any) {
-      console.error("Error fetching team:", error);
-      toast.error("Erreur lors du chargement");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const coaches = members.filter(m => m.member_type === "coach");
   const players = members.filter(m => m.member_type === "player");
@@ -162,10 +165,16 @@ export default function TeamDetail() {
 
   const totalSkills = framework?.themes.reduce((acc, theme) => acc + theme.skills.length, 0) || 0;
 
+  const invalidateTeamData = () => {
+    queryClient.invalidateQueries({ queryKey: ["team-detail", id] });
+    queryClient.invalidateQueries({ queryKey: ["team-members", id] });
+    queryClient.invalidateQueries({ queryKey: ["team-framework", id] });
+    queryClient.invalidateQueries({ queryKey: ["team-supporter-count", id] });
+  };
+
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
-      // Create a full snapshot before archiving
       await snapshotFramework(framework.id);
       const { error } = await supabase
         .from("competence_frameworks")
@@ -174,15 +183,17 @@ export default function TeamDetail() {
       
       if (error) throw error;
       
-      setFramework(null);
+      queryClient.invalidateQueries({ queryKey: ["team-framework", id] });
       toast.success("Référentiel archivé — récupérable via l'historique");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error archiving framework:", error);
       toast.error("Erreur lors de la suppression");
     }
   };
 
-  if (authLoading || loading) return <AppLayout><div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div></AppLayout>;
+  const loading = authLoading || loadingTeam || loadingMembers;
+
+  if (loading) return <AppLayout><div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div></AppLayout>;
   if (!team) return null;
 
   const teamColor = team.color || team.club?.primary_color || "#3B82F6";
@@ -473,10 +484,10 @@ export default function TeamDetail() {
         )}
       </Tabs>
 
-      <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={fetchTeamData} />
-      <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} onSuccess={fetchTeamData} />
-      <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={team.club_id} onSuccess={fetchTeamData} />
-      <EditTeamModal open={showTeamSettings} onOpenChange={setShowTeamSettings} team={team} onSuccess={fetchTeamData} />
+      <CreatePlayerModal open={showPlayerModal} onOpenChange={setShowPlayerModal} clubId={team.club_id} teams={[{ id: team.id, name: team.name }]} defaultTeamId={team.id} onSuccess={invalidateTeamData} />
+      <CreateCoachModal open={showCoachModal} onOpenChange={setShowCoachModal} clubId={team.club_id} onSuccess={invalidateTeamData} />
+      <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={team.club_id} onSuccess={invalidateTeamData} />
+      <EditTeamModal open={showTeamSettings} onOpenChange={setShowTeamSettings} team={team} onSuccess={invalidateTeamData} />
       {mutationPlayer && (
         <PlayerMutationModal
           open={!!mutationPlayer}
@@ -486,7 +497,7 @@ export default function TeamDetail() {
           currentTeamId={team.id}
           currentTeamName={team.name}
           clubId={team.club_id}
-          onSuccess={fetchTeamData}
+          onSuccess={invalidateTeamData}
         />
       )}
 
@@ -509,7 +520,7 @@ export default function TeamDetail() {
         entityId={id!}
         entityType="team"
         activeFrameworkId={framework?.id || null}
-        onRestored={() => fetchTeamData()}
+        onRestored={() => queryClient.invalidateQueries({ queryKey: ["team-framework", id] })}
       />
 
       {/* Reset Framework Confirmation */}

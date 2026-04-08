@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Star } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -8,6 +8,7 @@ import { SelfEvaluationForm } from "@/components/evaluation/SelfEvaluationForm";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 interface Theme {
   id: string;
@@ -29,14 +30,14 @@ interface TeamInfo {
   club: { name: string; primary_color: string };
 }
 
+interface SkillRow {
+  order_index: number;
+  [key: string]: unknown;
+}
+
 export default function SelfEvaluation() {
   const navigate = useNavigate();
   const { user, loading: authLoading, currentRole, profile } = useAuth();
-
-  const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null);
-  const [frameworkId, setFrameworkId] = useState<string | null>(null);
-  const [themes, setThemes] = useState<Theme[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Redirect if not player
   useEffect(() => {
@@ -45,16 +46,11 @@ export default function SelfEvaluation() {
     }
   }, [user, authLoading, currentRole, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
+  const { data, isLoading } = useQuery({
+    queryKey: ["self-evaluation-data", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
 
-  const fetchData = async () => {
-    if (!user) return;
-
-    try {
       // Fetch player's team
       const { data: membership, error: memberError } = await supabase
         .from("team_members")
@@ -74,38 +70,26 @@ export default function SelfEvaluation() {
         .maybeSingle();
 
       if (memberError) throw memberError;
+      if (!membership) return { noTeam: true as const };
 
-      if (!membership) {
-        toast.error("Vous n'êtes pas associé à une équipe");
-        navigate("/player/dashboard");
-        return;
-      }
-
-      const team = membership.teams as any;
-      setTeamInfo({
-        id: team.id,
-        name: team.name,
-        color: team.color,
-        club: team.clubs,
-      });
+      const team = membership.teams as Record<string, unknown>;
+      const teamInfo: TeamInfo = {
+        id: team.id as string,
+        name: team.name as string,
+        color: team.color as string | null,
+        club: team.clubs as { name: string; primary_color: string },
+      };
 
       // Fetch framework
       const { data: framework, error: frameworkError } = await supabase
         .from("competence_frameworks")
         .select("id")
-        .eq("team_id", team.id)
+        .eq("team_id", teamInfo.id)
         .eq("is_archived", false)
         .maybeSingle();
 
       if (frameworkError) throw frameworkError;
-
-      if (!framework) {
-        toast.error("Aucun référentiel configuré pour votre équipe");
-        navigate("/player/dashboard");
-        return;
-      }
-
-      setFrameworkId(framework.id);
+      if (!framework) return { teamInfo, noFramework: true as const };
 
       // Fetch themes with skills
       const { data: themesData, error: themesError } = await supabase
@@ -116,24 +100,21 @@ export default function SelfEvaluation() {
 
       if (themesError) throw themesError;
 
-      if (themesData) {
-        const sortedThemes = themesData.map((theme) => ({
-          ...theme,
-          skills: (theme.skills || []).sort(
-            (a: any, b: any) => a.order_index - b.order_index
-          ),
-        }));
-        setThemes(sortedThemes);
-      }
-    } catch (error: any) {
-      console.error("Error fetching data:", error);
-      toast.error("Erreur lors du chargement des données");
-    } finally {
-      setLoading(false);
-    }
-  };
+      const themes = (themesData || []).map((theme) => ({
+        ...theme,
+        skills: (theme.skills || []).sort(
+          (a: SkillRow, b: SkillRow) => a.order_index - b.order_index
+        ),
+      }));
 
-  if (authLoading || loading) {
+      return { teamInfo, frameworkId: framework.id, themes };
+    },
+    enabled: !!user,
+  });
+
+  const loading = authLoading || isLoading;
+
+  if (loading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
@@ -143,7 +124,13 @@ export default function SelfEvaluation() {
     );
   }
 
-  if (!teamInfo || !frameworkId || themes.length === 0) {
+  if (!data || 'noTeam' in data) {
+    toast.error("Vous n'êtes pas associé à une équipe");
+    navigate("/player/dashboard");
+    return null;
+  }
+
+  if ('noFramework' in data) {
     return (
       <AppLayout>
         <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
@@ -163,6 +150,25 @@ export default function SelfEvaluation() {
     );
   }
 
+  const { teamInfo, frameworkId, themes } = data;
+
+  if (!themes || themes.length === 0) {
+    return (
+      <AppLayout>
+        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+        <div className="glass-card p-12 text-center">
+          <ClipboardList className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">
+            Référentiel non disponible
+          </h3>
+        </div>
+      </AppLayout>
+    );
+  }
+
   const playerName = profile?.nickname || 
     (profile?.first_name && profile?.last_name 
       ? `${profile.first_name} ${profile.last_name}` 
@@ -170,13 +176,11 @@ export default function SelfEvaluation() {
 
   return (
     <AppLayout>
-      {/* Back Button */}
       <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
         <ArrowLeft className="w-4 h-4 mr-2" />
         Retour
       </Button>
 
-      {/* Header */}
       <div className="glass-card p-6 mb-8 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-500/30">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -205,13 +209,12 @@ export default function SelfEvaluation() {
         </div>
       </div>
 
-      {/* Self Evaluation Form */}
       <SelfEvaluationForm
         playerId={user!.id}
         playerName={playerName}
         teamId={teamInfo.id}
         frameworkId={frameworkId}
-        themes={themes}
+        themes={themes as Theme[]}
         onSaved={() => {
           toast.success("Auto-débrief enregistré !");
           navigate("/player/dashboard");

@@ -103,7 +103,10 @@ export function useCreatePlayer(
 
       if (photoFile && result?.userId) {
         const photoUrl = await uploadPhotoForUser(result.userId);
-        if (photoUrl) await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        if (photoUrl) {
+          const { error: photoErr } = await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+          if (photoErr) console.warn("Could not update photo:", photoErr);
+        }
       }
 
       toast.success(`Joueur invité avec succès !`, { description: `Une invitation a été envoyée à ${data.email}` });
@@ -123,7 +126,8 @@ export function useCreatePlayer(
     if (!selectedPlayer || !defaultTeamId) return;
     setLoading(true);
     try {
-      await supabase.from("profiles").update({ deleted_at: null, updated_at: new Date().toISOString() }).eq("id", selectedPlayer.id).not("deleted_at", "is", null);
+      const { error: restoreErr } = await supabase.from("profiles").update({ deleted_at: null, updated_at: new Date().toISOString() }).eq("id", selectedPlayer.id).not("deleted_at", "is", null);
+      if (restoreErr) throw restoreErr;
       const { error: archiveError } = await supabase.from("team_members").update({ is_active: false, left_at: new Date().toISOString(), archived_reason: "Mutation vers une autre équipe" }).eq("user_id", selectedPlayer.id).eq("team_id", selectedPlayer.teamId).eq("is_active", true);
       if (archiveError) throw archiveError;
 

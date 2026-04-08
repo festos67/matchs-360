@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface UserRole {
   id: string;
@@ -25,31 +25,11 @@ interface RoleSwitcherProps {
 }
 
 const roleConfig = {
-  admin: {
-    icon: Shield,
-    label: "Administrateur",
-    color: "text-red-500",
-  },
-  club_admin: {
-    icon: Building2,
-    label: "Responsable Club",
-    color: "text-primary",
-  },
-  coach: {
-    icon: UserCog,
-    label: "Coach",
-    color: "text-orange-500",
-  },
-  player: {
-    icon: UserCircle,
-    label: "Joueur",
-    color: "text-green-500",
-  },
-  supporter: {
-    icon: Heart,
-    label: "Supporter",
-    color: "text-pink-500",
-  },
+  admin: { icon: Shield, label: "Administrateur", color: "text-red-500" },
+  club_admin: { icon: Building2, label: "Responsable Club", color: "text-primary" },
+  coach: { icon: UserCog, label: "Coach", color: "text-orange-500" },
+  player: { icon: UserCircle, label: "Joueur", color: "text-green-500" },
+  supporter: { icon: Heart, label: "Supporter", color: "text-pink-500" },
 };
 
 const getDashboardPath = (role: string) => {
@@ -64,32 +44,27 @@ const getDashboardPath = (role: string) => {
 };
 
 export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherProps) => {
-  const [clubNames, setClubNames] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchClubNames();
-  }, [roles]);
+  const clubIds = roles.filter((r) => r.club_id).map((r) => r.club_id) as string[];
 
-  const fetchClubNames = async () => {
-    const clubIds = roles.filter((r) => r.club_id).map((r) => r.club_id) as string[];
-    if (clubIds.length === 0) return;
-
-    const { data } = await supabase
-      .from("clubs")
-      .select("id, name")
-      .in("id", clubIds);
-
-    if (data) {
+  const { data: clubNames = {} } = useQuery({
+    queryKey: ["role-switcher-clubs", clubIds.sort().join(",")],
+    queryFn: async () => {
+      if (clubIds.length === 0) return {};
+      const { data, error } = await supabase
+        .from("clubs")
+        .select("id, name")
+        .in("id", clubIds);
+      if (error) throw error;
       const names: Record<string, string> = {};
-      data.forEach((club) => {
-        names[club.id] = club.name;
-      });
-      setClubNames(names);
-    }
-  };
+      data?.forEach((club) => { names[club.id] = club.name; });
+      return names;
+    },
+    enabled: clubIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
 
-  // Only show if user has multiple roles
   if (roles.length <= 1) return null;
 
   const current = currentRole || roles[0];
@@ -98,7 +73,6 @@ export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherP
 
   const handleRoleSwitch = (role: UserRole) => {
     onRoleChange(role);
-    // Navigate to the appropriate dashboard for the selected role
     navigate(getDashboardPath(role.role));
   };
 

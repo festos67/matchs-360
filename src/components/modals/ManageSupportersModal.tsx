@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Plus, Trash2, UserPlus, Mail } from "lucide-react";
 import {
   Dialog,
@@ -55,8 +56,8 @@ export const ManageSupportersModal = ({
   onViewEvaluation,
 }: ManageSupportersModalProps) => {
   const [loading, setLoading] = useState(false);
-  const [supporters, setSupporters] = useState<Supporter[]>([]);
   const [activeTab, setActiveTab] = useState("list");
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -67,14 +68,20 @@ export const ManageSupportersModal = ({
     resolver: zodResolver(supporterSchema),
   });
 
-  useEffect(() => {
-    if (open && playerId) {
-      fetchSupporters();
-    }
-  }, [open, playerId]);
+  interface SupporterLinkRow {
+    id: string;
+    supporter: {
+      id: string;
+      first_name: string | null;
+      last_name: string | null;
+      nickname: string | null;
+      email: string;
+    };
+  }
 
-  const fetchSupporters = async () => {
-    try {
+  const { data: supporters = [] } = useQuery({
+    queryKey: ["manage-supporters", playerId],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("supporters_link")
         .select(`
@@ -91,22 +98,17 @@ export const ManageSupportersModal = ({
 
       if (error) throw error;
 
-      if (data) {
-        const formattedSupporters: Supporter[] = data.map((item: any) => ({
-          id: item.supporter.id,
-          link_id: item.id,
-          first_name: item.supporter.first_name,
-          last_name: item.supporter.last_name,
-          nickname: item.supporter.nickname,
-          email: item.supporter.email,
-        }));
-        setSupporters(formattedSupporters);
-      }
-    } catch (error) {
-      console.error("Error fetching supporters:", error);
-      toast.error("Erreur lors du chargement des supporters");
-    }
-  };
+      return (data || []).map((item: SupporterLinkRow) => ({
+        id: item.supporter.id,
+        link_id: item.id,
+        first_name: item.supporter.first_name,
+        last_name: item.supporter.last_name,
+        nickname: item.supporter.nickname,
+        email: item.supporter.email,
+      })) as Supporter[];
+    },
+    enabled: open && !!playerId,
+  });
 
   const getSupporterName = (supporter: Supporter) => {
     if (supporter.nickname) return supporter.nickname;
@@ -125,7 +127,7 @@ export const ManageSupportersModal = ({
 
       if (error) throw error;
 
-      setSupporters((prev) => prev.filter((s) => s.id !== supporter.id));
+      queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
       toast.success(`${getSupporterName(supporter)} retiré des supporters`);
       onSuccess?.();
     } catch (error) {
@@ -154,7 +156,7 @@ export const ManageSupportersModal = ({
       toast.success(`Invitation envoyée à ${data.email}`);
       reset();
       setActiveTab("list");
-      fetchSupporters();
+      queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error inviting supporter:", error);
