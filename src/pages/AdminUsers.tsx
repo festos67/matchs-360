@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -102,8 +103,7 @@ const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
 export default function AdminUsers() {
   const { hasAdminRole: isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AdminUser | null>(null);
@@ -125,9 +125,9 @@ export default function AdminUsers() {
     }
   }, [isAdmin, authLoading, navigate]);
 
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
+  const { data: users = [], isLoading: loading } = useQuery({
+    queryKey: ["admin-users"],
+    queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
@@ -146,20 +146,14 @@ export default function AdminUsers() {
       }
 
       const data = await response.json();
-      setUsers(data.users);
-    } catch (error: unknown) {
-      console.error("Error fetching users:", error);
-      toast.error(error instanceof Error ? error.message : "Erreur lors du chargement des utilisateurs");
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data.users as AdminUser[];
+    },
+    enabled: !!isAdmin,
+  });
 
-  useEffect(() => {
-    if (isAdmin) {
-      fetchUsers();
-    }
-  }, [isAdmin]);
+  const fetchUsers = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+  };
 
   const callAdminAction = async (action: string, payload: Record<string, unknown>) => {
     const { data: { session } } = await supabase.auth.getSession();
