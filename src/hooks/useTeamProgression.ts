@@ -22,7 +22,7 @@ export function useTeamProgression(teamId: string | undefined, playerIds: string
             .from("evaluations")
             .select("id, date")
             .eq("player_id", playerId)
-            .eq("type", "coach_assessment")
+            .eq("type", "coach")
             .is("deleted_at", null)
             .order("date", { ascending: false })
             .limit(2);

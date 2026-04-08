@@ -40,7 +40,7 @@ interface Evaluation {
   date: string;
   deleted_at: string | null;
   framework_id: string;
-  type: "coach_assessment" | "player_self_assessment" | "supporter_assessment";
+  type: "coach" | "self" | "supporter";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -107,9 +107,9 @@ export function EvaluationHistory({
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
 
   // Separate evaluations by type
-  const coachEvaluations = evaluations.filter(e => e.type === "coach_assessment");
-  const selfEvaluations = evaluations.filter(e => e.type === "player_self_assessment");
-  const supporterEvaluations = evaluations.filter(e => e.type === "supporter_assessment");
+  const coachEvaluations = evaluations.filter(e => e.type === "coach");
+  const selfEvaluations = evaluations.filter(e => e.type === "self");
+  const supporterEvaluations = evaluations.filter(e => e.type === "supporter");
   
   const filteredCoachEvals = showArchivedEvaluations 
     ? coachEvaluations 

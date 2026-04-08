@@ -175,7 +175,7 @@ export const SelfEvaluationForm = ({
       .from("evaluations")
       .select("name")
       .eq("player_id", playerId)
-      .eq("type", "player_self_assessment")
+      .eq("type", "self")
       .ilike("name", `${baseName}%`);
 
     if (!existingEvaluations || existingEvaluations.length === 0) {
@@ -235,7 +235,7 @@ export const SelfEvaluationForm = ({
             evaluator_id: user.id, // The player's own ID
             framework_id: frameworkId,
             name: uniqueName,
-            type: "player_self_assessment",
+            type: "self",
           })
           .select()
           .single();
