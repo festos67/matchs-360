@@ -859,6 +859,7 @@ export type Database = {
           archived_reason: string | null
           coach_role: Database["public"]["Enums"]["coach_type"] | null
           created_at: string
+          deleted_at: string | null
           id: string
           is_active: boolean
           joined_at: string
@@ -871,6 +872,7 @@ export type Database = {
           archived_reason?: string | null
           coach_role?: Database["public"]["Enums"]["coach_type"] | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           joined_at?: string
@@ -883,6 +885,7 @@ export type Database = {
           archived_reason?: string | null
           coach_role?: Database["public"]["Enums"]["coach_type"] | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           joined_at?: string
