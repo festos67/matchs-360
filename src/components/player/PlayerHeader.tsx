@@ -239,8 +239,10 @@ export function PlayerHeader({
                       <AlertDialogAction
                         onClick={async () => {
                           try {
-                            await supabase.from("profiles").update({ deleted_at: new Date().toISOString() }).eq("id", player.id);
-                            await supabase.from("team_members").update({ is_active: false, left_at: new Date().toISOString() }).eq("user_id", player.id);
+                            const { error: profileError } = await supabase.from("profiles").update({ deleted_at: new Date().toISOString() }).eq("id", player.id);
+                            if (profileError) throw profileError;
+                            const { error: memberError } = await supabase.from("team_members").update({ is_active: false, left_at: new Date().toISOString() }).eq("user_id", player.id);
+                            if (memberError) throw memberError;
                             toast.success("Joueur supprimé avec succès");
                             navigate(-1);
                           } catch (error) {
