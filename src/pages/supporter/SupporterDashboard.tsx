@@ -117,7 +117,7 @@ const SupporterDashboard = () => {
       const { count, error } = await supabase
         .from("evaluations")
         .select("id", { count: "exact", head: true })
-        .eq("coach_id", user.id)
+        .eq("evaluator_id", user.id)
         .eq("type", "supporter_assessment" as any);
 
       if (error) throw error;

@@ -227,12 +227,12 @@ export const SelfEvaluationForm = ({
         const uniqueName = await generateUniqueName(evaluationName);
 
         // Create new self-evaluation
-        // Note: For self-assessments, coach_id = player_id (the player is evaluating themselves)
+        // Note: For self-assessments, evaluator_id = player_id (the player is evaluating themselves)
         const { data: newEval, error } = await supabase
           .from("evaluations")
           .insert({
             player_id: playerId,
-            coach_id: user.id, // The player's own ID
+            evaluator_id: user.id, // The player's own ID
             framework_id: frameworkId,
             name: uniqueName,
             type: "player_self_assessment",

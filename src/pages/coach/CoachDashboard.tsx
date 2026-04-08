@@ -83,7 +83,7 @@ const CoachDashboard = () => {
       const { count, error } = await supabase
         .from("evaluations")
         .select("*", { count: "exact", head: true })
-        .eq("coach_id", user.id);
+        .eq("evaluator_id", user.id);
       if (error) throw error;
       return count || 0;
     },

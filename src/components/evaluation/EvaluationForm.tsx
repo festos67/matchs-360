@@ -306,7 +306,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           .from("evaluations")
           .insert({
             player_id: playerId,
-            coach_id: user.id,
+            evaluator_id: user.id,
             framework_id: frameworkId,
             name: uniqueName,
             type: "coach_assessment",

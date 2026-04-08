@@ -310,7 +310,7 @@ export const CreateEvaluationModal = ({
         .insert({
           name: uniqueName,
           player_id: data.playerId,
-          coach_id: user.id,
+          evaluator_id: user.id,
           framework_id: framework.id,
         })
         .select()
