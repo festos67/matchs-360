@@ -176,6 +176,7 @@ export const SelfEvaluationForm = ({
       .select("name")
       .eq("player_id", playerId)
       .eq("type", "self")
+      .is("deleted_at", null)
       .ilike("name", `${baseName}%`);
 
     if (!existingEvaluations || existingEvaluations.length === 0) {

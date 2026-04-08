@@ -83,7 +83,8 @@ const CoachDashboard = () => {
       const { count, error } = await supabase
         .from("evaluations")
         .select("*", { count: "exact", head: true })
-        .eq("evaluator_id", user.id);
+        .eq("evaluator_id", user.id)
+        .is("deleted_at", null);
       if (error) throw error;
       return count || 0;
     },
@@ -122,7 +123,8 @@ const CoachDashboard = () => {
           const { count } = await supabase
             .from("evaluations")
             .select("*", { count: "exact", head: true })
-            .eq("player_id", (member.profiles as any)?.id);
+            .eq("player_id", (member.profiles as any)?.id)
+            .is("deleted_at", null);
           
           return {
             ...member,
