@@ -170,25 +170,10 @@ export default function PlayerDetail() {
   });
 
   const handlePrintEvaluationFromHistory = useCallback(async (evaluation: Evaluation) => {
-    // Fetch correct themes for this evaluation's framework
+    // Fetch correct themes for this evaluation's framework (with snapshot fallback)
     let printThemes = themes;
     if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
-      if (themesCache[evaluation.framework_id]) {
-        printThemes = themesCache[evaluation.framework_id];
-      } else {
-        const { data: themesData } = await supabase
-          .from("themes")
-          .select("*, skills(*)")
-          .eq("framework_id", evaluation.framework_id)
-          .order("order_index");
-        if (themesData) {
-          printThemes = themesData.map(theme => ({
-            ...theme,
-            skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
-          }));
-          setThemesCache(prev => ({ ...prev, [evaluation.framework_id]: printThemes }));
-        }
-      }
+      printThemes = await fetchThemesForFramework(evaluation.framework_id);
     }
     setHistoryPrintThemes(printThemes);
     setHistoryPrintEvaluation(evaluation);
@@ -341,25 +326,16 @@ export default function PlayerDetail() {
     return player.first_name || player.last_name || "Joueur";
   };
 
-  // Helper to fetch themes for a given framework (with caching)
+  // Helper to fetch themes for a given framework (with caching + snapshot fallback)
   const fetchThemesForFramework = async (fwId: string): Promise<Theme[]> => {
     if (themesCache[fwId]) return themesCache[fwId];
     
-    const { data: themesData } = await supabase
-      .from("themes")
-      .select("*, skills(*)")
-      .eq("framework_id", fwId)
-      .order("order_index");
+    const { themes: loaded } = await loadFrameworkThemes(fwId);
     
-    if (!themesData) return [];
-    
-    const sorted = themesData.map(theme => ({
-      ...theme,
-      skills: (theme.skills || []).sort((a: Skill, b: Skill) => a.order_index - b.order_index)
-    }));
-    
-    setThemesCache(prev => ({ ...prev, [fwId]: sorted }));
-    return sorted;
+    if (loaded.length > 0) {
+      setThemesCache(prev => ({ ...prev, [fwId]: loaded }));
+    }
+    return loaded;
   };
 
   // Calculate radar data from evaluation using specific themes
