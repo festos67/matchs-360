@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * Creates an archived snapshot of the current framework (with all themes and skills)
  * before applying changes. This preserves the previous version in the history.
+ * Optimised: 3 queries total (1 framework + 1 batch themes + 1 batch skills).
  */
 export async function snapshotFramework(frameworkId: string): Promise<void> {
   // 1. Fetch current framework
@@ -17,17 +18,16 @@ export async function snapshotFramework(frameworkId: string): Promise<void> {
     return;
   }
 
-  // 2. Fetch themes with skills before creating snapshot
+  // 2. Fetch themes with skills
   const { data: themes } = await supabase
     .from("themes")
     .select("*, skills(*)")
     .eq("framework_id", frameworkId)
     .order("order_index");
 
-  // If no themes, skip snapshot (nothing meaningful to archive)
   if (!themes || themes.length === 0) return;
 
-  // 3. Create archived copy of the framework
+  // 3. Create archived copy of the framework (1 query)
   const { data: archivedFw, error: copyError } = await supabase
     .from("competence_frameworks")
     .insert({
@@ -46,37 +46,46 @@ export async function snapshotFramework(frameworkId: string): Promise<void> {
     return;
   }
 
-  // 4. Clone themes and skills into the archived framework
-  for (const theme of themes) {
-    const { data: newTheme, error: themeError } = await supabase
-      .from("themes")
-      .insert({
-        framework_id: archivedFw.id,
-        name: theme.name,
-        color: theme.color,
-        order_index: theme.order_index,
-      })
-      .select()
-      .maybeSingle();
+  // 4. Batch insert ALL themes at once (1 query)
+  const themesPayload = themes.map((t) => ({
+    framework_id: archivedFw.id,
+    name: t.name,
+    color: t.color,
+    order_index: t.order_index,
+  }));
 
-    if (themeError || !newTheme) {
-      console.warn("snapshotFramework: could not copy theme", theme.name, themeError);
-      continue;
+  const { data: newThemes, error: themesError } = await supabase
+    .from("themes")
+    .insert(themesPayload)
+    .select();
+
+  if (themesError || !newThemes) {
+    console.warn("snapshotFramework: could not batch insert themes", themesError);
+    return;
+  }
+
+  // 5. Map old theme order to new theme IDs, then batch insert ALL skills (1 query)
+  const allSkills: { theme_id: string; name: string; definition: string | null; order_index: number }[] = [];
+
+  for (let i = 0; i < themes.length; i++) {
+    const originalTheme = themes[i];
+    const newTheme = newThemes[i];
+    const skills = originalTheme.skills || [];
+
+    for (const s of skills) {
+      allSkills.push({
+        theme_id: newTheme.id,
+        name: (s as any).name,
+        definition: (s as any).definition,
+        order_index: (s as any).order_index,
+      });
     }
+  }
 
-    const skills = theme.skills || [];
-    if (skills.length > 0) {
-      const { error: skillsError } = await supabase.from("skills").insert(
-        skills.map((s: any) => ({
-          theme_id: newTheme.id,
-          name: s.name,
-          definition: s.definition,
-          order_index: s.order_index,
-        }))
-      );
-      if (skillsError) {
-        console.warn("snapshotFramework: could not copy skills for theme", theme.name, skillsError);
-      }
+  if (allSkills.length > 0) {
+    const { error: skillsError } = await supabase.from("skills").insert(allSkills);
+    if (skillsError) {
+      console.warn("snapshotFramework: could not batch insert skills", skillsError);
     }
   }
 }
