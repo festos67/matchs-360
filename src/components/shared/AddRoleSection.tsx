@@ -91,7 +91,7 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
       if (error) throw error;
       setExistingRoles((data || []).map((r) => ({
         ...r,
-        club_name: null,
+        club_name: null as string | null,
       })));
     } catch (error) {
       console.error("Error fetching roles:", error);

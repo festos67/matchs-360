@@ -236,11 +236,11 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         theme_color: theme.color,
         skills: theme.skills.map((skill) => ({
           skill_id: skill.id,
-          score: null,
+          score: null as number | null,
           is_not_observed: false,
-          comment: null,
+          comment: null as string | null,
         })),
-        objective: null,
+        objective: null as string | null,
       }))
     );
   };

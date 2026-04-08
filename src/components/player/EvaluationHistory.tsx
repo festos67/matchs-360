@@ -134,10 +134,10 @@ export function EvaluationHistory({
           skill_id: skill.id,
           score: score?.score ?? null,
           is_not_observed: score?.is_not_observed ?? false,
-          comment: null,
+          comment: null as string | null,
         };
       }),
-      objective: null,
+      objective: null as string | null,
     }));
     return formatAverage(calculateOverallAverage(themeScores));
   };
