@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { FrameworkTheme, FrameworkSkill } from "@/lib/framework-loader";
 
 /**
  * Creates an archived snapshot of the current framework (with all themes and skills)
@@ -65,19 +66,19 @@ export async function snapshotFramework(frameworkId: string): Promise<void> {
   }
 
   // 5. Map old theme order to new theme IDs, then batch insert ALL skills (1 query)
-  const allSkills: { theme_id: string; name: string; definition: string | null; order_index: number }[] = [];
+  const allSkills: Array<{ theme_id: string; name: string; definition: string | null; order_index: number }> = [];
 
   for (let i = 0; i < themes.length; i++) {
     const originalTheme = themes[i];
     const newTheme = newThemes[i];
-    const skills = originalTheme.skills || [];
+    const skills = (originalTheme.skills || []) as unknown as FrameworkSkill[];
 
     for (const s of skills) {
       allSkills.push({
         theme_id: newTheme.id,
-        name: (s as any).name,
-        definition: (s as any).definition,
-        order_index: (s as any).order_index,
+        name: s.name,
+        definition: s.definition,
+        order_index: s.order_index,
       });
     }
   }

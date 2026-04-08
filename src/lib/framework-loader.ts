@@ -32,10 +32,13 @@ export async function loadFrameworkThemes(
     .order("order_index");
 
   if (themesData && themesData.length > 0) {
-    const sorted = themesData.map((theme: any) => ({
-      ...theme,
-      skills: (theme.skills || []).sort(
-        (a: FrameworkSkill, b: FrameworkSkill) => a.order_index - b.order_index
+    const sorted: FrameworkTheme[] = themesData.map((theme) => ({
+      id: theme.id,
+      name: theme.name,
+      color: theme.color,
+      order_index: theme.order_index,
+      skills: ((theme.skills as unknown as FrameworkSkill[]) || []).sort(
+        (a, b) => a.order_index - b.order_index
       ),
     }));
     return { themes: sorted, fromSnapshot: false };
@@ -49,14 +52,14 @@ export async function loadFrameworkThemes(
     .maybeSingle();
 
   if (snapshot?.snapshot) {
-    const parsed = snapshot.snapshot as any;
+    const parsed = snapshot.snapshot as { name?: string; themes?: Array<{ id?: string; name: string; color?: string; skills?: Array<{ id?: string; name: string; definition?: string }> }> };
     const snapshotThemes: FrameworkTheme[] = (parsed.themes || []).map(
-      (t: any, index: number) => ({
+      (t, index) => ({
         id: t.id || `snapshot-theme-${index}`,
         name: t.name,
         color: t.color || null,
         order_index: index,
-        skills: (t.skills || []).map((s: any, sIndex: number) => ({
+        skills: (t.skills || []).map((s, sIndex) => ({
           id: s.id || `snapshot-skill-${index}-${sIndex}`,
           name: s.name,
           definition: s.definition || null,
