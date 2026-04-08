@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/routing/ProtectedRoute";
 import Index from "./pages/Index";
 import Teams from "./pages/Teams";
 import Coaches from "./pages/Coaches";
@@ -49,42 +50,55 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<DashboardRedirect />} />
-            
-            {/* Role-based dashboards */}
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/club/redirect" element={<ClubRedirectPage />} />
-            <Route path="/coach/dashboard" element={<CoachMyClub />} />
-            <Route path="/coach/my-club" element={<CoachMyClub />} />
-            <Route path="/player/dashboard" element={<PlayerDashboard />} />
-            <Route path="/player/profile" element={<PlayerProfileRedirect />} />
-            <Route path="/player/self-evaluation" element={<SelfEvaluation />} />
-            <Route path="/supporter/dashboard" element={<SupporterDashboard />} />
-            <Route path="/supporter/evaluate/:requestId" element={<SupporterEvaluation />} />
-            <Route path="/my-team" element={<MyTeamRedirect />} />
-            <Route path="/my-supporters" element={<MySupporters />} />
-            
-            <Route path="/clubs" element={<Clubs />} />
-            <Route path="/clubs/:id" element={<ClubDetail />} />
-            <Route path="/clubs/:clubId/framework" element={<ClubFrameworkEditor />} />
-            <Route path="/teams" element={<Teams />} />
-            <Route path="/teams/:id" element={<TeamDetail />} />
-            <Route path="/teams/:teamId/framework" element={<FrameworkEditor />} />
-            <Route path="/coaches" element={<Coaches />} />
-            <Route path="/players" element={<Players />} />
-            <Route path="/supporters" element={<Supporters />} />
-            <Route path="/players/:id" element={<PlayerDetail />} />
-            <Route path="/evaluations" element={<Evaluations />} />
-            <Route path="/pending-approval" element={<PendingApproval />} />
-            <Route path="/role-approvals" element={<RoleApprovals />} />
             <Route path="/invite/accept" element={<InviteAccept />} />
-            <Route path="/stats" element={<Stats />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/club/users" element={<ClubUsers />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/profile" element={<Profile />} />
+
+            {/* Dashboard redirect */}
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
+
+            {/* Admin routes */}
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
+
+            {/* Club admin routes */}
+            <Route path="/club/redirect" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><ClubRedirectPage /></ProtectedRoute>} />
+            <Route path="/club/users" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><ClubUsers /></ProtectedRoute>} />
+
+            {/* Coach routes */}
+            <Route path="/coach/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'club_admin', 'coach']}><CoachMyClub /></ProtectedRoute>} />
+            <Route path="/coach/my-club" element={<ProtectedRoute allowedRoles={['admin', 'club_admin', 'coach']}><CoachMyClub /></ProtectedRoute>} />
+
+            {/* Player routes */}
+            <Route path="/player/dashboard" element={<ProtectedRoute allowedRoles={['player']}><PlayerDashboard /></ProtectedRoute>} />
+            <Route path="/player/profile" element={<ProtectedRoute allowedRoles={['player']}><PlayerProfileRedirect /></ProtectedRoute>} />
+            <Route path="/player/self-evaluation" element={<ProtectedRoute allowedRoles={['player']}><SelfEvaluation /></ProtectedRoute>} />
+            <Route path="/my-team" element={<ProtectedRoute allowedRoles={['player', 'supporter']}><MyTeamRedirect /></ProtectedRoute>} />
+            <Route path="/my-supporters" element={<ProtectedRoute allowedRoles={['player']}><MySupporters /></ProtectedRoute>} />
+
+            {/* Supporter routes */}
+            <Route path="/supporter/dashboard" element={<ProtectedRoute allowedRoles={['supporter']}><SupporterDashboard /></ProtectedRoute>} />
+            <Route path="/supporter/evaluate/:requestId" element={<ProtectedRoute allowedRoles={['supporter']}><SupporterEvaluation /></ProtectedRoute>} />
+
+            {/* Generic protected routes (any authenticated user) */}
+            <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
+            <Route path="/clubs/:id" element={<ProtectedRoute><ClubDetail /></ProtectedRoute>} />
+            <Route path="/clubs/:clubId/framework" element={<ProtectedRoute><ClubFrameworkEditor /></ProtectedRoute>} />
+            <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
+            <Route path="/teams/:id" element={<ProtectedRoute><TeamDetail /></ProtectedRoute>} />
+            <Route path="/teams/:teamId/framework" element={<ProtectedRoute><FrameworkEditor /></ProtectedRoute>} />
+            <Route path="/coaches" element={<ProtectedRoute><Coaches /></ProtectedRoute>} />
+            <Route path="/players" element={<ProtectedRoute><Players /></ProtectedRoute>} />
+            <Route path="/supporters" element={<ProtectedRoute><Supporters /></ProtectedRoute>} />
+            <Route path="/players/:id" element={<ProtectedRoute><PlayerDetail /></ProtectedRoute>} />
+            <Route path="/evaluations" element={<ProtectedRoute><Evaluations /></ProtectedRoute>} />
+            <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
+            <Route path="/role-approvals" element={<ProtectedRoute><RoleApprovals /></ProtectedRoute>} />
+            <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
