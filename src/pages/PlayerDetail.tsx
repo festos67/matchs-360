@@ -1600,6 +1600,7 @@ export default function PlayerDetail() {
                   await evaluationFormRef.current?.save();
                   setHasDraftEvaluation(true);
                   toast.success("Débrief sauvegardé en brouillon");
+                  scrollToTop();
                 } catch (e) {
                   toast.error("Erreur lors de la sauvegarde");
                 }
@@ -1621,6 +1622,7 @@ export default function PlayerDetail() {
                   setHasDraftEvaluation(false);
                   fetchPlayerData();
                   toast.success("Débrief finalisé avec succès");
+                  scrollToTop();
                 } catch (e) {
                   toast.error("Erreur lors de la sauvegarde");
                 }
