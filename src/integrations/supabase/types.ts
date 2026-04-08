@@ -342,6 +342,27 @@ export type Database = {
           },
         ]
       }
+      framework_snapshots: {
+        Row: {
+          created_at: string
+          framework_id: string
+          id: string
+          snapshot: Json
+        }
+        Insert: {
+          created_at?: string
+          framework_id: string
+          id?: string
+          snapshot: Json
+        }
+        Update: {
+          created_at?: string
+          framework_id?: string
+          id?: string
+          snapshot?: Json
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
