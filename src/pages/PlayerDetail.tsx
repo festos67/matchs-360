@@ -151,7 +151,7 @@ export default function PlayerDetail() {
   const scrollToRadar = useCallback(() => {
     setTimeout(() => {
       radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
+    }, 300);
   }, []);
 
   const handlePrint = useReactToPrint({
