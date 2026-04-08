@@ -1,5 +1,26 @@
 // Evaluation calculation utilities
 
+export type EvaluationType = 'coach' | 'self' | 'supporter';
+
+export interface FrameworkSnapshot {
+  id: string;
+  framework_id: string;
+  snapshot: {
+    name: string;
+    themes: {
+      id: string;
+      name: string;
+      color: string;
+      skills: {
+        id: string;
+        name: string;
+        definition: string;
+      }[];
+    }[];
+  };
+  created_at: string;
+}
+
 export interface SkillScore {
   skill_id: string;
   score: number | null;
