@@ -63,22 +63,27 @@ export const FrameworkEditDialog = ({
   onCancel,
 }: FrameworkEditDialogProps) => {
   const [themes, setThemes] = useState<Theme[]>([]);
-  const [savedSnapshot, setSavedSnapshot] = useState<Theme[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [history, setHistory] = useState<Theme[][]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  const hasChanges = history.length > 0;
 
   // Initialize themes when dialog opens
   useEffect(() => {
     if (open) {
       const snapshot = JSON.parse(JSON.stringify(initialThemes));
       setThemes(snapshot);
-      setSavedSnapshot(snapshot);
-      setHasChanges(false);
+      setHistory([]);
     }
   }, [open, initialThemes]);
+
+  // Push current state to history before each mutation
+  const pushHistory = useCallback(() => {
+    setHistory(prev => [...prev, JSON.parse(JSON.stringify(themes))]);
+  }, [themes]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
