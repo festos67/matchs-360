@@ -118,7 +118,6 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
 
   const handleImport = async (confirmedName: string) => {
     if (!selectedOption) return;
-    setShowNameModal(false);
     setLoading(true);
 
     try {
