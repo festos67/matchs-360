@@ -357,7 +357,7 @@ export default function ClubFrameworkEditor() {
             <div className="flex-1 min-w-0">
               <h1 className="!text-2xl font-display font-bold">{frameworkName || "Référentiel du Club"}</h1>
               <p className="text-muted-foreground mt-1">
-                {club.name} • Modèle du club
+                {club.name} • Modèle du club • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
               </p>
             </div>
           </div>
@@ -405,20 +405,6 @@ export default function ClubFrameworkEditor() {
               )}
             </div>
           )}
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="glass-card p-4">
-            <p className="text-3xl font-display font-bold text-primary">{themes.length}</p>
-            <p className="text-sm text-muted-foreground">Thématiques</p>
-          </div>
-          <div className="glass-card p-4">
-            <p className="text-3xl font-display font-bold">
-              {themes.reduce((acc, t) => acc + t.skills.length, 0)}
-            </p>
-            <p className="text-sm text-muted-foreground">Compétences</p>
-          </div>
         </div>
 
         {/* Read-only Framework View */}
