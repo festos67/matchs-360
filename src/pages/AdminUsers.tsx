@@ -115,6 +115,7 @@ export default function AdminUsers() {
   const [clubFilter, setClubFilter] = useState("all");
   const [coachFilter, setCoachFilter] = useState("all");
   const [playerFilter, setPlayerFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
 
