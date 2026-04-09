@@ -321,13 +321,6 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         </Button>
       </div>
 
-      <FrameworkNameModal
-        open={showNameModal}
-        onOpenChange={setShowNameModal}
-        currentName={defaultName}
-        onConfirm={handleImport}
-        saving={loading}
-      />
     </div>
   );
 };
