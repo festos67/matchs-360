@@ -1,20 +1,9 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2, Info, X } from "lucide-react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface Skill {
   id: string;
@@ -39,7 +28,7 @@ export const SortableSkill = ({
   onUpdate,
   onDelete,
 }: SortableSkillProps) => {
-  const [showDefinition, setShowDefinition] = useState(false);
+  const [editingDefinition, setEditingDefinition] = useState(false);
 
   const {
     attributes,
@@ -60,87 +49,72 @@ export const SortableSkill = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
+      className="grid grid-cols-[auto_1fr_1fr_auto] gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group items-start"
     >
-      {canEdit && (
+      {/* Drag handle */}
+      {canEdit ? (
         <button
-          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-opacity touch-none"
+          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground transition-opacity touch-none mt-1"
           {...attributes}
           {...listeners}
         >
           <GripVertical className="w-3 h-3 text-muted-foreground" />
         </button>
+      ) : (
+        <div className="w-5" />
       )}
 
+      {/* Skill name */}
       {canEdit ? (
         <Input
           ref={inputRef}
           value={skill.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
           placeholder="Nom de la compétence..."
-          className="flex-1 h-8 text-sm border-transparent bg-transparent focus:bg-background"
+          className="h-8 text-sm border-transparent bg-transparent focus:bg-background"
         />
       ) : (
-        <span className="flex-1 text-sm">{skill.name}</span>
+        <span className="text-sm mt-1">{skill.name}</span>
       )}
 
-      <Tooltip>
-        <Popover open={showDefinition} onOpenChange={setShowDefinition}>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <button
-                className={`flex items-center gap-1 px-1.5 py-1 rounded hover:bg-muted transition-colors text-xs ${
-                  skill.definition ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                <Info className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline opacity-60">Définition</span>
-              </button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          {!showDefinition && skill.definition && (
-            <TooltipContent side="top" className="max-w-xs text-xs">
-              {skill.definition}
-            </TooltipContent>
-          )}
-          <PopoverContent className="w-80" align="end">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium text-sm">Définition</h4>
-                <button
-                  className="p-1 rounded hover:bg-muted"
-                  onClick={() => setShowDefinition(false)}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              {canEdit ? (
-                <Textarea
-                  value={skill.definition || ""}
-                  onChange={(e) => onUpdate({ definition: e.target.value })}
-                  placeholder="Décrivez cette compétence..."
-                  rows={3}
-                  className="text-sm"
-                />
-              ) : skill.definition ? (
-                <p className="text-sm text-muted-foreground">{skill.definition}</p>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  Aucune définition
-                </p>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-      </Tooltip>
+      {/* Definition box */}
+      {canEdit ? (
+        editingDefinition ? (
+          <Textarea
+            autoFocus
+            value={skill.definition || ""}
+            onChange={(e) => onUpdate({ definition: e.target.value })}
+            onBlur={() => setEditingDefinition(false)}
+            placeholder="Décrivez cette compétence..."
+            rows={2}
+            className="text-sm min-h-[2rem]"
+          />
+        ) : (
+          <div
+            className="text-sm px-2 py-1 rounded border border-transparent hover:border-border cursor-text min-h-[2rem] text-muted-foreground"
+            onClick={() => setEditingDefinition(true)}
+          >
+            {skill.definition || (
+              <span className="italic text-muted-foreground/50">Cliquer pour ajouter une définition…</span>
+            )}
+          </div>
+        )
+      ) : (
+        <span className="text-sm text-muted-foreground mt-1">
+          {skill.definition || <span className="italic text-muted-foreground/50">Aucune définition</span>}
+        </span>
+      )}
 
-      {canEdit && (
+      {/* Delete */}
+      {canEdit ? (
         <button
-          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all"
+          className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all mt-0.5"
           onClick={onDelete}
         >
           <Trash2 className="w-4 h-4" />
         </button>
+      ) : (
+        <div className="w-7" />
       )}
     </div>
   );
