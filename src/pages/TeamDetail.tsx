@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Pencil, History, RotateCcw, Target, Check, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -152,7 +152,7 @@ export default function TeamDetail() {
   });
 
   // Auto-open edit dialog after framework initialization
-  React.useEffect(() => {
+  useEffect(() => {
     if (pendingOpenEdit && framework) {
       setPendingOpenEdit(false);
       setShowEditDialog(true);
