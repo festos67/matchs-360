@@ -359,9 +359,9 @@ export default function AdminUsers() {
               </p>
             </div>
           </div>
-          <Button onClick={fetchUsers} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Actualiser
+          <Button onClick={fetchUsers} variant="outline" size="sm" disabled={isFetching}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+            {isFetching ? "Chargement..." : "Actualiser"}
           </Button>
         </div>
 
