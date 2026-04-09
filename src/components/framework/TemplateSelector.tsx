@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+
 
 interface Template {
   id: string;
@@ -39,7 +39,6 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [teamsWithFramework, setTeamsWithFramework] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
-  const [showNameModal, setShowNameModal] = useState(false);
   const [defaultName, setDefaultName] = useState("");
 
   useEffect(() => {
@@ -113,13 +112,12 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
 
   const handleContinue = () => {
     if (!selectedOption) return;
-    setDefaultName(getDefaultName());
-    setShowNameModal(true);
+    // Import directly with default name — renaming happens at save time
+    handleImport(getDefaultName());
   };
 
   const handleImport = async (confirmedName: string) => {
     if (!selectedOption) return;
-    setShowNameModal(false);
     setLoading(true);
 
     try {
@@ -321,13 +319,6 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         </Button>
       </div>
 
-      <FrameworkNameModal
-        open={showNameModal}
-        onOpenChange={setShowNameModal}
-        currentName={defaultName}
-        onConfirm={handleImport}
-        saving={loading}
-      />
     </div>
   );
 };
