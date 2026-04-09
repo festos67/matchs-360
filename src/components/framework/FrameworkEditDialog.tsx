@@ -226,7 +226,7 @@ export const FrameworkEditDialog = ({
                 disabled={!hasChanges || saving}
               >
                 <Undo2 className="w-4 h-4 mr-2" />
-                Annuler les modifications
+                Annuler dernière modification
               </Button>
               <Button
                 variant="outline"
