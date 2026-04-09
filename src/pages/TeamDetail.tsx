@@ -151,7 +151,14 @@ export default function TeamDetail() {
     enabled: !!user && !!id,
   });
 
-  // Fetch supporter count
+  // Auto-open edit dialog after framework initialization
+  React.useEffect(() => {
+    if (pendingOpenEdit && framework) {
+      setPendingOpenEdit(false);
+      setShowEditDialog(true);
+    }
+  }, [pendingOpenEdit, framework]);
+
   const playerUserIds = members.filter(m => m.member_type === "player").map(m => m.profile.id);
   const { data: supporterCount = 0 } = useQuery({
     queryKey: ["team-supporter-count", id, playerUserIds],
