@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, User, Star, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Pencil, History, RotateCcw, Target, Check, X } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -85,6 +85,7 @@ export default function TeamDetail() {
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "effectif");
   const [showEditConfirm, setShowEditConfirm] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [pendingOpenEdit, setPendingOpenEdit] = useState(searchParams.get("editFramework") === "true");
   const [showNameModal, setShowNameModal] = useState(false);
   const [pendingEditThemes, setPendingEditThemes] = useState<Theme[] | null>(null);
   const [saving, setSaving] = useState(false);
@@ -150,7 +151,14 @@ export default function TeamDetail() {
     enabled: !!user && !!id,
   });
 
-  // Fetch supporter count
+  // Auto-open edit dialog after framework initialization
+  useEffect(() => {
+    if (pendingOpenEdit && framework) {
+      setPendingOpenEdit(false);
+      setShowEditDialog(true);
+    }
+  }, [pendingOpenEdit, framework]);
+
   const playerUserIds = members.filter(m => m.member_type === "player").map(m => m.profile.id);
   const { data: supporterCount = 0 } = useQuery({
     queryKey: ["team-supporter-count", id, playerUserIds],
