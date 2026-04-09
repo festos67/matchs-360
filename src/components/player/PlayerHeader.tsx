@@ -64,7 +64,7 @@ export function PlayerHeader({
       <div className="flex items-start gap-8">
         {/* Avatar */}
         <div
-          className="w-32 h-32 rounded-2xl flex items-center justify-center text-4xl font-display font-bold shrink-0"
+          className="w-32 h-32 rounded-full flex items-center justify-center text-4xl font-display font-bold shrink-0 overflow-hidden"
           style={{
             background: player.photo_url
               ? `url(${player.photo_url}) center/cover`
