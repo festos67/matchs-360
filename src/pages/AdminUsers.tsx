@@ -153,7 +153,7 @@ export default function AdminUsers() {
   });
 
   const fetchUsers = () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    refetch();
   };
 
   const callAdminAction = async (action: string, payload: Record<string, unknown>) => {
