@@ -126,7 +126,7 @@ export default function AdminUsers() {
     }
   }, [isAdmin, authLoading, navigate]);
 
-  const { data: users = [], isLoading: loading } = useQuery({
+  const { data: users = [], isLoading: loading, isFetching, refetch } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -153,7 +153,7 @@ export default function AdminUsers() {
   });
 
   const fetchUsers = () => {
-    queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    refetch();
   };
 
   const callAdminAction = async (action: string, payload: Record<string, unknown>) => {
@@ -359,9 +359,9 @@ export default function AdminUsers() {
               </p>
             </div>
           </div>
-          <Button onClick={fetchUsers} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Actualiser
+          <Button onClick={fetchUsers} variant="outline" size="sm" disabled={isFetching}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
+            {isFetching ? "Chargement..." : "Actualiser"}
           </Button>
         </div>
 
