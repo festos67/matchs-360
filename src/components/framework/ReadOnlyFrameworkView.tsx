@@ -63,13 +63,15 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
             {theme.skills.map((skill) => (
               <div
                 key={skill.id}
-                className="p-3 rounded-lg bg-muted/30"
+                className="flex items-start gap-4 p-3 rounded-lg bg-muted/30"
               >
-                <p className="text-sm font-medium">{skill.name}</p>
-                {skill.definition && (
-                  <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                <p className="text-base font-semibold shrink-0 min-w-[140px] md:min-w-[200px]">{skill.name}</p>
+                {skill.definition ? (
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">
                     {skill.definition}
                   </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground/50 italic flex-1">Aucune définition</p>
                 )}
               </div>
             ))}
