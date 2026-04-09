@@ -63,15 +63,15 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
             {theme.skills.map((skill) => (
               <div
                 key={skill.id}
-                className="flex items-start gap-4 p-3 rounded-lg bg-muted/30"
+                className="grid grid-cols-[minmax(200px,1fr)_2fr] gap-6 p-3 rounded-lg bg-muted/30 items-start"
               >
-                <p className="text-base font-semibold shrink-0 min-w-[140px] md:min-w-[200px]">{skill.name}</p>
+                <p className="text-base font-semibold">{skill.name}</p>
                 {skill.definition ? (
-                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {skill.definition}
                   </p>
                 ) : (
-                  <p className="text-sm text-muted-foreground/50 italic flex-1">Aucune définition</p>
+                  <p className="text-sm text-muted-foreground/50 italic">Aucune définition</p>
                 )}
               </div>
             ))}
