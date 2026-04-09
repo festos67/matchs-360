@@ -115,6 +115,7 @@ export default function AdminUsers() {
   const [clubFilter, setClubFilter] = useState("all");
   const [coachFilter, setCoachFilter] = useState("all");
   const [playerFilter, setPlayerFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
 
   const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
 
@@ -311,7 +312,13 @@ export default function AdminUsers() {
     const matchesCoach = coachFilter === "all" || user.id === coachFilter;
     const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
 
-    return matchesSearch && matchesClub && matchesCoach && matchesPlayer;
+    const matchesRole = roleFilter === "all" || 
+      user.roles.some(r => r.role === roleFilter) ||
+      (roleFilter === "coach" && user.team_memberships.some(m => m.member_type === "coach" && m.is_active)) ||
+      (roleFilter === "player" && user.team_memberships.some(m => m.member_type === "player" && m.is_active)) ||
+      (roleFilter === "supporter" && user.supporter_links.length > 0);
+
+    return matchesSearch && matchesClub && matchesCoach && matchesPlayer && matchesRole;
   });
 
   if (authLoading || loading) {
@@ -400,6 +407,19 @@ export default function AdminUsers() {
               {uniquePlayers.map(player => (
                 <SelectItem key={player.id} value={player.id}>{player.name}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les rôles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les rôles</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="club_admin">Responsable club</SelectItem>
+              <SelectItem value="coach">Coach</SelectItem>
+              <SelectItem value="player">Joueur</SelectItem>
+              <SelectItem value="supporter">Supporter</SelectItem>
             </SelectContent>
           </Select>
         </div>
