@@ -312,7 +312,13 @@ export default function AdminUsers() {
     const matchesCoach = coachFilter === "all" || user.id === coachFilter;
     const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
 
-    return matchesSearch && matchesClub && matchesCoach && matchesPlayer;
+    const matchesRole = roleFilter === "all" || 
+      user.roles.some(r => r.role === roleFilter) ||
+      (roleFilter === "coach" && user.team_memberships.some(m => m.member_type === "coach" && m.is_active)) ||
+      (roleFilter === "player" && user.team_memberships.some(m => m.member_type === "player" && m.is_active)) ||
+      (roleFilter === "supporter" && user.supporter_links.length > 0);
+
+    return matchesSearch && matchesClub && matchesCoach && matchesPlayer && matchesRole;
   });
 
   if (authLoading || loading) {
