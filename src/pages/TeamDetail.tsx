@@ -85,6 +85,7 @@ export default function TeamDetail() {
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "effectif");
   const [showEditConfirm, setShowEditConfirm] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [pendingOpenEdit, setPendingOpenEdit] = useState(searchParams.get("editFramework") === "true");
   const [showNameModal, setShowNameModal] = useState(false);
   const [pendingEditThemes, setPendingEditThemes] = useState<Theme[] | null>(null);
   const [saving, setSaving] = useState(false);

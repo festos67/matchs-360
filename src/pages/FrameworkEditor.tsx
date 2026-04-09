@@ -448,9 +448,9 @@ export default function FrameworkEditor() {
   };
 
   const handleTemplateSelected = async () => {
-    setShowTemplateSelector(false);
-    await fetchData();
     toast.success("Référentiel importé avec succès");
+    // Redirect back to team detail and open the edit dialog for review
+    navigate(`/teams/${teamId}?tab=indicateurs&editFramework=true`);
   };
 
   const handlePrint = useReactToPrint({
