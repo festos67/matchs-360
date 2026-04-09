@@ -113,8 +113,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
 
   const handleContinue = () => {
     if (!selectedOption) return;
-    setDefaultName(getDefaultName());
-    setShowNameModal(true);
+    // Import directly with default name — renaming happens at save time
+    handleImport(getDefaultName());
   };
 
   const handleImport = async (confirmedName: string) => {
