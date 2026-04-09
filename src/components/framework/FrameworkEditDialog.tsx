@@ -63,22 +63,27 @@ export const FrameworkEditDialog = ({
   onCancel,
 }: FrameworkEditDialogProps) => {
   const [themes, setThemes] = useState<Theme[]>([]);
-  const [savedSnapshot, setSavedSnapshot] = useState<Theme[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [history, setHistory] = useState<Theme[][]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  const hasChanges = history.length > 0;
 
   // Initialize themes when dialog opens
   useEffect(() => {
     if (open) {
       const snapshot = JSON.parse(JSON.stringify(initialThemes));
       setThemes(snapshot);
-      setSavedSnapshot(snapshot);
-      setHasChanges(false);
+      setHistory([]);
     }
   }, [open, initialThemes]);
+
+  // Push current state to history before each mutation
+  const pushHistory = useCallback(() => {
+    setHistory(prev => [...prev, JSON.parse(JSON.stringify(themes))]);
+  }, [themes]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -91,8 +96,8 @@ export const FrameworkEditDialog = ({
     const oldIndex = themes.findIndex(t => t.id === active.id);
     const newIndex = themes.findIndex(t => t.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
+      pushHistory();
       setThemes(prev => arrayMove(prev, oldIndex, newIndex).map((t, i) => ({ ...t, order_index: i })));
-      setHasChanges(true);
     }
   };
 
@@ -105,19 +110,19 @@ export const FrameworkEditDialog = ({
       skills: [],
       isNew: true,
     };
+    pushHistory();
     setThemes(prev => [...prev, newTheme]);
-    setHasChanges(true);
     setTimeout(() => newThemeInputRef.current?.focus(), 100);
   };
 
   const handleUpdateTheme = (themeId: string, updates: Partial<Theme>) => {
+    pushHistory();
     setThemes(prev => prev.map(t => t.id === themeId ? { ...t, ...updates } : t));
-    setHasChanges(true);
   };
 
   const handleDeleteTheme = (themeId: string) => {
+    pushHistory();
     setThemes(prev => prev.filter(t => t.id !== themeId));
-    setHasChanges(true);
   };
 
   const handleAddSkill = (themeId: string) => {
@@ -130,41 +135,43 @@ export const FrameworkEditDialog = ({
       order_index: theme.skills.length,
       isNew: true,
     };
+    pushHistory();
     setThemes(prev => prev.map(t =>
       t.id === themeId ? { ...t, skills: [...t.skills, newSkill] } : t
     ));
-    setHasChanges(true);
     setTimeout(() => newSkillInputRefs.current[newSkill.id]?.focus(), 100);
   };
 
   const handleUpdateSkill = (themeId: string, skillId: string, updates: Partial<Skill>) => {
+    pushHistory();
     setThemes(prev => prev.map(t =>
       t.id === themeId
         ? { ...t, skills: t.skills.map(s => s.id === skillId ? { ...s, ...updates } : s) }
         : t
     ));
-    setHasChanges(true);
   };
 
   const handleDeleteSkill = (themeId: string, skillId: string) => {
+    pushHistory();
     setThemes(prev => prev.map(t =>
       t.id === themeId ? { ...t, skills: t.skills.filter(s => s.id !== skillId) } : t
     ));
-    setHasChanges(true);
   };
 
   const handleReorderSkills = (themeId: string, oldIndex: number, newIndex: number) => {
+    pushHistory();
     setThemes(prev => prev.map(t => {
       if (t.id !== themeId) return t;
       const newSkills = arrayMove(t.skills, oldIndex, newIndex).map((s, i) => ({ ...s, order_index: i }));
       return { ...t, skills: newSkills };
     }));
-    setHasChanges(true);
   };
 
   const handleUndo = () => {
-    setThemes(JSON.parse(JSON.stringify(savedSnapshot)));
-    setHasChanges(false);
+    if (history.length === 0) return;
+    const previousState = history[history.length - 1];
+    setThemes(previousState);
+    setHistory(prev => prev.slice(0, -1));
   };
 
   const handleRequestClose = useCallback(() => {
@@ -219,7 +226,7 @@ export const FrameworkEditDialog = ({
                 disabled={!hasChanges || saving}
               >
                 <Undo2 className="w-4 h-4 mr-2" />
-                Annuler les modifications
+                Annuler dernière modification
               </Button>
               <Button
                 variant="outline"
