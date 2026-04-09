@@ -252,6 +252,13 @@ export const FrameworkEditDialog = ({
             </div>
           </div>
 
+          {/* Stats bar - sticky */}
+          <div className="px-6 py-2 border-b border-border bg-muted/20 flex items-center gap-4 text-sm text-muted-foreground shrink-0">
+            <span><strong className="text-foreground">{themes.length}</strong> thématique{themes.length > 1 ? "s" : ""}</span>
+            <span>•</span>
+            <span><strong className="text-foreground">{themes.reduce((acc, t) => acc + t.skills.length, 0)}</strong> compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}</span>
+          </div>
+
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
