@@ -126,7 +126,7 @@ export default function AdminUsers() {
     }
   }, [isAdmin, authLoading, navigate]);
 
-  const { data: users = [], isLoading: loading } = useQuery({
+  const { data: users = [], isLoading: loading, isFetching, refetch } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
