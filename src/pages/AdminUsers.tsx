@@ -409,6 +409,19 @@ export default function AdminUsers() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tous les rôles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les rôles</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="club_admin">Responsable club</SelectItem>
+              <SelectItem value="coach">Coach</SelectItem>
+              <SelectItem value="player">Joueur</SelectItem>
+              <SelectItem value="supporter">Supporter</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Stats */}
