@@ -96,8 +96,8 @@ export const FrameworkEditDialog = ({
     const oldIndex = themes.findIndex(t => t.id === active.id);
     const newIndex = themes.findIndex(t => t.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
+      pushHistory();
       setThemes(prev => arrayMove(prev, oldIndex, newIndex).map((t, i) => ({ ...t, order_index: i })));
-      setHasChanges(true);
     }
   };
 
@@ -110,19 +110,19 @@ export const FrameworkEditDialog = ({
       skills: [],
       isNew: true,
     };
+    pushHistory();
     setThemes(prev => [...prev, newTheme]);
-    setHasChanges(true);
     setTimeout(() => newThemeInputRef.current?.focus(), 100);
   };
 
   const handleUpdateTheme = (themeId: string, updates: Partial<Theme>) => {
+    pushHistory();
     setThemes(prev => prev.map(t => t.id === themeId ? { ...t, ...updates } : t));
-    setHasChanges(true);
   };
 
   const handleDeleteTheme = (themeId: string) => {
+    pushHistory();
     setThemes(prev => prev.filter(t => t.id !== themeId));
-    setHasChanges(true);
   };
 
   const handleAddSkill = (themeId: string) => {
@@ -135,41 +135,43 @@ export const FrameworkEditDialog = ({
       order_index: theme.skills.length,
       isNew: true,
     };
+    pushHistory();
     setThemes(prev => prev.map(t =>
       t.id === themeId ? { ...t, skills: [...t.skills, newSkill] } : t
     ));
-    setHasChanges(true);
     setTimeout(() => newSkillInputRefs.current[newSkill.id]?.focus(), 100);
   };
 
   const handleUpdateSkill = (themeId: string, skillId: string, updates: Partial<Skill>) => {
+    pushHistory();
     setThemes(prev => prev.map(t =>
       t.id === themeId
         ? { ...t, skills: t.skills.map(s => s.id === skillId ? { ...s, ...updates } : s) }
         : t
     ));
-    setHasChanges(true);
   };
 
   const handleDeleteSkill = (themeId: string, skillId: string) => {
+    pushHistory();
     setThemes(prev => prev.map(t =>
       t.id === themeId ? { ...t, skills: t.skills.filter(s => s.id !== skillId) } : t
     ));
-    setHasChanges(true);
   };
 
   const handleReorderSkills = (themeId: string, oldIndex: number, newIndex: number) => {
+    pushHistory();
     setThemes(prev => prev.map(t => {
       if (t.id !== themeId) return t;
       const newSkills = arrayMove(t.skills, oldIndex, newIndex).map((s, i) => ({ ...s, order_index: i }));
       return { ...t, skills: newSkills };
     }));
-    setHasChanges(true);
   };
 
   const handleUndo = () => {
-    setThemes(JSON.parse(JSON.stringify(savedSnapshot)));
-    setHasChanges(false);
+    if (history.length === 0) return;
+    const previousState = history[history.length - 1];
+    setThemes(previousState);
+    setHistory(prev => prev.slice(0, -1));
   };
 
   const handleRequestClose = useCallback(() => {
