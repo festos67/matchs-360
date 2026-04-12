@@ -296,8 +296,8 @@ export const FrameworkEditDialog = ({
             </div>
           </div>
 
-          {/* Sticky bottom bar */}
-          <div className="border-t border-border bg-muted/30 px-6 py-3 flex items-center justify-between">
+          {/* Sticky bottom status bar */}
+          <div className="border-t border-border bg-muted/30 px-6 py-3">
             <p className="text-sm text-muted-foreground">
               {hasChanges ? (
                 <span className="text-amber-500 font-medium">● Modifications non sauvegardées</span>
@@ -305,26 +305,6 @@ export const FrameworkEditDialog = ({
                 <span className="text-emerald-500">● Aucune modification</span>
               )}
             </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={handleRequestClose}
-                disabled={saving}
-              >
-                Annuler
-              </Button>
-              <Button
-                onClick={() => onSave(themes)}
-                disabled={saving || themes.length === 0}
-              >
-                {saving ? (
-                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                Sauvegarder
-              </Button>
-            </div>
           </div>
         </div>
       </div>
