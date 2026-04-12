@@ -307,8 +307,8 @@ export default function ClubFrameworkEditor() {
 
       setFramework(null);
       setThemes([]);
+      setShowTemplateSelector(true);
       toast.success("Référentiel archivé — récupérable via l'historique");
-      navigate(`/clubs/${clubId}`);
     } catch (error: unknown) {
       console.error("Error archiving framework:", error);
       toast.error("Erreur lors de la suppression");
