@@ -226,6 +226,58 @@ const Supporters = () => {
 
   const canCreate = isAdmin || currentRole?.role === "club_admin" || currentRole?.role === "coach";
 
+  const openEditModal = async (supporter: SupporterData) => {
+    // Build AdminUser object for EditUserModal
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("id, role, club_id, clubs:club_id(name)")
+      .eq("user_id", supporter.id);
+
+    const { data: memberships } = await supabase
+      .from("team_members")
+      .select("id, team_id, member_type, coach_role, is_active, teams:team_id(name, clubs:club_id(name))")
+      .eq("user_id", supporter.id)
+      .is("deleted_at", null);
+
+    const { data: links } = await supabase
+      .from("supporters_link")
+      .select("id, player_id, profiles:player_id(first_name, last_name, nickname)")
+      .eq("supporter_id", supporter.id);
+
+    const adminUser = {
+      id: supporter.id,
+      email: supporter.email,
+      first_name: supporter.first_name,
+      last_name: supporter.last_name,
+      nickname: null as string | null,
+      photo_url: supporter.photo_url,
+      club_id: currentRole?.club_id || null,
+      status: "Actif" as const,
+      roles: (roles || []).map((r: any) => ({
+        id: r.id,
+        role: r.role,
+        club_id: r.club_id,
+        club_name: r.clubs?.name || null,
+      })),
+      team_memberships: (memberships || []).map((m: any) => ({
+        id: m.id,
+        team_id: m.team_id,
+        team_name: m.teams?.name || "",
+        club_name: m.teams?.clubs?.name || "",
+        member_type: m.member_type,
+        coach_role: m.coach_role,
+        is_active: m.is_active,
+      })),
+      supporter_links: (links || []).map((l: any) => ({
+        id: l.id,
+        player_id: l.player_id,
+        player_name: l.profiles?.nickname || `${l.profiles?.first_name || ""} ${l.profiles?.last_name || ""}`.trim() || "Joueur",
+      })),
+    };
+
+    setEditingSupporter(adminUser);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
