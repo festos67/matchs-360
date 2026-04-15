@@ -676,3 +676,53 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     </Dialog>
   );
 }
+
+function PlayerSearchField({ players, value, onChange }: { players: { id: string; name: string }[]; value: string; onChange: (v: string) => void }) {
+  const [search, setSearch] = useState("");
+  const selectedName = players.find((p) => p.id === value)?.name || "";
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return players;
+    const q = search.toLowerCase();
+    return players.filter((p) => p.name.toLowerCase().includes(q));
+  }, [players, search]);
+
+  return (
+    <div className="space-y-2">
+      <Label>Joueur à suivre</Label>
+      <Input
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          if (value && e.target.value.toLowerCase() !== selectedName.toLowerCase()) {
+            onChange("");
+          }
+        }}
+        placeholder="Rechercher un joueur…"
+        className="h-9"
+      />
+      <Select
+        value={value}
+        onValueChange={(v) => {
+          onChange(v);
+          const name = players.find((p) => p.id === v)?.name || "";
+          setSearch(name);
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={filtered.length === 0 ? "Aucun joueur trouvé" : "Sélectionner un joueur"} />
+        </SelectTrigger>
+        <SelectContent>
+          {filtered.map((player) => (
+            <SelectItem key={player.id} value={player.id}>
+              {player.name}
+            </SelectItem>
+          ))}
+          {filtered.length === 0 && (
+            <div className="px-2 py-1.5 text-sm text-muted-foreground">Aucun joueur trouvé</div>
+          )}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
