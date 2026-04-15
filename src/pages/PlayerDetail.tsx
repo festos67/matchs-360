@@ -41,6 +41,7 @@ export default function PlayerDetail() {
 
   // Local UI state
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
+  const [pendingEvalRefresh, setPendingEvalRefresh] = useState(false);
   const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
@@ -86,13 +87,14 @@ export default function PlayerDetail() {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
-  // Set initial selected evaluation when data loads
+  // Set initial selected evaluation when data loads or after save refresh
   useEffect(() => {
-    if (evaluations.length > 0 && !selectedEvaluation) {
-      const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at);
+    if (evaluations.length > 0 && (!selectedEvaluation || pendingEvalRefresh)) {
+      const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
       setSelectedEvaluation(latestCoach || evaluations.filter(e => !e.deleted_at)[0] || null);
+      if (pendingEvalRefresh) setPendingEvalRefresh(false);
     }
-  }, [evaluations, selectedEvaluation]);
+  }, [evaluations, selectedEvaluation, pendingEvalRefresh, frameworkId]);
 
   // Sync selectedEvalThemes with themes
   useEffect(() => {
@@ -392,7 +394,8 @@ export default function PlayerDetail() {
                 setIsCreatingNew(false);
                 setComparisonIds([]);
                 setIsViewingHistory(false);
-                setSelectedEvaluation(null); // will be re-set by useEffect when evaluations reload
+                setSelectedEvaluation(null);
+                setPendingEvalRefresh(true);
                 setActiveTab("radar");
                 refetchAll();
                 // Scroll main container to top
