@@ -200,10 +200,11 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           .maybeSingle();
 
         if (!existingLink) {
-          await supabase.from("supporters_link").insert({
+          const { error: linkErr } = await supabase.from("supporters_link").insert({
             supporter_id: userId,
             player_id: selectedPlayer,
           });
+          if (linkErr) throw linkErr;
         }
       }
 
