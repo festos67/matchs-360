@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { toast } from "sonner";
@@ -635,21 +635,11 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
                 )}
 
                 {needsPlayerSelection && (
-                  <div className="space-y-2">
-                    <Label>Joueur à suivre</Label>
-                    <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un joueur" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {players.map((player) => (
-                          <SelectItem key={player.id} value={player.id}>
-                            {player.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <PlayerSearchField
+                    players={players}
+                    value={selectedPlayer}
+                    onChange={setSelectedPlayer}
+                  />
                 )}
 
                 <div className="flex gap-2">
