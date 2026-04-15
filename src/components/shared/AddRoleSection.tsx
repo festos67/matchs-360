@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, ShieldCheck } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Plus, X, ShieldCheck, Check, ChevronsUpDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { cn } from "@/lib/utils";
 
 interface UserRole {
   id: string;
@@ -340,21 +343,11 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           )}
 
           {needsPlayer && (
-            <div className="space-y-2">
-              <Label className="text-xs">Joueur à suivre</Label>
-              <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Sélectionner un joueur" />
-                </SelectTrigger>
-                <SelectContent>
-                  {players.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <PlayerCombobox
+              players={players}
+              value={selectedPlayer}
+              onChange={setSelectedPlayer}
+            />
           )}
 
           <div className="flex gap-2 pt-1">
@@ -377,6 +370,53 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PlayerCombobox({ players, value, onChange }: { players: PlayerOption[]; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selectedName = players.find((p) => p.id === value)?.name;
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">Joueur à suivre</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between h-9 font-normal"
+          >
+            {selectedName || "Rechercher un joueur…"}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Rechercher un joueur…" />
+            <CommandList>
+              <CommandEmpty>Aucun joueur trouvé</CommandEmpty>
+              <CommandGroup>
+                {players.map((player) => (
+                  <CommandItem
+                    key={player.id}
+                    value={player.name}
+                    onSelect={() => {
+                      onChange(player.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check className={cn("mr-2 h-4 w-4", value === player.id ? "opacity-100" : "opacity-0")} />
+                    {player.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
