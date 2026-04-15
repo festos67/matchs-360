@@ -110,7 +110,7 @@ export default function Evaluations() {
           name,
           date,
           player:profiles!evaluations_player_id_fkey(id, first_name, last_name, nickname),
-          coach:profiles!evaluations_evaluator_id_fkey(first_name, last_name)
+          coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
         `)
         .is("deleted_at", null)
         .in("player_id", playerIds)
@@ -128,7 +128,7 @@ export default function Evaluations() {
           name,
           date,
           player:profiles!evaluations_player_id_fkey(id, first_name, last_name, nickname),
-          coach:profiles!evaluations_evaluator_id_fkey(first_name, last_name)
+          coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
         `)
         .is("deleted_at", null)
         .order("date", { ascending: false })
