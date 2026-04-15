@@ -216,13 +216,15 @@ export const SelfEvaluationForm = ({
 
       if (evaluationId) {
         // Update existing self-evaluation
-        await supabase
+        const { error: updateErr } = await supabase
           .from("evaluations")
           .update({
             name: evaluationName,
             date: new Date().toISOString(),
           })
           .eq("id", evaluationId);
+
+        if (updateErr) throw updateErr;
       } else {
         // Generate unique name if needed
         const uniqueName = await generateUniqueName(evaluationName);
@@ -257,10 +259,12 @@ export const SelfEvaluationForm = ({
       );
 
       // Delete existing scores and insert new ones
-      await supabase
+      const { error: delScoresErr } = await supabase
         .from("evaluation_scores")
         .delete()
         .eq("evaluation_id", evaluationId);
+
+      if (delScoresErr) throw delScoresErr;
 
       if (scoresToUpsert.length > 0) {
         const { error: scoresError } = await supabase
@@ -271,10 +275,12 @@ export const SelfEvaluationForm = ({
       }
 
       // Upsert objectives
-      await supabase
+      const { error: delObjErr } = await supabase
         .from("evaluation_objectives")
         .delete()
         .eq("evaluation_id", evaluationId);
+
+      if (delObjErr) throw delObjErr;
 
       const objectivesToInsert = themeScores
         .filter((theme) => theme.objective)
@@ -293,6 +299,7 @@ export const SelfEvaluationForm = ({
       }
 
       toast.success("Auto-débrief enregistré avec succès");
+      document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving self-evaluation:", error);
