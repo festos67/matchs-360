@@ -45,6 +45,7 @@ const Supporters = () => {
   const [teamFilter, setTeamFilter] = useState("all");
   const [playerFilter, setPlayerFilter] = useState("all");
   const [showCreateSupporter, setShowCreateSupporter] = useState(false);
+  const [editingSupporter, setEditingSupporter] = useState<any>(null);
   const [collapsedPlayers, setCollapsedPlayers] = useState<Record<string, boolean>>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -318,11 +319,12 @@ const Supporters = () => {
                   <CollapsibleContent>
                     <div className="rounded-lg border bg-card mt-1">
                       <Table>
-                        <TableHeader>
+                         <TableHeader>
                           <TableRow>
                             <TableHead>Supporter</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Joueurs suivis</TableHead>
+                            {canCreate && <TableHead className="w-[80px]">Actions</TableHead>}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -351,6 +353,18 @@ const Supporters = () => {
                                   ))}
                                 </div>
                               </TableCell>
+                              {canCreate && (
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => openEditModal(supporter)}
+                                    className="text-blue-500 hover:text-blue-700"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                </TableCell>
+                              )}
                             </TableRow>
                           ))}
                         </TableBody>
