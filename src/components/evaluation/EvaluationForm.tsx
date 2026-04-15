@@ -84,7 +84,7 @@ interface EvaluationFormProps {
     }>;
   };
   previousScores?: Record<string, number | null>;
-  onSaved?: () => void;
+  onSaved?: (savedEvaluationId: string) => void | Promise<void>;
   readOnly?: boolean;
   coachName?: string;
   evaluationNumber?: number;
@@ -372,10 +372,11 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         if (objError) throw objError;
       }
 
+      if (!evaluationId) throw new Error("Débrief introuvable après sauvegarde");
+      await onSaved?.(evaluationId);
       toast.success("Débrief enregistré avec succès");
       // Scroll the main content container to top (not window, which doesn't scroll)
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
-      onSaved?.();
     } catch (error: any) {
       console.error("Error saving evaluation:", error);
       toast.error("Erreur lors de la sauvegarde");

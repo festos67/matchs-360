@@ -233,6 +233,7 @@ export function usePlayerData(playerId: string | undefined) {
 
     // Actions
     refetchAll,
+    refetchEvaluations: () => evaluationsQuery.refetch(),
     fetchThemesForFramework: loadFrameworkThemes,
   };
 }

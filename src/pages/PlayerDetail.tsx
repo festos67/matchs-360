@@ -36,12 +36,11 @@ export default function PlayerDetail() {
     player, teamMembership, referentCoach,
     frameworkId, frameworkName, themes, evaluations,
     canEvaluate, canMutate, isAdmin, isPlayerViewingOwnProfile,
-    loading, refetchAll,
+    loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
 
   // Local UI state
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
-  const [pendingEvalRefresh, setPendingEvalRefresh] = useState(false);
   const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
@@ -87,14 +86,13 @@ export default function PlayerDetail() {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
-  // Set initial selected evaluation when data loads or after save refresh
+  // Set initial selected evaluation when data loads
   useEffect(() => {
-    if (evaluations.length > 0 && (!selectedEvaluation || pendingEvalRefresh)) {
+    if (evaluations.length > 0 && !selectedEvaluation) {
       const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
       setSelectedEvaluation(latestCoach || evaluations.filter(e => !e.deleted_at)[0] || null);
-      if (pendingEvalRefresh) setPendingEvalRefresh(false);
     }
-  }, [evaluations, selectedEvaluation, pendingEvalRefresh, frameworkId]);
+  }, [evaluations, selectedEvaluation, frameworkId]);
 
   // Sync selectedEvalThemes with themes
   useEffect(() => {
@@ -390,15 +388,20 @@ export default function PlayerDetail() {
                 previousEval.scores.forEach(s => { map[s.skill_id] = s.score; });
                 return map;
               })()}
-              onSaved={() => {
-                setIsCreatingNew(false);
+              onSaved={async (savedEvaluationId) => {
                 setComparisonIds([]);
                 setIsViewingHistory(false);
-                setSelectedEvaluation(null);
-                setPendingEvalRefresh(true);
                 setActiveTab("radar");
-                refetchAll();
-                // Scroll main container to top
+
+                const { data: refreshedEvaluations } = await refetchEvaluations();
+                const activeEvaluations = (refreshedEvaluations ?? []).filter(e => !e.deleted_at);
+                const latestCoach = activeEvaluations.find(e => e.type === "coach" && e.framework_id === frameworkId);
+                const savedEvaluation = activeEvaluations.find(e => e.id === savedEvaluationId);
+
+                setSelectedEvaluation(savedEvaluation || latestCoach || activeEvaluations[0] || null);
+                setSelectedEvalThemes(themes);
+                setIsCreatingNew(false);
+
                 setTimeout(() => {
                   document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
                 }, 300);
