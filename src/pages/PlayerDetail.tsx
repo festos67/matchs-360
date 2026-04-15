@@ -41,6 +41,7 @@ export default function PlayerDetail() {
 
   // Local UI state
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
+  const [pendingEvalRefresh, setPendingEvalRefresh] = useState(false);
   const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
