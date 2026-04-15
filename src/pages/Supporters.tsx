@@ -438,6 +438,17 @@ const Supporters = () => {
           onSuccess={fetchSupporters}
         />
       )}
+
+      {editingSupporter && (
+        <EditUserModal
+          user={editingSupporter}
+          onClose={() => setEditingSupporter(null)}
+          onUpdate={() => {
+            setEditingSupporter(null);
+            fetchSupporters();
+          }}
+        />
+      )}
     </AppLayout>
   );
 };
