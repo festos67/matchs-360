@@ -386,7 +386,18 @@ export default function PlayerDetail() {
                 previousEval.scores.forEach(s => { map[s.skill_id] = s.score; });
                 return map;
               })()}
-              onSaved={() => { setIsCreatingNew(false); refetchAll(); }}
+              onSaved={() => {
+                setIsCreatingNew(false);
+                setComparisonIds([]);
+                setIsViewingHistory(false);
+                setSelectedEvaluation(null); // will be re-set by useEffect when evaluations reload
+                setActiveTab("radar");
+                refetchAll();
+                // Scroll main container to top
+                setTimeout(() => {
+                  document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
+                }, 300);
+              }}
               readOnly={!canEvaluate || isViewingHistory}
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
