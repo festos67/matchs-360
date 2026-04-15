@@ -87,13 +87,14 @@ export default function PlayerDetail() {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
-  // Set initial selected evaluation when data loads
+  // Set initial selected evaluation when data loads or after save refresh
   useEffect(() => {
-    if (evaluations.length > 0 && !selectedEvaluation) {
-      const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at);
+    if (evaluations.length > 0 && (!selectedEvaluation || pendingEvalRefresh)) {
+      const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
       setSelectedEvaluation(latestCoach || evaluations.filter(e => !e.deleted_at)[0] || null);
+      if (pendingEvalRefresh) setPendingEvalRefresh(false);
     }
-  }, [evaluations, selectedEvaluation]);
+  }, [evaluations, selectedEvaluation, pendingEvalRefresh, frameworkId]);
 
   // Sync selectedEvalThemes with themes
   useEffect(() => {
