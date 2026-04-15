@@ -394,7 +394,8 @@ export default function PlayerDetail() {
                 setIsCreatingNew(false);
                 setComparisonIds([]);
                 setIsViewingHistory(false);
-                setSelectedEvaluation(null); // will be re-set by useEffect when evaluations reload
+                setSelectedEvaluation(null);
+                setPendingEvalRefresh(true);
                 setActiveTab("radar");
                 refetchAll();
                 // Scroll main container to top
