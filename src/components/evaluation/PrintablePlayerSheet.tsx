@@ -218,7 +218,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 style={{
                   width: "80px",
                   height: "80px",
-                  borderRadius: "10px",
+                  borderRadius: "50%",
                   objectFit: "cover",
                   border: `3px solid ${BRAND_BLUE}`,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
@@ -228,7 +228,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
               <div style={{
                 width: "80px",
                 height: "80px",
-                borderRadius: "10px",
+                borderRadius: "50%",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
