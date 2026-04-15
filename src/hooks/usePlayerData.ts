@@ -191,7 +191,7 @@ export function usePlayerData(playerId: string | undefined) {
         `)
         .eq("player_id", playerId!)
         .is("deleted_at", null)
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
