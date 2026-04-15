@@ -343,21 +343,11 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           )}
 
           {needsPlayer && (
-            <div className="space-y-2">
-              <Label className="text-xs">Joueur à suivre</Label>
-              <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Sélectionner un joueur" />
-                </SelectTrigger>
-                <SelectContent>
-                  {players.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <PlayerCombobox
+              players={players}
+              value={selectedPlayer}
+              onChange={setSelectedPlayer}
+            />
           )}
 
           <div className="flex gap-2 pt-1">
