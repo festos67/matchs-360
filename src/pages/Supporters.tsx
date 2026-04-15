@@ -20,9 +20,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Search, Heart, Loader2, ChevronDown, Plus } from "lucide-react";
+import { Search, Heart, Loader2, ChevronDown, Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
+import { EditUserModal } from "@/components/modals/EditUserModal";
 
 interface SupporterData {
   id: string;
