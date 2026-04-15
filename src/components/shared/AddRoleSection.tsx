@@ -373,3 +373,50 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
     </div>
   );
 }
+
+function PlayerCombobox({ players, value, onChange }: { players: PlayerOption[]; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selectedName = players.find((p) => p.id === value)?.name;
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">Joueur à suivre</Label>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between h-9 font-normal"
+          >
+            {selectedName || "Rechercher un joueur…"}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Rechercher un joueur…" />
+            <CommandList>
+              <CommandEmpty>Aucun joueur trouvé</CommandEmpty>
+              <CommandGroup>
+                {players.map((player) => (
+                  <CommandItem
+                    key={player.id}
+                    value={player.name}
+                    onSelect={() => {
+                      onChange(player.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check className={cn("mr-2 h-4 w-4", value === player.id ? "opacity-100" : "opacity-0")} />
+                    {player.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
