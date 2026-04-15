@@ -1103,6 +1103,7 @@ export type Database = {
         Returns: number
       }
       get_coach_player_ids: { Args: { _coach_id: string }; Returns: string[] }
+      get_player_club_id: { Args: { _player_id: string }; Returns: string }
       get_referent_coach_team_ids: {
         Args: { _user_id: string }
         Returns: string[]
