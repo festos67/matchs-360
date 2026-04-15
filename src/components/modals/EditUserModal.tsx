@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { toast } from "sonner";
@@ -635,21 +635,11 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
                 )}
 
                 {needsPlayerSelection && (
-                  <div className="space-y-2">
-                    <Label>Joueur à suivre</Label>
-                    <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un joueur" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {players.map((player) => (
-                          <SelectItem key={player.id} value={player.id}>
-                            {player.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <PlayerSearchField
+                    players={players}
+                    value={selectedPlayer}
+                    onChange={setSelectedPlayer}
+                  />
                 )}
 
                 <div className="flex gap-2">
@@ -684,5 +674,55 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PlayerSearchField({ players, value, onChange }: { players: { id: string; name: string }[]; value: string; onChange: (v: string) => void }) {
+  const [search, setSearch] = useState("");
+  const selectedName = players.find((p) => p.id === value)?.name || "";
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return players;
+    const q = search.toLowerCase();
+    return players.filter((p) => p.name.toLowerCase().includes(q));
+  }, [players, search]);
+
+  return (
+    <div className="space-y-2">
+      <Label>Joueur à suivre</Label>
+      <Input
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          if (value && e.target.value.toLowerCase() !== selectedName.toLowerCase()) {
+            onChange("");
+          }
+        }}
+        placeholder="Rechercher un joueur…"
+        className="h-9"
+      />
+      <Select
+        value={value}
+        onValueChange={(v) => {
+          onChange(v);
+          const name = players.find((p) => p.id === v)?.name || "";
+          setSearch(name);
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder={filtered.length === 0 ? "Aucun joueur trouvé" : "Sélectionner un joueur"} />
+        </SelectTrigger>
+        <SelectContent>
+          {filtered.map((player) => (
+            <SelectItem key={player.id} value={player.id}>
+              {player.name}
+            </SelectItem>
+          ))}
+          {filtered.length === 0 && (
+            <div className="px-2 py-1.5 text-sm text-muted-foreground">Aucun joueur trouvé</div>
+          )}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
