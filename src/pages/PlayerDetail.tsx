@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EvaluationForm, type EvaluationFormHandle } from "@/components/evaluation/EvaluationForm";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { ReadOnlyFrameworkView } from "@/components/framework/ReadOnlyFrameworkView";
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
@@ -313,7 +314,7 @@ export default function PlayerDetail() {
             </TabsTrigger>
             {frameworkId && themes.length > 0 && (
               <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
-                <BookOpen className="w-4 h-4" />Référentiel
+                <BookOpen className="w-4 h-4" />Référentiel de l'équipe
               </TabsTrigger>
             )}
             {teamMembership && (
@@ -476,27 +477,7 @@ export default function PlayerDetail() {
                   )}
                 </div>
               </div>
-              <div className="space-y-4">
-                {themes.map((theme) => (
-                  <div key={theme.id} className="border border-border rounded-xl overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
-                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: theme.color || "hsl(var(--primary))" }} />
-                      <h3 className="font-semibold text-sm">{theme.name}</h3>
-                      <Badge variant="secondary" className="ml-auto text-xs">{theme.skills.length} compétence{theme.skills.length > 1 ? "s" : ""}</Badge>
-                    </div>
-                    {theme.skills.length > 0 && (
-                      <div className="divide-y divide-border">
-                        {theme.skills.map((skill) => (
-                          <div key={skill.id} className="px-4 py-2.5 flex items-start gap-3">
-                            <span className="text-sm font-medium">{skill.name}</span>
-                            {skill.definition && <span className="text-xs text-muted-foreground ml-auto text-right max-w-[50%]">{skill.definition}</span>}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <ReadOnlyFrameworkView themes={themes} />
             </div>
             <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
               <PrintableFramework ref={frameworkPrintRef} frameworkName={frameworkName || "Référentiel de compétences"} teamName={teamMembership?.team?.name || ""} clubName={teamMembership?.team?.club?.name || ""} themes={themes} />
