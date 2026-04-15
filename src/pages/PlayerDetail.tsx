@@ -69,12 +69,14 @@ export default function PlayerDetail() {
 
   // Scroll handler
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const main = document.querySelector("main");
+    if (!main) return;
+    const handleScroll = () => setShowScrollTop(main.scrollTop > 400);
+    main.addEventListener("scroll", handleScroll);
+    return () => main.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToTop = useCallback(() => window.scrollTo({ top: 0, behavior: "smooth" }), []);
+  const scrollToTop = useCallback(() => document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }), []);
   const scrollToRadar = useCallback(() => {
     setTimeout(() => radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
   }, []);
