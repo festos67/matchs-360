@@ -377,49 +377,53 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
   );
 }
 
-function PlayerCombobox({ players, value, onChange }: { players: PlayerOption[]; value: string; onChange: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const selectedName = players.find((p) => p.id === value)?.name;
+function PlayerSearchSelect({ players, value, onChange }: { players: PlayerOption[]; value: string; onChange: (v: string) => void }) {
+  const [search, setSearch] = useState("");
+  const selectedName = players.find((p) => p.id === value)?.name || "";
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return players;
+    const q = search.toLowerCase();
+    return players.filter((p) => p.name.toLowerCase().includes(q));
+  }, [players, search]);
 
   return (
     <div className="space-y-2">
-      <Label className="text-xs">Joueur à suivre</Label>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between h-9 font-normal"
-          >
-            {selectedName || "Rechercher un joueur…"}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-          <Command>
-            <CommandInput placeholder="Rechercher un joueur…" />
-            <CommandList>
-              <CommandEmpty>Aucun joueur trouvé</CommandEmpty>
-              <CommandGroup>
-                {players.map((player) => (
-                  <CommandItem
-                    key={player.id}
-                    value={player.name}
-                    onSelect={() => {
-                      onChange(player.id);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check className={cn("mr-2 h-4 w-4", value === player.id ? "opacity-100" : "opacity-0")} />
-                    {player.name}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          // Clear selection if user is typing something new
+          if (value && e.target.value.toLowerCase() !== selectedName.toLowerCase()) {
+            onChange("");
+          }
+        }}
+        placeholder="Rechercher un joueur…"
+        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      />
+      <Select
+        value={value}
+        onValueChange={(v) => {
+          onChange(v);
+          const name = players.find((p) => p.id === v)?.name || "";
+          setSearch(name);
+        }}
+      >
+        <SelectTrigger className="h-9">
+          <SelectValue placeholder={filtered.length === 0 ? "Aucun joueur trouvé" : "Sélectionner un joueur"} />
+        </SelectTrigger>
+        <SelectContent>
+          {filtered.map((player) => (
+            <SelectItem key={player.id} value={player.id}>
+              {player.name}
+            </SelectItem>
+          ))}
+          {filtered.length === 0 && (
+            <div className="px-2 py-1.5 text-sm text-muted-foreground">Aucun joueur trouvé</div>
+          )}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
