@@ -69,12 +69,14 @@ export default function PlayerDetail() {
 
   // Scroll handler
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const main = document.querySelector("main");
+    if (!main) return;
+    const handleScroll = () => setShowScrollTop(main.scrollTop > 400);
+    main.addEventListener("scroll", handleScroll);
+    return () => main.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToTop = useCallback(() => window.scrollTo({ top: 0, behavior: "smooth" }), []);
+  const scrollToTop = useCallback(() => document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }), []);
   const scrollToRadar = useCallback(() => {
     setTimeout(() => radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
   }, []);
@@ -386,7 +388,18 @@ export default function PlayerDetail() {
                 previousEval.scores.forEach(s => { map[s.skill_id] = s.score; });
                 return map;
               })()}
-              onSaved={() => { setIsCreatingNew(false); refetchAll(); }}
+              onSaved={() => {
+                setIsCreatingNew(false);
+                setComparisonIds([]);
+                setIsViewingHistory(false);
+                setSelectedEvaluation(null); // will be re-set by useEffect when evaluations reload
+                setActiveTab("radar");
+                refetchAll();
+                // Scroll main container to top
+                setTimeout(() => {
+                  document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
+                }, 300);
+              }}
               readOnly={!canEvaluate || isViewingHistory}
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
