@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EvaluationForm, type EvaluationFormHandle } from "@/components/evaluation/EvaluationForm";
 import { PrintablePlayerSheet } from "@/components/evaluation/PrintablePlayerSheet";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { ReadOnlyFrameworkView } from "@/components/framework/ReadOnlyFrameworkView";
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
