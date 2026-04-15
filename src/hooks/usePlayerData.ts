@@ -181,17 +181,19 @@ export function usePlayerData(playerId: string | undefined) {
   const evaluationsQuery = useQuery({
     queryKey: ["player-evaluations", playerId],
     queryFn: async (): Promise<Evaluation[]> => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("evaluations")
         .select(`
           id, name, date, deleted_at, framework_id, type,
-          coach:profiles!evaluations_evaluator_id_fkey(first_name, last_name),
+          coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
         `)
         .eq("player_id", playerId!)
         .is("deleted_at", null)
         .order("date", { ascending: false });
+
+      if (error) throw error;
 
       return (data as unknown as Evaluation[]) ?? [];
     },
