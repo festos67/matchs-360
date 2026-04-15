@@ -343,11 +343,14 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           )}
 
           {needsPlayer && (
-            <PlayerCombobox
-              players={players}
-              value={selectedPlayer}
-              onChange={setSelectedPlayer}
-            />
+            <div className="space-y-2">
+              <Label className="text-xs">Joueur à suivre</Label>
+              <PlayerSearchSelect
+                players={players}
+                value={selectedPlayer}
+                onChange={setSelectedPlayer}
+              />
+            </div>
           )}
 
           <div className="flex gap-2 pt-1">
