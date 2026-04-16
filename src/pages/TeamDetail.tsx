@@ -339,11 +339,14 @@ export default function TeamDetail() {
 
   return (
     <AppLayout>
-      {!isPlayerViewing && (
+      {!isPlayerViewing && !isSupporterViewing && (
         <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
       )}
       {isPlayerViewing && (
         <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate("/player/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour au dashboard</Button>
+      )}
+      {isSupporterViewing && (
+        <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate("/supporter/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour à mes joueurs</Button>
       )}
 
       <div className="glass-card p-6 mb-5">
@@ -558,14 +561,18 @@ export default function TeamDetail() {
                         Modifier
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
-                      <History className="w-4 h-4 mr-2" />
-                      Historique
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
-                      <Printer className="w-4 h-4 mr-2" />
-                      Imprimer
-                    </Button>
+                    {!isSupporterViewing && (
+                      <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
+                        <History className="w-4 h-4 mr-2" />
+                        Historique
+                      </Button>
+                    )}
+                    {!isSupporterViewing && (
+                      <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
+                        <Printer className="w-4 h-4 mr-2" />
+                        Imprimer
+                      </Button>
+                    )}
                     {canEditFramework && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

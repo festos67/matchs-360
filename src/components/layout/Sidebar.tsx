@@ -61,9 +61,8 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
       ];
     case "supporter":
       return [
-        { icon: LayoutDashboard, label: "Dashboard", path: "/player/dashboard" },
-        { icon: Users, label: "Mon Équipe", path: "/my-team" },
-        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
+        { icon: Heart, label: "Mes Joueurs", path: "/supporter/dashboard" },
+        { icon: ClipboardList, label: "Débriefs joueurs", path: "/supporter/debriefs" },
       ];
     default:
       return [
@@ -94,7 +93,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       case "club_admin": return "/club/redirect";
       case "coach": return "/coach/my-club";
       case "player": return "/player/profile";
-      case "supporter": return "/player/dashboard";
+      case "supporter": return "/supporter/dashboard";
       default: return "/dashboard";
     }
   };
