@@ -157,7 +157,7 @@ export const CreateTeamModal = ({
           name: data.name,
           short_name: data.shortName?.toUpperCase() || null,
           season: data.season,
-          description: data.description || null,
+          description: null,
           color: data.color,
         })
         .select()
