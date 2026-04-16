@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart, Eye, EyeOff } from "lucide-react";
+import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart, Eye, EyeOff, HelpCircle, CheckCircle2, KeyRound, UserCheck, MailQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
