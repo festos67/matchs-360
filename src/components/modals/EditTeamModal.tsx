@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, Star, Trash2, UserPlus } from "lucide-react";
+import { Users, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 import {
   AlertDialog,
@@ -354,7 +354,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
             {/* Coach Management */}
             <div className="space-y-3 pt-2 border-t border-border">
               <Label className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-warning" />
+                <ShieldCheck className="w-4 h-4 text-blue-500" />
                 Staff de l'équipe
               </Label>
 
@@ -384,7 +384,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
                               <p className="font-medium text-sm">{getCoachName(coach)}</p>
                               {coach.coachRole === "referent" && (
                                 <Badge variant="secondary" className="text-xs gap-1 mt-0.5">
-                                  <Star className="w-3 h-3" />
+                                  <ShieldCheck className="w-3 h-3 text-blue-500" />
                                   Référent
                                 </Badge>
                               )}
