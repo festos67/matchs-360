@@ -462,8 +462,8 @@ export default function ClubDetail() {
           {showArchived ? "Équipes archivées" : "Équipes"}
         </h2>
         {canManageClub && !showArchived && (
-          <Button className="gap-2" onClick={() => setShowTeamModal(true)}>
-            <Plus className="w-4 h-4" />Nouvelle équipe
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTeamModal(true)}>
+            <Plus className="w-3.5 h-3.5 text-primary" />Équipe
           </Button>
         )}
       </div>
