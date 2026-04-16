@@ -33,11 +33,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
+const getSeasonOptions = () => {
+  const now = new Date();
+  const year = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+  return [
+    `${year - 1}-${year}`,
+    `${year}-${year + 1}`,
+    `${year + 1}-${year + 2}`,
+  ];
+};
+
+const getCurrentSeason = () => {
+  const now = new Date();
+  const year = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+  return `${year}-${year + 1}`;
+};
+
 const teamSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   shortName: z.string().max(3, "3 caractères maximum").optional().or(z.literal("")),
   season: z.string().min(4, "Saison requise").max(20),
-  description: z.string().max(500).optional(),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide"),
   coachId: z.string().optional(),
 });
@@ -85,7 +100,7 @@ export const CreateTeamModal = ({
   } = useForm<TeamFormData>({
     resolver: zodResolver(teamSchema),
     defaultValues: {
-      season: "2024-2025",
+      season: getCurrentSeason(),
       color: clubColor,
     },
   });
@@ -243,29 +258,26 @@ export const CreateTeamModal = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="season">Saison</Label>
-              <Input
-                id="season"
-                placeholder="2024-2025"
-                {...register("season")}
-              />
+              <Select value={watch("season")} onValueChange={(value) => setValue("season", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une saison" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getSeasonOptions().map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.season && (
                 <p className="text-sm text-destructive">{errors.season.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label>Couleur</Label>
-              <ColorPickerButton value={watch("color") || "#000000"} onChange={(c) => setValue("color", c)} />
+              <div className="pt-1">
+                <ColorPickerButton value={watch("color") || "#000000"} onChange={(c) => setValue("color", c)} />
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (optionnel)</Label>
-            <Textarea
-              id="description"
-              placeholder="Notes sur l'équipe..."
-              {...register("description")}
-              rows={3}
-            />
           </div>
 
           {/* Coach Selection - Only for Admin/Club Admin */}
@@ -293,11 +305,9 @@ export const CreateTeamModal = ({
                   ))}
                 </SelectContent>
               </Select>
-              {coaches.length === 0 && !loadingCoaches && (
-                <p className="text-sm text-muted-foreground">
-                  Créez d'abord un coach pour pouvoir l'assigner à cette équipe.
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground">
+                Vous pourrez également assigner un coach responsable plus tard.
+              </p>
             </div>
           )}
 
