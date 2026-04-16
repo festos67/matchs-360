@@ -201,12 +201,12 @@ export default function Auth() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-              <Activity className="w-7 h-7 text-primary-foreground" />
+            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center">
+              <Activity className="w-8 h-8 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold">MATCHS360</h1>
-              <p className="text-sm text-muted-foreground">Sports Analytics Platform</p>
+              <h1 className="font-display text-3xl font-bold">MATCHS360</h1>
+              <p className="text-sm text-muted-foreground">Donnez vie à vos actions socio-sportives</p>
             </div>
           </div>
 
@@ -462,17 +462,16 @@ export default function Auth() {
         <div className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-accent/10 blur-3xl" />
         
         <div className="relative z-10 text-center max-w-md px-8">
-          <div className="mb-8">
-            <div className="w-32 h-32 mx-auto rounded-full bg-primary/20 flex items-center justify-center animate-pulse-glow">
-              <Activity className="w-16 h-16 text-primary" />
+          <div className="mb-10">
+            <div className="w-48 h-48 mx-auto rounded-full bg-primary/20 flex items-center justify-center animate-pulse-glow">
+              <Activity className="w-24 h-24 text-primary" />
             </div>
           </div>
-          <h3 className="text-2xl font-display font-bold mb-4">
-            Évaluez. Analysez. Progressez.
+          <h3 className="text-4xl font-display font-bold mb-4">
+            Révéler – Progresser – Valoriser
           </h3>
-          <p className="text-muted-foreground">
-            La plateforme complète pour suivre le développement des compétences
-            sportives, mentales et sociales de vos joueurs.
+          <p className="text-lg text-muted-foreground">
+            MATCHS360, la première appli qui transforme chaque talent de terrain en champion de sa propre vie
           </p>
         </div>
       </div>
