@@ -92,7 +92,8 @@ const SupporterDashboard = () => {
             .eq("member_type", "coach")
             .eq("is_active", true)
             .is("deleted_at", null)
-        : { data: [] };
+        : { data: [] as any[] };
+      const coachMembers = coachResult.data || [];
 
       // Fetch eval counts per player (coach type only)
       const { data: evalCounts } = await supabase
