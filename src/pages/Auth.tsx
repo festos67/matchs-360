@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart, Eye, EyeOff } from "lucide-react";
+import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart, Eye, EyeOff, HelpCircle, CheckCircle2, KeyRound, UserCheck, MailQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -43,7 +44,38 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
+  const [showHelpDialog, setShowHelpDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [sendingHelp, setSendingHelp] = useState(false);
   const navigate = useNavigate();
+
+  const handleContactAdmin = async () => {
+    setSendingHelp(true);
+    try {
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (adminRoles && adminRoles.length > 0) {
+        const notifications = adminRoles.map((role) => ({
+          user_id: role.user_id,
+          title: "Demande d'aide à la connexion",
+          message: `Un utilisateur (${email || "email non renseigné"}) rencontre un problème de connexion et demande de l'aide.`,
+          type: "help_request",
+        }));
+
+        await supabase.from("notifications").insert(notifications);
+      }
+
+      setShowHelpDialog(false);
+      setShowConfirmDialog(true);
+    } catch (err) {
+      toast.error("Une erreur est survenue lors de l'envoi de la demande");
+    } finally {
+      setSendingHelp(false);
+    }
+  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -450,6 +482,102 @@ export default function Auth() {
               </button>
             </p>
           </div>
+
+          {/* Help link */}
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setShowHelpDialog(true)}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
+            >
+              <HelpCircle className="w-3 h-3" />
+              Vous rencontrez un problème de connexion ?
+            </button>
+          </div>
+
+          {/* Help Dialog */}
+          <Dialog open={showHelpDialog} onOpenChange={setShowHelpDialog}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <HelpCircle className="w-5 h-5 text-primary" />
+                  Aide à la connexion
+                </DialogTitle>
+                <DialogDescription>
+                  Avant de nous contacter, vérifiez les points suivants :
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <KeyRound className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm">Vérifiez votre mot de passe</p>
+                    <p className="text-xs text-muted-foreground">Assurez-vous que votre mot de passe est correct. Utilisez « Mot de passe oublié ? » pour le réinitialiser.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <MailQuestion className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm">Vérifiez votre email</p>
+                    <p className="text-xs text-muted-foreground">Assurez-vous d'utiliser l'adresse email avec laquelle vous avez été inscrit(e).</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <UserCheck className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm">Contactez votre responsable de club</p>
+                    <p className="text-xs text-muted-foreground">Votre compte a peut-être été créé par votre responsable. Demandez-lui de vérifier vos identifiants.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <Mail className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-sm">Consultez vos emails</p>
+                    <p className="text-xs text-muted-foreground">Vérifiez vos spams pour un éventuel email d'invitation ou de confirmation de compte.</p>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleContactAdmin}
+                disabled={sendingHelp}
+                className="w-full mt-2"
+              >
+                {sendingHelp ? (
+                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Vous avez tout vérifié ? Contactez-nous
+                  </>
+                )}
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          {/* Confirmation Dialog */}
+          <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <DialogContent className="max-w-sm text-center">
+              <div className="flex flex-col items-center gap-4 py-4">
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                </div>
+                <DialogHeader>
+                  <DialogTitle className="text-center">Demande envoyée !</DialogTitle>
+                  <DialogDescription className="text-center">
+                    Votre message a bien été transmis aux administrateurs de la plateforme. Ils vont examiner votre situation et tenter de résoudre votre problème de connexion dans les meilleurs délais.
+                  </DialogDescription>
+                </DialogHeader>
+                <Button onClick={() => setShowConfirmDialog(false)} className="w-full">
+                  Compris
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
