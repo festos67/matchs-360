@@ -44,7 +44,38 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
+  const [showHelpDialog, setShowHelpDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [sendingHelp, setSendingHelp] = useState(false);
   const navigate = useNavigate();
+
+  const handleContactAdmin = async () => {
+    setSendingHelp(true);
+    try {
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (adminRoles && adminRoles.length > 0) {
+        const notifications = adminRoles.map((role) => ({
+          user_id: role.user_id,
+          title: "Demande d'aide à la connexion",
+          message: `Un utilisateur (${email || "email non renseigné"}) rencontre un problème de connexion et demande de l'aide.`,
+          type: "help_request",
+        }));
+
+        await supabase.from("notifications").insert(notifications);
+      }
+
+      setShowHelpDialog(false);
+      setShowConfirmDialog(true);
+    } catch (err) {
+      toast.error("Une erreur est survenue lors de l'envoi de la demande");
+    } finally {
+      setSendingHelp(false);
+    }
+  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
