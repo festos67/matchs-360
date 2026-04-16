@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Users, Star } from "lucide-react";
+import { Users, ShieldCheck } from "lucide-react";
 import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
 import {
   AlertDialog,
@@ -283,10 +283,13 @@ export const CreateTeamModal = ({
           {/* Coach Selection - Only for Admin/Club Admin */}
           {!isCoachCreating && (
             <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-warning" />
-                Coach Responsable
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-blue-500" />
+                  Coach Référent
+                </Label>
+                <span className="text-xs text-muted-foreground">(assignable plus tard)</span>
+              </div>
               <Select onValueChange={(value) => setValue("coachId", value)}>
                 <SelectTrigger>
                   <SelectValue placeholder={
@@ -305,16 +308,13 @@ export const CreateTeamModal = ({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-sm text-muted-foreground">
-                Vous pourrez également assigner un coach responsable plus tard.
-              </p>
             </div>
           )}
 
           {/* Auto-assign info for coaches */}
           {isCoachCreating && (
             <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/30">
-              <Star className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+              <ShieldCheck className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium text-sm">Vous serez Coach Référent</p>
                 <p className="text-sm text-muted-foreground mt-1">
