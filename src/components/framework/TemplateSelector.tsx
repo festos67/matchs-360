@@ -71,7 +71,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       .from("teams")
       .select("id, name")
       .eq("club_id", clubId)
-      .neq("id", teamId);
+      .neq("id", teamId)
+      .is("deleted_at", null);
     
     if (data) {
       setTeams(data);
