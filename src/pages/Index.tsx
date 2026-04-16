@@ -114,10 +114,13 @@ export default function Index() {
         {/* Header */}
         <nav className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center animate-pulse-glow">
-              <Activity className="w-6 h-6 text-primary-foreground" />
+            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center animate-pulse-glow">
+              <Activity className="w-8 h-8 text-primary-foreground" />
             </div>
-            <span className="font-display text-xl font-bold">MATCHS360</span>
+            <div>
+              <span className="font-display text-3xl font-bold">MATCHS360</span>
+              <p className="text-sm text-muted-foreground">Donnez vie à vos actions socio-sportives</p>
+            </div>
           </div>
           <Button onClick={() => navigate("/auth")} className="gap-2">
             Connexion
