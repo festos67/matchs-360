@@ -78,12 +78,13 @@ const SupporterDashboard = () => {
       const teamIds = [...new Set((memberships || []).map(m => m.team_id))];
 
       // Fetch teams with clubs
-      const { data: teams } = teamIds.length > 0
+      const teamsResult = teamIds.length > 0
         ? await supabase.from("teams").select("id, name, color, club_id, club:clubs(name)").in("id", teamIds)
-        : { data: [] };
+        : { data: [] as any[] };
+      const teams = teamsResult.data || [];
 
       // Fetch coaches for those teams
-      const { data: coachMembers } = teamIds.length > 0
+      const coachResult = teamIds.length > 0
         ? await supabase
             .from("team_members")
             .select("team_id, coach_role, profile:profiles!inner(first_name, last_name)")
