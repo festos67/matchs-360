@@ -469,28 +469,14 @@ export default function Auth() {
           </form>
           )}
 
-          {/* Toggle */}
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground">
-              {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary font-medium ml-2 hover:underline"
-              >
-                {isLogin ? "S'inscrire" : "Se connecter"}
-              </button>
-            </p>
-          </div>
-
           {/* Help link */}
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={() => setShowHelpDialog(true)}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
+              className="text-sm text-primary font-medium hover:underline transition-colors inline-flex items-center gap-1.5"
             >
-              <HelpCircle className="w-3 h-3" />
+              <HelpCircle className="w-4 h-4" />
               Vous rencontrez un problème de connexion ?
             </button>
           </div>
@@ -520,8 +506,8 @@ export default function Auth() {
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                   <MailQuestion className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-medium text-sm">Vérifiez votre email</p>
-                    <p className="text-xs text-muted-foreground">Assurez-vous d'utiliser l'adresse email avec laquelle vous avez été inscrit(e).</p>
+                    <p className="font-medium text-sm">Vérifiez votre adresse email</p>
+                    <p className="text-xs text-muted-foreground">Utilisez l'adresse email que votre responsable de club a renseignée lors de la création de votre compte.</p>
                   </div>
                 </div>
 
@@ -529,7 +515,7 @@ export default function Auth() {
                   <UserCheck className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                   <div>
                     <p className="font-medium text-sm">Contactez votre responsable de club</p>
-                    <p className="text-xs text-muted-foreground">Votre compte a peut-être été créé par votre responsable. Demandez-lui de vérifier vos identifiants.</p>
+                    <p className="text-xs text-muted-foreground">Votre compte a été créé par votre responsable de club. Rapprochez-vous de lui pour vérifier vos identifiants de connexion.</p>
                   </div>
                 </div>
 
