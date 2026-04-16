@@ -317,8 +317,10 @@ export default function ClubFrameworkEditor() {
 
   const handleTemplateSelected = async () => {
     setShowTemplateSelector(false);
-    await fetchData();
     toast.success("Référentiel importé avec succès");
+    await fetchData();
+    // Prevent fetchData from re-showing the selector if data isn't ready yet
+    setShowTemplateSelector(false);
   };
 
   if (authLoading || loading) {
