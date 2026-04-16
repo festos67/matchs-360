@@ -467,11 +467,11 @@ export default function Auth() {
               <Activity className="w-24 h-24 text-primary" />
             </div>
           </div>
-          <h3 className="text-4xl font-display font-bold mb-4">
+          <h3 className="text-3xl font-display font-bold mb-4 whitespace-nowrap">
             Révéler – Progresser – Valoriser
           </h3>
           <p className="text-lg text-muted-foreground">
-            MATCHS360, la première appli qui transforme chaque talent de terrain en champion de sa propre vie
+            Révélez en chaque joueur le champion de sa propre vie.
           </p>
         </div>
       </div>
