@@ -5,26 +5,25 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { Heart, ClipboardList, Clock, Eye, Star, CheckCircle } from "lucide-react";
+import { Heart, ClipboardList, Clock, Star, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { CircleAvatar } from "@/components/shared/CircleAvatar";
 
-interface LinkedPlayer {
+interface LinkedPlayerEnriched {
   id: string;
   first_name: string | null;
   last_name: string | null;
   nickname: string | null;
+  photo_url: string | null;
+  teamName: string | null;
+  teamId: string | null;
+  teamColor: string | null;
+  clubName: string | null;
+  coachName: string | null;
+  evalCount: number;
 }
 
 interface EvaluationRequest {
@@ -33,77 +32,157 @@ interface EvaluationRequest {
   status: string;
   created_at: string;
   expires_at: string;
-  player: LinkedPlayer;
+  playerName: string;
+  coachName: string;
 }
 
 const SupporterDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, currentRole, profile } = useAuth();
 
-  // Redirect if not supporter
   useEffect(() => {
     if (!loading && (!user || currentRole?.role !== "supporter")) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, currentRole, navigate]);
 
-  // Fetch linked players
+  // Fetch enriched linked players
   const { data: linkedPlayers, isLoading: loadingPlayers } = useQuery({
-    queryKey: ["supporter-linked-players", user?.id],
+    queryKey: ["supporter-linked-players-enriched", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      const { data: links, error } = await supabase
         .from("supporters_link")
         .select("player_id")
         .eq("supporter_id", user.id);
-
       if (error) throw error;
-      
-      if (!data || data.length === 0) return [];
-      
-      // Fetch profiles separately
-      const playerIds = data.map(d => d.player_id);
-      const { data: profiles, error: profilesError } = await supabase
+      if (!links || links.length === 0) return [];
+
+      const playerIds = links.map(l => l.player_id);
+
+      // Fetch profiles
+      const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, nickname")
+        .select("id, first_name, last_name, nickname, photo_url")
         .in("id", playerIds);
-      
-      if (profilesError) throw profilesError;
-      return (profiles || []) as LinkedPlayer[];
+
+      // Fetch team memberships for players
+      const { data: memberships } = await supabase
+        .from("team_members")
+        .select("user_id, team_id, member_type")
+        .in("user_id", playerIds)
+        .eq("member_type", "player")
+        .eq("is_active", true)
+        .is("deleted_at", null);
+
+      const teamIds = [...new Set((memberships || []).map(m => m.team_id))];
+
+      // Fetch teams with clubs
+      const { data: teams } = teamIds.length > 0
+        ? await supabase.from("teams").select("id, name, color, club_id, club:clubs(name)").in("id", teamIds)
+        : { data: [] };
+
+      // Fetch coaches for those teams
+      const { data: coachMembers } = teamIds.length > 0
+        ? await supabase
+            .from("team_members")
+            .select("team_id, coach_role, profile:profiles!inner(first_name, last_name)")
+            .in("team_id", teamIds)
+            .eq("member_type", "coach")
+            .eq("is_active", true)
+            .is("deleted_at", null)
+        : { data: [] };
+
+      // Fetch eval counts per player (coach type only)
+      const { data: evalCounts } = await supabase
+        .from("evaluations")
+        .select("player_id")
+        .in("player_id", playerIds)
+        .eq("type", "coach" as any)
+        .is("deleted_at", null);
+
+      const evalCountMap = new Map<string, number>();
+      (evalCounts || []).forEach(e => {
+        evalCountMap.set(e.player_id, (evalCountMap.get(e.player_id) || 0) + 1);
+      });
+
+      const teamsMap = new Map((teams || []).map(t => [t.id, t]));
+      const membershipMap = new Map((memberships || []).map(m => [m.user_id, m]));
+
+      // Build coach map: team_id -> referent coach name (or first coach)
+      const coachMap = new Map<string, string>();
+      (coachMembers || []).forEach((cm: any) => {
+        const name = cm.profile?.first_name && cm.profile?.last_name
+          ? `${cm.profile.first_name} ${cm.profile.last_name}`
+          : cm.profile?.first_name || "Coach";
+        if (cm.coach_role === "referent" || !coachMap.has(cm.team_id)) {
+          coachMap.set(cm.team_id, name);
+        }
+      });
+
+      return (profiles || []).map(p => {
+        const membership = membershipMap.get(p.id);
+        const team = membership ? teamsMap.get(membership.team_id) : null;
+        const clubName = team?.club ? (team.club as any).name : null;
+
+        return {
+          id: p.id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          nickname: p.nickname,
+          photo_url: p.photo_url,
+          teamName: team?.name || null,
+          teamId: team?.id || null,
+          teamColor: team?.color || null,
+          clubName,
+          coachName: membership ? coachMap.get(membership.team_id) || null : null,
+          evalCount: evalCountMap.get(p.id) || 0,
+        } as LinkedPlayerEnriched;
+      });
     },
     enabled: !!user,
   });
 
-  // Fetch pending evaluation requests
+  // Fetch pending evaluation requests with coach name
   const { data: pendingRequests, isLoading: loadingRequests } = useQuery({
-    queryKey: ["supporter-pending-requests", user?.id],
+    queryKey: ["supporter-pending-requests-enriched", user?.id],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from("supporter_evaluation_requests")
-        .select("id, player_id, status, created_at, expires_at")
+        .select("id, player_id, status, created_at, expires_at, requested_by")
         .eq("supporter_id", user.id)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
-
       if (error) throw error;
-      
       if (!data || data.length === 0) return [];
-      
-      // Fetch profiles separately
+
       const playerIds = [...new Set(data.map(r => r.player_id))];
-      const { data: profiles, error: profilesError } = await supabase
+      const coachIds = [...new Set(data.map(r => r.requested_by))];
+      const allIds = [...new Set([...playerIds, ...coachIds])];
+
+      const { data: profiles } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, nickname")
-        .in("id", playerIds);
-      
-      if (profilesError) throw profilesError;
-      
+        .in("id", allIds);
+
       const profilesMap = new Map((profiles || []).map(p => [p.id, p]));
-      
+
+      const getName = (p: any) => {
+        if (!p) return "Inconnu";
+        if (p.nickname) return p.nickname;
+        if (p.first_name && p.last_name) return `${p.first_name} ${p.last_name}`;
+        return p.first_name || "Inconnu";
+      };
+
       return data.map(r => ({
-        ...r,
-        player: profilesMap.get(r.player_id) as LinkedPlayer,
+        id: r.id,
+        player_id: r.player_id,
+        status: r.status,
+        created_at: r.created_at,
+        expires_at: r.expires_at,
+        playerName: getName(profilesMap.get(r.player_id)),
+        coachName: getName(profilesMap.get(r.requested_by)),
       })) as EvaluationRequest[];
     },
     enabled: !!user,
@@ -120,7 +199,6 @@ const SupporterDashboard = () => {
         .eq("evaluator_id", user.id)
         .eq("type", "supporter" as any)
         .is("deleted_at", null);
-
       if (error) throw error;
       return count || 0;
     },
@@ -137,12 +215,15 @@ const SupporterDashboard = () => {
     );
   }
 
-  const getPlayerName = (player: LinkedPlayer) => {
-    if (player.nickname) return player.nickname;
-    if (player.first_name && player.last_name) {
-      return `${player.first_name} ${player.last_name}`;
-    }
-    return player.first_name || "Joueur";
+  const getPlayerName = (p: LinkedPlayerEnriched) => {
+    if (p.nickname) return p.nickname;
+    if (p.first_name && p.last_name) return `${p.first_name} ${p.last_name}`;
+    return p.first_name || "Joueur";
+  };
+
+  const getPlayerFullName = (p: LinkedPlayerEnriched) => {
+    if (p.first_name && p.last_name) return `${p.first_name} ${p.last_name}`;
+    return p.nickname || p.first_name || "Joueur";
   };
 
   return (
@@ -154,9 +235,7 @@ const SupporterDashboard = () => {
             Bonjour {profile?.first_name || "Supporter"}
             <Heart className="w-7 h-7 text-pink-500" />
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Suivi de mes joueurs
-          </p>
+          <p className="text-muted-foreground mt-1">Mes joueurs</p>
         </div>
 
         {/* KPI Cards */}
@@ -187,9 +266,6 @@ const SupporterDashboard = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Demandes de débrief</h2>
-                <p className="text-sm text-muted-foreground">
-                  Le coach vous demande votre avis
-                </p>
               </div>
             </div>
 
@@ -201,10 +277,13 @@ const SupporterDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold">
-                      {getPlayerName(request.player).slice(0, 2).toUpperCase()}
+                      {request.playerName.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-medium">{getPlayerName(request.player)}</p>
+                      <p className="font-medium">{request.playerName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Le coach <span className="font-semibold text-foreground">{request.coachName}</span> vous demande votre avis
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Demandé le {format(new Date(request.created_at), "d MMM yyyy", { locale: fr })}
                       </p>
@@ -222,63 +301,66 @@ const SupporterDashboard = () => {
           </div>
         )}
 
-        {/* Linked Players */}
-        <div className="bg-card rounded-xl border border-border">
-          <div className="p-6 border-b border-border">
-            <h2 className="text-xl font-semibold text-foreground">Mes Joueurs</h2>
-            <p className="text-sm text-muted-foreground">
-              Joueurs que vous suivez
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Joueur</TableHead>
-                  <TableHead className="w-[150px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loadingPlayers ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-20" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : linkedPlayers && linkedPlayers.length > 0 ? (
-                  linkedPlayers.map((player) => (
-                    <TableRow key={player.id} className="hover:bg-muted/50">
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-                            {getPlayerName(player).slice(0, 2).toUpperCase()}
-                          </div>
-                          {getPlayerName(player)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/players/${player.id}`}>
-                            <Eye className="w-4 h-4 mr-1" />
-                            Voir profil
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={2} className="text-center py-8 text-muted-foreground">
-                      <Heart className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      Aucun joueur lié à votre compte
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+        {/* Linked Players as circles */}
+        <div>
+          <h2 className="text-xl font-display font-semibold mb-6">Mes Joueurs</h2>
+          {loadingPlayers ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <Skeleton className="w-24 h-24 rounded-full" />
+                  <Skeleton className="h-4 w-20" />
+                </div>
+              ))}
+            </div>
+          ) : linkedPlayers && linkedPlayers.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {linkedPlayers.map((player, index) => (
+                <div
+                  key={player.id}
+                  className="flex flex-col items-center text-center animate-fade-in-up opacity-0"
+                  style={{ animationDelay: `${index * 0.08}s` }}
+                >
+                  <CircleAvatar
+                    name={getPlayerName(player)}
+                    imageUrl={player.photo_url}
+                    color={player.teamColor || "#3B82F6"}
+                    size="md"
+                    onClick={() => navigate(`/players/${player.id}`)}
+                    showName={false}
+                  />
+                  <button
+                    onClick={() => navigate(`/players/${player.id}`)}
+                    className="mt-2 font-medium text-foreground hover:text-primary transition-colors text-sm"
+                  >
+                    {getPlayerFullName(player)}
+                  </button>
+                  {player.clubName && (
+                    <p className="text-xs text-muted-foreground">{player.clubName}</p>
+                  )}
+                  {player.teamName && player.teamId && (
+                    <button
+                      onClick={() => navigate(`/teams/${player.teamId}`)}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {player.teamName}
+                    </button>
+                  )}
+                  {player.coachName && (
+                    <p className="text-xs text-muted-foreground">Coach : {player.coachName}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {player.evalCount} débrief{player.evalCount > 1 ? "s" : ""} officiel{player.evalCount > 1 ? "s" : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-48 glass-card">
+              <Heart className="w-12 h-12 text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground">Aucun joueur lié à votre compte</p>
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>
