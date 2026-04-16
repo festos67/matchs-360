@@ -200,7 +200,7 @@ export function usePlayerData(playerId: string | undefined) {
     enabled: !!playerId && !!user,
   });
 
-  const isPlayerViewingOwnProfile = currentRole?.role === "player" && user?.id === playerId;
+  const isPlayerViewingOwnProfile = (currentRole?.role === "player" && user?.id === playerId) || currentRole?.role === "supporter";
 
   const refetchAll = () => {
     playerQuery.refetch();
