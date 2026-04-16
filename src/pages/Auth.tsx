@@ -471,7 +471,7 @@ export default function Auth() {
             Révéler – Progresser – Valoriser
           </h3>
           <p className="text-lg text-muted-foreground">
-            Révélez en chaque joueur le champion de sa propre vie.
+            Libérez en chaque joueur le champion de sa propre vie !
           </p>
         </div>
       </div>
