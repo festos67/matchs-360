@@ -135,6 +135,9 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           .from("competence_frameworks")
           .select("id, name")
           .eq("team_id", selectedTeamId)
+          .eq("is_archived", false)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
         
         if (teamFramework) {
