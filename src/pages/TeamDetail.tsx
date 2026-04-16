@@ -561,14 +561,18 @@ export default function TeamDetail() {
                         Modifier
                       </Button>
                     )}
-                    <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
-                      <History className="w-4 h-4 mr-2" />
-                      Historique
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
-                      <Printer className="w-4 h-4 mr-2" />
-                      Imprimer
-                    </Button>
+                    {!isSupporterViewing && (
+                      <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
+                        <History className="w-4 h-4 mr-2" />
+                        Historique
+                      </Button>
+                    )}
+                    {!isSupporterViewing && (
+                      <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
+                        <Printer className="w-4 h-4 mr-2" />
+                        Imprimer
+                      </Button>
+                    )}
                     {canEditFramework && (
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
