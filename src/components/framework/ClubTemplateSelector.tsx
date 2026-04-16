@@ -56,6 +56,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     const { data: frameworksData } = await supabase
       .from("competence_frameworks")
       .select("team_id")
+      .eq("is_archived", false)
       .in("team_id", teamsData.map(t => t.id));
 
     const teamsWithFrameworkIds = new Set(frameworksData?.map(f => f.team_id) || []);
