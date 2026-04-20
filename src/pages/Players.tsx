@@ -263,7 +263,6 @@ const Players = () => {
 
   // Group by club for admin view only
   const clubGroups = useMemo(() => {
-    if (useTeamGrouping) return null;
     const groups: Record<string, {
       clubId: string;
       clubName: string;
@@ -273,6 +272,7 @@ const Players = () => {
       teams: Record<string, {
         teamId: string;
         teamName: string;
+        teamShortName: string | null;
         teamColor: string | null;
         players: PlayerData[];
       }>;
@@ -280,31 +280,69 @@ const Players = () => {
       totalPlayers: number;
     }> = {};
     filteredPlayers.forEach((player) => {
-      const clubKey = player.club_id || "no-club";
-      if (!groups[clubKey]) {
-        groups[clubKey] = {
-          clubId: clubKey,
-          clubName: player.club_name || "Sans club",
-          clubShortName: player.club_short_name || null,
-          clubLogoUrl: player.club_logo_url || null,
-          clubPrimaryColor: player.club_primary_color || null,
-          teams: {},
-          noTeamPlayers: [],
-          totalPlayers: 0,
-        };
+      // Group by EACH club the player has teams in (multi-club safe)
+      const clubsForPlayer = new Map<
+        string,
+        {
+          name: string;
+          short_name: string | null;
+          logo_url: string | null;
+          primary_color: string | null;
+          teams: typeof player.teams;
+        }
+      >();
+      player.teams.forEach((t) => {
+        const k = t.club_id || "no-club";
+        if (!clubsForPlayer.has(k)) {
+          clubsForPlayer.set(k, {
+            name: t.club_name || player.club_name || "Sans club",
+            short_name: t.club_short_name || null,
+            logo_url: t.club_logo_url || null,
+            primary_color: t.club_primary_color || null,
+            teams: [],
+          });
+        }
+        clubsForPlayer.get(k)!.teams.push(t);
+      });
+      // Player without any team
+      if (clubsForPlayer.size === 0) {
+        const k = player.club_id || "no-club";
+        if (!groups[k]) {
+          groups[k] = {
+            clubId: k,
+            clubName: player.club_name || "Sans club",
+            clubShortName: player.club_short_name || null,
+            clubLogoUrl: player.club_logo_url || null,
+            clubPrimaryColor: player.club_primary_color || null,
+            teams: {},
+            noTeamPlayers: [],
+            totalPlayers: 0,
+          };
+        }
+        groups[k].noTeamPlayers.push(player);
+        groups[k].totalPlayers += 1;
+        return;
       }
-      groups[clubKey].totalPlayers += 1;
-      const playerClubTeams = player.teams.filter(
-        (t) => (t.club_id || "no-club") === clubKey
-      );
-      if (playerClubTeams.length === 0) {
-        groups[clubKey].noTeamPlayers.push(player);
-      } else {
-        playerClubTeams.forEach((t) => {
+      clubsForPlayer.forEach((info, clubKey) => {
+        if (!groups[clubKey]) {
+          groups[clubKey] = {
+            clubId: clubKey,
+            clubName: info.name,
+            clubShortName: info.short_name,
+            clubLogoUrl: info.logo_url,
+            clubPrimaryColor: info.primary_color,
+            teams: {},
+            noTeamPlayers: [],
+            totalPlayers: 0,
+          };
+        }
+        groups[clubKey].totalPlayers += 1;
+        info.teams.forEach((t) => {
           if (!groups[clubKey].teams[t.id]) {
             groups[clubKey].teams[t.id] = {
               teamId: t.id,
               teamName: t.name,
+              teamShortName: t.short_name || null,
               teamColor: t.color || null,
               players: [],
             };
@@ -313,7 +351,7 @@ const Players = () => {
             groups[clubKey].teams[t.id].players.push(player);
           }
         });
-      }
+      });
     });
     return Object.values(groups)
       .map((g) => ({
@@ -323,24 +361,7 @@ const Players = () => {
         ),
       }))
       .sort((a, b) => a.clubName.localeCompare(b.clubName));
-  }, [filteredPlayers, useTeamGrouping]);
-
-  // Group players by team for coach and club_admin view
-  const teamGroups = useMemo(() => {
-    if (!useTeamGrouping) return null;
-    const groups: Record<string, { teamName: string; players: PlayerData[] }> = {};
-    filteredPlayers.forEach((player) => {
-      player.teams.forEach((team) => {
-        if (!groups[team.id]) {
-          groups[team.id] = { teamName: team.name, players: [] };
-        }
-        if (!groups[team.id].players.find((p) => p.id === player.id)) {
-          groups[team.id].players.push(player);
-        }
-      });
-    });
-    return Object.entries(groups).sort((a, b) => a[1].teamName.localeCompare(b[1].teamName));
-  }, [filteredPlayers, useTeamGrouping]);
+  }, [filteredPlayers]);
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
