@@ -162,8 +162,12 @@ const Players = () => {
         const teams = memberEntries.map((tm) => ({
           id: (tm.teams as any).id,
           name: (tm.teams as any).name,
+          short_name: (tm.teams as any).short_name || null,
           club_id: (tm.teams as any).club_id || null,
           club_name: (tm.teams as any).clubs?.name || null,
+          club_short_name: (tm.teams as any).clubs?.short_name || null,
+          club_logo_url: (tm.teams as any).clubs?.logo_url || null,
+          club_primary_color: (tm.teams as any).clubs?.primary_color || null,
           color: (tm.teams as any).color || null,
         }));
 
