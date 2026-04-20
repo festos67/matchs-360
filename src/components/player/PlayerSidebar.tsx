@@ -68,7 +68,7 @@ export function PlayerSidebar({
     .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border-r border-border lg:bg-[#FDFCFA] p-4 lg:h-[calc(100vh-3.5rem)] lg:sticky lg:top-0 lg:overflow-y-auto custom-scrollbar">
+    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:m-3 p-4 lg:h-[calc(100vh-2rem)] lg:sticky lg:top-3 lg:overflow-y-auto custom-scrollbar">
       {/* Bouton retour */}
       <Button
         variant="ghost"
@@ -80,7 +80,7 @@ export function PlayerSidebar({
       </Button>
 
       {/* Card profil */}
-      <div className="bg-white border border-border rounded-2xl p-4 flex flex-col items-center text-center mb-3">
+      <div className="bg-card border border-border rounded-2xl p-4 flex flex-col items-center text-center mb-3">
         {/* Avatar cercle */}
         <div
           className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-display font-extrabold overflow-hidden mb-3"
@@ -94,7 +94,7 @@ export function PlayerSidebar({
           {!player.photo_url && initials}
         </div>
 
-        <h1 className="font-display text-[16px] font-extrabold text-foreground tracking-tight leading-tight">
+        <h1 className="font-display text-[16px] font-extrabold text-card-foreground tracking-tight leading-tight">
           {displayName}
         </h1>
         {player.nickname && fullName && (
@@ -139,7 +139,7 @@ export function PlayerSidebar({
 
       {/* Débriefs bloc */}
       {!isPlayerViewingOwnProfile && canEvaluate && teamMembership && (
-        <div className="bg-white border border-border rounded-xl p-3 mb-3">
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Débriefs</p>
           <div className="flex flex-col gap-1.5">
             {!isViewingHistory && (
@@ -204,7 +204,7 @@ export function PlayerSidebar({
 
       {/* Gestion joueur */}
       {!isPlayerViewingOwnProfile && (canMutate || isAdmin) && (
-        <div className="bg-white border border-border rounded-xl p-3 mb-3">
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
           <div className="flex flex-col gap-1.5">
             {canMutate && (
