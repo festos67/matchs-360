@@ -369,6 +369,7 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <CircleAvatar
+              shape="circle"
               imageUrl={user.photo_url}
               name={user.email}
               size="sm"

@@ -457,6 +457,7 @@ export default function AdminUsers() {
                     >
                       <div className="shrink-0 w-10 h-10">
                         <CircleAvatar
+                          shape="circle"
                           imageUrl={user.photo_url}
                           name={getUserDisplayName(user)}
                           size="sm"
