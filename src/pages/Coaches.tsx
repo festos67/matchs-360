@@ -359,15 +359,24 @@ const Coaches = () => {
                                 coach.assignments.map((assignment) => (
                                   <Badge
                                     key={assignment.team_id}
-                                    variant={assignment.coach_role === "referent" ? "default" : "secondary"}
-                                    className={
+                                    variant="outline"
+                                    className="border-2 font-medium"
+                                    style={
                                       assignment.coach_role === "referent"
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted text-muted-foreground"
+                                        ? {
+                                            backgroundColor: assignment.team_color || "#3B82F6",
+                                            borderColor: assignment.team_color || "#3B82F6",
+                                            color: "#fff",
+                                          }
+                                        : {
+                                            backgroundColor: `${assignment.team_color || "#3B82F6"}1A`,
+                                            borderColor: assignment.team_color || "#3B82F6",
+                                            color: assignment.team_color || "#3B82F6",
+                                          }
                                     }
                                   >
                                     {assignment.team_name}
-                                    <span className="ml-1 opacity-70">
+                                    <span className="ml-1 opacity-80">
                                       ({assignment.coach_role === "referent" ? "Réf" : "Ass"})
                                     </span>
                                   </Badge>
