@@ -144,8 +144,8 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 isActive
-                  ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+                  : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
               <item.icon className="w-4 h-4" />
@@ -166,8 +166,8 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 location.pathname === "/admin/users"
-                  ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+                  : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
               <Shield className="w-4 h-4" />
@@ -179,8 +179,8 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 location.pathname === "/role-approvals"
-                  ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
-                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+                  : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
               <Users className="w-4 h-4" />
@@ -198,8 +198,8 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
             location.pathname === "/settings"
-              ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
-              : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+              ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+              : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
         >
           <Settings className="w-4 h-4" />
