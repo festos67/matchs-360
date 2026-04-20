@@ -65,7 +65,7 @@ interface Club {
 
 export default function ClubFrameworkEditor() {
   const { clubId } = useParams<{ clubId: string }>();
-  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { user, loading: authLoading, hasAdminRole: isAdmin, roles, currentRole } = useAuth();
   const navigate = useNavigate();
 
   const [club, setClub] = useState<Club | null>(null);
@@ -88,7 +88,10 @@ export default function ClubFrameworkEditor() {
   });
 
   const isClubAdmin = club ? roles.some(r => r.role === "club_admin" && r.club_id === club.id) : false;
-  const canEdit = isAdmin || isClubAdmin;
+  // Respect the currently active role: a user acting as coach must not see edit buttons,
+  // even if they also hold an admin/club_admin role on another tab.
+  const actingAsPrivileged = currentRole?.role === "admin" || currentRole?.role === "club_admin";
+  const canEdit = !authLoading && actingAsPrivileged && (isAdmin || isClubAdmin);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
