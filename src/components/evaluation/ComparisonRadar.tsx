@@ -135,10 +135,10 @@ export const ComparisonRadar = ({
                 stroke={adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
                 fill={adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
                 fillOpacity={0.08}
-                strokeWidth={2.75}
+                strokeWidth={1.5}
                 strokeDasharray="5 5"
                 dot={{
-                  r: 4,
+                  r: 3,
                   fill: adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length],
                   strokeWidth: 0,
                 }}
@@ -155,19 +155,18 @@ export const ComparisonRadar = ({
                 dataKey={currentDataset.id}
                 stroke={adapt(currentDataset.color) || effectivePrimary}
                 fill={adapt(currentDataset.color) || effectivePrimary}
-                fillOpacity={0.4}
-                strokeWidth={3.25}
+                fillOpacity={0.12}
+                strokeWidth={1.5}
                 dot={{
-                  r: 5,
+                  r: 4,
                   fill: adapt(currentDataset.color) || effectivePrimary,
-                  stroke: "hsl(var(--background))",
-                  strokeWidth: 1.5,
+                  strokeWidth: 0,
                 }}
                 activeDot={{
-                  r: 7,
+                  r: 6,
                   fill: adapt(currentDataset.color) || effectivePrimary,
-                  stroke: "hsl(var(--background))",
-                  strokeWidth: 2.5,
+                  stroke: "white",
+                  strokeWidth: 2,
                 }}
                 isAnimationActive={animated}
                 animationDuration={500}

@@ -88,8 +88,8 @@ export const RadarChart = ({
               dataKey="previousScore"
               stroke={effectiveSecondary}
               fill={effectiveSecondary}
-              fillOpacity={0.3}
-              strokeWidth={3}
+              fillOpacity={0.2}
+              strokeWidth={2}
               strokeDasharray="5 5"
             />
           )}
@@ -100,19 +100,18 @@ export const RadarChart = ({
             dataKey="score"
             stroke={effectivePrimary}
             fill={effectivePrimary}
-            fillOpacity={0.55}
-            strokeWidth={3.25}
+            fillOpacity={0.3}
+            strokeWidth={2}
             dot={{
-              r: 5,
+              r: 4,
               fill: effectivePrimary,
-              stroke: "hsl(var(--background))",
-              strokeWidth: 1.5,
+              strokeWidth: 0,
             }}
             activeDot={{
-              r: 7,
+              r: 6,
               fill: effectivePrimary,
               stroke: "hsl(var(--background))",
-              strokeWidth: 2.5,
+              strokeWidth: 2,
             }}
           />
           
