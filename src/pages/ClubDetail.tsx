@@ -330,17 +330,17 @@ export default function ClubDetail() {
         {canManageClub && (
           <div className="flex items-start gap-2 flex-shrink-0">
             <div className="flex flex-col gap-1.5">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 text-[11px] font-bold justify-start" onClick={() => setShowCoachModal(true)}>
-                <Plus className="w-3.5 h-3.5" />Coach
+              <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowCoachModal(true)}>
+                <Plus className="w-3.5 h-3.5 text-orange-500" />Coach
               </Button>
               <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowTeamModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-primary" />Équipe
+                <Plus className="w-3.5 h-3.5 text-orange-500" />Équipe
               </Button>
               <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowPlayerModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-primary" />Joueur
+                <Plus className="w-3.5 h-3.5 text-orange-500" />Joueur
               </Button>
               <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowSupporterModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-primary" />Supporter
+                <Plus className="w-3.5 h-3.5 text-orange-500" />Supporter
               </Button>
             </div>
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}>
