@@ -228,6 +228,7 @@ const CoachDashboard = () => {
                       <TableRow key={member.id} className="hover:bg-muted/50">
                         <TableCell>
                           <CircleAvatar
+                            shape="circle"
                             name={`${playerProfile?.first_name || ""} ${playerProfile?.last_name || ""}`}
                             imageUrl={playerProfile?.photo_url}
                             size="sm"
