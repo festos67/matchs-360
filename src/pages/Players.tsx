@@ -522,40 +522,6 @@ const Players = () => {
                 : "Aucun joueur n'a encore été ajouté."}
             </p>
           </div>
-        ) : useTeamGrouping && teamGroups ? (
-          <div className="space-y-4">
-            {teamGroups.map(([teamId, group]) => {
-              const isOpen = collapsedTeams[teamId] !== true;
-              return (
-                <Collapsible key={teamId} open={isOpen} onOpenChange={() => toggleTeam(teamId)}>
-                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer">
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`} />
-                    <Users className="w-4 h-4 text-primary" />
-                    <span className="font-display font-semibold text-sm">{group.teamName}</span>
-                    <Badge variant="secondary" className="ml-auto text-xs">{group.players.length}</Badge>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="rounded-lg border bg-card mt-1">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Joueur</TableHead>
-                            <TableHead>Surnom</TableHead>
-                            {(isAdmin || currentRole?.role === "club_admin") && (
-                              <TableHead className="text-right">Actions</TableHead>
-                            )}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {group.players.map((player) => renderPlayerRow(player, false))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
-          </div>
         ) : clubGroups ? (
           <div className="space-y-8">
             {clubGroups.map((group) => (
