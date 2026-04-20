@@ -17,8 +17,11 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 export const TopBar = () => {
-  const { user, profile, roles, currentRole, setCurrentRole, signOut } = useAuth();
+  const { user, profile, roles, currentRole, setCurrentRole, signOut, hasAdminRole } = useAuth();
   const navigate = useNavigate();
+
+  const clubAdminCount = roles.filter((r) => r.role === "club_admin").length;
+  const canManageOtherClub = hasAdminRole || clubAdminCount > 1;
 
   const handleSignOut = async () => {
     await signOut();
@@ -78,7 +81,7 @@ export const TopBar = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/profile")}>Profil</DropdownMenuItem>
             
-            {currentRole?.role === "club_admin" && (
+            {currentRole?.role === "club_admin" && canManageOtherClub && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/clubs")}>
