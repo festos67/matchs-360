@@ -14,7 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { handlePlanLimitError } from "@/lib/plan-error-handler";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
   id: string;
@@ -304,7 +304,7 @@ export const SelfEvaluationForm = ({
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving self-evaluation:", error);
-      if (handlePlanLimitError(error)) {
+      if (planLimitHandle(error, "self_evals")) {
         setSaving(false);
         return;
       }

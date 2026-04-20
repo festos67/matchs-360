@@ -8,6 +8,7 @@ import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeS
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
   id: string;

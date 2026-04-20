@@ -34,6 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
   id: string;
@@ -379,6 +380,10 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: any) {
       console.error("Error saving evaluation:", error);
+      if (planLimitHandle(error, "coach_evals")) {
+        setSaving(false);
+        return;
+      }
       toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
