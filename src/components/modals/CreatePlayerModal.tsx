@@ -255,6 +255,14 @@ export const CreatePlayerModal = ({
       console.error("Error inviting player:", error);
       const errorMessage = await getEdgeFunctionErrorMessage(error);
       
+      // Plan limit raised by check_member_limit / check_team_limit triggers
+      if (errorMessage.includes("PLAN_LIMIT_PLAYERS")) {
+        if (handlePlanLimit({ message: errorMessage }, "players_per_team")) { setLoading(false); return; }
+      }
+      if (errorMessage.includes("PLAN_LIMIT_TEAMS")) {
+        if (handlePlanLimit({ message: errorMessage }, "teams")) { setLoading(false); return; }
+      }
+
       // Handle mutation case
       if (errorMessage.includes("déjà dans une équipe") && !force) {
         setPendingSubmit(data);
@@ -354,6 +362,7 @@ export const CreatePlayerModal = ({
       onSuccess?.();
     } catch (error: any) {
       console.error("Error transferring player:", error);
+      if (handlePlanLimit(error, "players_per_team")) { setLoading(false); return; }
       toast.error("Erreur lors du transfert", {
         description: error.message,
       });
