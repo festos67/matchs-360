@@ -250,11 +250,23 @@ const Players = () => {
   // Group by club for admin view only
   const clubGroups = useMemo(() => {
     if (useTeamGrouping) return null;
-    const groups: Record<string, { clubName: string; players: PlayerData[] }> = {};
+    const groups: Record<string, {
+      clubName: string;
+      clubShortName: string | null;
+      clubLogoUrl: string | null;
+      clubPrimaryColor: string | null;
+      players: PlayerData[];
+    }> = {};
     filteredPlayers.forEach((player) => {
       const key = player.club_id || "no-club";
       if (!groups[key]) {
-        groups[key] = { clubName: player.club_name || "Sans club", players: [] };
+        groups[key] = {
+          clubName: player.club_name || "Sans club",
+          clubShortName: player.club_short_name || null,
+          clubLogoUrl: player.club_logo_url || null,
+          clubPrimaryColor: player.club_primary_color || null,
+          players: [],
+        };
       }
       groups[key].players.push(player);
     });
