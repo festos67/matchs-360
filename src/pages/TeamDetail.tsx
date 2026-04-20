@@ -36,7 +36,7 @@ interface Team {
   season: string | null;
   color: string | null;
   club_id: string;
-  club?: { name: string; primary_color: string };
+  club?: { name: string; primary_color: string; logo_url?: string | null };
 }
 
 interface TeamMember {
@@ -703,6 +703,7 @@ export default function TeamDetail() {
             frameworkName={framework.name}
             teamName={team.name}
             clubName={team.club?.name || ""}
+            clubLogoUrl={team.club?.logo_url}
             themes={framework.themes}
           />
         </div>

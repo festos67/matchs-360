@@ -81,7 +81,7 @@ interface Team {
   id: string;
   name: string;
   club_id: string;
-  club?: { name: string };
+  club?: { name: string; logo_url?: string | null };
 }
 
 export default function FrameworkEditor() {
@@ -662,6 +662,7 @@ export default function FrameworkEditor() {
           frameworkName={frameworkName}
           teamName={team?.name || ""}
           clubName={team?.club?.name || ""}
+          clubLogoUrl={team?.club?.logo_url}
           themes={themes}
         />
       </div>

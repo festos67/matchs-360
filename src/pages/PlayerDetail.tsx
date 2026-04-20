@@ -474,7 +474,7 @@ export default function PlayerDetail() {
               <ReadOnlyFrameworkView themes={themes} />
             </div>
             <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-              <PrintableFramework ref={frameworkPrintRef} frameworkName={frameworkName || "Référentiel de compétences"} teamName={teamMembership?.team?.name || ""} clubName={teamMembership?.team?.club?.name || ""} themes={themes} />
+              <PrintableFramework ref={frameworkPrintRef} frameworkName={frameworkName || "Référentiel de compétences"} teamName={teamMembership?.team?.name || ""} clubName={teamMembership?.team?.club?.name || ""} clubLogoUrl={teamMembership?.team?.club?.logo_url} themes={themes} />
             </div>
           </TabsContent>
         )}

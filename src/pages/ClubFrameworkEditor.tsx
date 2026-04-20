@@ -61,6 +61,7 @@ interface Club {
   id: string;
   name: string;
   primary_color: string;
+  logo_url?: string | null;
 }
 
 export default function ClubFrameworkEditor() {
@@ -483,6 +484,7 @@ export default function ClubFrameworkEditor() {
           frameworkName={frameworkName}
           teamName="Modèle du club"
           clubName={club?.name || ""}
+          clubLogoUrl={club?.logo_url}
           themes={themes}
         />
       </div>

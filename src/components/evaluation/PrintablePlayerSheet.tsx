@@ -7,6 +7,7 @@ import {
   type ThemeScores 
 } from "@/lib/evaluation-utils";
 import { PrintableRadarChart } from "./PrintableRadarChart";
+import { useImagesAsBase64 } from "@/hooks/useImageAsBase64";
 
 interface Theme {
   id: string;
@@ -130,6 +131,12 @@ const formatDateFr = (dateStr: string) =>
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
   ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [] }, ref) => {
+    // Pré-charge les images en base64 pour garantir leur rendu dans les exports PDF
+    // (évite les soucis de CORS / tainted canvas avec html2canvas).
+    const imageMap = useImagesAsBase64([club.logo_url, player.photo_url]);
+    const clubLogoSrc = club.logo_url ? imageMap[club.logo_url] ?? null : null;
+    const playerPhotoSrc = player.photo_url ? imageMap[player.photo_url] ?? null : null;
+
     const getPlayerName = () => {
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
       if (player.first_name || player.last_name) return player.first_name || player.last_name || "Joueur";
@@ -182,8 +189,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              {club.logo_url && (
-                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              {clubLogoSrc && (
+                <img src={clubLogoSrc} alt={club.name} crossOrigin="anonymous" style={{ width: "36px", height: "36px", objectFit: "contain" }} />
               )}
               <span style={{ fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {club.name}
@@ -211,10 +218,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             border: `1px solid ${BRAND_BLUE}30`,
           }}>
             {/* Photo */}
-            {player.photo_url ? (
+            {playerPhotoSrc ? (
               <img
-                src={player.photo_url}
+                src={playerPhotoSrc}
                 alt={getPlayerName()}
+                crossOrigin="anonymous"
                 style={{
                   width: "80px",
                   height: "80px",
@@ -342,8 +350,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* ── Top brand bar (repeated) ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              {club.logo_url && (
-                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              {clubLogoSrc && (
+                <img src={clubLogoSrc} alt={club.name} crossOrigin="anonymous" style={{ width: "36px", height: "36px", objectFit: "contain" }} />
               )}
               <div>
                 <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{getPlayerName()}</span>

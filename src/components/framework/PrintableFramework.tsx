@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { Activity } from "lucide-react";
+import { useImageAsBase64 } from "@/hooks/useImageAsBase64";
 
 interface Skill {
   id: string;
@@ -20,12 +21,15 @@ interface PrintableFrameworkProps {
   frameworkName: string;
   teamName: string;
   clubName: string;
+  clubLogoUrl?: string | null;
   themes: Theme[];
 }
 
 export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkProps>(
-  ({ frameworkName, teamName, clubName, themes }, ref) => {
+  ({ frameworkName, teamName, clubName, clubLogoUrl, themes }, ref) => {
     const totalSkills = themes.reduce((sum, t) => sum + t.skills.length, 0);
+    // Pré-charge le logo en base64 pour fiabiliser l'export PDF.
+    const clubLogoSrc = useImageAsBase64(clubLogoUrl);
 
     return (
       <div ref={ref} className="print-framework bg-white text-black" style={{ width: "210mm", margin: "0 auto" }}>
@@ -44,6 +48,14 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
             <Activity style={{ width: "30px", height: "30px", color: "#3B82F6" }} />
             <span style={{ fontSize: "20px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1.5px" }}>MATCHS360</span>
+            {clubLogoSrc && (
+              <img
+                src={clubLogoSrc}
+                alt={clubName}
+                crossOrigin="anonymous"
+                style={{ width: "32px", height: "32px", objectFit: "contain", marginLeft: "auto" }}
+              />
+            )}
           </div>
           <h1 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 10px 0", lineHeight: 1.2 }}>{frameworkName}</h1>
           <div style={{ fontSize: "12px", color: "#6B7280", lineHeight: 1.8 }}>
