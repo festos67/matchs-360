@@ -105,7 +105,7 @@ const Players = () => {
           user_id,
           team_id,
           member_type,
-          teams:team_id (id, name, color, club_id, clubs:club_id (id, name, short_name, logo_url, primary_color))
+          teams:team_id (id, name, short_name, color, club_id, clubs:club_id (id, name, short_name, logo_url, primary_color))
         `)
         .eq("is_active", true);
 
