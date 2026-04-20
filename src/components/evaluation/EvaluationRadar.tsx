@@ -24,41 +24,32 @@ interface EvaluationRadarProps {
 
 export const EvaluationRadar = ({
   data,
-  primaryColor = "hsl(217, 91%, 60%)",
+  primaryColor = "hsl(226, 72%, 48%)",
   animated = true,
   showTooltip = true,
 }: EvaluationRadarProps) => {
   return (
     <div className="w-full h-[350px] relative">
-      {/* Glow effect behind radar */}
-      <div 
-        className="absolute inset-0 opacity-20 blur-3xl"
-        style={{
-          background: `radial-gradient(ellipse at center, ${primaryColor} 0%, transparent 70%)`,
-        }}
-      />
-      
       <ResponsiveContainer width="100%" height="100%">
         <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid
-            stroke="hsl(220, 20%, 25%)"
-            strokeDasharray="3 3"
+            stroke="#DDE2ED"
             gridType="polygon"
           />
           <PolarAngleAxis
             dataKey="theme"
             tick={{
-              fill: "hsl(215, 20%, 65%)",
+              fill: "#7889A8",
               fontSize: 11,
               fontWeight: 500,
             }}
-            tickLine={{ stroke: "hsl(220, 20%, 25%)" }}
+            tickLine={{ stroke: "#DDE2ED" }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 5]}
             tick={{
-              fill: "hsl(215, 20%, 55%)",
+              fill: "#7889A8",
               fontSize: 10,
             }}
             tickCount={6}
@@ -70,8 +61,8 @@ export const EvaluationRadar = ({
             dataKey="score"
             stroke={primaryColor}
             fill={primaryColor}
-            fillOpacity={0.5}
-            strokeWidth={2}
+            fillOpacity={0.12}
+            strokeWidth={1.5}
             dot={{
               r: 4,
               fill: primaryColor,
@@ -91,18 +82,18 @@ export const EvaluationRadar = ({
           {showTooltip && (
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(220, 25%, 10%)",
-                border: "1px solid hsl(220, 20%, 18%)",
+                backgroundColor: "hsl(0, 0%, 100%)",
+                border: "1px solid #DDE2ED",
                 borderRadius: "8px",
-                boxShadow: "0 4px 24px -4px rgba(0,0,0,0.4)",
+                boxShadow: "0 4px 16px -4px rgba(34, 51, 84, 0.1)",
               }}
               labelStyle={{
-                color: "hsl(210, 40%, 98%)",
+                color: "hsl(224, 55%, 17%)",
                 fontWeight: 600,
                 marginBottom: "4px",
               }}
               itemStyle={{
-                color: "hsl(215, 20%, 65%)",
+                color: "#7889A8",
                 padding: "2px 0",
               }}
               formatter={(value: number) => [`${value.toFixed(1)} / 5`, "Score"]}
