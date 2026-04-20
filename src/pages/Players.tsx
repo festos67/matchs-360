@@ -450,7 +450,7 @@ const Players = () => {
             <p className="text-muted-foreground mt-1">{pageSubtitle}</p>
           </div>
           {(isAdmin || currentRole?.role === "club_admin") && currentRole?.club_id && (
-            <Button onClick={() => setShowCreatePlayer(true)} className="gap-2">
+            <Button variant="accent" onClick={() => setShowCreatePlayer(true)} className="gap-2">
               <Plus className="w-4 h-4" />
               Ajouter un joueur
             </Button>

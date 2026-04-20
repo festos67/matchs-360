@@ -209,7 +209,7 @@ const Teams = () => {
             </p>
           </div>
           {(isAdmin || currentRole?.role === "club_admin") && (
-            <Button onClick={() => setShowCreateTeam(true)} className="gap-2">
+            <Button variant="accent" onClick={() => setShowCreateTeam(true)} className="gap-2">
               <Plus className="w-4 h-4" />
               Nouvelle équipe
             </Button>

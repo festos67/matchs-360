@@ -201,7 +201,7 @@ export default function Evaluations() {
           </p>
         </div>
         {canCreate && (
-          <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+          <Button variant="accent" onClick={() => setShowCreateModal(true)} className="gap-2">
             <Plus className="w-4 h-4" />
             Nouveau débrief
           </Button>
