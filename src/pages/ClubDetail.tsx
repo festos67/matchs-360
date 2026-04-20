@@ -392,7 +392,7 @@ export default function ClubDetail() {
                         navigate(`/clubs/${club.id}/framework`);
                       }}
                     >
-                      <Edit className="w-4 h-4 mr-2" />
+                      <Edit className="w-4 h-4 mr-2 text-accent" />
                       Modifier
                     </Button>
                     <Button
@@ -403,7 +403,7 @@ export default function ClubDetail() {
                         handlePrint();
                       }}
                     >
-                      <Printer className="w-4 h-4 mr-2" />
+                      <Printer className="w-4 h-4 mr-2 text-accent" />
                       Imprimer
                     </Button>
                     <Button
@@ -414,7 +414,7 @@ export default function ClubDetail() {
                         setShowFrameworkHistory(true);
                       }}
                     >
-                      <History className="w-4 h-4 mr-2" />
+                      <History className="w-4 h-4 mr-2 text-accent" />
                       Historique
                     </Button>
                     <Button
