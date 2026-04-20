@@ -125,28 +125,6 @@
   }
 }
 
-/* Light mode only: hiérarchie de titres en bleu #1D4ED8 */
-@layer base {
-  :root h1 {
-    color: #1D4ED8;
-  }
-  :root h2,
-  :root h3,
-  :root h4 {
-    color: #1D4ED8;
-    font-weight: 800;
-  }
-
-  /* Ne pas écraser en mode sombre */
-  .dark h1,
-  .dark h2,
-  .dark h3,
-  .dark h4 {
-    color: inherit;
-    font-weight: inherit;
-  }
-}
-
 @layer components {
   /* Glass Card Effect */
   .glass-card {
