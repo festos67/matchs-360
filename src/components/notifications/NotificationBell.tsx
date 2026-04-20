@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Target, Check } from "lucide-react";
+import { Bell, Target, Check, CheckCircle2, AlertTriangle, AlertCircle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -99,9 +99,42 @@ export function NotificationBell() {
     }
   };
 
-  const getIcon = (type: string) => {
-    if (type === "objective") return <Target className="w-4 h-4 text-primary" />;
-    return <Bell className="w-4 h-4 text-muted-foreground" />;
+  // Mapping type -> styles sémantiques (Étape 11)
+  const getTypeStyles = (type: string) => {
+    switch (type) {
+      case "success":
+        return {
+          icon: <CheckCircle2 className="w-4 h-4 text-success" />,
+          unreadBg: "bg-[#F0FDF4] border-l-2 border-success/40",
+          dot: "bg-success",
+        };
+      case "error":
+      case "destructive":
+        return {
+          icon: <AlertCircle className="w-4 h-4 text-destructive" />,
+          unreadBg: "bg-[#FEF2F2] border-l-2 border-destructive/40",
+          dot: "bg-destructive",
+        };
+      case "warning":
+        return {
+          icon: <AlertTriangle className="w-4 h-4 text-accent" />,
+          unreadBg: "bg-[#FFFBEB] border-l-2 border-accent/40",
+          dot: "bg-accent",
+        };
+      case "objective":
+        return {
+          icon: <Target className="w-4 h-4 text-primary" />,
+          unreadBg: "bg-[#EFF6FF] border-l-2 border-primary/40",
+          dot: "bg-primary",
+        };
+      case "info":
+      default:
+        return {
+          icon: <Info className="w-4 h-4 text-primary" />,
+          unreadBg: "bg-[#EFF6FF] border-l-2 border-primary/40",
+          dot: "bg-primary",
+        };
+    }
   };
 
   return (
@@ -133,29 +166,32 @@ export function NotificationBell() {
             </div>
           ) : (
             <div>
-              {notifications.map((notif) => (
-                <button
-                  key={notif.id}
-                  onClick={() => handleClick(notif)}
-                  className={`w-full text-left px-4 py-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors flex gap-3 ${
-                    !notif.is_read ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <div className="mt-0.5 flex-shrink-0">{getIcon(notif.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!notif.is_read ? "font-semibold" : ""}`}>{notif.title}</p>
-                    {notif.message && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.message}</p>
+              {notifications.map((notif) => {
+                const styles = getTypeStyles(notif.type);
+                return (
+                  <button
+                    key={notif.id}
+                    onClick={() => handleClick(notif)}
+                    className={`w-full text-left px-4 py-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors flex gap-3 ${
+                      !notif.is_read ? styles.unreadBg : ""
+                    }`}
+                  >
+                    <div className="mt-0.5 flex-shrink-0">{styles.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm ${!notif.is_read ? "font-semibold" : ""}`}>{notif.title}</p>
+                      {notif.message && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notif.message}</p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: fr })}
+                      </p>
+                    </div>
+                    {!notif.is_read && (
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${styles.dot}`} />
                     )}
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: fr })}
-                    </p>
-                  </div>
-                  {!notif.is_read && (
-                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                  )}
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </ScrollArea>
