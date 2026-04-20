@@ -229,6 +229,36 @@ const CoachMyClub = () => {
           />
         </div>
 
+        {/* Référentiel du club */}
+        {clubFramework && clubId && (
+          <button
+            type="button"
+            onClick={() => navigate(`/clubs/${clubId}/framework`)}
+            className="w-full text-left bg-card rounded-xl border border-border p-4 hover:border-accent/50 hover:shadow-sm transition-all flex items-center gap-4"
+          >
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-5 h-5 text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground truncate">{clubFramework.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrint();
+              }}
+            >
+              <Printer className="w-4 h-4 mr-2 text-accent" />
+              Imprimer
+            </Button>
+          </button>
+        )}
+
         {/* Teams circles */}
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-xl font-semibold text-foreground mb-6">Équipes du club</h2>
@@ -279,6 +309,19 @@ const CoachMyClub = () => {
           )}
         </div>
       </div>
+
+      {/* Hidden printable */}
+      {clubFramework && (
+        <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+          <PrintableFramework
+            ref={printRef}
+            frameworkName={clubFramework.name}
+            teamName="Modèle du club"
+            clubName={club?.name || ""}
+            themes={clubFramework.themes}
+          />
+        </div>
+      )}
     </AppLayout>
   );
 };
