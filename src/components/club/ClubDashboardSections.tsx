@@ -438,59 +438,39 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
                 />
               </div>
             </div>
-            <div className="overflow-x-auto max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-              <Table className="[&_td]:py-1.5 [&_th]:py-1.5">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40px]"></TableHead>
-                    <TableHead>Équipe</TableHead>
-                    <TableHead>Saison</TableHead>
-                    <TableHead className="text-center">Joueurs</TableHead>
-                    <TableHead className="text-center">Coachs</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loadingTeamsList ? (
-                    Array.from({ length: 3 }).map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell><Skeleton className="w-7 h-7 rounded-full" /></TableCell>
-                        <TableCell><Skeleton className="h-3.5 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-3.5 w-20" /></TableCell>
-                        <TableCell><Skeleton className="h-3.5 w-8 mx-auto" /></TableCell>
-                        <TableCell><Skeleton className="h-3.5 w-8 mx-auto" /></TableCell>
-                      </TableRow>
-                    ))
-                  ) : teamsList && teamsList.length > 0 ? (
-                    teamsList
-                      .filter((team) => team.name.toLowerCase().includes(teamsSearch.toLowerCase()))
-                      .map((team) => (
-                        <TableRow key={team.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/teams/${team.id}`)}>
-                          <TableCell>
-                            <CircleAvatar shape="square" name={team.name} color={team.color || "#3B82F6"} size="sm" />
-                          </TableCell>
-                          <TableCell className="font-medium text-sm">{team.name}</TableCell>
-                          <TableCell className="text-muted-foreground text-sm">{team.season || "-"}</TableCell>
-                          <TableCell className="text-center">
-                            <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1.5 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
-                              {team.playersCount}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="inline-flex items-center justify-center min-w-[1.5rem] px-1.5 py-0.5 text-xs font-medium bg-secondary/50 text-secondary-foreground rounded-full">
-                              {team.coachesCount}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        Aucune équipe enregistrée
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+            <div className="px-4 md:px-5 pb-5 max-h-[500px] overflow-y-auto">
+              {loadingTeamsList ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex flex-col items-center gap-2">
+                      <Skeleton className="w-24 h-24 rounded-2xl" />
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  ))}
+                </div>
+              ) : teamsList && teamsList.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                  {teamsList
+                    .filter((team) => team.name.toLowerCase().includes(teamsSearch.toLowerCase()))
+                    .map((team) => (
+                      <TeamCard
+                        key={team.id}
+                        id={team.id}
+                        name={team.name}
+                        shortName={team.short_name}
+                        color={team.color}
+                        season={team.season}
+                        referentCoachName={team.referentCoachName}
+                        playerCount={team.playersCount}
+                      />
+                    ))}
+                </div>
+              ) : (
+                <p className="text-center py-8 text-muted-foreground">
+                  Aucune équipe enregistrée
+                </p>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
