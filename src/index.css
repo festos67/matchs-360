@@ -9,27 +9,27 @@
   :root {
     /* Fond principal - beige/crème très clair (référence capture) */
     --background: 40 33% 96%;
-    --foreground: 222 49% 20%;
+    --foreground: 224 76% 24%;
 
     /* Cards - blanc pur */
     --card: 0 0% 100%;
-    --card-foreground: 222 49% 20%;
+    --card-foreground: 224 76% 24%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 49% 20%;
+    --popover-foreground: 224 76% 24%;
 
     /* Primary - Bleu Roi */
-    --primary: 222 49% 20%;
+    --primary: 224 76% 33%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Surface claire */
     --secondary: 40 25% 92%;
-    --secondary-foreground: 222 49% 20%;
+    --secondary-foreground: 224 76% 24%;
 
     /* Muted */
     --muted: 40 25% 92%;
-    --muted-foreground: 222 25% 40%;
+    --muted-foreground: 224 15% 50%;
 
     /* Accent - Ambre */
     --accent: 38 88% 43%;
@@ -50,28 +50,28 @@
     /* Borders - gris bleuté doux */
     --border: 40 18% 88%;
     --input: 40 18% 88%;
-    --ring: 222 49% 20%;
+    --ring: 224 76% 33%;
 
     --radius: 0.75rem;
 
     /* Sidebar - Clair en mode light, contraste doux */
     --sidebar-background: 40 30% 95%;
-    --sidebar-foreground: 222 49% 20%;
-    --sidebar-primary: 222 49% 20%;
+    --sidebar-foreground: 224 76% 24%;
+    --sidebar-primary: 224 76% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 40 25% 88%;
     --sidebar-accent-foreground: 7 72% 58%;
     --sidebar-border: 40 18% 86%;
-    --sidebar-ring: 222 49% 20%;
+    --sidebar-ring: 224 76% 33%;
 
     /* Effets - adaptés au light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(222 49% 20%) 0%, hsl(222 49% 15%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(224 76% 33%) 0%, hsl(224 76% 24%) 100%);
     --gradient-card: none;
     --gradient-glow: none;
 
-    --shadow-glow: 0 0 30px -10px hsl(222 49% 20% / 0.2);
-    --shadow-card: 0 1px 3px 0 hsl(222 49% 20% / 0.06);
-    --shadow-elevated: 0 4px 16px -4px hsl(222 49% 20% / 0.1);
+    --shadow-glow: 0 0 30px -10px hsl(224 76% 33% / 0.2);
+    --shadow-card: 0 1px 3px 0 hsl(224 76% 24% / 0.06);
+    --shadow-elevated: 0 4px 16px -4px hsl(224 76% 24% / 0.1);
   }
 
   .dark {
@@ -131,7 +131,7 @@
   :root h4,
   :root h5,
   :root h6 {
-    color: hsl(222 49% 20%);
+    color: hsl(224 76% 24%);
   }
 
   /* Dark mode: garder le foreground clair */
