@@ -9,27 +9,27 @@
   :root {
     /* Fond principal - beige/crème très clair (référence capture) */
     --background: 40 33% 96%;
-    --foreground: 224 76% 24%;
+    --foreground: 222 49% 20%;
 
     /* Cards - blanc pur */
     --card: 0 0% 100%;
-    --card-foreground: 224 76% 24%;
+    --card-foreground: 222 49% 20%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 224 76% 24%;
+    --popover-foreground: 222 49% 20%;
 
     /* Primary - Bleu Roi */
-    --primary: 224 76% 33%;
+    --primary: 222 49% 20%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Surface claire */
     --secondary: 40 25% 92%;
-    --secondary-foreground: 224 76% 24%;
+    --secondary-foreground: 222 49% 20%;
 
     /* Muted */
     --muted: 40 25% 92%;
-    --muted-foreground: 224 15% 50%;
+    --muted-foreground: 222 25% 40%;
 
     /* Accent - Ambre */
     --accent: 38 88% 43%;
