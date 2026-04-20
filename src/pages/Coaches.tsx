@@ -242,7 +242,7 @@ const Coaches = () => {
             </p>
           </div>
           {(currentRole?.role === "club_admin" && currentRole?.club_id) && (
-            <Button onClick={() => setCreateModalOpen(true)}>
+            <Button variant="accent" onClick={() => setCreateModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Ajouter un coach
             </Button>
