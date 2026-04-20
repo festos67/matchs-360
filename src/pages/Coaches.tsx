@@ -189,11 +189,23 @@ const Coaches = () => {
   }, [coaches, clubFilter, teamFilter, searchQuery]);
 
   const groupedCoaches = useMemo(() => {
-    const groups: Record<string, { clubName: string; coaches: CoachData[] }> = {};
+    const groups: Record<string, {
+      clubName: string;
+      clubShortName: string | null;
+      clubLogoUrl: string | null;
+      clubPrimaryColor: string | null;
+      coaches: CoachData[];
+    }> = {};
     filteredCoaches.forEach((coach) => {
       const key = coach.club_id || "no-club";
       if (!groups[key]) {
-        groups[key] = { clubName: coach.club_name || "Sans club", coaches: [] };
+        groups[key] = {
+          clubName: coach.club_name || "Sans club",
+          clubShortName: coach.club_short_name || null,
+          clubLogoUrl: coach.club_logo_url || null,
+          clubPrimaryColor: coach.club_primary_color || null,
+          coaches: [],
+        };
       }
       groups[key].coaches.push(coach);
     });
