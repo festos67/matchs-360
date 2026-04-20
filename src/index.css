@@ -50,28 +50,28 @@
     /* Borders - gris bleuté doux */
     --border: 40 18% 88%;
     --input: 40 18% 88%;
-    --ring: 224 76% 33%;
+    --ring: 222 49% 20%;
 
     --radius: 0.75rem;
 
     /* Sidebar - Clair en mode light, contraste doux */
     --sidebar-background: 40 30% 95%;
-    --sidebar-foreground: 224 76% 24%;
-    --sidebar-primary: 224 76% 33%;
+    --sidebar-foreground: 222 49% 20%;
+    --sidebar-primary: 222 49% 20%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 40 25% 88%;
     --sidebar-accent-foreground: 7 72% 58%;
     --sidebar-border: 40 18% 86%;
-    --sidebar-ring: 224 76% 33%;
+    --sidebar-ring: 222 49% 20%;
 
     /* Effets - adaptés au light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(224 76% 33%) 0%, hsl(224 76% 24%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(222 49% 20%) 0%, hsl(222 49% 15%) 100%);
     --gradient-card: none;
     --gradient-glow: none;
 
-    --shadow-glow: 0 0 30px -10px hsl(224 76% 33% / 0.2);
-    --shadow-card: 0 1px 3px 0 hsl(224 76% 24% / 0.06);
-    --shadow-elevated: 0 4px 16px -4px hsl(224 76% 24% / 0.1);
+    --shadow-glow: 0 0 30px -10px hsl(222 49% 20% / 0.2);
+    --shadow-card: 0 1px 3px 0 hsl(222 49% 20% / 0.06);
+    --shadow-elevated: 0 4px 16px -4px hsl(222 49% 20% / 0.1);
   }
 
   .dark {
