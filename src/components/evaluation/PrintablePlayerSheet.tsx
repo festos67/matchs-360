@@ -7,6 +7,7 @@ import {
   type ThemeScores 
 } from "@/lib/evaluation-utils";
 import { PrintableRadarChart } from "./PrintableRadarChart";
+import { useImagesAsBase64 } from "@/hooks/useImageAsBase64";
 
 interface Theme {
   id: string;
@@ -130,6 +131,12 @@ const formatDateFr = (dateStr: string) =>
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
   ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [] }, ref) => {
+    // Pré-charge les images en base64 pour garantir leur rendu dans les exports PDF
+    // (évite les soucis de CORS / tainted canvas avec html2canvas).
+    const imageMap = useImagesAsBase64([club.logo_url, player.photo_url]);
+    const clubLogoSrc = club.logo_url ? imageMap[club.logo_url] ?? null : null;
+    const playerPhotoSrc = player.photo_url ? imageMap[player.photo_url] ?? null : null;
+
     const getPlayerName = () => {
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
       if (player.first_name || player.last_name) return player.first_name || player.last_name || "Joueur";
