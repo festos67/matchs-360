@@ -302,14 +302,14 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <Card className="bg-white border border-border rounded-2xl p-5 mb-8 flex items-center gap-5">
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex items-center gap-5">
         {/* Logo club */}
         <div
-          className="w-[72px] h-[72px] rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
+          className="w-28 h-28 rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
           style={club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : undefined}
         >
           {!club.logo_url && (
-            <span className="font-display text-lg font-extrabold text-foreground">
+            <span className="font-display text-3xl font-extrabold text-foreground">
               {club.short_name || club.name.slice(0, 2).toUpperCase()}
             </span>
           )}
