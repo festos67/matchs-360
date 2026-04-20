@@ -343,8 +343,9 @@ export default function ClubDetail() {
                 <Plus className="w-3.5 h-3.5 text-orange-500" />Supporter
               </Button>
             </div>
-            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}>
-              <Settings className="w-4 h-4" />
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowClubSettings(true)}>
+              <Settings className="w-3.5 h-3.5 text-orange-500" />
+              Paramètres
             </Button>
           </div>
         )}
