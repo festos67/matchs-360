@@ -371,12 +371,10 @@ export default function ClubFrameworkEditor() {
                   Modifier
                 </Button>
               )}
-              {canEdit && (
-                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-                  <History className="w-4 h-4 mr-2" />
-                  Historique
-                </Button>
-              )}
+              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                <History className="w-4 h-4 mr-2 text-accent" />
+                Historique
+              </Button>
               <Button variant="outline" size="sm" onClick={() => handlePrint()}>
                 <Printer className="w-4 h-4 mr-2" />
                 Imprimer
