@@ -77,10 +77,11 @@ export const TopBar = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/profile")}>Profil</DropdownMenuItem>
-            
+            <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+              <User className="w-4 h-4 mr-2" />
+              Modifier mon profil
+            </DropdownMenuItem>
+
             {currentRole?.role === "club_admin" && canManageOtherClub && (
               <>
                 <DropdownMenuSeparator />
