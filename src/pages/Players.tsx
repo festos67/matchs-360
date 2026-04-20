@@ -252,26 +252,64 @@ const Players = () => {
   const clubGroups = useMemo(() => {
     if (useTeamGrouping) return null;
     const groups: Record<string, {
+      clubId: string;
       clubName: string;
       clubShortName: string | null;
       clubLogoUrl: string | null;
       clubPrimaryColor: string | null;
-      players: PlayerData[];
+      teams: Record<string, {
+        teamId: string;
+        teamName: string;
+        teamColor: string | null;
+        players: PlayerData[];
+      }>;
+      noTeamPlayers: PlayerData[];
+      totalPlayers: number;
     }> = {};
     filteredPlayers.forEach((player) => {
-      const key = player.club_id || "no-club";
-      if (!groups[key]) {
-        groups[key] = {
+      const clubKey = player.club_id || "no-club";
+      if (!groups[clubKey]) {
+        groups[clubKey] = {
+          clubId: clubKey,
           clubName: player.club_name || "Sans club",
           clubShortName: player.club_short_name || null,
           clubLogoUrl: player.club_logo_url || null,
           clubPrimaryColor: player.club_primary_color || null,
-          players: [],
+          teams: {},
+          noTeamPlayers: [],
+          totalPlayers: 0,
         };
       }
-      groups[key].players.push(player);
+      groups[clubKey].totalPlayers += 1;
+      const playerClubTeams = player.teams.filter(
+        (t) => (t.club_id || "no-club") === clubKey
+      );
+      if (playerClubTeams.length === 0) {
+        groups[clubKey].noTeamPlayers.push(player);
+      } else {
+        playerClubTeams.forEach((t) => {
+          if (!groups[clubKey].teams[t.id]) {
+            groups[clubKey].teams[t.id] = {
+              teamId: t.id,
+              teamName: t.name,
+              teamColor: t.color || null,
+              players: [],
+            };
+          }
+          if (!groups[clubKey].teams[t.id].players.find((p) => p.id === player.id)) {
+            groups[clubKey].teams[t.id].players.push(player);
+          }
+        });
+      }
     });
-    return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
+    return Object.values(groups)
+      .map((g) => ({
+        ...g,
+        teamsList: Object.values(g.teams).sort((a, b) =>
+          a.teamName.localeCompare(b.teamName)
+        ),
+      }))
+      .sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredPlayers, useTeamGrouping]);
 
   // Group players by team for coach and club_admin view
