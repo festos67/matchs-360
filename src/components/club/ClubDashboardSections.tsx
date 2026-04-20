@@ -448,7 +448,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
                       .map((team) => (
                         <TableRow key={team.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/teams/${team.id}`)}>
                           <TableCell>
-                            <CircleAvatar name={team.name} color={team.color || "#3B82F6"} size="sm" />
+                            <CircleAvatar shape="square" name={team.name} color={team.color || "#3B82F6"} size="sm" />
                           </TableCell>
                           <TableCell className="font-medium text-sm">{team.name}</TableCell>
                           <TableCell className="text-muted-foreground text-sm">{team.season || "-"}</TableCell>

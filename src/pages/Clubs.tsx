@@ -113,6 +113,7 @@ export default function Clubs() {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CircleAvatar
+                shape="square"
                 name={club.name}
                 subtitle={`${club.teams_count || 0} équipe${(club.teams_count || 0) > 1 ? "s" : ""}`}
                 imageUrl={club.logo_url}

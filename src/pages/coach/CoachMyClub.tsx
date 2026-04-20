@@ -212,6 +212,7 @@ const CoachMyClub = () => {
                 <Link key={team.id} to={`/teams/${team.id}`} className="group">
                   <div className="flex flex-col items-center text-center">
                     <CircleAvatar
+                      shape="square"
                       name={team.name}
                       shortName={team.short_name}
                       color={team.color || "#3B82F6"}

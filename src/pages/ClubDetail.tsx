@@ -516,6 +516,7 @@ export default function ClubDetail() {
                 // Active team display
                 <>
                   <CircleAvatar 
+                    shape="square"
                     name={team.name}
                     shortName={team.short_name}
                     subtitle={team.season || ""} 
