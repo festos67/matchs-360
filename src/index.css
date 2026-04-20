@@ -128,40 +128,27 @@
 @layer components {
   /* Glass Card Effect */
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl;
+    @apply bg-card border border-border rounded-xl;
     box-shadow: var(--shadow-card);
   }
 
   /* Glowing Border Effect */
   .glow-border {
     @apply relative;
-    &::before {
-      content: '';
-      @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300;
-      background: var(--gradient-primary);
-      filter: blur(20px);
-      z-index: -1;
-    }
-    &:hover::before {
-      @apply opacity-30;
-    }
   }
 
   /* Circle Avatar for Teams/Players */
   .circle-avatar {
-    @apply relative flex items-center justify-center rounded-full transition-all duration-300;
+    @apply relative flex items-center justify-center rounded-2xl transition-all duration-300;
     &:hover {
-      transform: translateY(-4px) scale(1.05);
-      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-elevated);
     }
   }
 
   /* Animated Background Grid */
   .bg-grid {
-    background-image: 
-      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
-    background-size: 60px 60px;
+    background: none;
   }
 
   /* Primary Button Glow */
