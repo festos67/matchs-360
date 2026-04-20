@@ -126,6 +126,40 @@ const CoachMyClub = () => {
     enabled: !!clubId,
   });
 
+  // Fetch club framework (active template) + themes for printing
+  const { data: clubFramework } = useQuery({
+    queryKey: ["coach-club-framework", clubId],
+    queryFn: async () => {
+      if (!clubId) return null;
+      const { data: fw } = await supabase
+        .from("competence_frameworks")
+        .select("id, name")
+        .eq("club_id", clubId)
+        .eq("is_template", true)
+        .eq("is_archived", false)
+        .maybeSingle();
+      if (!fw) return null;
+      const { data: themes } = await supabase
+        .from("themes")
+        .select("*, skills(*)")
+        .eq("framework_id", fw.id)
+        .order("order_index");
+      const themesArr = (themes || []).map((t: any) => ({
+        ...t,
+        skills: (t.skills || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      }));
+      const skillsTotal = themesArr.reduce((s: number, t: any) => s + (t.skills?.length || 0), 0);
+      return { id: fw.id, name: fw.name, themes: themesArr, themes_count: themesArr.length, skills_count: skillsTotal };
+    },
+    enabled: !!clubId,
+  });
+
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: clubFramework?.name || "Référentiel du Club",
+  });
+
   // Compute stats
   const totalPlayers = allMembers?.filter((m) => m.member_type === "player").length || 0;
 
