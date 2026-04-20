@@ -307,17 +307,25 @@ const Coaches = () => {
           <div className="space-y-6">
             {groupedCoaches.map((group) => (
               <div key={group.clubName}>
-                <div className="flex items-center gap-3 mb-3">
-                  <CircleAvatar
-                    shape="square"
-                    size="sm"
-                    name={group.clubName}
-                    shortName={group.clubShortName}
-                    imageUrl={group.clubLogoUrl}
-                    color={group.clubPrimaryColor || "#3B82F6"}
-                    showName={false}
-                    className="!w-10 !h-10"
-                  />
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className="w-5 h-5 rounded flex items-center justify-center overflow-hidden shrink-0"
+                    style={{
+                      backgroundColor: group.clubLogoUrl ? "transparent" : (group.clubPrimaryColor || "#3B82F6"),
+                    }}
+                  >
+                    {group.clubLogoUrl ? (
+                      <img
+                        src={group.clubLogoUrl}
+                        alt={group.clubName}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-[9px] font-bold text-white leading-none">
+                        {(group.clubShortName || group.clubName.slice(0, 2)).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
                   <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">{group.clubName}</h2>
                   <span className="text-xs text-muted-foreground">({group.coaches.length})</span>
                 </div>
