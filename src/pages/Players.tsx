@@ -551,10 +551,12 @@ const Players = () => {
                             className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
                           />
                           <div
-                            className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                            className="w-6 h-6 rounded flex items-center justify-center shrink-0 overflow-hidden"
                             style={{ backgroundColor: color }}
                           >
-                            <Users className="w-3 h-3 text-white" />
+                            <span className="text-[9px] font-bold text-white leading-none">
+                              {(team.teamShortName || team.teamName.slice(0, 2)).toUpperCase()}
+                            </span>
                           </div>
                           <span className="font-display font-semibold text-sm" style={{ color }}>
                             {team.teamName}
