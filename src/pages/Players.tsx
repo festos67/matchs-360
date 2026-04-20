@@ -670,6 +670,15 @@ const Players = () => {
           onSuccess={fetchPlayers}
         />
       )}
+      {isCoach && coachClubId && (
+        <CreatePlayerModal
+          open={showCreatePlayer}
+          onOpenChange={setShowCreatePlayer}
+          clubId={coachClubId}
+          defaultTeamId={teamFilter !== "all" ? teamFilter : undefined}
+          onSuccess={fetchPlayers}
+        />
+      )}
       {editingPlayer && (
         <EditPlayerModal
           open={!!editingPlayer}
