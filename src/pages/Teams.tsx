@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { TeamCard } from "@/components/shared/TeamCard";
+import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {
@@ -37,7 +38,7 @@ type TeamMemberPartial = {
   profiles: { first_name: string | null; last_name: string | null } | null;
 };
 
-type TeamClub = Pick<Tables<"clubs">, "id" | "name" | "logo_url" | "primary_color">;
+type TeamClub = Pick<Tables<"clubs">, "id" | "name" | "logo_url" | "primary_color" | "short_name">;
 
 type TeamWithRelations = Tables<"teams"> & {
   clubs: TeamClub | null;
@@ -63,7 +64,7 @@ const Teams = () => {
         .from("teams")
         .select(`
           *,
-          clubs (id, name, logo_url, primary_color),
+          clubs (id, name, logo_url, primary_color, short_name),
           team_members (id, member_type, user_id, is_active, coach_role, profiles:user_id (first_name, last_name))
         `)
         .order("name");
@@ -287,13 +288,21 @@ const Teams = () => {
         ) : filteredTeams && filteredTeams.length > 0 ? (
           (() => {
             // Group teams by club
-            const grouped: Record<string, { clubName: string; clubColor: string; teams: typeof filteredTeams }> = {};
+            const grouped: Record<string, {
+              clubName: string;
+              clubColor: string;
+              clubShortName: string | null;
+              clubLogoUrl: string | null;
+              teams: typeof filteredTeams;
+            }> = {};
             filteredTeams!.forEach((team) => {
               const clubId = team.clubs?.id || "no-club";
               if (!grouped[clubId]) {
                 grouped[clubId] = {
                   clubName: team.clubs?.name || "Sans club",
                   clubColor: team.clubs?.primary_color || "#6366f1",
+                  clubShortName: team.clubs?.short_name || null,
+                  clubLogoUrl: team.clubs?.logo_url || null,
                   teams: [],
                 };
               }
@@ -305,11 +314,13 @@ const Teams = () => {
               <div className="space-y-6">
                 {sortedGroups.map((group) => (
                   <div key={group.clubName}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: group.clubColor }} />
-                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{group.clubName}</h2>
-                      <span className="text-xs text-muted-foreground">({group.teams!.length})</span>
-                    </div>
+                    <ClubGroupHeader
+                      name={group.clubName}
+                      shortName={group.clubShortName}
+                      logoUrl={group.clubLogoUrl}
+                      primaryColor={group.clubColor}
+                      count={group.teams!.length}
+                    />
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                       {group.teams!.map((team) => (
                         <div key={team.id} className="relative group">
