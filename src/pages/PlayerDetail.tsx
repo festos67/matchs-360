@@ -546,6 +546,8 @@ export default function PlayerDetail() {
           <ChevronUp className="w-5 h-5" />
         </Button>
       )}
+        </div>
+      </div>
     </AppLayout>
   );
 }
