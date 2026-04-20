@@ -350,8 +350,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* ── Top brand bar (repeated) ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              {club.logo_url && (
-                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              {clubLogoSrc && (
+                <img src={clubLogoSrc} alt={club.name} crossOrigin="anonymous" style={{ width: "36px", height: "36px", objectFit: "contain" }} />
               )}
               <div>
                 <span style={{ fontSize: "14px", fontWeight: 700, color: "#111827" }}>{getPlayerName()}</span>
