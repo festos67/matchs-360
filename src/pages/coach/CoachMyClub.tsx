@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,8 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
-import { Users, UserCog, UserCircle, Heart, Building2 } from "lucide-react";
+import { Users, UserCog, UserCircle, Heart, Building2, BookOpen, Printer } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { PrintableFramework } from "@/components/framework/PrintableFramework";
+import { useReactToPrint } from "react-to-print";
 
 const CoachMyClub = () => {
   const navigate = useNavigate();
@@ -123,6 +126,40 @@ const CoachMyClub = () => {
     enabled: !!clubId,
   });
 
+  // Fetch club framework (active template) + themes for printing
+  const { data: clubFramework } = useQuery({
+    queryKey: ["coach-club-framework", clubId],
+    queryFn: async () => {
+      if (!clubId) return null;
+      const { data: fw } = await supabase
+        .from("competence_frameworks")
+        .select("id, name")
+        .eq("club_id", clubId)
+        .eq("is_template", true)
+        .eq("is_archived", false)
+        .maybeSingle();
+      if (!fw) return null;
+      const { data: themes } = await supabase
+        .from("themes")
+        .select("*, skills(*)")
+        .eq("framework_id", fw.id)
+        .order("order_index");
+      const themesArr = (themes || []).map((t: any) => ({
+        ...t,
+        skills: (t.skills || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      }));
+      const skillsTotal = themesArr.reduce((s: number, t: any) => s + (t.skills?.length || 0), 0);
+      return { id: fw.id, name: fw.name, themes: themesArr, themes_count: themesArr.length, skills_count: skillsTotal };
+    },
+    enabled: !!clubId,
+  });
+
+  const printRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: clubFramework?.name || "Référentiel du Club",
+  });
+
   // Compute stats
   const totalPlayers = allMembers?.filter((m) => m.member_type === "player").length || 0;
 
@@ -192,6 +229,36 @@ const CoachMyClub = () => {
           />
         </div>
 
+        {/* Référentiel du club */}
+        {clubFramework && clubId && (
+          <button
+            type="button"
+            onClick={() => navigate(`/clubs/${clubId}/framework`)}
+            className="w-full text-left bg-card rounded-xl border border-border p-4 hover:border-accent/50 hover:shadow-sm transition-all flex items-center gap-4"
+          >
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-5 h-5 text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-foreground truncate">{clubFramework.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrint();
+              }}
+            >
+              <Printer className="w-4 h-4 mr-2 text-accent" />
+              Imprimer
+            </Button>
+          </button>
+        )}
+
         {/* Teams circles */}
         <div className="bg-card rounded-xl border border-border p-6">
           <h2 className="text-xl font-semibold text-foreground mb-6">Équipes du club</h2>
@@ -242,6 +309,19 @@ const CoachMyClub = () => {
           )}
         </div>
       </div>
+
+      {/* Hidden printable */}
+      {clubFramework && (
+        <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
+          <PrintableFramework
+            ref={printRef}
+            frameworkName={clubFramework.name}
+            teamName="Modèle du club"
+            clubName={club?.name || ""}
+            themes={clubFramework.themes}
+          />
+        </div>
+      )}
     </AppLayout>
   );
 };
