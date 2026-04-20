@@ -123,6 +123,26 @@
     font-family: 'Outfit', 'DM Sans', system-ui, sans-serif;
     @apply font-extrabold tracking-tight;
   }
+
+  /* Light mode: titres en bleu marine profond (référence visuelle) */
+  :root h1,
+  :root h2,
+  :root h3,
+  :root h4,
+  :root h5,
+  :root h6 {
+    color: hsl(224 76% 24%);
+  }
+
+  /* Dark mode: garder le foreground clair */
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6 {
+    color: hsl(var(--foreground));
+  }
 }
 
 @layer components {
