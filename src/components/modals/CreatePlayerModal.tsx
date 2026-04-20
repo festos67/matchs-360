@@ -92,6 +92,7 @@ export const CreatePlayerModal = ({
   onSuccess,
 }: CreatePlayerModalProps) => {
   const [loading, setLoading] = useState(false);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const [teams, setTeams] = useState<Team[]>(propTeams || []);
   const [showMutationAlert, setShowMutationAlert] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<PlayerFormData | null>(null);
