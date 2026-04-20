@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -36,6 +37,7 @@ export function useCreatePlayer(
   onClose?: () => void,
 ) {
   const [loading, setLoading] = useState(false);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const [teams, setTeams] = useState<Team[]>(propTeams || []);
   const [showMutationAlert, setShowMutationAlert] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<PlayerFormData | null>(null);
@@ -115,6 +117,13 @@ export function useCreatePlayer(
     } catch (error: unknown) {
       console.error("Error inviting player:", error);
       const errorMessage = await getEdgeFunctionErrorMessage(error);
+      // Plan limit raised by check_member_limit / check_team_limit triggers, surfaced via edge function
+      if (errorMessage.includes("PLAN_LIMIT_PLAYERS")) {
+        if (handlePlanLimit({ message: errorMessage }, "players_per_team")) { setLoading(false); return; }
+      }
+      if (errorMessage.includes("PLAN_LIMIT_TEAMS")) {
+        if (handlePlanLimit({ message: errorMessage }, "teams")) { setLoading(false); return; }
+      }
       if (errorMessage.includes("déjà dans une équipe") && !force) {
         setPendingSubmit(data); setShowMutationAlert(true); setLoading(false); return;
       }
@@ -146,6 +155,7 @@ export function useCreatePlayer(
       onClose?.(); onSuccess?.();
     } catch (error: any) {
       console.error("Error transferring player:", error);
+      if (handlePlanLimit(error, "players_per_team")) { setLoading(false); return; }
       toast.error("Erreur lors du transfert", { description: error.message });
     } finally { setLoading(false); }
   };
@@ -168,5 +178,6 @@ export function useCreatePlayer(
     photoFile, setPhotoFile, photoPreview, setPhotoPreview,
     showMutationAlert, setShowMutationAlert,
     onSubmit, handleTransfer, handleMutationConfirm, getPlayerDisplayName,
+    planLimitDialog,
   };
 }

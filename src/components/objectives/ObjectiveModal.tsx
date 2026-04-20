@@ -9,6 +9,7 @@ import { Paperclip, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Attachment {
   id: string;
@@ -38,6 +39,7 @@ interface ObjectiveModalProps {
 
 export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrderIndex, onSuccess }: ObjectiveModalProps) {
   const { user } = useAuth();
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(objective?.title || "");
   const [description, setDescription] = useState(objective?.description || "");
@@ -146,6 +148,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
       onSuccess();
     } catch (error: any) {
       console.error("Error saving objective:", error);
+      if (handlePlanLimit(error, "team_objectives")) { setSaving(false); return; }
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
@@ -153,6 +156,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -214,5 +218,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
         </div>
       </DialogContent>
     </Dialog>
+    {planLimitDialog}
+    </>
   );
 }
