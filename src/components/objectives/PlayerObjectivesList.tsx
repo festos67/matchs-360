@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ObjectiveModal } from "./ObjectiveModal";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import {
   DndContext,
   closestCenter,
