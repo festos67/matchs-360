@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
+import { TeamCard } from "@/components/shared/TeamCard";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {
