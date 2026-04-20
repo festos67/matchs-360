@@ -14,7 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { handlePlanLimitError } from "@/lib/plan-error-handler";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
   id: string;
@@ -66,6 +66,7 @@ export const SelfEvaluationForm = ({
 }: SelfEvaluationFormProps) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
   const [evaluationName, setEvaluationName] = useState(
     existingEvaluation?.name || `AUTO-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
   );
@@ -304,7 +305,7 @@ export const SelfEvaluationForm = ({
       onSaved?.();
     } catch (error: any) {
       console.error("Error saving self-evaluation:", error);
-      if (handlePlanLimitError(error)) {
+      if (planLimitHandle(error, "self_evals")) {
         setSaving(false);
         return;
       }
@@ -457,6 +458,7 @@ export const SelfEvaluationForm = ({
           </Button>
         </div>
       </div>
+      {planLimitDialog}
     </div>
   );
 };

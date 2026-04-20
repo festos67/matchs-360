@@ -8,6 +8,7 @@ import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeS
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
   id: string;
@@ -43,6 +44,7 @@ export function SupporterEvaluationForm({
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
 
   // State for scores and comments
   const [scores, setScores] = useState<Record<string, number | null>>({});
@@ -183,6 +185,10 @@ export function SupporterEvaluationForm({
       onSaved();
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
+      if (planLimitHandle(error, "supporter_evals")) {
+        setIsSaving(false);
+        return;
+      }
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setIsSaving(false);
@@ -260,6 +266,7 @@ export function SupporterEvaluationForm({
           {isSaving ? "Enregistrement..." : "Enregistrer ma perception"}
         </Button>
       </div>
+      {planLimitDialog}
     </div>
   );
 }
