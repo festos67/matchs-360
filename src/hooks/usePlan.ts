@@ -25,7 +25,8 @@ export function usePlan() {
           .eq("club_id", profile.club_id)
           .gte("ends_at", today)
           .lte("starts_at", today)
-          .order("plan", { ascending: true })
+          // ascending: false → 'pro' avant 'free' (ordre alphabétique inverse)
+          .order("plan", { ascending: false })
           .limit(1)
           .maybeSingle();
 
