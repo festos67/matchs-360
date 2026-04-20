@@ -9,6 +9,7 @@ import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { cn } from "@/lib/utils";
+import { getThemePaletteColor } from "@/lib/theme-palette";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
 
 interface PlayerEvaluationTabProps {
@@ -198,17 +199,19 @@ export function PlayerEvaluationTab({
           <div className="space-y-4">
             {selectedEvalThemes.map((theme) => {
               const themeData = radarData.find(d => d.theme === theme.name);
+              const themeIndex = selectedEvalThemes.findIndex(t => t.id === theme.id);
+              const color = theme.color || getThemePaletteColor(themeIndex);
               return (
                 <div key={theme.id}>
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.color || "#3B82F6" }} />
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
                       <span className="text-sm font-medium">{theme.name}</span>
                     </div>
                     <span className="text-sm text-muted-foreground">{themeData?.score || 0}/5</span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((themeData?.score || 0) / 5) * 100}%`, backgroundColor: theme.color || "#3B82F6" }} />
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((themeData?.score || 0) / 5) * 100}%`, backgroundColor: color }} />
                   </div>
                 </div>
               );
@@ -235,15 +238,17 @@ export function PlayerEvaluationTab({
             const avgScore = themeAvg.length > 0 ? themeAvg.reduce((acc, s) => acc + (s.score || 0), 0) / themeAvg.length : null;
             const hasComments = themeScoreData.skills.some(s => s.comment);
             const objective = themeScoreData.objective;
+            const themeIndex = selectedEvalThemes.findIndex(t => t.id === theme.id);
+            const color = theme.color || getThemePaletteColor(themeIndex);
 
             return (
               <div key={theme.id} className="glass-card overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: `${theme.color || "#3B82F6"}15` }}>
+                <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: `${color}15` }}>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.color || "#3B82F6" }} />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
                     <span className="font-semibold text-sm">{theme.name}</span>
                   </div>
-                  <span className="font-bold text-sm" style={{ color: theme.color || "#3B82F6" }}>{formatAverage(avgScore)}/5</span>
+                  <span className="font-bold text-sm" style={{ color }}>{formatAverage(avgScore)}/5</span>
                 </div>
                 <div className="divide-y divide-border">
                   {theme.skills.map((skill) => {
