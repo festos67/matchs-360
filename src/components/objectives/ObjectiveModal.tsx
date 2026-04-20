@@ -156,6 +156,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
