@@ -427,7 +427,7 @@ export default function ClubDetail() {
                       }}
                     >
                       <RotateCcw className="w-4 h-4 mr-2" />
-                      Réinitialiser
+                      Supprimer
                     </Button>
                   </div>
                 </div>
@@ -578,7 +578,7 @@ export default function ClubDetail() {
       <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Réinitialiser le référentiel du club ?</AlertDialogTitle>
+            <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
             <AlertDialogDescription>
               Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions.
             </AlertDialogDescription>
@@ -590,7 +590,7 @@ export default function ClubDetail() {
               disabled={isResetting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isResetting ? "Réinitialisation..." : "Réinitialiser"}
+              {isResetting ? "Suppression..." : "Supprimer"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
