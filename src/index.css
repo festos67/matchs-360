@@ -7,29 +7,29 @@
 
 @layer base {
   :root {
-    /* Fond principal - light warm */
-    --background: 225 33% 98%;
-    --foreground: 224 55% 17%;
+    /* Fond principal - beige/crème très clair (référence capture) */
+    --background: 40 33% 96%;
+    --foreground: 224 76% 24%;
 
     /* Cards - blanc pur */
     --card: 0 0% 100%;
-    --card-foreground: 224 55% 17%;
+    --card-foreground: 224 76% 24%;
 
     /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 224 55% 17%;
+    --popover-foreground: 224 76% 24%;
 
     /* Primary - Bleu Roi */
-    --primary: 226 72% 48%;
+    --primary: 224 76% 33%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Surface claire */
-    --secondary: 227 30% 95%;
-    --secondary-foreground: 224 55% 17%;
+    --secondary: 40 25% 92%;
+    --secondary-foreground: 224 76% 24%;
 
     /* Muted */
-    --muted: 227 30% 95%;
-    --muted-foreground: 220 18% 56%;
+    --muted: 40 25% 92%;
+    --muted-foreground: 224 15% 50%;
 
     /* Accent - Ambre */
     --accent: 38 88% 43%;
@@ -48,30 +48,30 @@
     --destructive-foreground: 0 0% 100%;
 
     /* Borders - gris bleuté doux */
-    --border: 228 22% 90%;
-    --input: 228 22% 90%;
-    --ring: 226 72% 48%;
+    --border: 40 18% 88%;
+    --input: 40 18% 88%;
+    --ring: 224 76% 33%;
 
     --radius: 0.75rem;
 
     /* Sidebar - Clair en mode light, contraste doux */
-    --sidebar-background: 220 30% 97%;
-    --sidebar-foreground: 222 35% 18%;
-    --sidebar-primary: 226 72% 48%;
+    --sidebar-background: 40 30% 95%;
+    --sidebar-foreground: 224 76% 24%;
+    --sidebar-primary: 224 76% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 226 60% 92%;
-    --sidebar-accent-foreground: 226 72% 30%;
-    --sidebar-border: 228 22% 88%;
-    --sidebar-ring: 226 72% 48%;
+    --sidebar-accent: 40 30% 90%;
+    --sidebar-accent-foreground: 224 76% 24%;
+    --sidebar-border: 40 18% 86%;
+    --sidebar-ring: 224 76% 33%;
 
     /* Effets - adaptés au light mode */
-    --gradient-primary: linear-gradient(135deg, hsl(226 72% 48%) 0%, hsl(226 72% 38%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(224 76% 33%) 0%, hsl(224 76% 24%) 100%);
     --gradient-card: none;
     --gradient-glow: none;
 
-    --shadow-glow: 0 0 30px -10px hsl(226 72% 48% / 0.2);
-    --shadow-card: 0 1px 3px 0 hsl(224 55% 17% / 0.06);
-    --shadow-elevated: 0 4px 16px -4px hsl(224 55% 17% / 0.1);
+    --shadow-glow: 0 0 30px -10px hsl(224 76% 33% / 0.2);
+    --shadow-card: 0 1px 3px 0 hsl(224 76% 24% / 0.06);
+    --shadow-elevated: 0 4px 16px -4px hsl(224 76% 24% / 0.1);
   }
 
   .dark {
