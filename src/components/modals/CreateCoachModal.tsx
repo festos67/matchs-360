@@ -73,6 +73,8 @@ export const CreateCoachModal = ({ open, onOpenChange, clubId, onSuccess }: Crea
         </DialogContent>
       </Dialog>
 
+      {hook.planLimitDialog}
+
       <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
