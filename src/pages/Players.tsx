@@ -83,6 +83,15 @@ const Players = () => {
     ? "Les joueurs de vos équipes"
     : "Les joueurs de votre périmètre";
 
+  // For coaches: derive a default club from their scope.
+  // If only one club, use it; otherwise rely on the club filter.
+  const coachClubId = useMemo(() => {
+    if (!isCoach) return null;
+    if (clubFilter !== "all") return clubFilter;
+    const clubIds = new Set(players.map((p) => p.club_id).filter(Boolean) as string[]);
+    return clubIds.size === 1 ? Array.from(clubIds)[0] : null;
+  }, [isCoach, clubFilter, players]);
+
   useEffect(() => {
     fetchPlayers();
   }, [isAdmin, currentRole]);
@@ -462,6 +471,18 @@ const Players = () => {
               className="gap-2"
               disabled={clubFilter === "all"}
               title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
+            >
+              <Plus className="w-4 h-4" />
+              Ajouter un joueur
+            </Button>
+          )}
+          {isCoach && (
+            <Button
+              variant="accent"
+              onClick={() => setShowCreatePlayer(true)}
+              className="gap-2"
+              disabled={!coachClubId}
+              title={!coachClubId ? "Sélectionnez d'abord un club dans le filtre" : undefined}
             >
               <Plus className="w-4 h-4" />
               Ajouter un joueur
