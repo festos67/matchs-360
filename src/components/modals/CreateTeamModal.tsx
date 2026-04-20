@@ -32,6 +32,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 const getSeasonOptions = () => {
   const now = new Date();
@@ -82,6 +83,7 @@ export const CreateTeamModal = ({
   onSuccess,
 }: CreateTeamModalProps) => {
   const [loading, setLoading] = useState(false);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [loadingCoaches, setLoadingCoaches] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
@@ -196,6 +198,8 @@ export const CreateTeamModal = ({
       onSuccess?.();
     } catch (error: any) {
       console.error("Error creating team:", error);
+      if (handlePlanLimit(error, "teams")) { setLoading(false); return; }
+      if (handlePlanLimit(error, "coaches_per_team")) { setLoading(false); return; }
       toast.error("Erreur lors de la création de l'équipe", {
         description: error.message,
       });

@@ -25,6 +25,7 @@ import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -57,6 +58,7 @@ export const CreateSupporterModal = ({
   onSuccess,
 }: CreateSupporterModalProps) => {
   const [loading, setLoading] = useState(false);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
@@ -163,8 +165,12 @@ export const CreateSupporterModal = ({
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error inviting supporter:", error);
+      const errorMessage = await getEdgeFunctionErrorMessage(error);
+      if (errorMessage.includes("PLAN_LIMIT_SUPPORTERS")) {
+        if (handlePlanLimit({ message: errorMessage }, "supporters_per_team")) { setLoading(false); return; }
+      }
       toast.error("Erreur lors de l'invitation", {
-        description: await getEdgeFunctionErrorMessage(error),
+        description: errorMessage,
       });
     } finally {
       setLoading(false);

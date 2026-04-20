@@ -752,6 +752,7 @@ export const CreatePlayerModal = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {planLimitDialog}
     </>
   );
 };
