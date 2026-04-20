@@ -8,6 +8,7 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
+import { useEffect, useState } from "react";
 
 interface RadarDataPoint {
   skill: string;
@@ -23,12 +24,33 @@ interface RadarChartProps {
   secondaryColor?: string;
 }
 
+const useIsDarkMode = () => {
+  const [isDark, setIsDark] = useState(
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+};
+
 export const RadarChart = ({
   data,
   showComparison = false,
-  primaryColor = "hsl(217, 91%, 60%)",
-  secondaryColor = "hsl(142, 76%, 45%)",
+  primaryColor,
+  secondaryColor,
 }: RadarChartProps) => {
+  const isDark = useIsDarkMode();
+  // En mode sombre, palette vive et lumineuse, éloignée du fond slate
+  // En mode clair, palette saturée et plus sombre, éloignée du fond blanc
+  const effectivePrimary =
+    primaryColor || (isDark ? "#60A5FA" : "hsl(217, 91%, 50%)");
+  const effectiveSecondary =
+    secondaryColor || (isDark ? "#FB923C" : "hsl(24, 95%, 50%)");
   return (
     <div className="radar-container w-full h-[400px]">
       <ResponsiveContainer width="100%" height="100%">
@@ -63,8 +85,8 @@ export const RadarChart = ({
             <Radar
               name="Évaluation précédente"
               dataKey="previousScore"
-              stroke={secondaryColor}
-              fill={secondaryColor}
+              stroke={effectiveSecondary}
+              fill={effectiveSecondary}
               fillOpacity={0.3}
               strokeWidth={3}
               strokeDasharray="5 5"
@@ -75,19 +97,19 @@ export const RadarChart = ({
           <Radar
             name="Évaluation actuelle"
             dataKey="score"
-            stroke={primaryColor}
-            fill={primaryColor}
+            stroke={effectivePrimary}
+            fill={effectivePrimary}
             fillOpacity={0.55}
             strokeWidth={3.25}
             dot={{
               r: 5,
-              fill: primaryColor,
+              fill: effectivePrimary,
               stroke: "hsl(var(--background))",
               strokeWidth: 1.5,
             }}
             activeDot={{
               r: 7,
-              fill: primaryColor,
+              fill: effectivePrimary,
               stroke: "hsl(var(--background))",
               strokeWidth: 2.5,
             }}
