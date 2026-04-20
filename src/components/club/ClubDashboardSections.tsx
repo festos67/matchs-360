@@ -421,7 +421,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             onToggle={() => setTeamsOpen(!teamsOpen)}
             action={
               <Button variant="outline" size="sm" className="gap-2" onClick={onCreateTeam}>
-                <Plus className="w-3.5 h-3.5 text-primary" />
+                <Plus className="w-3.5 h-3.5 text-accent" />
                 Équipe
               </Button>
             }
@@ -486,7 +486,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             onToggle={() => setCoachesOpen(!coachesOpen)}
             action={
               <Button variant="outline" size="sm" className="gap-2" onClick={onCreateCoach}>
-                <Plus className="w-3.5 h-3.5 text-primary" />
+                <Plus className="w-3.5 h-3.5 text-accent" />
                 Coach
               </Button>
             }
