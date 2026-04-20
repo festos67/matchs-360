@@ -333,7 +333,16 @@ const Players = () => {
               <span className="text-sm text-muted-foreground">—</span>
             ) : (
               player.teams.map((team) => (
-                <Badge key={team.id} variant="secondary">
+                <Badge
+                  key={team.id}
+                  variant="outline"
+                  className="border-2 font-medium"
+                  style={{
+                    backgroundColor: `${team.color || "#3B82F6"}1A`,
+                    borderColor: team.color || "#3B82F6",
+                    color: team.color || "#3B82F6",
+                  }}
+                >
                   {team.name}
                 </Badge>
               ))
