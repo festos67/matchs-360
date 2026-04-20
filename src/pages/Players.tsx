@@ -523,32 +523,88 @@ const Players = () => {
             })}
           </div>
         ) : clubGroups ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {clubGroups.map((group) => (
-              <div key={group.clubName}>
+              <div key={group.clubId} className="space-y-3">
                 <ClubGroupHeader
                   name={group.clubName}
                   shortName={group.clubShortName}
                   logoUrl={group.clubLogoUrl}
                   primaryColor={group.clubPrimaryColor}
-                  count={group.players.length}
+                  count={group.totalPlayers}
                 />
-                <div className="rounded-lg border bg-card">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Joueur</TableHead>
-                        <TableHead>Surnom</TableHead>
-                        <TableHead>Équipe(s)</TableHead>
-                        {(isAdmin || currentRole?.role === "club_admin") && (
-                          <TableHead className="text-right">Actions</TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {group.players.map((player) => renderPlayerRow(player))}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-3 pl-2">
+                  {group.teamsList.map((team) => {
+                    const teamKey = `${group.clubId}:${team.teamId}`;
+                    const isOpen = collapsedTeams[teamKey] !== true;
+                    const color = team.teamColor || "#3B82F6";
+                    return (
+                      <Collapsible
+                        key={team.teamId}
+                        open={isOpen}
+                        onOpenChange={() => toggleTeam(teamKey)}
+                      >
+                        <CollapsibleTrigger
+                          className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer"
+                        >
+                          <ChevronDown
+                            className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                          />
+                          <div
+                            className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: color }}
+                          >
+                            <Users className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="font-display font-semibold text-sm" style={{ color }}>
+                            {team.teamName}
+                          </span>
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {team.players.length}
+                          </Badge>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="rounded-lg border bg-card mt-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Joueur</TableHead>
+                                  <TableHead>Surnom</TableHead>
+                                  {(isAdmin || currentRole?.role === "club_admin") && (
+                                    <TableHead className="text-right">Actions</TableHead>
+                                  )}
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {team.players.map((player) => renderPlayerRow(player, false))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                  {group.noTeamPlayers.length > 0 && (
+                    <div className="rounded-lg border bg-card">
+                      <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+                        Sans équipe ({group.noTeamPlayers.length})
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Joueur</TableHead>
+                            <TableHead>Surnom</TableHead>
+                            {(isAdmin || currentRole?.role === "club_admin") && (
+                              <TableHead className="text-right">Actions</TableHead>
+                            )}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {group.noTeamPlayers.map((player) => renderPlayerRow(player, false))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
