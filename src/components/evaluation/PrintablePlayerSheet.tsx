@@ -189,8 +189,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              {club.logo_url && (
-                <img src={club.logo_url} alt={club.name} style={{ width: "36px", height: "36px", objectFit: "contain" }} />
+              {clubLogoSrc && (
+                <img src={clubLogoSrc} alt={club.name} crossOrigin="anonymous" style={{ width: "36px", height: "36px", objectFit: "contain" }} />
               )}
               <span style={{ fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 {club.name}
@@ -218,10 +218,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             border: `1px solid ${BRAND_BLUE}30`,
           }}>
             {/* Photo */}
-            {player.photo_url ? (
+            {playerPhotoSrc ? (
               <img
-                src={player.photo_url}
+                src={playerPhotoSrc}
                 alt={getPlayerName()}
+                crossOrigin="anonymous"
                 style={{
                   width: "80px",
                   height: "80px",
