@@ -105,14 +105,18 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   return (
     <>
       {/* Logo */}
-      <div className="p-6 border-b border-sidebar-border">
-        <Link to={getDashboardPath()} className="flex items-center gap-3" onClick={handleLinkClick}>
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <Activity className="w-6 h-6 text-primary-foreground" />
+      <div className="px-4 pt-6 pb-4 border-b border-sidebar-border">
+        <Link to={getDashboardPath()} className="flex items-center gap-3 px-2" onClick={handleLinkClick}>
+          <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(226_72%_38%)] flex items-center justify-center text-primary-foreground text-xs font-extrabold">
+            M
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">MATCHS360</h1>
-            <p className="text-xs text-muted-foreground">Sports Analytics</p>
+            <span className="font-display text-[15px] font-extrabold text-sidebar-foreground tracking-tight block leading-tight">
+              MATCHS360
+            </span>
+            <div className="text-[9px] text-sidebar-foreground/60 tracking-[0.12em] uppercase">
+              Sports Analytics
+            </div>
           </div>
         </Link>
       </div>
@@ -138,12 +142,14 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               to={item.path}
               onClick={handleLinkClick}
               className={cn(
-                "nav-item",
-                isActive && "active"
+                "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
+                isActive
+                  ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
+                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              <item.icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <item.icon className="w-4 h-4" />
+              <span>{item.label}</span>
             </Link>
           );
         })}
@@ -151,30 +157,34 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         {/* Admin Section */}
         {isAdmin && (
           <div className="pt-4 mt-4 border-t border-sidebar-border">
-            <span className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="text-[9px] font-bold text-sidebar-foreground/40 uppercase tracking-[1.2px] px-3 pt-2 pb-1.5">
               Administration
-            </span>
+            </div>
             <Link
               to="/admin/users"
               onClick={handleLinkClick}
               className={cn(
-                "nav-item mt-2",
-                location.pathname === "/admin/users" && "active"
+                "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
+                location.pathname === "/admin/users"
+                  ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
+                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              <Shield className="w-5 h-5" />
-              <span className="font-medium">Gestion Utilisateurs</span>
+              <Shield className="w-4 h-4" />
+              <span>Gestion Utilisateurs</span>
             </Link>
             <Link
               to="/role-approvals"
               onClick={handleLinkClick}
               className={cn(
-                "nav-item",
-                location.pathname === "/role-approvals" && "active"
+                "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
+                location.pathname === "/role-approvals"
+                  ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
+                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
-              <Users className="w-5 h-5" />
-              <span className="font-medium">Approbations</span>
+              <Users className="w-4 h-4" />
+              <span>Approbations</span>
             </Link>
           </div>
         )}
@@ -186,19 +196,21 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           to="/settings"
           onClick={handleLinkClick}
           className={cn(
-            "nav-item",
-            location.pathname === "/settings" && "active"
+            "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
+            location.pathname === "/settings"
+              ? "bg-primary/15 text-primary-foreground/90 font-bold [&_svg]:text-primary-foreground"
+              : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
         >
-          <Settings className="w-5 h-5" />
-          <span className="font-medium">Paramètres</span>
+          <Settings className="w-4 h-4" />
+          <span>Paramètres</span>
         </Link>
         <button
           onClick={handleLogout}
-          className="nav-item w-full text-destructive hover:text-destructive"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium text-destructive hover:bg-destructive/10 transition-all w-full"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Déconnexion</span>
+          <LogOut className="w-4 h-4" />
+          <span>Déconnexion</span>
         </button>
       </div>
     </>
