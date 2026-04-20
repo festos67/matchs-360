@@ -114,6 +114,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   const [saving, setSaving] = useState(false);
   const [hasBeenModified, setHasBeenModified] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
   
   const generateDefaultName = () => {
     const now = new Date();
@@ -581,6 +582,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {planLimitDialog}
     </div>
   );
 });

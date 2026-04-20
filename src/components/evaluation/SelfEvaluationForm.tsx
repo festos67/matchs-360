@@ -66,6 +66,7 @@ export const SelfEvaluationForm = ({
 }: SelfEvaluationFormProps) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
   const [evaluationName, setEvaluationName] = useState(
     existingEvaluation?.name || `AUTO-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
   );
@@ -457,6 +458,7 @@ export const SelfEvaluationForm = ({
           </Button>
         </div>
       </div>
+      {planLimitDialog}
     </div>
   );
 };
