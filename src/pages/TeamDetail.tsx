@@ -369,7 +369,7 @@ export default function TeamDetail() {
               {/* Référentiel button - distinct style */}
               <Button
                 size="sm"
-                className="gap-2 justify-start h-10 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-md"
+                className="gap-2 justify-start h-10 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-md"
                 onClick={handleGoToFramework}
               >
                 <BookOpen className="w-4 h-4" />
@@ -378,22 +378,22 @@ export default function TeamDetail() {
 
               <div className="flex flex-col gap-1.5">
                 {(isAdmin || isClubAdmin) && (
-                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Coach</Button>
+                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}><Plus className="w-3.5 h-3.5 text-accent" />Coach</Button>
                 )}
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowPlayerModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Joueur</Button>
+                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowPlayerModal(true)}><Plus className="w-3.5 h-3.5 text-accent" />Joueur</Button>
                 {(isAdmin || isClubAdmin || isReferentCoach) && (
-                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupporterModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Supporter</Button>
+                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupporterModal(true)}><Plus className="w-3.5 h-3.5 text-accent" />Supporter</Button>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
                 {(isAdmin || isClubAdmin || isReferentCoach) && (
                   <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowTeamSettings(true)}>
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 text-accent" />
                     Paramètres
                   </Button>
                 )}
                 <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
-                  <ClipboardList className="w-4 h-4" />
+                  <ClipboardList className="w-4 h-4 text-accent" />
                   Débriefs
                 </Button>
               </div>
