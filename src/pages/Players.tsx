@@ -24,6 +24,7 @@ import { Search, Users, Loader2, User, ChevronDown, Plus, Pencil } from "lucide-
 import { Button } from "@/components/ui/button";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
+import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 
 interface PlayerData {
   id: string;
@@ -34,7 +35,10 @@ interface PlayerData {
   photo_url: string | null;
   club_id: string | null;
   club_name: string | null;
-  teams: { id: string; name: string; club_name: string | null }[];
+  club_short_name?: string | null;
+  club_logo_url?: string | null;
+  club_primary_color?: string | null;
+  teams: { id: string; name: string; club_name: string | null; color?: string | null }[];
   coaches: { id: string; name: string }[];
 }
 
