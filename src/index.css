@@ -49,7 +49,7 @@
 
     /* Borders - gris bleuté doux */
     --border: 40 18% 88%;
-    --input: 40 18% 88%;
+    --input: 40 15% 78%;
     --ring: 224 76% 33%;
 
     --radius: 0.75rem;
@@ -87,12 +87,12 @@
     --secondary-foreground: 210 40% 98%;
     --muted: 220 20% 18%;
     --muted-foreground: 215 20% 55%;
-    --accent: 217 91% 50%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 13 65% 52%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 220 20% 18%;
-    --input: 220 20% 15%;
+    --input: 220 20% 30%;
     --ring: 217 91% 60%;
     --sidebar-background: 220 28% 8%;
     --sidebar-foreground: 210 40% 98%;
