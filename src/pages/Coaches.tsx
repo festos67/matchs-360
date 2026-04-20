@@ -18,6 +18,7 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CircleAvatar } from "@/components/shared/CircleAvatar";
 
 interface CoachData {
   id: string;
@@ -27,11 +28,16 @@ interface CoachData {
   photo_url: string | null;
   club_id: string | null;
   club_name: string | null;
+  club_short_name?: string | null;
+  club_logo_url?: string | null;
+  club_primary_color?: string | null;
   assignments: {
     team_id: string;
     team_name: string;
     coach_role: "referent" | "assistant";
     season: string | null;
+    team_color?: string | null;
+    team_short_name?: string | null;
   }[];
 }
 
