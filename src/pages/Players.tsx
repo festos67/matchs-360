@@ -487,11 +487,13 @@ const Players = () => {
           <div className="space-y-6">
             {clubGroups.map((group) => (
               <div key={group.clubName}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{group.clubName}</h2>
-                  <span className="text-xs text-muted-foreground">({group.players.length})</span>
-                </div>
+                <ClubGroupHeader
+                  name={group.clubName}
+                  shortName={group.clubShortName}
+                  logoUrl={group.clubLogoUrl}
+                  primaryColor={group.clubPrimaryColor}
+                  count={group.players.length}
+                />
                 <div className="rounded-lg border bg-card">
                   <Table>
                     <TableHeader>
