@@ -38,7 +38,17 @@ interface PlayerData {
   club_short_name?: string | null;
   club_logo_url?: string | null;
   club_primary_color?: string | null;
-  teams: { id: string; name: string; club_id: string | null; club_name: string | null; color?: string | null }[];
+  teams: {
+    id: string;
+    name: string;
+    short_name?: string | null;
+    club_id: string | null;
+    club_name: string | null;
+    club_short_name?: string | null;
+    club_logo_url?: string | null;
+    club_primary_color?: string | null;
+    color?: string | null;
+  }[];
   coaches: { id: string; name: string }[];
 }
 
