@@ -404,16 +404,16 @@ export default function TeamDetail() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-muted/80 border border-border h-14 p-1.5 rounded-xl w-full shadow-sm">
-          <TabsTrigger value="effectif" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
+          <TabsTrigger value="effectif" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
             <User className="w-4 h-4" />
             Effectif
           </TabsTrigger>
-          <TabsTrigger value="indicateurs" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
+          <TabsTrigger value="indicateurs" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
             <TrendingUp className="w-4 h-4" />
             Performance
           </TabsTrigger>
           {canViewObjectives && (
-            <TabsTrigger value="objectifs" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
+            <TabsTrigger value="objectifs" className="gap-2 flex-1 h-11 text-sm font-bold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=inactive]:hover:bg-muted-foreground/10 rounded-lg transition-all cursor-pointer">
               <Target className="w-4 h-4" />
               Objectifs
             </TabsTrigger>

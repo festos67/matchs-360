@@ -305,19 +305,19 @@ export default function PlayerDetail() {
       }} className="space-y-6">
         <div className="flex items-center gap-3 w-full">
           <TabsList className="bg-muted h-12 p-1 rounded-lg w-full">
-            <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <TabsTrigger value="radar" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <TrendingUp className="w-4 h-4" />Résultat
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+            <TabsTrigger value="history" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md rounded-md transition-all">
               <RotateCcw className="w-4 h-4" />Évolution
             </TabsTrigger>
             {frameworkId && themes.length > 0 && (
-              <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+              <TabsTrigger value="framework" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md rounded-md transition-all">
                 <BookOpen className="w-4 h-4" />Référentiel de l'équipe
               </TabsTrigger>
             )}
             {teamMembership && (
-              <TabsTrigger value="objectives" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all">
+              <TabsTrigger value="objectives" className="gap-2 flex-1 h-10 text-sm font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-md rounded-md transition-all">
                 <Target className="w-4 h-4" />Objectifs
               </TabsTrigger>
             )}
