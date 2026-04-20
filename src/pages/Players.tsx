@@ -38,7 +38,17 @@ interface PlayerData {
   club_short_name?: string | null;
   club_logo_url?: string | null;
   club_primary_color?: string | null;
-  teams: { id: string; name: string; club_id: string | null; club_name: string | null; color?: string | null }[];
+  teams: {
+    id: string;
+    name: string;
+    short_name?: string | null;
+    club_id: string | null;
+    club_name: string | null;
+    club_short_name?: string | null;
+    club_logo_url?: string | null;
+    club_primary_color?: string | null;
+    color?: string | null;
+  }[];
   coaches: { id: string; name: string }[];
 }
 
@@ -66,7 +76,6 @@ const Players = () => {
 
   const isCoach = currentRole?.role === "coach";
   const isClubAdmin = currentRole?.role === "club_admin";
-  const useTeamGrouping = isCoach || isClubAdmin;
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
   const pageSubtitle = isAdmin
     ? "Tous les joueurs de la plateforme"
@@ -95,7 +104,7 @@ const Players = () => {
           user_id,
           team_id,
           member_type,
-          teams:team_id (id, name, color, club_id, clubs:club_id (id, name, short_name, logo_url, primary_color))
+          teams:team_id (id, name, short_name, color, club_id, clubs:club_id (id, name, short_name, logo_url, primary_color))
         `)
         .eq("is_active", true);
 
@@ -152,8 +161,12 @@ const Players = () => {
         const teams = memberEntries.map((tm) => ({
           id: (tm.teams as any).id,
           name: (tm.teams as any).name,
+          short_name: (tm.teams as any).short_name || null,
           club_id: (tm.teams as any).club_id || null,
           club_name: (tm.teams as any).clubs?.name || null,
+          club_short_name: (tm.teams as any).clubs?.short_name || null,
+          club_logo_url: (tm.teams as any).clubs?.logo_url || null,
+          club_primary_color: (tm.teams as any).clubs?.primary_color || null,
           color: (tm.teams as any).color || null,
         }));
 
@@ -250,7 +263,6 @@ const Players = () => {
 
   // Group by club for admin view only
   const clubGroups = useMemo(() => {
-    if (useTeamGrouping) return null;
     const groups: Record<string, {
       clubId: string;
       clubName: string;
@@ -260,6 +272,7 @@ const Players = () => {
       teams: Record<string, {
         teamId: string;
         teamName: string;
+        teamShortName: string | null;
         teamColor: string | null;
         players: PlayerData[];
       }>;
@@ -267,31 +280,69 @@ const Players = () => {
       totalPlayers: number;
     }> = {};
     filteredPlayers.forEach((player) => {
-      const clubKey = player.club_id || "no-club";
-      if (!groups[clubKey]) {
-        groups[clubKey] = {
-          clubId: clubKey,
-          clubName: player.club_name || "Sans club",
-          clubShortName: player.club_short_name || null,
-          clubLogoUrl: player.club_logo_url || null,
-          clubPrimaryColor: player.club_primary_color || null,
-          teams: {},
-          noTeamPlayers: [],
-          totalPlayers: 0,
-        };
+      // Group by EACH club the player has teams in (multi-club safe)
+      const clubsForPlayer = new Map<
+        string,
+        {
+          name: string;
+          short_name: string | null;
+          logo_url: string | null;
+          primary_color: string | null;
+          teams: typeof player.teams;
+        }
+      >();
+      player.teams.forEach((t) => {
+        const k = t.club_id || "no-club";
+        if (!clubsForPlayer.has(k)) {
+          clubsForPlayer.set(k, {
+            name: t.club_name || player.club_name || "Sans club",
+            short_name: t.club_short_name || null,
+            logo_url: t.club_logo_url || null,
+            primary_color: t.club_primary_color || null,
+            teams: [],
+          });
+        }
+        clubsForPlayer.get(k)!.teams.push(t);
+      });
+      // Player without any team
+      if (clubsForPlayer.size === 0) {
+        const k = player.club_id || "no-club";
+        if (!groups[k]) {
+          groups[k] = {
+            clubId: k,
+            clubName: player.club_name || "Sans club",
+            clubShortName: player.club_short_name || null,
+            clubLogoUrl: player.club_logo_url || null,
+            clubPrimaryColor: player.club_primary_color || null,
+            teams: {},
+            noTeamPlayers: [],
+            totalPlayers: 0,
+          };
+        }
+        groups[k].noTeamPlayers.push(player);
+        groups[k].totalPlayers += 1;
+        return;
       }
-      groups[clubKey].totalPlayers += 1;
-      const playerClubTeams = player.teams.filter(
-        (t) => (t.club_id || "no-club") === clubKey
-      );
-      if (playerClubTeams.length === 0) {
-        groups[clubKey].noTeamPlayers.push(player);
-      } else {
-        playerClubTeams.forEach((t) => {
+      clubsForPlayer.forEach((info, clubKey) => {
+        if (!groups[clubKey]) {
+          groups[clubKey] = {
+            clubId: clubKey,
+            clubName: info.name,
+            clubShortName: info.short_name,
+            clubLogoUrl: info.logo_url,
+            clubPrimaryColor: info.primary_color,
+            teams: {},
+            noTeamPlayers: [],
+            totalPlayers: 0,
+          };
+        }
+        groups[clubKey].totalPlayers += 1;
+        info.teams.forEach((t) => {
           if (!groups[clubKey].teams[t.id]) {
             groups[clubKey].teams[t.id] = {
               teamId: t.id,
               teamName: t.name,
+              teamShortName: t.short_name || null,
               teamColor: t.color || null,
               players: [],
             };
@@ -300,7 +351,7 @@ const Players = () => {
             groups[clubKey].teams[t.id].players.push(player);
           }
         });
-      }
+      });
     });
     return Object.values(groups)
       .map((g) => ({
@@ -310,24 +361,7 @@ const Players = () => {
         ),
       }))
       .sort((a, b) => a.clubName.localeCompare(b.clubName));
-  }, [filteredPlayers, useTeamGrouping]);
-
-  // Group players by team for coach and club_admin view
-  const teamGroups = useMemo(() => {
-    if (!useTeamGrouping) return null;
-    const groups: Record<string, { teamName: string; players: PlayerData[] }> = {};
-    filteredPlayers.forEach((player) => {
-      player.teams.forEach((team) => {
-        if (!groups[team.id]) {
-          groups[team.id] = { teamName: team.name, players: [] };
-        }
-        if (!groups[team.id].players.find((p) => p.id === player.id)) {
-          groups[team.id].players.push(player);
-        }
-      });
-    });
-    return Object.entries(groups).sort((a, b) => a[1].teamName.localeCompare(b[1].teamName));
-  }, [filteredPlayers, useTeamGrouping]);
+  }, [filteredPlayers]);
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
@@ -488,40 +522,6 @@ const Players = () => {
                 : "Aucun joueur n'a encore été ajouté."}
             </p>
           </div>
-        ) : useTeamGrouping && teamGroups ? (
-          <div className="space-y-4">
-            {teamGroups.map(([teamId, group]) => {
-              const isOpen = collapsedTeams[teamId] !== true;
-              return (
-                <Collapsible key={teamId} open={isOpen} onOpenChange={() => toggleTeam(teamId)}>
-                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer">
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`} />
-                    <Users className="w-4 h-4 text-primary" />
-                    <span className="font-display font-semibold text-sm">{group.teamName}</span>
-                    <Badge variant="secondary" className="ml-auto text-xs">{group.players.length}</Badge>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="rounded-lg border bg-card mt-1">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Joueur</TableHead>
-                            <TableHead>Surnom</TableHead>
-                            {(isAdmin || currentRole?.role === "club_admin") && (
-                              <TableHead className="text-right">Actions</TableHead>
-                            )}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {group.players.map((player) => renderPlayerRow(player, false))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
-          </div>
         ) : clubGroups ? (
           <div className="space-y-8">
             {clubGroups.map((group) => (
@@ -551,10 +551,12 @@ const Players = () => {
                             className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
                           />
                           <div
-                            className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                            className="w-6 h-6 rounded flex items-center justify-center shrink-0 overflow-hidden"
                             style={{ backgroundColor: color }}
                           >
-                            <Users className="w-3 h-3 text-white" />
+                            <span className="text-[9px] font-bold text-white leading-none">
+                              {(team.teamShortName || team.teamName.slice(0, 2)).toUpperCase()}
+                            </span>
                           </div>
                           <span className="font-display font-semibold text-sm" style={{ color }}>
                             {team.teamName}
