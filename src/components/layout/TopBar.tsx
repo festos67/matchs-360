@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
 import { MobileSidebar } from "./MobileSidebar";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 export const TopBar = () => {
   const { user, profile, roles, currentRole, setCurrentRole, signOut } = useAuth();
@@ -43,6 +44,9 @@ export const TopBar = () => {
 
         {/* Notifications */}
         <NotificationBell />
+
+        {/* Theme toggle */}
+        <ThemeToggle />
 
         {/* User Menu */}
         <DropdownMenu>
