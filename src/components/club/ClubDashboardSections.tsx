@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
+import { TeamCard } from "@/components/shared/TeamCard";
 import { EditCoachModal } from "@/components/modals/EditCoachModal";
 
 const SectionHeader = ({
