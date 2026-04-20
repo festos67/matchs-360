@@ -5,7 +5,7 @@ Object.defineProperty(window, "matchMedia", {
   value: (query: string) => ({
     matches: false,
     media: query,
-    onchange: null as unknown,
+    onchange: null as ((this: MediaQueryList, ev: MediaQueryListEvent) => unknown) | null,
     addListener: () => {},
     removeListener: () => {},
     addEventListener: () => {},
