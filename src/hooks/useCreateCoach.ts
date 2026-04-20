@@ -5,7 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
-import { handlePlanLimitError } from "@/lib/plan-error-handler";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import type { TeamAssignmentItem } from "@/components/modals/shared/TeamAssignmentMatrix";
 
 const coachSchema = z.object({
@@ -33,6 +33,7 @@ export interface ExistingUser {
 
 export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => void, onClose?: () => void) {
   const [loading, setLoading] = useState(false);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [teamAssignments, setTeamAssignments] = useState<TeamAssignmentItem[]>([]);
@@ -198,7 +199,7 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       resetAndClose();
     } catch (error: any) {
       console.error("Error adding coach role:", error);
-      if (handlePlanLimitError(error)) {
+      if (handlePlanLimit(error, "coaches_per_team")) {
         setLoading(false);
         return;
       }
@@ -256,6 +257,7 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
   return {
     form,
     loading,
+    planLimitDialog,
     teams,
     loadingTeams,
     teamAssignments,
