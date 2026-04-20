@@ -128,7 +128,7 @@
 @layer components {
   /* Glass Card Effect */
   .glass-card {
-    @apply bg-card border border-border rounded-xl;
+    @apply bg-card border border-border rounded-[14px];
     box-shadow: var(--shadow-card);
   }
 
