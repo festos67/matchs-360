@@ -76,7 +76,6 @@ const Players = () => {
 
   const isCoach = currentRole?.role === "coach";
   const isClubAdmin = currentRole?.role === "club_admin";
-  const useTeamGrouping = isCoach || isClubAdmin;
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
   const pageSubtitle = isAdmin
     ? "Tous les joueurs de la plateforme"
