@@ -108,7 +108,7 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
   }
 
   body {
@@ -117,8 +117,8 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-    @apply font-semibold tracking-tight;
+    font-family: 'Outfit', 'DM Sans', system-ui, sans-serif;
+    @apply font-extrabold tracking-tight;
   }
 }
 
