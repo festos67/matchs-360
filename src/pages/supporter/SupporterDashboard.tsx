@@ -324,6 +324,7 @@ const SupporterDashboard = () => {
                   style={{ animationDelay: `${index * 0.08}s` }}
                 >
                   <CircleAvatar
+                    shape="circle"
                     name={getPlayerName(player)}
                     imageUrl={player.photo_url}
                     color={player.teamColor || "#3B82F6"}

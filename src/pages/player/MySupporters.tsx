@@ -74,6 +74,7 @@ export default function MySupporters() {
               <Card key={supporter.linkId}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <CircleAvatar
+                    shape="circle"
                     imageUrl={supporter.photo_url}
                     name={getDisplayName(supporter)}
                     size="md"
