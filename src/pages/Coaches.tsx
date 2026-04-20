@@ -18,6 +18,7 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CircleAvatar } from "@/components/shared/CircleAvatar";
 
 interface CoachData {
   id: string;
@@ -27,11 +28,16 @@ interface CoachData {
   photo_url: string | null;
   club_id: string | null;
   club_name: string | null;
+  club_short_name?: string | null;
+  club_logo_url?: string | null;
+  club_primary_color?: string | null;
   assignments: {
     team_id: string;
     team_name: string;
     coach_role: "referent" | "assistant";
     season: string | null;
+    team_color?: string | null;
+    team_short_name?: string | null;
   }[];
 }
 
@@ -82,19 +88,24 @@ const Coaches = () => {
       if (profilesError) throw profilesError;
 
       const clubIds = [...new Set(coachRoles.map((r) => r.club_id).filter(Boolean))] as string[];
-      let clubsMap: Record<string, string> = {};
+      let clubsMap: Record<string, { name: string; short_name: string | null; logo_url: string | null; primary_color: string | null }> = {};
       
       if (clubIds.length > 0) {
         const { data: clubs } = await supabase
           .from("clubs")
-          .select("id, name")
+          .select("id, name, short_name, logo_url, primary_color")
           .in("id", clubIds);
         
         if (clubs) {
           clubsMap = clubs.reduce((acc, club) => {
-            acc[club.id] = club.name;
+            acc[club.id] = {
+              name: club.name,
+              short_name: club.short_name,
+              logo_url: club.logo_url,
+              primary_color: club.primary_color,
+            };
             return acc;
-          }, {} as Record<string, string>);
+          }, {} as typeof clubsMap);
         }
       }
 
@@ -104,7 +115,7 @@ const Coaches = () => {
           user_id,
           team_id,
           coach_role,
-          teams:team_id (id, name, season)
+          teams:team_id (id, name, season, color, short_name)
         `)
         .in("user_id", userIds)
         .eq("member_type", "coach")
@@ -121,8 +132,11 @@ const Coaches = () => {
             team_name: (tm.teams as any).name,
             coach_role: tm.coach_role as "referent" | "assistant",
             season: (tm.teams as any).season,
+            team_color: (tm.teams as any).color,
+            team_short_name: (tm.teams as any).short_name,
           }));
 
+        const clubInfo = coachRole?.club_id ? clubsMap[coachRole.club_id] : null;
         return {
           id: profile.id,
           email: profile.email,
@@ -130,7 +144,10 @@ const Coaches = () => {
           last_name: profile.last_name,
           photo_url: profile.photo_url,
           club_id: coachRole?.club_id || null,
-          club_name: coachRole?.club_id ? clubsMap[coachRole.club_id] || null : null,
+          club_name: clubInfo?.name || null,
+          club_short_name: clubInfo?.short_name || null,
+          club_logo_url: clubInfo?.logo_url || null,
+          club_primary_color: clubInfo?.primary_color || null,
           assignments,
         };
       });
@@ -172,11 +189,23 @@ const Coaches = () => {
   }, [coaches, clubFilter, teamFilter, searchQuery]);
 
   const groupedCoaches = useMemo(() => {
-    const groups: Record<string, { clubName: string; coaches: CoachData[] }> = {};
+    const groups: Record<string, {
+      clubName: string;
+      clubShortName: string | null;
+      clubLogoUrl: string | null;
+      clubPrimaryColor: string | null;
+      coaches: CoachData[];
+    }> = {};
     filteredCoaches.forEach((coach) => {
       const key = coach.club_id || "no-club";
       if (!groups[key]) {
-        groups[key] = { clubName: coach.club_name || "Sans club", coaches: [] };
+        groups[key] = {
+          clubName: coach.club_name || "Sans club",
+          clubShortName: coach.club_short_name || null,
+          clubLogoUrl: coach.club_logo_url || null,
+          clubPrimaryColor: coach.club_primary_color || null,
+          coaches: [],
+        };
       }
       groups[key].coaches.push(coach);
     });
@@ -278,9 +307,18 @@ const Coaches = () => {
           <div className="space-y-6">
             {groupedCoaches.map((group) => (
               <div key={group.clubName}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{group.clubName}</h2>
+                <div className="flex items-center gap-3 mb-3">
+                  <CircleAvatar
+                    shape="square"
+                    size="sm"
+                    name={group.clubName}
+                    shortName={group.clubShortName}
+                    imageUrl={group.clubLogoUrl}
+                    color={group.clubPrimaryColor || "#3B82F6"}
+                    showName={false}
+                    className="!w-10 !h-10"
+                  />
+                  <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">{group.clubName}</h2>
                   <span className="text-xs text-muted-foreground">({group.coaches.length})</span>
                 </div>
                 <div className="rounded-lg border bg-card">
@@ -321,15 +359,24 @@ const Coaches = () => {
                                 coach.assignments.map((assignment) => (
                                   <Badge
                                     key={assignment.team_id}
-                                    variant={assignment.coach_role === "referent" ? "default" : "secondary"}
-                                    className={
+                                    variant="outline"
+                                    className="border-2 font-medium"
+                                    style={
                                       assignment.coach_role === "referent"
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted text-muted-foreground"
+                                        ? {
+                                            backgroundColor: assignment.team_color || "#3B82F6",
+                                            borderColor: assignment.team_color || "#3B82F6",
+                                            color: "#fff",
+                                          }
+                                        : {
+                                            backgroundColor: `${assignment.team_color || "#3B82F6"}1A`,
+                                            borderColor: assignment.team_color || "#3B82F6",
+                                            color: assignment.team_color || "#3B82F6",
+                                          }
                                     }
                                   >
                                     {assignment.team_name}
-                                    <span className="ml-1 opacity-70">
+                                    <span className="ml-1 opacity-80">
                                       ({assignment.coach_role === "referent" ? "Réf" : "Ass"})
                                     </span>
                                   </Badge>
