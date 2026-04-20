@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { TeamCard } from "@/components/shared/TeamCard";
+import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {
@@ -37,7 +38,7 @@ type TeamMemberPartial = {
   profiles: { first_name: string | null; last_name: string | null } | null;
 };
 
-type TeamClub = Pick<Tables<"clubs">, "id" | "name" | "logo_url" | "primary_color">;
+type TeamClub = Pick<Tables<"clubs">, "id" | "name" | "logo_url" | "primary_color" | "short_name">;
 
 type TeamWithRelations = Tables<"teams"> & {
   clubs: TeamClub | null;
@@ -63,7 +64,7 @@ const Teams = () => {
         .from("teams")
         .select(`
           *,
-          clubs (id, name, logo_url, primary_color),
+          clubs (id, name, logo_url, primary_color, short_name),
           team_members (id, member_type, user_id, is_active, coach_role, profiles:user_id (first_name, last_name))
         `)
         .order("name");
