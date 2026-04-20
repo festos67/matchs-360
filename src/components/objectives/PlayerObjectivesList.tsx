@@ -149,6 +149,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [editingObjective, setEditingObjective] = useState<Objective | null>(null);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
