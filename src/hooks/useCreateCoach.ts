@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { handlePlanLimitError } from "@/lib/plan-error-handler";
 import type { TeamAssignmentItem } from "@/components/modals/shared/TeamAssignmentMatrix";
 
 const coachSchema = z.object({
@@ -197,6 +198,10 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       resetAndClose();
     } catch (error: any) {
       console.error("Error adding coach role:", error);
+      if (handlePlanLimitError(error)) {
+        setLoading(false);
+        return;
+      }
       if (error.message?.includes("duplicate") || error.code === "23505") {
         toast.error("Cet utilisateur est déjà coach dans ce club.");
       } else {

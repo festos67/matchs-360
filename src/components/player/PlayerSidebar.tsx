@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Printer, Star, Trash2, Users } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Lock, Printer, Star, Trash2, Users } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatAverage } from "@/lib/evaluation-utils";
+import { usePlan } from "@/hooks/usePlan";
 import type { Player, TeamMembership, ReferentCoach, Evaluation } from "@/hooks/usePlayerData";
 import { getPlayerName } from "@/hooks/usePlayerData";
 
@@ -266,15 +268,80 @@ export function PlayerSidebar({
 
       {/* Bouton Imprimer */}
       {hasSelectedEvaluation && (
+        <PrintResultButton onPrint={onPrint} />
+      )}
+    </aside>
+  );
+}
+
+function PrintResultButton({ onPrint }: { onPrint: () => void }) {
+  const navigate = useNavigate();
+  const { isPro, isTrial } = usePlan();
+  const canPrint = isPro || isTrial;
+  const [open, setOpen] = useState(false);
+
+  if (canPrint) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
+        onClick={onPrint}
+      >
+        <Printer className="w-3.5 h-3.5 text-primary" />Imprimer résultat
+      </Button>
+    );
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
         <Button
           variant="outline"
           size="sm"
           className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
-          onClick={onPrint}
         >
-          <Printer className="w-3.5 h-3.5 text-primary" />Imprimer résultat
+          <Lock className="w-3.5 h-3.5 text-muted-foreground" />Imprimer résultat
         </Button>
-      )}
-    </aside>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Lock className="w-5 h-5 text-primary" />
+            L'export PDF est une fonctionnalité Pro
+          </AlertDialogTitle>
+          <AlertDialogDescription className="space-y-2">
+            <span className="block">
+              L'export PDF des fiches joueur, avec le radar, le détail des compétences
+              et les objectifs, est disponible avec le plan Pro.
+            </span>
+            <span className="block text-xs text-muted-foreground italic">
+              Aperçu flouté ci-dessous — passez en Pro pour le débloquer.
+            </span>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="relative h-32 rounded-lg border border-border overflow-hidden bg-muted/30 blur-sm opacity-60 pointer-events-none">
+          <div className="p-3 space-y-2">
+            <div className="h-3 bg-primary/30 rounded w-1/2" />
+            <div className="h-2 bg-muted-foreground/30 rounded w-3/4" />
+            <div className="h-2 bg-muted-foreground/30 rounded w-2/3" />
+            <div className="mt-3 flex gap-2">
+              <div className="w-16 h-16 rounded-full bg-primary/20" />
+              <div className="flex-1 space-y-1">
+                <div className="h-2 bg-muted-foreground/30 rounded w-full" />
+                <div className="h-2 bg-muted-foreground/30 rounded w-5/6" />
+                <div className="h-2 bg-muted-foreground/30 rounded w-4/6" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Plus tard</AlertDialogCancel>
+          <AlertDialogAction onClick={() => navigate("/pricing")}>
+            Passer en Pro
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
