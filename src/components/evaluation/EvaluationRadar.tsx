@@ -51,7 +51,10 @@ export const EvaluationRadar = ({
   showTooltip = true,
 }: EvaluationRadarProps) => {
   const isDark = useIsDarkMode();
-  const effectivePrimaryColor = primaryColor || (isDark ? "#60A5FA" : "hsl(226, 72%, 48%)");
+  // Mode clair: bleu primary saturé. Mode sombre: jaune lumineux (max contraste vs fond slate)
+  const effectivePrimaryColor = isDark
+    ? "#FACC15" // Yellow-400 — très distinct du fond bleu/slate
+    : (primaryColor || "hsl(226, 72%, 48%)");
 
   return (
     <div className="w-full h-[350px] relative">

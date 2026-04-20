@@ -32,8 +32,7 @@ interface ComparisonRadarProps {
   animated?: boolean;
 }
 
-// Palettes éloignées colorimétriquement du fond pour ressortir
-// Light mode (fond clair ~ blanc) → couleurs saturées et sombres
+// Light mode: couleurs saturées et sombres (contrastent avec fond blanc)
 const COMPARISON_COLORS_LIGHT = [
   "#1F2937", // Gray-800
   "#EA580C", // Orange-600
@@ -41,13 +40,13 @@ const COMPARISON_COLORS_LIGHT = [
   "#7C3AED", // Violet-600
   "#DC2626", // Red-600
 ];
-// Dark mode (fond sombre ~ slate-950) → couleurs vives, lumineuses, hautement saturées
+// Dark mode: palette néon hautement saturée (max distance colorimétrique du fond slate-950)
 const COMPARISON_COLORS_DARK = [
-  "#F8FAFC", // Slate-50 (presque blanc)
-  "#FB923C", // Orange-400 vif
-  "#22D3EE", // Cyan-400 lumineux
-  "#A78BFA", // Violet-400 lumineux
-  "#F472B6", // Pink-400 (au lieu de rouge, plus distinct du fond)
+  "#FACC15", // Yellow-400 (jaune vif)
+  "#22D3EE", // Cyan-400
+  "#F472B6", // Pink-400
+  "#4ADE80", // Green-400
+  "#A78BFA", // Violet-400
 ];
 
 const useIsDarkMode = () => {
@@ -64,19 +63,9 @@ const useIsDarkMode = () => {
   return isDark;
 };
 
-// Convertit une couleur sombre fournie par dataset en variante lumineuse en mode sombre
-const adaptColorForDark = (hex: string): string => {
-  // Couleurs MATCHS360 / app — on remappe les sombres vers des variantes vives
-  const map: Record<string, string> = {
-    "#3B82F6": "#60A5FA", // primary blue → blue-400
-    "#1E40AF": "#93C5FD", // dark blue
-    "#226FCC": "#7DD3FC", // approx primary
-    "#1F2937": "#F8FAFC",
-    "#0F172A": "#F8FAFC",
-    "#000000": "#F8FAFC",
-  };
-  return map[hex.toUpperCase()] || hex;
-};
+// En mode sombre, on ignore les couleurs custom (souvent bleues/sombres comme le fond)
+// et on force la palette néon haute-visibilité
+const adaptColorForDark = (_hex: string | undefined): string | undefined => undefined;
 
 export const ComparisonRadar = ({
   datasets,
@@ -86,7 +75,10 @@ export const ComparisonRadar = ({
   if (datasets.length === 0) return null;
   const isDark = useIsDarkMode();
   const COMPARISON_COLORS = isDark ? COMPARISON_COLORS_DARK : COMPARISON_COLORS_LIGHT;
-  const effectivePrimary = primaryColor || (isDark ? "#60A5FA" : "hsl(226, 72%, 48%)");
+  // Mode sombre: jaune vif pour le dataset courant, indépendant de la couleur club
+  const effectivePrimary = isDark
+    ? "#FACC15"
+    : (primaryColor || "hsl(226, 72%, 48%)");
   const adapt = (c: string | undefined) => (isDark && c ? adaptColorForDark(c) : c);
 
   // Merge all datasets into unified data structure for recharts
