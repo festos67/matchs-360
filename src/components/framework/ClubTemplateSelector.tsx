@@ -171,7 +171,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       onSelected();
     } catch (error: any) {
       console.error("Error importing framework:", error);
-      toast.error("Erreur lors de l'import");
+      toast.error(error?.message || "Erreur lors de l'import");
     } finally {
       setLoading(false);
     }

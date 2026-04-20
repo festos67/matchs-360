@@ -34,8 +34,10 @@ const handler = async (req: Request): Promise<Response> => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      console.error("Auth error:", claimsError);
       throw new Error("Unauthorized");
     }
 
