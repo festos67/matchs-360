@@ -61,6 +61,7 @@ interface Club {
   id: string;
   name: string;
   primary_color: string;
+  logo_url?: string | null;
 }
 
 export default function ClubFrameworkEditor() {

@@ -36,7 +36,7 @@ interface Team {
   season: string | null;
   color: string | null;
   club_id: string;
-  club?: { name: string; primary_color: string };
+  club?: { name: string; primary_color: string; logo_url?: string | null };
 }
 
 interface TeamMember {
