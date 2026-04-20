@@ -578,12 +578,12 @@ export default function TeamDetail() {
                         <AlertDialogTrigger asChild>
                           <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
                             <RotateCcw className="w-4 h-4 mr-2" />
-                            Réinitialiser
+                            Supprimer
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Réinitialiser le référentiel ?</AlertDialogTitle>
+                            <AlertDialogTitle>Supprimer le référentiel ?</AlertDialogTitle>
                             <AlertDialogDescription>
                               Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
                             </AlertDialogDescription>
@@ -591,7 +591,7 @@ export default function TeamDetail() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Annuler</AlertDialogCancel>
                             <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                              Réinitialiser
+                              Supprimer
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
