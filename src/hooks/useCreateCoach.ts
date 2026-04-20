@@ -5,6 +5,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { handlePlanLimitError } from "@/lib/plan-error-handler";
 import type { TeamAssignmentItem } from "@/components/modals/shared/TeamAssignmentMatrix";
 
 const coachSchema = z.object({
