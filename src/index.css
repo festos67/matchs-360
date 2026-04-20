@@ -54,14 +54,14 @@
 
     --radius: 0.75rem;
 
-    /* Sidebar - Bleu nuit profond */
-    --sidebar-background: 221 45% 12%;
-    --sidebar-foreground: 220 20% 90%;
+    /* Sidebar - Clair en mode light, contraste doux */
+    --sidebar-background: 220 30% 97%;
+    --sidebar-foreground: 222 35% 18%;
     --sidebar-primary: 226 72% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 221 40% 18%;
-    --sidebar-accent-foreground: 220 20% 90%;
-    --sidebar-border: 221 35% 18%;
+    --sidebar-accent: 226 60% 92%;
+    --sidebar-accent-foreground: 226 72% 30%;
+    --sidebar-border: 228 22% 88%;
     --sidebar-ring: 226 72% 48%;
 
     /* Effets - adaptés au light mode */
