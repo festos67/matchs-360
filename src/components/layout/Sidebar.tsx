@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlan } from "@/hooks/usePlan";
+import { Crown } from "lucide-react";
 
 // Navigation items by role
 const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string | null) => {
@@ -79,6 +81,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
+  const { isFree, isTrial } = usePlan();
 
   const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
 
@@ -187,6 +190,18 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               <span>Approbations</span>
             </Link>
           </div>
+        )}
+
+        {/* Upgrade CTA: only for club_admin on free plan (not trial) */}
+        {currentRole?.role === "club_admin" && isFree && !isTrial && (
+          <Link
+            to="/pricing"
+            onClick={handleLinkClick}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-bold text-accent hover:bg-accent/10 transition-all mt-4 border border-accent/30"
+          >
+            <Crown className="w-4 h-4" />
+            <span>Passer en Pro</span>
+          </Link>
         )}
       </nav>
 
