@@ -221,7 +221,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
     queryFn: async () => {
       const { data: teamsData, error } = await supabase
         .from("teams")
-        .select("id, name, color, season, description")
+        .select("id, name, short_name, color, season, description")
         .eq("club_id", clubId)
         .is("deleted_at", null)
         .order("name");
@@ -241,7 +241,24 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             .eq("team_id", team.id)
             .eq("member_type", "coach")
             .eq("is_active", true);
-          return { ...team, playersCount: playersCount || 0, coachesCount: coachesCount || 0 };
+          const { data: refData } = await supabase
+            .from("team_members")
+            .select("profiles:user_id (first_name, last_name)")
+            .eq("team_id", team.id)
+            .eq("member_type", "coach")
+            .eq("coach_role", "referent")
+            .eq("is_active", true)
+            .maybeSingle();
+          const ref = (refData as any)?.profiles;
+          const referentCoachName = ref
+            ? `${ref.first_name || ""} ${ref.last_name || ""}`.trim() || "—"
+            : "—";
+          return {
+            ...team,
+            playersCount: playersCount || 0,
+            coachesCount: coachesCount || 0,
+            referentCoachName,
+          };
         })
       );
       return teamsWithCounts;
