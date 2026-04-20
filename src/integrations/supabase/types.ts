@@ -506,6 +506,54 @@ export type Database = {
           },
         ]
       }
+      plan_limits: {
+        Row: {
+          can_compare_multi_source: boolean
+          can_export_pdf: boolean
+          can_version_framework: boolean
+          max_coach_evals_per_player: number
+          max_coaches_per_team: number
+          max_objectives_per_player: number
+          max_players_per_team: number
+          max_self_evals_per_player: number
+          max_supporter_evals_per_player: number
+          max_supporters_per_team: number
+          max_team_objectives: number
+          max_teams: number
+          plan: Database["public"]["Enums"]["subscription_plan"]
+        }
+        Insert: {
+          can_compare_multi_source?: boolean
+          can_export_pdf?: boolean
+          can_version_framework?: boolean
+          max_coach_evals_per_player: number
+          max_coaches_per_team: number
+          max_objectives_per_player: number
+          max_players_per_team: number
+          max_self_evals_per_player: number
+          max_supporter_evals_per_player: number
+          max_supporters_per_team: number
+          max_team_objectives: number
+          max_teams: number
+          plan: Database["public"]["Enums"]["subscription_plan"]
+        }
+        Update: {
+          can_compare_multi_source?: boolean
+          can_export_pdf?: boolean
+          can_version_framework?: boolean
+          max_coach_evals_per_player?: number
+          max_coaches_per_team?: number
+          max_objectives_per_player?: number
+          max_players_per_team?: number
+          max_self_evals_per_player?: number
+          max_supporter_evals_per_player?: number
+          max_supporters_per_team?: number
+          max_team_objectives?: number
+          max_teams?: number
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+        }
+        Relationships: []
+      }
       player_objective_attachments: {
         Row: {
           created_at: string
