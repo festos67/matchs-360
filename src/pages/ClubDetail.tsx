@@ -392,7 +392,7 @@ export default function ClubDetail() {
                       }}
                     >
                       <Edit className="w-4 h-4 mr-2" />
-                      Éditer
+                      Modifier
                     </Button>
                     <Button
                       variant="outline"
