@@ -391,6 +391,7 @@ export const CreateTeamModal = ({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    {planLimitDialog}
     </>
   );
 };

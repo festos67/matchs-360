@@ -149,6 +149,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [editingObjective, setEditingObjective] = useState<Objective | null>(null);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -256,7 +257,10 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
       queryClient.invalidateQueries({ queryKey: ["player-objectives", playerId] });
       toast.success("Objectif dupliqué");
     },
-    onError: () => toast.error("Erreur lors de la duplication"),
+    onError: (error: any) => {
+      if (handlePlanLimit(error, "player_objectives")) return;
+      toast.error("Erreur lors de la duplication");
+    },
   });
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -347,6 +351,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
       handleModalSuccess();
     } catch (error: any) {
       console.error("Error saving player objective:", error);
+      if (handlePlanLimit(error, "player_objectives")) return;
       toast.error("Erreur lors de l'enregistrement");
     }
   };
@@ -517,6 +522,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
           onSave={handleSaveObjective}
         />
       )}
+      {planLimitDialog}
     </div>
   );
 }
