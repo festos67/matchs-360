@@ -178,5 +178,6 @@ export function useCreatePlayer(
     photoFile, setPhotoFile, photoPreview, setPhotoPreview,
     showMutationAlert, setShowMutationAlert,
     onSubmit, handleTransfer, handleMutationConfirm, getPlayerDisplayName,
+    planLimitDialog,
   };
 }
