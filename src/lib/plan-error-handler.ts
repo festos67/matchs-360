@@ -1,17 +1,10 @@
-import { toast } from "sonner";
 import type { PlanLimitFeature } from "@/components/subscription/PlanLimitAlert";
 
 /**
- * Intercepte les erreurs Supabase dont le message commence par "PLAN_LIMIT_"
- * (levées par les triggers Postgres) et affiche un toast de conversion
- * Pro adapté au lieu d'un toast d'erreur générique.
- *
- * Usage :
- *   const { error } = await supabase.from("teams").insert({...});
- *   if (error) {
- *     if (handlePlanLimitError(error)) return; // toast Pro affiché, stop
- *     toast.error("Erreur", { description: error.message });
- *   }
+ * Helpers pour identifier et router les erreurs Supabase dont le message
+ * commence par "PLAN_LIMIT_" (levées par les triggers Postgres).
+ * L'affichage UX est délégué au hook `usePlanLimitHandler` qui ouvre la
+ * modale incentive `PlanLimitAlert`.
  */
 
 export interface PlanLimitError {
@@ -59,37 +52,4 @@ export function getPlanLimitFeature(
     default:
       return hint ?? null;
   }
-}
-
-const FRIENDLY_TITLES: Record<string, string> = {
-  TEAMS: "Limite d'équipes atteinte",
-  PLAYERS: "Limite de joueurs atteinte",
-  COACHES: "Limite de coachs atteinte",
-  EVALS: "Limite de débriefs atteinte",
-  OBJ: "Limite d'objectifs atteinte",
-  UNKNOWN: "Limite du plan gratuit atteinte",
-};
-
-/**
- * Returns true if the error was a PLAN_LIMIT error and was handled
- * (toast with "Passer en Pro" action shown). Callers should early-return.
- */
-export function handlePlanLimitError(
-  error: PlanLimitError | null | undefined,
-): boolean {
-  if (!isPlanLimitError(error)) return false;
-  const { type, message } = parsePlanLimitError(error as PlanLimitError);
-  const title = FRIENDLY_TITLES[type] || FRIENDLY_TITLES.UNKNOWN;
-
-  toast.error(title, {
-    description: message || "Passez en Pro pour débloquer plus.",
-    duration: 8000,
-    action: {
-      label: "Passer en Pro",
-      onClick: () => {
-        window.location.href = "/pricing";
-      },
-    },
-  });
-  return true;
 }
