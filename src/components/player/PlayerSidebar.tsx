@@ -1,0 +1,280 @@
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Printer, Star, Trash2, Users } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { formatAverage } from "@/lib/evaluation-utils";
+import type { Player, TeamMembership, ReferentCoach, Evaluation } from "@/hooks/usePlayerData";
+import { getPlayerName } from "@/hooks/usePlayerData";
+
+interface PlayerSidebarProps {
+  player: Player;
+  teamMembership: TeamMembership | null;
+  referentCoach: ReferentCoach | null;
+  overallAverage: number | null;
+  evaluations: Evaluation[];
+  canEvaluate: boolean;
+  canMutate: boolean;
+  isAdmin: boolean;
+  isPlayerViewingOwnProfile: boolean;
+  isViewingHistory: boolean;
+  hasDraftEvaluation: boolean;
+  hasSelectedEvaluation: boolean;
+  progressionData: { percent: number | null };
+  onNewEvaluation: (resume: boolean) => void;
+  onRequestSelfEval: () => void;
+  onRequestSupporterEval: () => void;
+  onEditPlayer: () => void;
+  onTransferPlayer: () => void;
+  onManageSupporters: () => void;
+  onPrint: () => void;
+}
+
+export function PlayerSidebar({
+  player,
+  teamMembership,
+  referentCoach,
+  overallAverage,
+  evaluations,
+  canEvaluate,
+  canMutate,
+  isAdmin,
+  isPlayerViewingOwnProfile,
+  isViewingHistory,
+  hasDraftEvaluation,
+  hasSelectedEvaluation,
+  progressionData,
+  onNewEvaluation,
+  onRequestSelfEval,
+  onRequestSupporterEval,
+  onEditPlayer,
+  onTransferPlayer,
+  onManageSupporters,
+  onPrint,
+}: PlayerSidebarProps) {
+  const navigate = useNavigate();
+  const teamColor = teamMembership?.team?.club?.primary_color || "hsl(var(--primary))";
+  const playerName = getPlayerName(player);
+  const coachEvalCount = evaluations.filter(e => e.type === "coach" && !e.deleted_at).length;
+
+  const fullName = `${player.first_name || ""} ${player.last_name || ""}`.trim();
+  const displayName = fullName || player.nickname || "Joueur";
+  const initials = (fullName || player.nickname || "J")
+    .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+
+  return (
+    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border-r border-border lg:bg-[#FDFCFA] p-4 lg:h-[calc(100vh-3.5rem)] lg:sticky lg:top-0 lg:overflow-y-auto custom-scrollbar">
+      {/* Bouton retour */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mb-3 -ml-2 text-[12px] text-muted-foreground"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />Retour
+      </Button>
+
+      {/* Card profil */}
+      <div className="bg-white border border-border rounded-2xl p-4 flex flex-col items-center text-center mb-3">
+        {/* Avatar cercle */}
+        <div
+          className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-display font-extrabold overflow-hidden mb-3"
+          style={{
+            background: player.photo_url
+              ? `url(${player.photo_url}) center/cover`
+              : `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`,
+            color: "white",
+          }}
+        >
+          {!player.photo_url && initials}
+        </div>
+
+        <h1 className="font-display text-[16px] font-extrabold text-foreground tracking-tight leading-tight">
+          {displayName}
+        </h1>
+        {player.nickname && fullName && (
+          <p className="text-[11px] text-muted-foreground italic mt-0.5">{player.nickname}</p>
+        )}
+        {teamMembership && (
+          <div className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+            <div className="font-medium">{teamMembership.team.name}</div>
+            <div className="opacity-75">{teamMembership.team.club?.name}</div>
+            {referentCoach && (
+              <div className="opacity-75 mt-0.5">
+                Coach {referentCoach.first_name} {referentCoach.last_name}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-1 w-full mt-3 pt-3 border-t border-border">
+          <div>
+            <p className="font-display text-[16px] font-extrabold text-primary leading-none">
+              {formatAverage(overallAverage)}
+            </p>
+            <p className="text-[9px] text-muted-foreground mt-0.5 uppercase tracking-wide">Score</p>
+          </div>
+          <div>
+            <p className="font-display text-[16px] font-extrabold text-foreground leading-none">{coachEvalCount}</p>
+            <p className="text-[9px] text-muted-foreground mt-0.5 uppercase tracking-wide">Débriefs</p>
+          </div>
+          <div>
+            {progressionData.percent !== null ? (
+              <p className={`font-display text-[16px] font-extrabold leading-none ${progressionData.percent >= 0 ? "text-success" : "text-destructive"}`}>
+                {progressionData.percent >= 0 ? "+" : ""}{progressionData.percent.toFixed(0)}%
+              </p>
+            ) : (
+              <p className="font-display text-[16px] font-extrabold text-muted-foreground leading-none">-</p>
+            )}
+            <p className="text-[9px] text-muted-foreground mt-0.5 uppercase tracking-wide">Progr.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Débriefs bloc */}
+      {!isPlayerViewingOwnProfile && canEvaluate && teamMembership && (
+        <div className="bg-white border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Débriefs</p>
+          <div className="flex flex-col gap-1.5">
+            {!isViewingHistory && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="w-full gap-1.5 justify-start bg-primary text-primary-foreground hover:bg-primary/90 h-8 text-[11px] font-bold px-2.5">
+                    <ClipboardList className="w-3.5 h-3.5" />Nouveau débrief
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{hasDraftEvaluation ? "Débrief en cours" : "Nouveau débrief"}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {hasDraftEvaluation
+                        ? "Un débrief a été sauvegardé en brouillon. Souhaitez-vous le poursuivre ou en démarrer un nouveau ?"
+                        : `Voulez-vous créer un nouveau débrief pour ${playerName} ?`}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    {hasDraftEvaluation ? (
+                      <>
+                        <AlertDialogAction onClick={() => onNewEvaluation(false)} className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                          Nouveau débrief
+                        </AlertDialogAction>
+                        <AlertDialogAction onClick={() => onNewEvaluation(true)}>
+                          Poursuivre le débrief
+                        </AlertDialogAction>
+                      </>
+                    ) : (
+                      <AlertDialogAction onClick={() => onNewEvaluation(false)}>Confirmer</AlertDialogAction>
+                    )}
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold">
+                  <Star className="w-3.5 h-3.5 text-accent" />Auto-débrief
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Demande d'auto-débrief</AlertDialogTitle>
+                  <AlertDialogDescription>Envoyer une demande d'auto-débrief à {playerName} ?</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={onRequestSelfEval}>
+                    Envoyer la demande
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onRequestSupporterEval}>
+              <Heart className="w-3.5 h-3.5 text-success" />Supporter
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Gestion joueur */}
+      {!isPlayerViewingOwnProfile && (canMutate || isAdmin) && (
+        <div className="bg-white border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
+          <div className="flex flex-col gap-1.5">
+            {canMutate && (
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onEditPlayer}>
+                <Edit className="w-3.5 h-3.5 text-blue-500" />Modifier
+              </Button>
+            )}
+            {canMutate && teamMembership && (
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onTransferPlayer}>
+                <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Transférer
+              </Button>
+            )}
+            {canEvaluate && teamMembership && (
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onManageSupporters}>
+                <Users className="w-3.5 h-3.5 text-primary" />Supporters
+              </Button>
+            )}
+            {isAdmin && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold text-destructive hover:bg-destructive/10 border-destructive/30">
+                    <Trash2 className="w-3.5 h-3.5" />Supprimer
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer ce joueur ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action supprimera définitivement le joueur {playerName}. Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        try {
+                          const { error: profileError } = await supabase.from("profiles").update({ deleted_at: new Date().toISOString() }).eq("id", player.id);
+                          if (profileError) throw profileError;
+                          const { error: memberError } = await supabase.from("team_members").update({ is_active: false, left_at: new Date().toISOString() }).eq("user_id", player.id);
+                          if (memberError) throw memberError;
+                          toast.success("Joueur supprimé avec succès");
+                          navigate(-1);
+                        } catch (error) {
+                          console.error("Error deleting player:", error);
+                          toast.error("Erreur lors de la suppression");
+                        }
+                      }}
+                      className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border border-destructive/30"
+                    >
+                      Supprimer
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Bouton Imprimer */}
+      {hasSelectedEvaluation && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
+          onClick={onPrint}
+        >
+          <Printer className="w-3.5 h-3.5 text-primary" />Imprimer résultat
+        </Button>
+      )}
+    </aside>
+  );
+}
