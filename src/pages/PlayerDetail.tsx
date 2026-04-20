@@ -322,11 +322,6 @@ export default function PlayerDetail() {
               </TabsTrigger>
             )}
           </TabsList>
-          {selectedEvaluation && (
-            <Button variant="outline" size="sm" className="h-10 gap-2 border-primary/30 bg-primary/10 text-primary hover:bg-primary/20" onClick={() => handlePrint()}>
-              <Download className="w-4 h-4" />Imprimer résultat
-            </Button>
-          )}
         </div>
 
         {/* Radar Tab */}
