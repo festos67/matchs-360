@@ -89,6 +89,15 @@ const Teams = () => {
     return team.team_members?.filter(m => m.member_type === "coach" && m.is_active).length || 0;
   };
 
+  const getReferentCoachName = (team: TeamWithRelations) => {
+    const ref = team.team_members?.find(
+      (m) => m.member_type === "coach" && m.is_active && m.coach_role === "referent"
+    );
+    if (!ref?.profiles) return "—";
+    const name = `${ref.profiles.first_name || ""} ${ref.profiles.last_name || ""}`.trim();
+    return name || "—";
+  };
+
   const canDeleteTeam = (team: TeamWithRelations) => {
     if (isAdmin) return true;
     if (currentRole?.role === "club_admin" && team.clubs?.id) {
