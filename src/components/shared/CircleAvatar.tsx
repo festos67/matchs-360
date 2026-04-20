@@ -13,6 +13,7 @@ interface CircleAvatarProps {
   badge?: ReactNode;
   className?: string;
   showName?: boolean;
+  shape?: "circle" | "square";
 }
 
 const sizeClasses = {
@@ -48,6 +49,7 @@ export const CircleAvatar = ({
   badge,
   className,
   showName = true,
+  shape = "circle",
 }: CircleAvatarProps) => {
   const displayText = shortName || name
     .split(" ")
@@ -67,7 +69,8 @@ export const CircleAvatar = ({
       <div
         className={cn(
           "circle-avatar relative",
-          sizeClasses[size]
+          sizeClasses[size],
+          shape === "circle" ? "!rounded-full" : "!rounded-2xl"
         )}
         style={{
           background: imageUrl
@@ -89,7 +92,10 @@ export const CircleAvatar = ({
         
         {/* Glow effect on hover */}
         <div
-          className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          className={cn(
+            "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+            shape === "circle" ? "rounded-full" : "rounded-2xl"
+          )}
           style={{
             boxShadow: `0 0 30px -5px ${color}60`,
           }}
