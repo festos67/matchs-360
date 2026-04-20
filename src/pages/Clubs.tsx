@@ -87,7 +87,7 @@ export default function Clubs() {
           </p>
         </div>
         {isAdmin && (
-          <Button className="gap-2" onClick={() => setShowCreateModal(true)}>
+          <Button variant="accent" className="gap-2" onClick={() => setShowCreateModal(true)}>
             <Plus className="w-4 h-4" />
             Nouveau club
           </Button>
