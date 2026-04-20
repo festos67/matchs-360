@@ -453,11 +453,11 @@ export function EvaluationHistory({
       {/* Section B: Self Evaluations */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-amber-500">
+          <div className="flex items-center gap-2 text-accent">
             <User className="w-5 h-5" />
             <h3 className="font-semibold text-lg">Auto-débriefs (Joueur)</h3>
           </div>
-          <Badge className="text-xs bg-amber-500/20 text-amber-600 border-amber-500/30">
+          <Badge className="text-xs bg-accent/10 text-accent border-accent/20">
             {filteredSelfEvals.length} auto-débrief{filteredSelfEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
@@ -470,8 +470,8 @@ export function EvaluationHistory({
             {filteredSelfEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground bg-amber-500/5 rounded-lg border border-amber-500/10">
-            <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-amber-500" />
+          <div className="text-center py-8 text-muted-foreground bg-accent/5 rounded-lg border border-accent/20">
+            <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-accent" />
             <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
@@ -482,11 +482,11 @@ export function EvaluationHistory({
       {/* Section C: Supporter Evaluations */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-orange-500">
+          <div className="flex items-center gap-2 text-success">
             <Heart className="w-5 h-5" />
             <h3 className="font-semibold text-lg">Débriefs Supporters</h3>
           </div>
-          <Badge className="text-xs bg-orange-500/20 text-orange-600 border-orange-500/30">
+          <Badge className="text-xs bg-success/10 text-success border-success/20">
             {filteredSupporterEvals.length} débrief{filteredSupporterEvals.length > 1 ? "s" : ""}
           </Badge>
         </div>
@@ -499,8 +499,8 @@ export function EvaluationHistory({
             {filteredSupporterEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground bg-orange-500/5 rounded-lg border border-orange-500/10">
-            <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-orange-500" />
+          <div className="text-center py-8 text-muted-foreground bg-success/5 rounded-lg border border-success/20">
+            <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-success" />
             <p>Aucun débrief supporter {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
