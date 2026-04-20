@@ -34,24 +34,25 @@ export const RadarChart = ({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsRadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
           <PolarGrid
-            stroke="hsl(var(--border))"
+            stroke="hsl(var(--muted-foreground) / 0.5)"
             strokeDasharray="3 3"
           />
           <PolarAngleAxis
             dataKey="skill"
             tick={{
               fill: "hsl(var(--foreground))",
-              fontSize: 12,
-              fontWeight: 600,
+              fontSize: 13,
+              fontWeight: 700,
             }}
-            tickLine={{ stroke: "hsl(var(--border))" }}
+            tickLine={{ stroke: "hsl(var(--muted-foreground) / 0.5)" }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 5]}
             tick={{
-              fill: "hsl(var(--muted-foreground))",
-              fontSize: 10,
+              fill: "hsl(var(--foreground))",
+              fontSize: 11,
+              fontWeight: 600,
             }}
             tickCount={6}
             axisLine={false}
@@ -64,8 +65,8 @@ export const RadarChart = ({
               dataKey="previousScore"
               stroke={secondaryColor}
               fill={secondaryColor}
-              fillOpacity={0.2}
-              strokeWidth={2.5}
+              fillOpacity={0.3}
+              strokeWidth={3}
               strokeDasharray="5 5"
             />
           )}
@@ -76,18 +77,19 @@ export const RadarChart = ({
             dataKey="score"
             stroke={primaryColor}
             fill={primaryColor}
-            fillOpacity={0.4}
-            strokeWidth={2.5}
+            fillOpacity={0.55}
+            strokeWidth={3.25}
             dot={{
-              r: 4,
-              fill: primaryColor,
-              strokeWidth: 0,
-            }}
-            activeDot={{
-              r: 6,
+              r: 5,
               fill: primaryColor,
               stroke: "hsl(var(--background))",
-              strokeWidth: 2,
+              strokeWidth: 1.5,
+            }}
+            activeDot={{
+              r: 7,
+              fill: primaryColor,
+              stroke: "hsl(var(--background))",
+              strokeWidth: 2.5,
             }}
           />
           

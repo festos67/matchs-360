@@ -31,13 +31,13 @@ interface ComparisonRadarProps {
   animated?: boolean;
 }
 
-// Predefined colors for comparison datasets — brightened for dark mode contrast
+// Predefined colors for comparison datasets — high-contrast for dark mode
 const COMPARISON_COLORS = [
-  "#9CA3AF", // Gray-400 (lighter than 500)
-  "#FB923C", // Orange-400
-  "#22D3EE", // Cyan-400
-  "#A78BFA", // Violet-400
-  "#F87171", // Red-400
+  "#E5E7EB", // Gray-200
+  "#FDBA74", // Orange-300
+  "#67E8F9", // Cyan-300
+  "#C4B5FD", // Violet-300
+  "#FCA5A5", // Red-300
 ];
 
 export const ComparisonRadar = ({
@@ -68,24 +68,25 @@ export const ComparisonRadar = ({
         <ResponsiveContainer width="100%" height="100%">
           <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={mergedData}>
             <PolarGrid
-              stroke="hsl(var(--border))"
+              stroke="hsl(var(--muted-foreground) / 0.5)"
               gridType="polygon"
             />
             <PolarAngleAxis
               dataKey="theme"
               tick={{
                 fill: "hsl(var(--foreground))",
-                fontSize: 11,
-                fontWeight: 600,
+                fontSize: 12,
+                fontWeight: 700,
               }}
-              tickLine={{ stroke: "hsl(var(--border))" }}
+              tickLine={{ stroke: "hsl(var(--muted-foreground) / 0.5)" }}
             />
             <PolarRadiusAxis
               angle={90}
               domain={[0, 5]}
               tick={{
-                fill: "hsl(var(--muted-foreground))",
-                fontSize: 10,
+                fill: "hsl(var(--foreground))",
+                fontSize: 11,
+                fontWeight: 600,
               }}
               tickCount={6}
               axisLine={false}
@@ -98,11 +99,12 @@ export const ComparisonRadar = ({
                 name={dataset.label}
                 dataKey={dataset.id}
                 stroke={dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
-                fill="transparent"
-                strokeWidth={2}
+                fill={dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
+                fillOpacity={0.08}
+                strokeWidth={2.75}
                 strokeDasharray="5 5"
                 dot={{
-                  r: 3.5,
+                  r: 4,
                   fill: dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length],
                   strokeWidth: 0,
                 }}
@@ -119,18 +121,19 @@ export const ComparisonRadar = ({
                 dataKey={currentDataset.id}
                 stroke={currentDataset.color || primaryColor}
                 fill={currentDataset.color || primaryColor}
-                fillOpacity={0.25}
-                strokeWidth={2.5}
+                fillOpacity={0.4}
+                strokeWidth={3.25}
                 dot={{
-                  r: 4,
-                  fill: currentDataset.color || primaryColor,
-                  strokeWidth: 0,
-                }}
-                activeDot={{
-                  r: 6,
+                  r: 5,
                   fill: currentDataset.color || primaryColor,
                   stroke: "hsl(var(--background))",
-                  strokeWidth: 2,
+                  strokeWidth: 1.5,
+                }}
+                activeDot={{
+                  r: 7,
+                  fill: currentDataset.color || primaryColor,
+                  stroke: "hsl(var(--background))",
+                  strokeWidth: 2.5,
                 }}
                 isAnimationActive={animated}
                 animationDuration={500}
