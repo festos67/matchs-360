@@ -455,7 +455,7 @@ const Players = () => {
               Ajouter un joueur
             </Button>
           )}
-          {isAdmin && (
+          {currentRole?.role === "admin" && (
             <Button
               variant="accent"
               onClick={() => setShowCreatePlayer(true)}

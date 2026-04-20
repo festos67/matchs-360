@@ -247,7 +247,7 @@ const Coaches = () => {
               Ajouter un coach
             </Button>
           )}
-          {isAdmin && (
+          {currentRole?.role === "admin" && (
             <Button
               variant="accent"
               onClick={() => setCreateModalOpen(true)}
