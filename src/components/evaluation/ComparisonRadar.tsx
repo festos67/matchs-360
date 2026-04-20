@@ -8,6 +8,7 @@ import {
   Tooltip,
   
 } from "recharts";
+import { useEffect, useState } from "react";
 
 interface RadarDataPoint {
   theme: string;
@@ -31,21 +32,62 @@ interface ComparisonRadarProps {
   animated?: boolean;
 }
 
-// Predefined colors for comparison datasets — high-contrast for dark mode
-const COMPARISON_COLORS = [
-  "#E5E7EB", // Gray-200
-  "#FDBA74", // Orange-300
-  "#67E8F9", // Cyan-300
-  "#C4B5FD", // Violet-300
-  "#FCA5A5", // Red-300
+// Palettes éloignées colorimétriquement du fond pour ressortir
+// Light mode (fond clair ~ blanc) → couleurs saturées et sombres
+const COMPARISON_COLORS_LIGHT = [
+  "#1F2937", // Gray-800
+  "#EA580C", // Orange-600
+  "#0891B2", // Cyan-600
+  "#7C3AED", // Violet-600
+  "#DC2626", // Red-600
 ];
+// Dark mode (fond sombre ~ slate-950) → couleurs vives, lumineuses, hautement saturées
+const COMPARISON_COLORS_DARK = [
+  "#F8FAFC", // Slate-50 (presque blanc)
+  "#FB923C", // Orange-400 vif
+  "#22D3EE", // Cyan-400 lumineux
+  "#A78BFA", // Violet-400 lumineux
+  "#F472B6", // Pink-400 (au lieu de rouge, plus distinct du fond)
+];
+
+const useIsDarkMode = () => {
+  const [isDark, setIsDark] = useState(
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+  );
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+};
+
+// Convertit une couleur sombre fournie par dataset en variante lumineuse en mode sombre
+const adaptColorForDark = (hex: string): string => {
+  // Couleurs MATCHS360 / app — on remappe les sombres vers des variantes vives
+  const map: Record<string, string> = {
+    "#3B82F6": "#60A5FA", // primary blue → blue-400
+    "#1E40AF": "#93C5FD", // dark blue
+    "#226FCC": "#7DD3FC", // approx primary
+    "#1F2937": "#F8FAFC",
+    "#0F172A": "#F8FAFC",
+    "#000000": "#F8FAFC",
+  };
+  return map[hex.toUpperCase()] || hex;
+};
 
 export const ComparisonRadar = ({
   datasets,
-  primaryColor = "hsl(226, 72%, 48%)",
+  primaryColor,
   animated = true,
 }: ComparisonRadarProps) => {
   if (datasets.length === 0) return null;
+  const isDark = useIsDarkMode();
+  const COMPARISON_COLORS = isDark ? COMPARISON_COLORS_DARK : COMPARISON_COLORS_LIGHT;
+  const effectivePrimary = primaryColor || (isDark ? "#60A5FA" : "hsl(226, 72%, 48%)");
+  const adapt = (c: string | undefined) => (isDark && c ? adaptColorForDark(c) : c);
 
   // Merge all datasets into unified data structure for recharts
   const themes = datasets[0]?.data.map(d => d.theme) || [];
@@ -98,14 +140,14 @@ export const ComparisonRadar = ({
                 key={dataset.id}
                 name={dataset.label}
                 dataKey={dataset.id}
-                stroke={dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
-                fill={dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
+                stroke={adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
+                fill={adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
                 fillOpacity={0.08}
                 strokeWidth={2.75}
                 strokeDasharray="5 5"
                 dot={{
                   r: 4,
-                  fill: dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length],
+                  fill: adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length],
                   strokeWidth: 0,
                 }}
                 isAnimationActive={animated}
@@ -119,19 +161,19 @@ export const ComparisonRadar = ({
               <Radar
                 name={currentDataset.label}
                 dataKey={currentDataset.id}
-                stroke={currentDataset.color || primaryColor}
-                fill={currentDataset.color || primaryColor}
+                stroke={adapt(currentDataset.color) || effectivePrimary}
+                fill={adapt(currentDataset.color) || effectivePrimary}
                 fillOpacity={0.4}
                 strokeWidth={3.25}
                 dot={{
                   r: 5,
-                  fill: currentDataset.color || primaryColor,
+                  fill: adapt(currentDataset.color) || effectivePrimary,
                   stroke: "hsl(var(--background))",
                   strokeWidth: 1.5,
                 }}
                 activeDot={{
                   r: 7,
-                  fill: currentDataset.color || primaryColor,
+                  fill: adapt(currentDataset.color) || effectivePrimary,
                   stroke: "hsl(var(--background))",
                   strokeWidth: 2.5,
                 }}
