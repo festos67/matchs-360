@@ -23,6 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { handlePlanLimitError } from "@/lib/plan-error-handler";
 
 const evaluationSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
@@ -325,6 +326,10 @@ export const CreateEvaluationModal = ({
       navigate(`/players/${data.playerId}?evaluation=${evaluation.id}`);
     } catch (error: any) {
       console.error("Error creating evaluation:", error);
+      if (handlePlanLimitError(error)) {
+        setLoading(false);
+        return;
+      }
       toast.error("Erreur lors de la création", {
         description: error.message,
       });

@@ -197,6 +197,10 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       resetAndClose();
     } catch (error: any) {
       console.error("Error adding coach role:", error);
+      if (handlePlanLimitError(error)) {
+        setLoading(false);
+        return;
+      }
       if (error.message?.includes("duplicate") || error.code === "23505") {
         toast.error("Cet utilisateur est déjà coach dans ce club.");
       } else {
