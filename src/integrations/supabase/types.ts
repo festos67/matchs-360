@@ -729,6 +729,78 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          amount_cents: number | null
+          auto_renew: boolean
+          club_id: string
+          created_at: string
+          ends_at: string
+          id: string
+          is_trial: boolean
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          renewed_from: string | null
+          season_end: string
+          season_start: string
+          source: Database["public"]["Enums"]["subscription_source"]
+          starts_at: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          auto_renew?: boolean
+          club_id: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          is_trial?: boolean
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          renewed_from?: string | null
+          season_end: string
+          season_start: string
+          source?: Database["public"]["Enums"]["subscription_source"]
+          starts_at: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number | null
+          auto_renew?: boolean
+          club_id?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          is_trial?: boolean
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          renewed_from?: string | null
+          season_end?: string
+          season_start?: string
+          source?: Database["public"]["Enums"]["subscription_source"]
+          starts_at?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_renewed_from_fkey"
+            columns: ["renewed_from"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supporter_evaluation_requests: {
         Row: {
           completed_at: string | null
@@ -1094,6 +1166,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_prorata_amount: {
+        Args: { p_full_price_cents?: number; p_start_date: string }
+        Returns: number
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1102,7 +1178,18 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_club_plan: {
+        Args: { p_club_id: string }
+        Returns: Database["public"]["Enums"]["subscription_plan"]
+      }
       get_coach_player_ids: { Args: { _coach_id: string }; Returns: string[] }
+      get_current_season: {
+        Args: never
+        Returns: {
+          season_end: string
+          season_start: string
+        }[]
+      }
       get_player_club_id: { Args: { _player_id: string }; Returns: string }
       get_referent_coach_team_ids: {
         Args: { _user_id: string }
@@ -1176,6 +1263,13 @@ export type Database = {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
       coach_type: "referent" | "assistant"
       evaluation_type: "coach" | "self" | "supporter"
+      subscription_plan: "free" | "pro"
+      subscription_source:
+        | "direct"
+        | "trial"
+        | "district"
+        | "league"
+        | "federation"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1306,6 +1400,14 @@ export const Constants = {
       app_role: ["admin", "club_admin", "coach", "player", "supporter"],
       coach_type: ["referent", "assistant"],
       evaluation_type: ["coach", "self", "supporter"],
+      subscription_plan: ["free", "pro"],
+      subscription_source: [
+        "direct",
+        "trial",
+        "district",
+        "league",
+        "federation",
+      ],
     },
   },
 } as const
