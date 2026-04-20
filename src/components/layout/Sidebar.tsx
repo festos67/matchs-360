@@ -144,7 +144,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-bold [&_svg]:text-sidebar-accent-foreground"
                   : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
@@ -166,7 +166,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 location.pathname === "/admin/users"
-                  ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-bold [&_svg]:text-sidebar-accent-foreground"
                   : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
@@ -179,7 +179,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 location.pathname === "/role-approvals"
-                  ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground font-bold [&_svg]:text-sidebar-accent-foreground"
                   : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
@@ -198,7 +198,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
             location.pathname === "/settings"
-              ? "bg-sidebar-accent text-sidebar-foreground font-bold [&_svg]:text-sidebar-foreground"
+              ? "bg-sidebar-accent text-sidebar-accent-foreground font-bold [&_svg]:text-sidebar-accent-foreground"
               : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
         >
