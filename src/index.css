@@ -39,8 +39,8 @@
     --success: 142 64% 30%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning - Ambre foncé */
-    --warning: 28 80% 36%;
+    /* Warning - Doré (étoiles, alertes warning) #F59E0B */
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
     /* Destructive */
