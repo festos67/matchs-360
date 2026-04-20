@@ -449,8 +449,20 @@ const Players = () => {
             <h1 className="text-3xl font-display font-bold">{pageTitle}</h1>
             <p className="text-muted-foreground mt-1">{pageSubtitle}</p>
           </div>
-          {(isAdmin || currentRole?.role === "club_admin") && currentRole?.club_id && (
+          {currentRole?.role === "club_admin" && currentRole?.club_id && (
             <Button variant="accent" onClick={() => setShowCreatePlayer(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Ajouter un joueur
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              variant="accent"
+              onClick={() => setShowCreatePlayer(true)}
+              className="gap-2"
+              disabled={clubFilter === "all"}
+              title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
+            >
               <Plus className="w-4 h-4" />
               Ajouter un joueur
             </Button>
@@ -626,6 +638,14 @@ const Players = () => {
           open={showCreatePlayer}
           onOpenChange={setShowCreatePlayer}
           clubId={currentRole.club_id}
+          onSuccess={fetchPlayers}
+        />
+      )}
+      {isAdmin && clubFilter !== "all" && (
+        <CreatePlayerModal
+          open={showCreatePlayer}
+          onOpenChange={setShowCreatePlayer}
+          clubId={clubFilter}
           onSuccess={fetchPlayers}
         />
       )}

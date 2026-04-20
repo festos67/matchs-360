@@ -247,6 +247,17 @@ const Coaches = () => {
               Ajouter un coach
             </Button>
           )}
+          {isAdmin && (
+            <Button
+              variant="accent"
+              onClick={() => setCreateModalOpen(true)}
+              disabled={clubFilter === "all"}
+              title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un coach
+            </Button>
+          )}
         </div>
 
         {/* Search & Filters */}
@@ -412,6 +423,14 @@ const Coaches = () => {
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
           clubId={currentRole.club_id}
+          onSuccess={fetchCoaches}
+        />
+      )}
+      {isAdmin && clubFilter !== "all" && (
+        <CreateCoachModal
+          open={createModalOpen}
+          onOpenChange={setCreateModalOpen}
+          clubId={clubFilter}
           onSuccess={fetchCoaches}
         />
       )}
