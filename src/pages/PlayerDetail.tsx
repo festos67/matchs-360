@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star } from "lucide-react";
+import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -16,7 +16,7 @@ import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
 
-import { PlayerHeader } from "@/components/player/PlayerHeader";
+import { PlayerSidebar } from "@/components/player/PlayerSidebar";
 import { PlayerEvaluationTab } from "@/components/player/PlayerEvaluationTab";
 import { PlayerHistoryTab } from "@/components/player/PlayerHistoryTab";
 import { PlayerObjectivesTab } from "@/components/player/PlayerObjectivesTab";
