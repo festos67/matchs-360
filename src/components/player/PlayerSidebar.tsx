@@ -145,7 +145,7 @@ export function PlayerSidebar({
             {!isViewingHistory && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button className="w-full gap-1.5 justify-start bg-primary text-primary-foreground hover:bg-primary/90 h-8 text-[11px] font-bold px-2.5">
+                  <Button className="w-full gap-1.5 justify-start bg-accent text-accent-foreground hover:bg-accent/90 h-8 text-[11px] font-bold px-2.5">
                     <ClipboardList className="w-3.5 h-3.5" />Nouveau débrief
                   </Button>
                 </AlertDialogTrigger>
