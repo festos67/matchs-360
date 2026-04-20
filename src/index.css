@@ -7,68 +7,71 @@
 
 @layer base {
   :root {
-    /* Core Colors - Dark Professional Theme */
-    --background: 220 30% 6%;
-    --foreground: 210 40% 98%;
+    /* Fond principal - light warm */
+    --background: 225 33% 98%;
+    --foreground: 224 55% 17%;
 
-    --card: 220 25% 10%;
-    --card-foreground: 210 40% 98%;
+    /* Cards - blanc pur */
+    --card: 0 0% 100%;
+    --card-foreground: 224 55% 17%;
 
-    --popover: 220 25% 8%;
-    --popover-foreground: 210 40% 98%;
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 55% 17%;
 
-    /* Primary - Electric Blue */
-    --primary: 217 91% 60%;
-    --primary-foreground: 220 30% 6%;
+    /* Primary - Bleu Roi */
+    --primary: 226 72% 48%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Slate Navy */
-    --secondary: 220 25% 15%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary - Surface claire */
+    --secondary: 227 30% 95%;
+    --secondary-foreground: 224 55% 17%;
 
-    /* Muted - Subtle Grays */
-    --muted: 220 20% 18%;
-    --muted-foreground: 215 20% 55%;
+    /* Muted */
+    --muted: 227 30% 95%;
+    --muted-foreground: 220 18% 56%;
 
-    /* Accent - Vibrant Blue Glow */
-    --accent: 217 91% 50%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent - Ambre */
+    --accent: 38 88% 43%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Success - Green */
-    --success: 142 76% 45%;
+    /* Success */
+    --success: 142 64% 30%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning - Amber */
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
+    /* Warning - Ambre foncé */
+    --warning: 28 80% 36%;
+    --warning-foreground: 0 0% 100%;
 
-    /* Destructive - Red */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 15%;
-    --ring: 217 91% 60%;
+    /* Borders - gris bleuté doux */
+    --border: 228 22% 90%;
+    --input: 228 22% 90%;
+    --ring: 226 72% 48%;
 
     --radius: 0.75rem;
 
-    /* Sidebar */
-    --sidebar-background: 220 28% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 220 30% 6%;
-    --sidebar-accent: 220 25% 15%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 20% 15%;
-    --sidebar-ring: 217 91% 60%;
+    /* Sidebar - Bleu nuit profond */
+    --sidebar-background: 221 45% 12%;
+    --sidebar-foreground: 220 20% 90%;
+    --sidebar-primary: 226 72% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 221 40% 18%;
+    --sidebar-accent-foreground: 220 20% 90%;
+    --sidebar-border: 221 35% 18%;
+    --sidebar-ring: 226 72% 48%;
 
-    /* Custom Gradients & Effects */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(240 80% 65%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(220 25% 12%) 0%, hsl(220 25% 8%) 100%);
-    --gradient-glow: radial-gradient(ellipse at center, hsl(217 91% 60% / 0.15) 0%, transparent 70%);
-    
-    --shadow-glow: 0 0 40px -10px hsl(217 91% 60% / 0.4);
-    --shadow-card: 0 4px 24px -4px hsl(220 30% 4% / 0.6);
-    --shadow-elevated: 0 8px 40px -8px hsl(220 30% 4% / 0.8);
+    /* Effets - adaptés au light mode */
+    --gradient-primary: linear-gradient(135deg, hsl(226 72% 48%) 0%, hsl(226 72% 38%) 100%);
+    --gradient-card: none;
+    --gradient-glow: none;
+
+    --shadow-glow: 0 0 30px -10px hsl(226 72% 48% / 0.2);
+    --shadow-card: 0 1px 3px 0 hsl(224 55% 17% / 0.06);
+    --shadow-elevated: 0 4px 16px -4px hsl(224 55% 17% / 0.1);
   }
 
   .dark {
