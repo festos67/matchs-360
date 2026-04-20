@@ -31,13 +31,13 @@ interface ComparisonRadarProps {
   animated?: boolean;
 }
 
-// Predefined colors for comparison datasets
+// Predefined colors for comparison datasets — brightened for dark mode contrast
 const COMPARISON_COLORS = [
-  "#6B7280", // Gray
-  "#F97316", // Orange
-  "#06B6D4", // Cyan
-  "#8B5CF6", // Purple
-  "#EF4444", // Red
+  "#9CA3AF", // Gray-400 (lighter than 500)
+  "#FB923C", // Orange-400
+  "#22D3EE", // Cyan-400
+  "#A78BFA", // Violet-400
+  "#F87171", // Red-400
 ];
 
 export const ComparisonRadar = ({
@@ -64,27 +64,27 @@ export const ComparisonRadar = ({
 
   return (
     <div className="w-full">
-      <div className="h-[350px] relative">
+      <div className="h-[350px] relative radar-themed">
         <ResponsiveContainer width="100%" height="100%">
           <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={mergedData}>
             <PolarGrid
-              stroke="#DDE2ED"
+              stroke="hsl(var(--border))"
               gridType="polygon"
             />
             <PolarAngleAxis
               dataKey="theme"
               tick={{
-                fill: "#7889A8",
+                fill: "hsl(var(--foreground))",
                 fontSize: 11,
-                fontWeight: 500,
+                fontWeight: 600,
               }}
-              tickLine={{ stroke: "#DDE2ED" }}
+              tickLine={{ stroke: "hsl(var(--border))" }}
             />
             <PolarRadiusAxis
               angle={90}
               domain={[0, 5]}
               tick={{
-                fill: "#7889A8",
+                fill: "hsl(var(--muted-foreground))",
                 fontSize: 10,
               }}
               tickCount={6}
@@ -99,10 +99,10 @@ export const ComparisonRadar = ({
                 dataKey={dataset.id}
                 stroke={dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length]}
                 fill="transparent"
-                strokeWidth={1.5}
+                strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={{
-                  r: 3,
+                  r: 3.5,
                   fill: dataset.color || COMPARISON_COLORS[index % COMPARISON_COLORS.length],
                   strokeWidth: 0,
                 }}
@@ -119,8 +119,8 @@ export const ComparisonRadar = ({
                 dataKey={currentDataset.id}
                 stroke={currentDataset.color || primaryColor}
                 fill={currentDataset.color || primaryColor}
-                fillOpacity={0.12}
-                strokeWidth={1.5}
+                fillOpacity={0.25}
+                strokeWidth={2.5}
                 dot={{
                   r: 4,
                   fill: currentDataset.color || primaryColor,
@@ -129,7 +129,7 @@ export const ComparisonRadar = ({
                 activeDot={{
                   r: 6,
                   fill: currentDataset.color || primaryColor,
-                  stroke: "white",
+                  stroke: "hsl(var(--background))",
                   strokeWidth: 2,
                 }}
                 isAnimationActive={animated}
@@ -140,18 +140,18 @@ export const ComparisonRadar = ({
             
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsl(0, 0%, 100%)",
-                border: "1px solid #DDE2ED",
+                backgroundColor: "hsl(var(--popover))",
+                border: "1px solid hsl(var(--border))",
                 borderRadius: "8px",
-                boxShadow: "0 4px 16px -4px rgba(34, 51, 84, 0.1)",
+                boxShadow: "0 4px 16px -4px rgba(0, 0, 0, 0.4)",
               }}
               labelStyle={{
-                color: "hsl(224, 55%, 17%)",
+                color: "hsl(var(--popover-foreground))",
                 fontWeight: 600,
                 marginBottom: "4px",
               }}
               itemStyle={{
-                color: "#7889A8",
+                color: "hsl(var(--muted-foreground))",
                 padding: "2px 0",
               }}
               formatter={(value: number, name: string) => {

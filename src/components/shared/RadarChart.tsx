@@ -34,23 +34,23 @@ export const RadarChart = ({
       <ResponsiveContainer width="100%" height="100%">
         <RechartsRadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
           <PolarGrid
-            stroke="hsl(220, 20%, 25%)"
+            stroke="hsl(var(--border))"
             strokeDasharray="3 3"
           />
           <PolarAngleAxis
             dataKey="skill"
             tick={{
-              fill: "hsl(215, 20%, 65%)",
+              fill: "hsl(var(--foreground))",
               fontSize: 12,
-              fontWeight: 500,
+              fontWeight: 600,
             }}
-            tickLine={{ stroke: "hsl(220, 20%, 25%)" }}
+            tickLine={{ stroke: "hsl(var(--border))" }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 5]}
             tick={{
-              fill: "hsl(215, 20%, 55%)",
+              fill: "hsl(var(--muted-foreground))",
               fontSize: 10,
             }}
             tickCount={6}
@@ -64,8 +64,8 @@ export const RadarChart = ({
               dataKey="previousScore"
               stroke={secondaryColor}
               fill={secondaryColor}
-              fillOpacity={0.15}
-              strokeWidth={2}
+              fillOpacity={0.2}
+              strokeWidth={2.5}
               strokeDasharray="5 5"
             />
           )}
@@ -76,8 +76,8 @@ export const RadarChart = ({
             dataKey="score"
             stroke={primaryColor}
             fill={primaryColor}
-            fillOpacity={0.3}
-            strokeWidth={2}
+            fillOpacity={0.4}
+            strokeWidth={2.5}
             dot={{
               r: 4,
               fill: primaryColor,
@@ -86,25 +86,25 @@ export const RadarChart = ({
             activeDot={{
               r: 6,
               fill: primaryColor,
-              stroke: "white",
+              stroke: "hsl(var(--background))",
               strokeWidth: 2,
             }}
           />
           
           <Tooltip
             contentStyle={{
-              backgroundColor: "hsl(220, 25%, 10%)",
-              border: "1px solid hsl(220, 20%, 18%)",
+              backgroundColor: "hsl(var(--popover))",
+              border: "1px solid hsl(var(--border))",
               borderRadius: "8px",
               boxShadow: "0 4px 24px -4px rgba(0,0,0,0.4)",
             }}
             labelStyle={{
-              color: "hsl(210, 40%, 98%)",
+              color: "hsl(var(--popover-foreground))",
               fontWeight: 600,
               marginBottom: "4px",
             }}
             itemStyle={{
-              color: "hsl(215, 20%, 65%)",
+              color: "hsl(var(--muted-foreground))",
               padding: "2px 0",
             }}
           />
