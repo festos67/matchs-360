@@ -234,47 +234,46 @@ export default function PlayerDetail() {
         )}
       </div>
 
-      {/* Back Button */}
-      <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
-        <ArrowLeft className="w-4 h-4 mr-2" />Retour
-      </Button>
+      {/* Layout sidebar + contenu */}
+      <div className="flex flex-col lg:flex-row -m-3 md:-m-6 lg:gap-0 min-h-[calc(100vh-3.5rem)]">
+        <PlayerSidebar
+          player={player}
+          teamMembership={teamMembership}
+          referentCoach={referentCoach}
+          overallAverage={overallAverage}
+          evaluations={evaluations}
+          canEvaluate={canEvaluate}
+          canMutate={canMutate}
+          isAdmin={isAdmin}
+          isPlayerViewingOwnProfile={isPlayerViewingOwnProfile}
+          isViewingHistory={isViewingHistory}
+          hasDraftEvaluation={hasDraftEvaluation}
+          hasSelectedEvaluation={!!selectedEvaluation}
+          progressionData={getProgressionData()}
+          onNewEvaluation={(resume: boolean) => {
+            if (resume) {
+              setIsCreatingNew(false);
+              setHasDraftEvaluation(false);
+              setActiveTab("evaluation");
+              scrollToRadar();
+            } else {
+              setIsCreatingNew(true);
+              setNewEvalKey(k => k + 1);
+              setHasDraftEvaluation(false);
+              setActiveTab("evaluation");
+              scrollToRadar();
+            }
+          }}
+          onRequestSelfEval={() => toast.success("Demande d'auto-débrief envoyée au joueur")}
+          onRequestSupporterEval={() => setShowRequestSupporterModal(true)}
+          onEditPlayer={() => setShowEditModal(true)}
+          onTransferPlayer={() => setShowMutationModal(true)}
+          onManageSupporters={() => setShowSupportersModal(true)}
+          onPrint={() => handlePrint()}
+        />
 
-      {/* Player Header */}
-      <PlayerHeader
-        player={player}
-        teamMembership={teamMembership}
-        referentCoach={referentCoach}
-        overallAverage={overallAverage}
-        evaluations={evaluations}
-        frameworkId={frameworkId}
-        canEvaluate={canEvaluate}
-        canMutate={canMutate}
-        isAdmin={isAdmin}
-        isPlayerViewingOwnProfile={isPlayerViewingOwnProfile}
-        isViewingHistory={isViewingHistory}
-        hasDraftEvaluation={hasDraftEvaluation}
-        progressionData={getProgressionData()}
-        onNewEvaluation={(resume) => {
-          if (resume) {
-            setIsCreatingNew(false);
-            setHasDraftEvaluation(false);
-            setActiveTab("evaluation");
-            scrollToRadar();
-          } else {
-            setIsCreatingNew(true);
-            setNewEvalKey(k => k + 1);
-            setHasDraftEvaluation(false);
-            setActiveTab("evaluation");
-            scrollToRadar();
-          }
-        }}
-        onRequestSelfEval={() => toast.success("Demande d'auto-débrief envoyée au joueur")}
-        onRequestSupporterEval={() => setShowRequestSupporterModal(true)}
-        onEditPlayer={() => setShowEditModal(true)}
-        onTransferPlayer={() => setShowMutationModal(true)}
-        onManageSupporters={() => setShowSupportersModal(true)}
-        onRefresh={refetchAll}
-      />
+        {/* Contenu principal */}
+        <div className="flex-1 min-w-0 p-4 md:p-5">
 
       {/* Modals */}
       {teamMembership && (
