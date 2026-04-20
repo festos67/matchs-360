@@ -46,6 +46,7 @@ const MyTeamRedirect = lazy(() => import("./pages/MyTeamRedirect"));
 const MySupporters = lazy(() => import("./pages/player/MySupporters"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Supporters = lazy(() => import("./pages/Supporters"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,8 @@ const App = () => (
               <Route path="/role-approvals" element={<ProtectedRoute><RoleApprovals /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+              <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
