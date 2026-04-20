@@ -270,11 +270,11 @@ const AdminDashboard = () => {
       <div className="space-y-4">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
-            Bonjour {profile?.first_name || "Admin"}
-            <Shield className="w-7 h-7 text-red-500" />
+          <h1 className="font-display text-[26px] font-extrabold text-foreground tracking-tight flex items-center gap-3">
+            Bonjour {profile?.first_name || "Admin"} 👋
+            <Shield className="w-6 h-6 text-destructive" />
           </h1>
-          <p className="text-muted-foreground mt-1">Accès complet à la plateforme</p>
+          <p className="text-[13px] text-muted-foreground mt-1">Accès complet à la plateforme</p>
         </div>
 
         {/* Section 1: Vue globale */}

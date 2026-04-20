@@ -302,38 +302,53 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <div className="glass-card p-6 mb-8">
-        <div className="flex items-center gap-8">
-          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: club.logo_url ? `url(${club.logo_url}) center/cover` : `linear-gradient(135deg, ${club.primary_color} 0%, ${club.primary_color}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${club.primary_color}40` }}>
-            {!club.logo_url && (club.short_name || club.name.slice(0, 2).toUpperCase())}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-4xl font-display font-bold">
-              {club.name}
-            </h1>
-            <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
-              {club.referent_name && <span className="flex items-center gap-1.5">Référent : {club.referent_name}</span>}
-              <span className="flex items-center gap-1.5">• {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""}</span>
-              <span className="flex items-center gap-1.5">• {coachCount} coach{coachCount > 1 ? "s" : ""}</span>
-              <span className="flex items-center gap-1.5">• {playerCount} joueur{playerCount > 1 ? "s" : ""}</span>
-              <span className="flex items-center gap-1.5">• {supporterCount} supporter{supporterCount > 1 ? "s" : ""}</span>
-            </div>
-          </div>
-          {canManageClub && (
-            <div className="flex items-start gap-2">
-              <div className="flex flex-col gap-1.5">
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Coach</Button>
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowTeamModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Équipe</Button>
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowPlayerModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Joueur</Button>
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupporterModal(true)}><Plus className="w-3.5 h-3.5 text-primary" />Supporter</Button>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}><Settings className="w-4 h-4" /></Button>
-              </div>
-            </div>
+      <Card className="bg-white border border-border rounded-2xl p-5 mb-8 flex items-center gap-5">
+        {/* Logo club */}
+        <div
+          className="w-[72px] h-[72px] rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
+          style={club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : undefined}
+        >
+          {!club.logo_url && (
+            <span className="font-display text-lg font-extrabold text-foreground">
+              {club.short_name || club.name.slice(0, 2).toUpperCase()}
+            </span>
           )}
         </div>
-      </div>
+
+        {/* Infos */}
+        <div className="flex-1 min-w-0">
+          <h2 className="font-display text-[22px] font-extrabold text-foreground tracking-tight truncate">
+            {club.name}
+          </h2>
+          <p className="text-[12px] text-muted-foreground mt-1">
+            {club.referent_name && <>Référent : {club.referent_name} · </>}
+            {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""} · {coachCount} coach{coachCount > 1 ? "s" : ""} · {playerCount} joueur{playerCount > 1 ? "s" : ""} · {supporterCount} supporter{supporterCount > 1 ? "s" : ""}
+          </p>
+        </div>
+
+        {/* Actions */}
+        {canManageClub && (
+          <div className="flex items-start gap-2 flex-shrink-0">
+            <div className="flex flex-col gap-1.5">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 text-[11px] font-bold justify-start" onClick={() => setShowCoachModal(true)}>
+                <Plus className="w-3.5 h-3.5" />Coach
+              </Button>
+              <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowTeamModal(true)}>
+                <Plus className="w-3.5 h-3.5 text-primary" />Équipe
+              </Button>
+              <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowPlayerModal(true)}>
+                <Plus className="w-3.5 h-3.5 text-primary" />Joueur
+              </Button>
+              <Button size="sm" variant="outline" className="text-[11px] font-semibold justify-start" onClick={() => setShowSupporterModal(true)}>
+                <Plus className="w-3.5 h-3.5 text-primary" />Supporter
+              </Button>
+            </div>
+            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setShowClubSettings(true)}>
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </Card>
 
       {/* Dashboard sections: Vue globale, Liste équipes, Mes Coachs */}
       {canManageClub && id && (
