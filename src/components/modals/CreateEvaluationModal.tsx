@@ -23,7 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { handlePlanLimitError } from "@/lib/plan-error-handler";
+import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 const evaluationSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
@@ -62,6 +62,7 @@ export const CreateEvaluationModal = ({
   const { user, hasAdminRole: isAdmin } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
   const [searchPlayer, setSearchPlayer] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
@@ -326,7 +327,7 @@ export const CreateEvaluationModal = ({
       navigate(`/players/${data.playerId}?evaluation=${evaluation.id}`);
     } catch (error: any) {
       console.error("Error creating evaluation:", error);
-      if (handlePlanLimitError(error)) {
+      if (handlePlanLimit(error, "coach_evals")) {
         setLoading(false);
         return;
       }
