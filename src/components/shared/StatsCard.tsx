@@ -16,7 +16,7 @@ interface StatsCardProps {
 
 const colorClasses = {
   primary: {
-    icon: "bg-primary/10 text-primary",
+    icon: "bg-accent/10 text-accent",
     trend: "text-primary",
   },
   success: {
