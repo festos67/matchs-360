@@ -88,19 +88,24 @@ const Coaches = () => {
       if (profilesError) throw profilesError;
 
       const clubIds = [...new Set(coachRoles.map((r) => r.club_id).filter(Boolean))] as string[];
-      let clubsMap: Record<string, string> = {};
+      let clubsMap: Record<string, { name: string; short_name: string | null; logo_url: string | null; primary_color: string | null }> = {};
       
       if (clubIds.length > 0) {
         const { data: clubs } = await supabase
           .from("clubs")
-          .select("id, name")
+          .select("id, name, short_name, logo_url, primary_color")
           .in("id", clubIds);
         
         if (clubs) {
           clubsMap = clubs.reduce((acc, club) => {
-            acc[club.id] = club.name;
+            acc[club.id] = {
+              name: club.name,
+              short_name: club.short_name,
+              logo_url: club.logo_url,
+              primary_color: club.primary_color,
+            };
             return acc;
-          }, {} as Record<string, string>);
+          }, {} as typeof clubsMap);
         }
       }
 
@@ -110,7 +115,7 @@ const Coaches = () => {
           user_id,
           team_id,
           coach_role,
-          teams:team_id (id, name, season)
+          teams:team_id (id, name, season, color, short_name)
         `)
         .in("user_id", userIds)
         .eq("member_type", "coach")
@@ -127,8 +132,11 @@ const Coaches = () => {
             team_name: (tm.teams as any).name,
             coach_role: tm.coach_role as "referent" | "assistant",
             season: (tm.teams as any).season,
+            team_color: (tm.teams as any).color,
+            team_short_name: (tm.teams as any).short_name,
           }));
 
+        const clubInfo = coachRole?.club_id ? clubsMap[coachRole.club_id] : null;
         return {
           id: profile.id,
           email: profile.email,
@@ -136,7 +144,10 @@ const Coaches = () => {
           last_name: profile.last_name,
           photo_url: profile.photo_url,
           club_id: coachRole?.club_id || null,
-          club_name: coachRole?.club_id ? clubsMap[coachRole.club_id] || null : null,
+          club_name: clubInfo?.name || null,
+          club_short_name: clubInfo?.short_name || null,
+          club_logo_url: clubInfo?.logo_url || null,
+          club_primary_color: clubInfo?.primary_color || null,
           assignments,
         };
       });
