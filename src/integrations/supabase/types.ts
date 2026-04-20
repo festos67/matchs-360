@@ -1218,6 +1218,7 @@ export type Database = {
         Args: { p_full_price_cents?: number; p_start_date: string }
         Returns: number
       }
+      create_trial_notifications: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
