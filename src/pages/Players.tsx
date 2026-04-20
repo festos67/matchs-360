@@ -95,7 +95,7 @@ const Players = () => {
           user_id,
           team_id,
           member_type,
-          teams:team_id (id, name, club_id, clubs:club_id (id, name))
+          teams:team_id (id, name, color, club_id, clubs:club_id (id, name, short_name, logo_url, primary_color))
         `)
         .eq("is_active", true);
 
@@ -153,6 +153,7 @@ const Players = () => {
           id: (tm.teams as any).id,
           name: (tm.teams as any).name,
           club_name: (tm.teams as any).clubs?.name || null,
+          color: (tm.teams as any).color || null,
         }));
 
         // Find coaches for this player (coaches in the same teams)
@@ -162,7 +163,8 @@ const Players = () => {
           .map((cm) => ({ id: cm.user_id, name: coachProfiles[cm.user_id] || "Coach" }));
         const uniqueCoaches = Array.from(new Map(playerCoaches.map((c) => [c.id, c])).values());
 
-        const clubName = memberEntries[0] ? (memberEntries[0].teams as any)?.clubs?.name || null : null;
+        const firstClub = memberEntries[0] ? (memberEntries[0].teams as any)?.clubs : null;
+        const clubName = firstClub?.name || null;
         const clubId = memberEntries[0] ? (memberEntries[0].teams as any)?.club_id || null : null;
 
         return {
@@ -174,6 +176,9 @@ const Players = () => {
           photo_url: profile.photo_url,
           club_id: clubId,
           club_name: clubName,
+          club_short_name: firstClub?.short_name || null,
+          club_logo_url: firstClub?.logo_url || null,
+          club_primary_color: firstClub?.primary_color || null,
           teams,
           coaches: uniqueCoaches,
         };
