@@ -703,6 +703,7 @@ export default function TeamDetail() {
             frameworkName={framework.name}
             teamName={team.name}
             clubName={team.club?.name || ""}
+            clubLogoUrl={team.club?.logo_url}
             themes={framework.themes}
           />
         </div>

@@ -318,6 +318,7 @@ const CoachMyClub = () => {
             frameworkName={clubFramework.name}
             teamName="Modèle du club"
             clubName={club?.name || ""}
+            clubLogoUrl={club?.logo_url}
             themes={clubFramework.themes}
           />
         </div>

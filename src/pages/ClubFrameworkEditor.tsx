@@ -483,6 +483,7 @@ export default function ClubFrameworkEditor() {
           frameworkName={frameworkName}
           teamName="Modèle du club"
           clubName={club?.name || ""}
+          clubLogoUrl={club?.logo_url}
           themes={themes}
         />
       </div>

@@ -603,6 +603,7 @@ export default function ClubDetail() {
           frameworkName={clubFramework?.name || "Référentiel du Club"}
           teamName="Modèle du club"
           clubName={club?.name || ""}
+          clubLogoUrl={club?.logo_url}
           themes={frameworkThemes}
         />
       </div>

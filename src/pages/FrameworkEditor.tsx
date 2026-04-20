@@ -662,6 +662,7 @@ export default function FrameworkEditor() {
           frameworkName={frameworkName}
           teamName={team?.name || ""}
           clubName={team?.club?.name || ""}
+          clubLogoUrl={team?.club?.logo_url}
           themes={themes}
         />
       </div>
