@@ -38,7 +38,7 @@ interface PlayerData {
   club_short_name?: string | null;
   club_logo_url?: string | null;
   club_primary_color?: string | null;
-  teams: { id: string; name: string; club_name: string | null; color?: string | null }[];
+  teams: { id: string; name: string; club_id: string | null; club_name: string | null; color?: string | null }[];
   coaches: { id: string; name: string }[];
 }
 
@@ -152,6 +152,7 @@ const Players = () => {
         const teams = memberEntries.map((tm) => ({
           id: (tm.teams as any).id,
           name: (tm.teams as any).name,
+          club_id: (tm.teams as any).club_id || null,
           club_name: (tm.teams as any).clubs?.name || null,
           color: (tm.teams as any).color || null,
         }));
@@ -251,26 +252,64 @@ const Players = () => {
   const clubGroups = useMemo(() => {
     if (useTeamGrouping) return null;
     const groups: Record<string, {
+      clubId: string;
       clubName: string;
       clubShortName: string | null;
       clubLogoUrl: string | null;
       clubPrimaryColor: string | null;
-      players: PlayerData[];
+      teams: Record<string, {
+        teamId: string;
+        teamName: string;
+        teamColor: string | null;
+        players: PlayerData[];
+      }>;
+      noTeamPlayers: PlayerData[];
+      totalPlayers: number;
     }> = {};
     filteredPlayers.forEach((player) => {
-      const key = player.club_id || "no-club";
-      if (!groups[key]) {
-        groups[key] = {
+      const clubKey = player.club_id || "no-club";
+      if (!groups[clubKey]) {
+        groups[clubKey] = {
+          clubId: clubKey,
           clubName: player.club_name || "Sans club",
           clubShortName: player.club_short_name || null,
           clubLogoUrl: player.club_logo_url || null,
           clubPrimaryColor: player.club_primary_color || null,
-          players: [],
+          teams: {},
+          noTeamPlayers: [],
+          totalPlayers: 0,
         };
       }
-      groups[key].players.push(player);
+      groups[clubKey].totalPlayers += 1;
+      const playerClubTeams = player.teams.filter(
+        (t) => (t.club_id || "no-club") === clubKey
+      );
+      if (playerClubTeams.length === 0) {
+        groups[clubKey].noTeamPlayers.push(player);
+      } else {
+        playerClubTeams.forEach((t) => {
+          if (!groups[clubKey].teams[t.id]) {
+            groups[clubKey].teams[t.id] = {
+              teamId: t.id,
+              teamName: t.name,
+              teamColor: t.color || null,
+              players: [],
+            };
+          }
+          if (!groups[clubKey].teams[t.id].players.find((p) => p.id === player.id)) {
+            groups[clubKey].teams[t.id].players.push(player);
+          }
+        });
+      }
     });
-    return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
+    return Object.values(groups)
+      .map((g) => ({
+        ...g,
+        teamsList: Object.values(g.teams).sort((a, b) =>
+          a.teamName.localeCompare(b.teamName)
+        ),
+      }))
+      .sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredPlayers, useTeamGrouping]);
 
   // Group players by team for coach and club_admin view
@@ -484,32 +523,88 @@ const Players = () => {
             })}
           </div>
         ) : clubGroups ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {clubGroups.map((group) => (
-              <div key={group.clubName}>
+              <div key={group.clubId} className="space-y-3">
                 <ClubGroupHeader
                   name={group.clubName}
                   shortName={group.clubShortName}
                   logoUrl={group.clubLogoUrl}
                   primaryColor={group.clubPrimaryColor}
-                  count={group.players.length}
+                  count={group.totalPlayers}
                 />
-                <div className="rounded-lg border bg-card">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Joueur</TableHead>
-                        <TableHead>Surnom</TableHead>
-                        <TableHead>Équipe(s)</TableHead>
-                        {(isAdmin || currentRole?.role === "club_admin") && (
-                          <TableHead className="text-right">Actions</TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {group.players.map((player) => renderPlayerRow(player))}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-3 pl-2">
+                  {group.teamsList.map((team) => {
+                    const teamKey = `${group.clubId}:${team.teamId}`;
+                    const isOpen = collapsedTeams[teamKey] !== true;
+                    const color = team.teamColor || "#3B82F6";
+                    return (
+                      <Collapsible
+                        key={team.teamId}
+                        open={isOpen}
+                        onOpenChange={() => toggleTeam(teamKey)}
+                      >
+                        <CollapsibleTrigger
+                          className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer"
+                        >
+                          <ChevronDown
+                            className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                          />
+                          <div
+                            className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: color }}
+                          >
+                            <Users className="w-3 h-3 text-white" />
+                          </div>
+                          <span className="font-display font-semibold text-sm" style={{ color }}>
+                            {team.teamName}
+                          </span>
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {team.players.length}
+                          </Badge>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="rounded-lg border bg-card mt-1">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Joueur</TableHead>
+                                  <TableHead>Surnom</TableHead>
+                                  {(isAdmin || currentRole?.role === "club_admin") && (
+                                    <TableHead className="text-right">Actions</TableHead>
+                                  )}
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {team.players.map((player) => renderPlayerRow(player, false))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                  {group.noTeamPlayers.length > 0 && (
+                    <div className="rounded-lg border bg-card">
+                      <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
+                        Sans équipe ({group.noTeamPlayers.length})
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Joueur</TableHead>
+                            <TableHead>Surnom</TableHead>
+                            {(isAdmin || currentRole?.role === "club_admin") && (
+                              <TableHead className="text-right">Actions</TableHead>
+                            )}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {group.noTeamPlayers.map((player) => renderPlayerRow(player, false))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
