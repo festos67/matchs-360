@@ -25,6 +25,11 @@ interface TeamCardProps {
   referentCoachName?: string | null;
   playerCount?: number;
   to?: string;
+  /**
+   * Si la saison passée correspond à la saison courante, on la masque
+   * (l'utilisateur n'a pas besoin de la voir affichée par défaut).
+   */
+  hideSeason?: boolean;
 }
 
 export const TeamCard = ({
@@ -36,21 +41,24 @@ export const TeamCard = ({
   referentCoachName,
   playerCount,
   to,
+  hideSeason = false,
 }: TeamCardProps) => {
   const content = (
-    <div className="flex flex-col items-center text-center">
-      <CircleAvatar
-        shape="square"
-        name={name}
-        shortName={shortName}
-        color={color || "#3B82F6"}
-        size="md"
-        showName={false}
-      />
+    <div className="flex flex-col items-center text-center w-full">
+      <div className="w-full aspect-square max-w-[7rem]">
+        <CircleAvatar
+          shape="square"
+          name={name}
+          shortName={shortName}
+          color={color || "#3B82F6"}
+          size="responsive"
+          showName={false}
+        />
+      </div>
       <p className="font-semibold text-foreground mt-2 group-hover:text-primary transition-colors text-sm">
         {name}
       </p>
-      {season && (
+      {season && !hideSeason && (
         <p className="text-xs text-muted-foreground mt-0.5">{season}</p>
       )}
       {referentCoachName && (
