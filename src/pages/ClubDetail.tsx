@@ -1,3 +1,36 @@
+/**
+ * @page ClubDetail
+ * @route /clubs/:clubId
+ *
+ * Fiche détaillée d'un club — hub administratif pour les Club Admins.
+ *
+ * @description
+ * Centralise la gestion des équipes, coachs, joueurs, supporters, du référentiel
+ * modèle du club, et expose les sections analytiques (Vue globale, Liste).
+ *
+ * @access
+ * - Super Admin : tous droits + restauration d'entités archivées
+ *   (mem://features/archived-entities-restoration)
+ * - Club Admin (de ce club) : gestion complète
+ *   (mem://logic/club-admin-data-scope)
+ * - Coach / Joueur / Supporter : lecture seule selon affiliation
+ *
+ * @sections (mem://features/admin/dashboard-layout)
+ * - Vue globale : KPI agrégés (équipes, joueurs, débriefs)
+ * - Liste : équipes, coachs, joueurs, supporters
+ * - Référentiel modèle : édition centralisée
+ *   (mem://features/club-framework-management)
+ *
+ * @features
+ * - Création de toutes entités enfants via modales
+ * - Édition du club (logo, couleurs, référent) — EditClubModal
+ * - Switch "Afficher archivés" pour Super Admins
+ * - Export PDF du référentiel modèle
+ *
+ * @maintenance
+ * Création de club = transactionnel côté client : si l'invitation Club Admin
+ * échoue, rollback. Voir mem://features/admin/club-management.
+ */
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer, Shield, Building2, UserCircle } from "lucide-react";

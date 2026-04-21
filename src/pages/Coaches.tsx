@@ -1,3 +1,28 @@
+/**
+ * @page Coaches
+ * @route /coaches
+ *
+ * Annuaire des coachs groupé par club.
+ *
+ * @description
+ * Vue tabulaire des coachs avec leur(s) équipe(s) assignée(s) et leur rôle
+ * (Référent / Assistant — mem://features/coach-team-workflow).
+ *
+ * @features
+ * - Recherche par nom/email
+ * - Filtres par club et équipe
+ * - Création (CreateCoachModal) avec assignation multi-équipes via matrice
+ *   (mem://logic/coach-assignment-workflow)
+ * - Édition (EditCoachModal) avec changement de rôle Référent/Assistant
+ *
+ * @access
+ * - Super Admin : tous les coachs
+ * - Club Admin : coachs de son club (mem://logic/club-coach-scope)
+ *
+ * @maintenance
+ * `team_members.coach_role` est la source de vérité — un trigger BD verrouille
+ * les invitations pour empêcher la divergence (mem://logic/coach-role-integrity).
+ */
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";

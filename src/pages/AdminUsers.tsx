@@ -1,3 +1,30 @@
+/**
+ * @page AdminUsers
+ * @route /admin/users
+ *
+ * Console de gestion utilisateurs réservée au Super Admin.
+ * (mem://features/admin/user-management)
+ *
+ * @description
+ * Permet de visualiser, filtrer, éditer et restaurer tous les comptes de la
+ * plateforme. Inclut les actions sensibles (promotion Super Admin, reset password
+ * en mode test).
+ *
+ * @features
+ * - Filtres : rôle, statut (actif/archivé/en attente), recherche full-text
+ * - Refresh manuel pour synchroniser avec auth.users
+ * - Promotion Super Admin (mem://auth/super-admin) — strictement réservée
+ *   à `asahand@protonmail.com`
+ * - Restauration de comptes soft-deleted
+ * - Reset password en mode test (mem://security/admin-actions-guard)
+ *
+ * @access
+ * Super Admin uniquement (route protégée par ProtectedRoute + RBAC)
+ *
+ * @maintenance
+ * Toute action sensible passe par l'edge function `admin-users` qui vérifie
+ * côté serveur l'identité du Super Admin (jamais côté client uniquement).
+ */
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";

@@ -1,3 +1,30 @@
+/**
+ * @page Clubs
+ * @route /clubs
+ *
+ * Annuaire des clubs de la plateforme.
+ *
+ * @description
+ * Liste tous les clubs visibles par l'utilisateur courant. Pour les Super Admins,
+ * affiche l'intégralité des clubs ; pour les autres rôles, la RLS Supabase filtre
+ * automatiquement aux clubs auxquels l'utilisateur est rattaché.
+ *
+ * @access
+ * - Super Admin : voit tous les clubs + bouton "Créer un club"
+ * - Club Admin / Coach / Joueur / Supporter : voit uniquement les clubs de rattachement
+ *
+ * @features
+ * - Recherche full-text sur le nom du club
+ * - Affichage du référent (nom + email)
+ * - Compteur d'équipes par club (jointure côté client)
+ * - Modal de création (CreateClubModal) — Super Admin uniquement
+ *
+ * @navigation Clic sur une carte → /clubs/:clubId (ClubDetail)
+ *
+ * @maintenance
+ * Le filtrage des clubs supprimés (`.is("deleted_at", null)`) est essentiel —
+ * voir mem://technical/soft-delete-strategy.
+ */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Building2 } from "lucide-react";

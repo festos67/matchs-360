@@ -1,3 +1,37 @@
+/**
+ * @page TeamDetail
+ * @route /teams/:teamId
+ *
+ * Fiche détaillée d'une équipe (effectif, performance, référentiel, objectifs).
+ *
+ * @tabs
+ * - **Effectif** : joueurs, coachs (référent + assistants), supporters de l'équipe
+ * - **Performance** : KPI progression équipe + bilan des objectifs collectifs
+ *   (mem://features/team-progression-kpi, mem://features/team-performance-layout)
+ * - **Objectifs** : objectifs d'équipe avec notifications automatiques
+ *   (mem://features/team-objectives)
+ * - **Référentiel** : framework de l'équipe — initialisé depuis un modèle club
+ *   (mem://logic/team-framework-initialization-rules)
+ *
+ * @access
+ * - Coach Référent : édition complète + réinitialisation framework
+ * - Coach Assistant : lecture seule sur les actions de gestion
+ *   (mem://features/coach-team-workflow)
+ * - Club Admin / Admin : tous droits
+ * - Joueur : voit uniquement son équipe (mem://logic/coach-teams-visibility)
+ *
+ * @features
+ * - Création de joueurs/coachs/supporters via modales contextuelles
+ * - Mutation de joueur (transfert vers une autre équipe)
+ * - Export PDF du référentiel avec logo club en base64
+ * - Historique des versions du référentiel (snapshots)
+ *
+ * @maintenance
+ * - `team_members` est la source de vérité du `coach_role`
+ *   (mem://logic/coach-role-integrity)
+ * - La réinitialisation du framework crée un snapshot avant écrasement
+ *   (mem://features/framework-lifecycle-management)
+ */
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus, User, Star, ShieldCheck, Settings, FileText, UserCog, BookOpen, Layers, Trash2, ArrowRightLeft, ClipboardList, TrendingUp, TrendingDown, Minus, Printer, Pencil, History, RotateCcw, Target, Check, X } from "lucide-react";

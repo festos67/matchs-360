@@ -1,3 +1,28 @@
+/**
+ * @page Players
+ * @route /players
+ *
+ * Annuaire centralisé des joueurs (mem://features/player-directory).
+ *
+ * @description
+ * Vue tabulaire groupée par club > équipe (mem://features/grouped-listings-logic).
+ * Permet aux admins/coachs de retrouver rapidement un joueur sans naviguer par équipe.
+ *
+ * @features
+ * - Recherche par nom/prénom/surnom
+ * - Filtres cascadés : club → équipe
+ * - Création directe d'un joueur (CreatePlayerModal)
+ * - Édition rapide via icône crayon bleue (mem://style/ui-patterns/management-actions)
+ *
+ * @access
+ * - Super Admin : tous les joueurs de toutes les équipes
+ * - Club Admin : joueurs de son club
+ * - Coach : joueurs de ses équipes assignées (RLS via get_coach_player_ids)
+ *
+ * @maintenance
+ * La suppression de joueur est réservée au Super Admin uniquement
+ * (mem://logic/permissions-joueurs).
+ */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

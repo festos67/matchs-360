@@ -1,3 +1,30 @@
+/**
+ * @page Evaluations
+ * @route /evaluations
+ *
+ * Liste centralisée des débriefs (évaluations) avec filtres croisés.
+ *
+ * @description
+ * Vue chronologique de tous les débriefs accessibles à l'utilisateur. Permet de
+ * naviguer rapidement vers une fiche joueur ou de créer un nouveau débrief.
+ *
+ * @filters (mem://features/debrief-filtering-workflow)
+ * - Recherche par nom de joueur
+ * - Filtre par équipe
+ * - Filtre par coach (auteur)
+ * - Pour les coachs : menu "Mes Débriefs" filtre auto sur evaluator_id
+ *   (mem://features/coach/personal-evaluations-view)
+ *
+ * @access
+ * - Admin / Club Admin : voient tous les débriefs de leur scope
+ * - Coach : uniquement ses équipes assignées
+ * - Joueur : ses propres débriefs (officiels + auto-débriefs)
+ * - Supporter : ses débriefs créés sur invitation
+ *
+ * @maintenance
+ * Auto-débriefs (`self`) et débriefs supporters n'apparaissent pas dans les
+ * stats officielles (mem://logic/assessment-data-isolation-rules).
+ */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Trophy, Search, Calendar, User, ChevronRight, Plus, X, ArrowLeft } from "lucide-react";
