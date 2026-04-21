@@ -24,7 +24,7 @@
  * Le soft-delete via `deleted_at` doit être systématiquement filtré
  * (mem://technical/soft-delete-strategy).
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,13 +32,18 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive, UserCog } from "lucide-react";
+import { Users, Plus, ChevronRight, ChevronDown, Search, Trash2, RotateCcw, Archive, UserCog } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +57,6 @@ import {
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { TeamCard } from "@/components/shared/TeamCard";
-import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {
