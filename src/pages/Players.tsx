@@ -413,6 +413,8 @@ const Players = () => {
       .sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredPlayers]);
 
+  const showClubLevel = clubGroups.length > 1;
+
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
     const last = lastName?.charAt(0) || "";
