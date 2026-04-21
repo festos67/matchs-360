@@ -1,3 +1,19 @@
+/**
+ * @component FrameworkHistorySheet
+ * @description Drawer (Sheet) listant les versions archivées d'un référentiel.
+ *              Permet de consulter l'historique et restaurer une version précédente.
+ * @access Responsable Club, Coach Référent, Super Admin
+ * @features
+ *  - Liste chronologique des versions archivées (archived_at)
+ *  - Badge "Modèle" / "Version X"
+ *  - Aperçu (nombre thèmes/compétences) par version
+ *  - Action de restauration avec AlertDialog de confirmation
+ *  - Restauration = nouvelle version active basée sur l'archivée
+ * @maintenance
+ *  - Cycle de vie : mem://features/framework-lifecycle-management
+ *  - Restauration entités archivées : mem://features/archived-entities-restoration
+ *  - Versions plus anciennes en lecture seule
+ */
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,18 @@
+/**
+ * @component PrintableRadarChart
+ * @description Radar SVG pur (sans recharts) optimisé pour rendu PDF. Génère un
+ *              graphe déterministe sans dépendance runtime, idéal pour html2canvas.
+ * @props
+ *  - datasets: ComparisonDataset[] — un ou plusieurs datasets superposés
+ *  - size?: number — taille du SVG en pixels
+ * @features
+ *  - Calcul manuel des coordonnées polaires (sin/cos)
+ *  - Styles inline pour fidélité PDF (pas de Tailwind requis)
+ *  - Support multi-datasets (comparaison Coach/Auto/Supporter)
+ * @maintenance
+ *  - Utilisé par PrintablePlayerSheet pour export PDF
+ *  - SVG embarqué = rendu fiable html2canvas (mem://style/pdf-reports-identity)
+ */
 interface RadarDataPoint {
   theme: string;
   score: number;

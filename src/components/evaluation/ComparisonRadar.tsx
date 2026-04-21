@@ -1,3 +1,19 @@
+/**
+ * @component ComparisonRadar
+ * @description Diagramme radar comparatif multi-débriefs (recharts). Superpose
+ *              jusqu'à 3 datasets (Coach officiel, Auto-débrief joueur, Supporter)
+ *              sur le même graphe avec légende externe pour stabilité visuelle.
+ * @props
+ *  - datasets: ComparisonDataset[] — datasets à comparer (label, data, color)
+ *  - maxScore?: number — échelle max (défaut 5)
+ * @features
+ *  - Légende externe pour éviter resize au toggle des couches
+ *  - Tooltip personnalisé avec scores formatés
+ *  - Couleurs configurables par dataset (HSL design tokens)
+ * @maintenance
+ *  - Stabilité visuelle : mem://technical/radar-chart-visual-stability
+ *  - Capacités god view (Admin/Club Admin) : mem://features/admin/god-view-capabilities
+ */
 import {
   Radar,
   RadarChart as RechartsRadarChart,

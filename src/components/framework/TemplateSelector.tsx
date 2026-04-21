@@ -1,3 +1,18 @@
+/**
+ * @component TemplateSelector
+ * @description Sélecteur de modèle pour initialiser un référentiel club. Propose
+ *              le Modèle Standard MATCHS360 (6 catégories) ou un référentiel
+ *              existant d'un autre club comme base.
+ * @access Responsable Club, Super Admin (depuis CreateClubFrameworkModal)
+ * @features
+ *  - 3 sources : Modèle Standard / Autre Club / Vide
+ *  - Aperçu de la structure (icônes BookOpen / Building2 / Users)
+ *  - Select pour choisir le club source si applicable
+ *  - Confirmation par bouton Continue (ArrowRight)
+ * @maintenance
+ *  - Modèle Standard 6 catégories : mem://features/competence-framework-template
+ *  - Cycle de vie : mem://features/framework-lifecycle-management
+ */
 import { useState, useEffect } from "react";
 import { FileText, BookOpen, Building2, Users, FileQuestion, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";

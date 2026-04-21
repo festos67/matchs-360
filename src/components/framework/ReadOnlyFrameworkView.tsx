@@ -1,3 +1,19 @@
+/**
+ * @component ReadOnlyFrameworkView
+ * @description Vue en lecture seule d'un référentiel : thèmes pliables avec
+ *              compétences et définitions. Utilisée par les joueurs, supporters,
+ *              et comme vue par défaut sur les pages de gestion.
+ * @access Tous rôles authentifiés (avec restrictions RLS sur le framework)
+ * @features
+ *  - Collapsible par thème (fermé par défaut pour vue compacte)
+ *  - Affichage des définitions sous chaque compétence
+ *  - Couleur de thème en accent visuel
+ *  - Pas d'actions d'édition (utiliser FrameworkEditDialog)
+ * @maintenance
+ *  - Visibilité joueur : mem://features/player-framework-visibility
+ *  - Accès supporter : mem://logic/supporter-data-access
+ *  - Vue par défaut gestion club : mem://features/club-framework-management
+ */
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
