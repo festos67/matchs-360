@@ -422,74 +422,130 @@ const Supporters = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {playerGroups.map(([playerId, group]) => {
-              const isOpen = collapsedPlayers[playerId] !== true;
+            {teamGroups.map((team) => {
+              const teamOpen = collapsedTeams[team.teamId] !== true;
+              const totalSupporters = team.players.reduce(
+                (acc, [, p]) => acc + p.supporters.length,
+                0,
+              );
               return (
-                <Collapsible key={playerId} open={isOpen} onOpenChange={() => togglePlayer(playerId)}>
-                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer">
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`} />
-                    <Heart className="w-4 h-4 text-primary" />
-                    <span className="font-display font-semibold text-sm">{group.playerName}</span>
-                    {group.teamName && (
-                      <Badge variant="outline" className="text-xs">{group.teamName}</Badge>
-                    )}
+                <Collapsible
+                  key={team.teamId}
+                  open={teamOpen}
+                  onOpenChange={() => toggleTeam(team.teamId)}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors cursor-pointer">
+                    <ChevronDown
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${
+                        teamOpen ? "" : "-rotate-90"
+                      }`}
+                    />
+                    <span className="font-display font-semibold text-sm uppercase tracking-wide">
+                      {team.teamName}
+                    </span>
                     <Badge variant="secondary" className="ml-auto text-xs">
-                      {group.supporters.length} supporter{group.supporters.length > 1 ? "s" : ""}
+                      {team.players.length} joueur{team.players.length > 1 ? "s" : ""} ·{" "}
+                      {totalSupporters} supporter{totalSupporters > 1 ? "s" : ""}
                     </Badge>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="rounded-lg border bg-card mt-1">
-                      <Table>
-                         <TableHeader>
-                          <TableRow>
-                            <TableHead>Supporter</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Joueurs suivis</TableHead>
-                            {canCreate && <TableHead className="w-[80px]">Actions</TableHead>}
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {group.supporters.map((supporter) => (
-                            <TableRow key={supporter.id}>
-                              <TableCell>
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarImage src={supporter.photo_url || undefined} />
-                                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                      {getInitials(supporter.first_name, supporter.last_name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="font-medium">{getDisplayName(supporter)}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <span className="text-sm text-muted-foreground">{supporter.email}</span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {supporter.players.map((p) => (
-                                    <Badge key={p.id} variant="secondary" className="text-xs">
-                                      {p.name}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </TableCell>
-                              {canCreate && (
-                                <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => openEditModal(supporter)}
-                                    className="text-blue-500 hover:text-blue-700"
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                </TableCell>
-                              )}
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                    <div className="space-y-3 mt-2 pl-4 border-l-2 border-primary/20">
+                      {team.players.map(([playerId, group]) => {
+                        const isOpen = collapsedPlayers[playerId] !== true;
+                        return (
+                          <Collapsible
+                            key={playerId}
+                            open={isOpen}
+                            onOpenChange={() => togglePlayer(playerId)}
+                          >
+                            <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer">
+                              <ChevronDown
+                                className={`w-4 h-4 text-muted-foreground transition-transform ${
+                                  isOpen ? "" : "-rotate-90"
+                                }`}
+                              />
+                              <Heart className="w-4 h-4 text-primary" />
+                              <span className="font-display font-semibold text-sm">
+                                {group.playerName}
+                              </span>
+                              <Badge variant="secondary" className="ml-auto text-xs">
+                                {group.supporters.length} supporter
+                                {group.supporters.length > 1 ? "s" : ""}
+                              </Badge>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div className="rounded-lg border bg-card mt-1">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Supporter</TableHead>
+                                      <TableHead>Email</TableHead>
+                                      <TableHead>Joueurs suivis</TableHead>
+                                      {canCreate && (
+                                        <TableHead className="w-[80px]">Actions</TableHead>
+                                      )}
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {group.supporters.map((supporter) => (
+                                      <TableRow key={supporter.id}>
+                                        <TableCell>
+                                          <div className="flex items-center gap-3">
+                                            <Avatar className="h-10 w-10">
+                                              <AvatarImage
+                                                src={supporter.photo_url || undefined}
+                                              />
+                                              <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                                {getInitials(
+                                                  supporter.first_name,
+                                                  supporter.last_name,
+                                                )}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <span className="font-medium">
+                                              {getDisplayName(supporter)}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <span className="text-sm text-muted-foreground">
+                                            {supporter.email}
+                                          </span>
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="flex flex-wrap gap-1.5">
+                                            {supporter.players.map((p) => (
+                                              <Badge
+                                                key={p.id}
+                                                variant="secondary"
+                                                className="text-xs"
+                                              >
+                                                {p.name}
+                                              </Badge>
+                                            ))}
+                                          </div>
+                                        </TableCell>
+                                        {canCreate && (
+                                          <TableCell>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              onClick={() => openEditModal(supporter)}
+                                              className="text-blue-500 hover:text-blue-700"
+                                            >
+                                              <Edit className="w-4 h-4" />
+                                            </Button>
+                                          </TableCell>
+                                        )}
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      })}
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
