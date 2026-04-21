@@ -1,3 +1,26 @@
+/**
+ * @page ResetPassword
+ * @route /reset-password
+ *
+ * Définition d'un nouveau mot de passe via lien de récupération.
+ * (mem://auth/password-reset-management)
+ *
+ * @description
+ * Cible des emails de reset envoyés depuis /auth. Détecte une session de
+ * récupération en vérifiant explicitement le hash URL (type=recovery), avec
+ * fallback sur supabase.auth.getSession() si absent.
+ *
+ * @flow
+ * 1. Récupération du token depuis le hash (#access_token=...)
+ * 2. Établissement d'une session temporaire de récupération
+ * 3. Saisie du nouveau mot de passe + confirmation
+ * 4. Mise à jour via supabase.auth.updateUser
+ * 5. Redirection vers /dashboard
+ *
+ * @maintenance
+ * Le hash est nettoyé après usage (window.history.replaceState) pour empêcher
+ * le rejeu de l'URL et éviter d'exposer le token dans les logs analytics.
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Lock, ArrowRight, CheckCircle } from "lucide-react";

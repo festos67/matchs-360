@@ -1,3 +1,28 @@
+/**
+ * @page Profile
+ * @route /profile
+ *
+ * Page de gestion du profil utilisateur courant.
+ * (mem://features/profile-management)
+ *
+ * @description
+ * Permet à tout utilisateur connecté de gérer ses informations personnelles,
+ * sa photo de profil, et de visualiser ses rôles et affiliations actifs.
+ *
+ * @sections
+ * - Informations : prénom, nom, surnom, email (lecture seule)
+ * - Photo de profil : upload via PhotoCropModal (recadrage circulaire)
+ *   (mem://technical/media-processing-workflow)
+ * - Mes rôles : badges des rôles actifs avec affiliations club/équipe
+ * - Sécurité : changement de mot de passe
+ *
+ * @access Tout utilisateur authentifié (auto-scopé sur user.id)
+ *
+ * @maintenance
+ * - L'upload photo suit le flux : crop local → user-photos bucket → MAJ profile
+ *   (mem://technical/user-invitation-photo-sync)
+ * - L'URL inclut un timestamp pour cache-busting (?v=Date.now())
+ */
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

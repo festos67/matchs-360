@@ -1,3 +1,30 @@
+/**
+ * @page InviteAccept
+ * @route /invite-accept
+ *
+ * Finalisation d'une invitation reçue par email.
+ * (mem://auth/invitation-system)
+ *
+ * @description
+ * Cible des liens magiques envoyés par notify.match360.com. L'utilisateur arrive
+ * avec un token dans le hash URL, choisit son mot de passe et se voit
+ * automatiquement attribuer son rôle (coach, player, supporter) ainsi que ses
+ * affiliations club/équipe selon le contenu de l'invitation.
+ *
+ * @validation
+ * Schéma Zod : mot de passe ≥ 8 caractères + confirmation identique.
+ *
+ * @flow
+ * 1. Extraction du token depuis le hash URL
+ * 2. Création du compte via supabase.auth.updateUser
+ * 3. Activation des entrées `user_roles` et `team_members` rattachées
+ *    à l'invitation (statut → "accepted")
+ * 4. Redirection vers le dashboard du nouveau rôle
+ *
+ * @maintenance
+ * Le hash est consommé puis nettoyé pour éviter le rejeu.
+ * Si l'invitation est expirée (`expires_at < now()`), affiche une erreur claire.
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Lock, Check, AlertCircle } from "lucide-react";

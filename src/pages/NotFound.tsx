@@ -1,3 +1,15 @@
+/**
+ * @page NotFound
+ * @route * (catch-all)
+ *
+ * Page 404 affichée pour toute route non reconnue.
+ *
+ * @description
+ * Logue l'URL fautive en console pour faciliter le diagnostic des liens cassés
+ * (notamment dans les emails d'invitation ou les exports PDF).
+ *
+ * @access Public
+ */
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 

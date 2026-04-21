@@ -1,3 +1,33 @@
+/**
+ * @page FrameworkEditor
+ * @route /teams/:teamId/framework
+ *
+ * Éditeur du référentiel d'une équipe avec drag-drop des thèmes/compétences.
+ * (mem://features/framework-editor-interaction)
+ *
+ * @description
+ * Permet de réorganiser, ajouter, modifier ou supprimer thèmes et compétences
+ * d'un framework d'équipe. Le drag-drop est géré par dnd-kit et persiste
+ * `order_index` à la BD.
+ *
+ * @features
+ * - DnD thèmes (SortableTheme) et compétences (SortableSkill)
+ * - Tooltip pour la définition d'une compétence
+ * - Popover d'édition rapide (nom + définition)
+ * - Color picker grille 10 couleurs pour les thèmes
+ *   (mem://style/ui-patterns/color-picker)
+ * - Sauvegarde explicite + génération de snapshot
+ *
+ * @access
+ * - Coach Référent / Club Admin / Admin : édition complète
+ * - Coach Assistant / Joueur / Supporter : lecture seule (page bloquée)
+ *
+ * @maintenance
+ * - Les snapshots sont créés à chaque save pour préserver l'historique des
+ *   évaluations passées (mem://technical/framework-snapshot-system)
+ * - Les anciennes versions de framework sont en lecture seule
+ *   (mem://features/framework-lifecycle-management)
+ */
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {

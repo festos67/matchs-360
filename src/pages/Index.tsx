@@ -1,3 +1,25 @@
+/**
+ * @page Index
+ * @route /
+ *
+ * Landing page publique de MATCHS360.
+ *
+ * @description
+ * Page d'accueil marketing présentant la valeur ajoutée du produit aux visiteurs
+ * non authentifiés. Si l'utilisateur est déjà connecté, redirige automatiquement
+ * vers son dashboard via DashboardRedirect.
+ *
+ * @sections
+ * - Hero : titre + CTA "Commencer"
+ * - Features : 4 cartes mettant en avant les bénéfices clés
+ * - CTA final : redirection vers /auth
+ *
+ * @access Public (route non protégée)
+ *
+ * @maintenance
+ * Identité visuelle MATCHS360 (#3B82F6) — voir mem://style/role-branding-standard.
+ * Si connecté, le useEffect navigate("/dashboard") évite le flash de la landing.
+ */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 

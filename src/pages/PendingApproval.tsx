@@ -1,3 +1,26 @@
+/**
+ * @page PendingApproval
+ * @route /pending-approval
+ *
+ * Écran d'attente affiché aux utilisateurs ayant fait une demande de rôle
+ * non encore validée par un Super Admin.
+ *
+ * @description
+ * Inscription publique → création d'une entrée dans `role_requests` (statut
+ * "pending") → redirection ici. L'utilisateur attend une décision visible
+ * dans un badge (En attente / Approuvé / Refusé).
+ *
+ * @features
+ * - Polling manuel via bouton "Rafraîchir" (vérifie role_requests.status)
+ * - Bouton de déconnexion
+ * - Badge dynamique avec raison du refus si applicable
+ *
+ * @access Tout utilisateur connecté sans rôle actif (sauf Super Admin)
+ *
+ * @maintenance
+ * Une fois la requête approuvée par /admin/role-approvals, le user est
+ * automatiquement redirigé vers son dashboard de rôle au prochain refresh.
+ */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Clock, CheckCircle2, XCircle, LogOut, RefreshCw } from "lucide-react";

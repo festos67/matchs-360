@@ -1,3 +1,25 @@
+/**
+ * @page RoleApprovals
+ * @route /admin/role-approvals
+ *
+ * Console de modération des demandes de rôle (Super Admin uniquement).
+ *
+ * @description
+ * Liste les `role_requests` en attente. Le Super Admin peut approuver
+ * (création de l'entrée user_roles) ou refuser avec raison.
+ *
+ * @features
+ * - Filtres par rôle demandé et statut
+ * - Approbation : crée user_roles + notifie l'utilisateur
+ * - Refus : exige une raison textuelle (rejection_reason)
+ * - Affichage des informations du demandeur (avatar, email, date)
+ *
+ * @access Super Admin uniquement
+ *
+ * @maintenance
+ * L'approbation déclenche une notification in-app au demandeur
+ * (mem://features/in-app-notifications).
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle, XCircle, Clock, User, Mail, Shield, Dumbbell, Users, Heart } from "lucide-react";
