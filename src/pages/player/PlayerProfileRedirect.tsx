@@ -1,3 +1,15 @@
+/**
+ * @page PlayerProfileRedirect
+ * @route /player/profile
+ *
+ * Redirection automatique vers la fiche personnelle du Joueur courant.
+ *
+ * @description
+ * Tampon : récupère user.id via useAuth et redirige vers /players/:userId
+ * (PlayerDetail) en mode self-view (interface restreinte).
+ *
+ * @access Joueur connecté
+ */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

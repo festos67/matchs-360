@@ -1,3 +1,17 @@
+/**
+ * @page MySupporters
+ * @route /player/my-supporters
+ *
+ * Liste des supporters liés au Joueur courant.
+ *
+ * @description
+ * Vue lecture seule des supporters (parents, proches) qui ont un lien actif
+ * dans `supporters_link`. Le joueur ne peut pas ajouter/retirer un supporter
+ * lui-même — la gestion est déléguée au coach via ManageSupportersModal
+ * (mem://features/supporter-management/centralized-modal).
+ *
+ * @access Joueur connecté (auto-scopé sur user.id)
+ */
 import { useQuery } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";

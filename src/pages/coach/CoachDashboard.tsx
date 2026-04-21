@@ -1,3 +1,21 @@
+/**
+ * @page CoachDashboard
+ * @route /coach/dashboard
+ *
+ * Tableau de bord d'accueil du Coach.
+ *
+ * @description
+ * Vue synthétique : KPI sur ses équipes assignées, raccourcis vers la création
+ * de débriefs, et derniers débriefs réalisés.
+ *
+ * @access Coach (Référent ou Assistant) — voit uniquement ses équipes via RLS
+ *   (mem://logic/coach-teams-visibility)
+ *
+ * @maintenance
+ * Le menu sidebar du coach commence par "Mon Club" (CoachMyClub) puis
+ * "Mes équipes", "Mes joueurs", "Les supporters"
+ * (mem://navigation/role-based-sidebar-order).
+ */
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

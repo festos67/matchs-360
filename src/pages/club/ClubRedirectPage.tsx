@@ -1,3 +1,20 @@
+/**
+ * @page ClubRedirectPage
+ * @route /club ou /my-club
+ *
+ * Redirection automatique vers la fiche du club du Club Admin courant.
+ * (mem://navigation/club-admin-navigation)
+ *
+ * @description
+ * Page tampon utilisée dans la sidebar des Club Admins. Récupère le `club_id`
+ * de l'utilisateur via useAuth et redirige vers /clubs/:clubId.
+ *
+ * @access Club Admin
+ *
+ * @maintenance
+ * Affiche un loader pendant la résolution. Si l'utilisateur n'a pas de club
+ * (cas anormal), redirige vers /dashboard.
+ */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
