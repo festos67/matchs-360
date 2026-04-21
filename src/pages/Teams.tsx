@@ -350,6 +350,7 @@ const Teams = () => {
           (() => {
             // Group teams by club
             const grouped: Record<string, {
+              clubId: string;
               clubName: string;
               clubColor: string;
               clubShortName: string | null;
@@ -360,6 +361,7 @@ const Teams = () => {
               const clubId = team.clubs?.id || "no-club";
               if (!grouped[clubId]) {
                 grouped[clubId] = {
+                  clubId,
                   clubName: team.clubs?.name || "Sans club",
                   clubColor: team.clubs?.primary_color || "#6366f1",
                   clubShortName: team.clubs?.short_name || null,
@@ -370,19 +372,14 @@ const Teams = () => {
               grouped[clubId].teams!.push(team);
             });
             const sortedGroups = Object.values(grouped).sort((a, b) => a.clubName.localeCompare(b.clubName));
+            const showClubLevel = sortedGroups.length > 1;
 
             return (
-              <div className="space-y-6">
-                {sortedGroups.map((group) => (
-                  <div key={group.clubName}>
-                    <ClubGroupHeader
-                      name={group.clubName}
-                      shortName={group.clubShortName}
-                      logoUrl={group.clubLogoUrl}
-                      primaryColor={group.clubColor}
-                      count={group.teams!.length}
-                    />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              <div className="space-y-4">
+                {sortedGroups.map((group) => {
+                  const clubOpen = collapsedClubs[group.clubId] !== true;
+                  const teamsGrid = (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                       {group.teams!.map((team) => (
                         <div key={team.id} className="relative group">
                           {showArchived ? (
@@ -390,7 +387,7 @@ const Teams = () => {
                               <div className="flex flex-col items-center text-center">
                                 <div className="relative">
                                   <div
-                                    className="w-24 h-24 rounded-2xl flex items-center justify-center font-display font-bold text-2xl text-white"
+                                    className="w-full aspect-square max-w-[7rem] rounded-2xl flex items-center justify-center font-display font-bold text-white text-[clamp(1rem,4vw,1.75rem)]"
                                     style={{
                                       background: `linear-gradient(135deg, ${team.color || team.clubs?.primary_color || "#6366f1"} 0%, ${team.color || team.clubs?.primary_color || "#6366f1"}88 100%)`,
                                     }}
@@ -411,7 +408,7 @@ const Teams = () => {
                                   </Badge>
                                 </div>
                                 <p className="font-semibold text-foreground mt-2 text-sm">{team.name}</p>
-                                {team.season && (
+                                {team.season && team.season !== currentSeason && (
                                   <p className="text-xs text-muted-foreground mt-0.5">{team.season}</p>
                                 )}
                                 <p className="text-xs text-muted-foreground">
@@ -440,6 +437,7 @@ const Teams = () => {
                                 shortName={team.short_name}
                                 color={team.color || team.clubs?.primary_color}
                                 season={team.season}
+                                hideSeason={team.season === currentSeason}
                                 referentCoachName={getReferentCoachName(team)}
                                 playerCount={getTeamMemberCount(team)}
                               />
@@ -462,8 +460,50 @@ const Teams = () => {
                         </div>
                       ))}
                     </div>
-                  </div>
-                ))}
+                  );
+
+                  if (!showClubLevel) {
+                    return <div key={group.clubId}>{teamsGrid}</div>;
+                  }
+
+                  const clubInitials = (group.clubShortName || group.clubName.slice(0, 2)).toUpperCase();
+                  return (
+                    <Collapsible
+                      key={group.clubId}
+                      open={clubOpen}
+                      onOpenChange={() => toggleClub(group.clubId)}
+                    >
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-accent/10 hover:bg-accent/15 transition-colors cursor-pointer">
+                        <ChevronDown
+                          className={`w-4 h-4 text-muted-foreground transition-transform ${clubOpen ? "" : "-rotate-90"}`}
+                        />
+                        <div
+                          className="w-6 h-6 rounded flex items-center justify-center overflow-hidden shrink-0"
+                          style={{ backgroundColor: group.clubLogoUrl ? "transparent" : group.clubColor }}
+                        >
+                          {group.clubLogoUrl ? (
+                            <img src={group.clubLogoUrl} alt={group.clubName} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-white leading-none">
+                              {clubInitials}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-display font-bold text-sm uppercase tracking-wider">
+                          {group.clubName}
+                        </span>
+                        <Badge variant="secondary" className="ml-auto text-xs">
+                          {group.teams!.length} équipe{group.teams!.length > 1 ? "s" : ""}
+                        </Badge>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="mt-3 pl-4 border-l-2 border-primary/20">
+                          {teamsGrid}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
               </div>
             );
           })()
