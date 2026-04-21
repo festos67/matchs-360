@@ -1,3 +1,19 @@
+/**
+ * @module edge-function-errors
+ * @description Helper de normalisation des erreurs remontées par les Edge Functions
+ *              Supabase (FunctionsHttpError, FunctionsRelayError, FunctionsFetchError).
+ *              Extrait un message lisible en français pour l'affichage utilisateur.
+ * @exports
+ *  - getEdgeFunctionErrorMessage(error) : Promise<string>
+ * @features
+ *  - Gestion FunctionsHttpError : tente de parser le body JSON pour extraire .error
+ *  - Gestion FunctionsRelayError / FunctionsFetchError : message générique réseau
+ *  - Fallback "Une erreur est survenue" pour erreurs inconnues
+ * @maintenance
+ *  - Edge Functions concernées : admin-users, send-invitation, import-framework, etc.
+ *  - À utiliser systématiquement dans les catch d'invocations supabase.functions.invoke
+ *  - Cohérence des messages utilisateur français
+ */
 import {
   FunctionsFetchError,
   FunctionsHttpError,

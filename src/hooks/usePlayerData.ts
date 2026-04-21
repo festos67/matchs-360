@@ -1,3 +1,23 @@
+/**
+ * @hook usePlayerData
+ * @description Hook composite agrégeant toutes les données nécessaires à la fiche
+ *              joueur : profil, équipe, club, référentiel actif, débriefs (3 types),
+ *              objectifs, supporters liés, demandes en attente.
+ * @param playerId — UUID du joueur cible
+ * @returns Objet groupé { player, team, club, framework, evaluations, objectives, supporters, ... }
+ * @features
+ *  - useQuery (TanStack) : cache + refetch + invalidation
+ *  - Chargement parallèle des sources (profile, team_members, evaluations, etc.)
+ *  - Filtrage soft delete (.is("deleted_at", null)) systématique
+ *  - Tri chronologique des débriefs (date desc)
+ *  - Séparation par type d'évaluation (coach / self / supporter)
+ *  - Chargement référentiel via framework-loader (snapshot ou actif)
+ * @maintenance
+ *  - Soft delete : mem://technical/soft-delete-strategy
+ *  - Snapshot framework : mem://technical/framework-snapshot-system
+ *  - Isolation débriefs consultatifs : mem://logic/assessment-data-isolation-rules
+ *  - Source de vérité team_members : mem://logic/coach-role-integrity
+ */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
