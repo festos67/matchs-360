@@ -24,7 +24,7 @@
  * Le soft-delete via `deleted_at` doit être systématiquement filtré
  * (mem://technical/soft-delete-strategy).
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,13 +32,18 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, ChevronRight, Search, Trash2, RotateCcw, Archive, UserCog } from "lucide-react";
+import { Users, Plus, ChevronRight, ChevronDown, Search, Trash2, RotateCcw, Archive, UserCog } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +57,6 @@ import {
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { TeamCard } from "@/components/shared/TeamCard";
-import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {
@@ -71,6 +75,19 @@ type TeamWithRelations = Tables<"teams"> & {
   team_members: TeamMemberPartial[];
 };
 
+const STORAGE_KEY_CLUBS = "teams-collapsed-clubs";
+
+/**
+ * Saison sportive courante (août → juillet).
+ * Ex: en mars 2026 → "2025-2026".
+ */
+const getCurrentSeason = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const startYear = now.getMonth() >= 6 ? y : y - 1;
+  return `${startYear}-${startYear + 1}`;
+};
+
 const Teams = () => {
   const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
   const queryClient = useQueryClient();
@@ -82,6 +99,24 @@ const Teams = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const currentSeason = getCurrentSeason();
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["teams", user?.id, currentRole?.role, showArchived],
@@ -315,6 +350,7 @@ const Teams = () => {
           (() => {
             // Group teams by club
             const grouped: Record<string, {
+              clubId: string;
               clubName: string;
               clubColor: string;
               clubShortName: string | null;
@@ -325,6 +361,7 @@ const Teams = () => {
               const clubId = team.clubs?.id || "no-club";
               if (!grouped[clubId]) {
                 grouped[clubId] = {
+                  clubId,
                   clubName: team.clubs?.name || "Sans club",
                   clubColor: team.clubs?.primary_color || "#6366f1",
                   clubShortName: team.clubs?.short_name || null,
@@ -335,19 +372,14 @@ const Teams = () => {
               grouped[clubId].teams!.push(team);
             });
             const sortedGroups = Object.values(grouped).sort((a, b) => a.clubName.localeCompare(b.clubName));
+            const showClubLevel = sortedGroups.length > 1;
 
             return (
-              <div className="space-y-6">
-                {sortedGroups.map((group) => (
-                  <div key={group.clubName}>
-                    <ClubGroupHeader
-                      name={group.clubName}
-                      shortName={group.clubShortName}
-                      logoUrl={group.clubLogoUrl}
-                      primaryColor={group.clubColor}
-                      count={group.teams!.length}
-                    />
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              <div className="space-y-4">
+                {sortedGroups.map((group) => {
+                  const clubOpen = collapsedClubs[group.clubId] !== true;
+                  const teamsGrid = (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                       {group.teams!.map((team) => (
                         <div key={team.id} className="relative group">
                           {showArchived ? (
@@ -355,7 +387,7 @@ const Teams = () => {
                               <div className="flex flex-col items-center text-center">
                                 <div className="relative">
                                   <div
-                                    className="w-24 h-24 rounded-2xl flex items-center justify-center font-display font-bold text-2xl text-white"
+                                    className="w-full aspect-square max-w-[7rem] rounded-2xl flex items-center justify-center font-display font-bold text-white text-[clamp(1rem,4vw,1.75rem)]"
                                     style={{
                                       background: `linear-gradient(135deg, ${team.color || team.clubs?.primary_color || "#6366f1"} 0%, ${team.color || team.clubs?.primary_color || "#6366f1"}88 100%)`,
                                     }}
@@ -376,7 +408,7 @@ const Teams = () => {
                                   </Badge>
                                 </div>
                                 <p className="font-semibold text-foreground mt-2 text-sm">{team.name}</p>
-                                {team.season && (
+                                {team.season && team.season !== currentSeason && (
                                   <p className="text-xs text-muted-foreground mt-0.5">{team.season}</p>
                                 )}
                                 <p className="text-xs text-muted-foreground">
@@ -405,6 +437,7 @@ const Teams = () => {
                                 shortName={team.short_name}
                                 color={team.color || team.clubs?.primary_color}
                                 season={team.season}
+                                hideSeason={team.season === currentSeason}
                                 referentCoachName={getReferentCoachName(team)}
                                 playerCount={getTeamMemberCount(team)}
                               />
@@ -427,8 +460,50 @@ const Teams = () => {
                         </div>
                       ))}
                     </div>
-                  </div>
-                ))}
+                  );
+
+                  if (!showClubLevel) {
+                    return <div key={group.clubId}>{teamsGrid}</div>;
+                  }
+
+                  const clubInitials = (group.clubShortName || group.clubName.slice(0, 2)).toUpperCase();
+                  return (
+                    <Collapsible
+                      key={group.clubId}
+                      open={clubOpen}
+                      onOpenChange={() => toggleClub(group.clubId)}
+                    >
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-accent/10 hover:bg-accent/15 transition-colors cursor-pointer">
+                        <ChevronDown
+                          className={`w-4 h-4 text-muted-foreground transition-transform ${clubOpen ? "" : "-rotate-90"}`}
+                        />
+                        <div
+                          className="w-6 h-6 rounded flex items-center justify-center overflow-hidden shrink-0"
+                          style={{ backgroundColor: group.clubLogoUrl ? "transparent" : group.clubColor }}
+                        >
+                          {group.clubLogoUrl ? (
+                            <img src={group.clubLogoUrl} alt={group.clubName} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-white leading-none">
+                              {clubInitials}
+                            </span>
+                          )}
+                        </div>
+                        <span className="font-display font-bold text-sm uppercase tracking-wider">
+                          {group.clubName}
+                        </span>
+                        <Badge variant="secondary" className="ml-auto text-xs">
+                          {group.teams!.length} équipe{group.teams!.length > 1 ? "s" : ""}
+                        </Badge>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="mt-3 pl-4 border-l-2 border-primary/20">
+                          {teamsGrid}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
               </div>
             );
           })()
