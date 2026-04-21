@@ -43,7 +43,14 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
+
+const STORAGE_KEY_CLUBS = "coaches-collapsed-clubs";
 
 interface CoachData {
   id: string;
@@ -76,6 +83,22 @@ const Coaches = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     fetchCoaches();
@@ -215,6 +238,7 @@ const Coaches = () => {
 
   const groupedCoaches = useMemo(() => {
     const groups: Record<string, {
+      clubId: string;
       clubName: string;
       clubShortName: string | null;
       clubLogoUrl: string | null;
@@ -225,6 +249,7 @@ const Coaches = () => {
       const key = coach.club_id || "no-club";
       if (!groups[key]) {
         groups[key] = {
+          clubId: key,
           clubName: coach.club_name || "Sans club",
           clubShortName: coach.club_short_name || null,
           clubLogoUrl: coach.club_logo_url || null,
@@ -236,6 +261,8 @@ const Coaches = () => {
     });
     return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredCoaches]);
+
+  const showClubLevel = groupedCoaches.length > 1;
 
   useEffect(() => { setTeamFilter("all"); }, [clubFilter]);
 
@@ -341,15 +368,11 @@ const Coaches = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {groupedCoaches.map((group) => (
-              <div key={group.clubName}>
-                <ClubGroupHeader
-                  name={group.clubName}
-                  shortName={group.clubShortName}
-                  logoUrl={group.clubLogoUrl}
-                  primaryColor={group.clubPrimaryColor}
-                  count={group.coaches.length}
-                />
+            {groupedCoaches.map((group) => {
+              const clubOpen = collapsedClubs[group.clubId] !== true;
+              const clubInitials = (group.clubShortName || group.clubName.slice(0, 2)).toUpperCase();
+              const clubColor = group.clubPrimaryColor || "hsl(var(--primary))";
+              const tableBlock = (
                 <div className="rounded-lg border bg-card">
                   <Table>
                     <TableHeader>
@@ -428,8 +451,51 @@ const Coaches = () => {
                     </TableBody>
                   </Table>
                 </div>
-              </div>
-            ))}
+              );
+
+              if (!showClubLevel) {
+                return <div key={group.clubId}>{tableBlock}</div>;
+              }
+
+              return (
+                <Collapsible
+                  key={group.clubId}
+                  open={clubOpen}
+                  onOpenChange={() => toggleClub(group.clubId)}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-accent/10 hover:bg-accent/15 transition-colors cursor-pointer">
+                    <ChevronDown
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${
+                        clubOpen ? "" : "-rotate-90"
+                      }`}
+                    />
+                    <div
+                      className="w-6 h-6 rounded flex items-center justify-center overflow-hidden shrink-0"
+                      style={{ backgroundColor: group.clubLogoUrl ? "transparent" : clubColor }}
+                    >
+                      {group.clubLogoUrl ? (
+                        <img src={group.clubLogoUrl} alt={group.clubName} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-white leading-none">
+                          {clubInitials}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-display font-bold text-sm uppercase tracking-wider">
+                      {group.clubName}
+                    </span>
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {group.coaches.length} coach{group.coaches.length > 1 ? "s" : ""}
+                    </Badge>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="mt-2 pl-4 border-l-2 border-primary/20">
+                      {tableBlock}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         )}
       </div>
