@@ -1,3 +1,28 @@
+/**
+ * @component TeamAssignmentMatrix
+ * @description Matrice d'affectation multi-équipes utilisée dans CreateCoachModal
+ *              et EditCoachModal. Pour chaque équipe : Switch d'activation +
+ *              sélecteur de rôle (Référent / Assistant). Détecte les changements
+ *              vs état initial pour optimiser les writes.
+ * @props
+ *  - teams: Team[] — équipes disponibles dans le club
+ *  - assignments: TeamAssignmentItem[] — état courant (toggle + rôle + originaux)
+ *  - loading: boolean
+ *  - onToggle(teamId) : bascule activation
+ *  - onRoleChange(teamId, role) : change Référent ↔ Assistant
+ *  - helperText?: string
+ * @types
+ *  - TeamAssignmentItem : { teamId, assigned, role, originalAssigned?, originalRole? }
+ * @features
+ *  - Switch shadcn pour activation par équipe
+ *  - Toggle binaire Référent/Assistant (impossible d'avoir 2 Référents : géré côté DB)
+ *  - State diff (originalX) pour ne writer que les changements
+ *  - HelperText explicatif au-dessus de la matrice
+ * @maintenance
+ *  - Workflow coach : mem://features/coach-team-workflow
+ *  - Coach Référent unique par équipe (index unique DB) : mem://technical/database-integrity
+ *  - Source de vérité team_members : mem://logic/coach-role-integrity
+ */
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";

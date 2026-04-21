@@ -1,12 +1,25 @@
+/**
+ * @hook useTeamProgression
+ * @description Calcule la progression moyenne d'une équipe en comparant pour
+ *              chaque joueur ses deux derniers débriefs coach officiels (t0 vs t-1).
+ *              Les joueurs ayant moins de 2 débriefs sont exclus du calcul.
+ * @param teamId — UUID de l'équipe
+ * @param playerIds — liste des IDs des joueurs actifs de l'équipe
+ * @returns { progression, loading, eligiblePlayersCount }
+ *          progression = pourcentage moyen de variation entre t-1 et t0
+ * @features
+ *  - useQuery avec key composite [teamId, playerIds]
+ *  - Récupération des 2 derniers débriefs coach par joueur (type='coach', deleted_at null)
+ *  - Calcul moyenne globale par débrief puis variation %
+ *  - Exclusion automatique joueurs < 2 débriefs (fairness)
+ * @maintenance
+ *  - Logique progression individuelle : mem://features/progression-percentage-logic
+ *  - KPI équipe : mem://features/team-progression-kpi
+ *  - Calculs scores : mem://logic/evaluation/calculations-logic
+ *  - Débriefs consultatifs (self/supporter) exclus
+ */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-/**
- * Calculate team average progression by comparing each player's
- * two most recent coach evaluations (t0 vs t-1).
- * 
- * Players with fewer than 2 evaluations are excluded.
- */
 export function useTeamProgression(teamId: string | undefined, playerIds: string[]) {
   return useQuery({
     queryKey: ["team-progression", teamId, playerIds],

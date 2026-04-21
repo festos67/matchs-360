@@ -1,3 +1,25 @@
+/**
+ * @module evaluation-utils
+ * @description Bibliothèque de calculs centralisée pour les débriefs : moyennes
+ *              par thème, moyenne globale, formatage radar, libellés de scores.
+ *              Source de vérité unique — toute formule métier doit transiter ici.
+ * @exports
+ *  - SCORE_LABELS : libellés des notes (0-5) — "Non noté" à "Excellent"
+ *  - calculateThemeAverage : moyenne d'un thème (ignore is_not_observed et score=0)
+ *  - calculateOverallAverage : moyenne globale toutes compétences confondues
+ *  - calculateRadarData : transformation scores → datapoints radar (theme, score, color)
+ *  - formatAverage : formatage "X.XX/5" pour affichage
+ * @types
+ *  - EvaluationType : 'coach' | 'self' | 'supporter'
+ *  - FrameworkSnapshot : snapshot JSONB stocké dans framework_snapshots
+ *  - SkillScore / ThemeScores : structures de saisie du formulaire
+ * @maintenance
+ *  - Règle : ignore systématiquement is_not_observed=true ET score=0
+ *  - Logique complète : mem://logic/evaluation/calculations-logic
+ *  - Snapshot system : mem://technical/framework-snapshot-system
+ *  - Isolation débriefs consultatifs : mem://logic/assessment-data-isolation-rules
+ */
+
 // Evaluation calculation utilities
 
 export type EvaluationType = 'coach' | 'self' | 'supporter';

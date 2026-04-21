@@ -1,11 +1,22 @@
+/**
+ * @module framework-snapshot
+ * @description Bibliothèque de gestion des instantanés (snapshots) de référentiels.
+ *              Crée une copie JSONB du référentiel actuel avant chaque modification
+ *              pour préserver l'historique des versions et permettre la restauration
+ *              des débriefs avec leur référentiel d'origine.
+ * @exports
+ *  - snapshotFramework(frameworkId) : crée un snapshot dans framework_snapshots
+ * @features
+ *  - Optimisé : 3 requêtes (1 framework + 1 batch themes + 1 batch skills)
+ *  - Sérialisation JSONB complète (id, name, themes[], skills[])
+ *  - Appelé automatiquement à chaque save d'éditeur ou création de débrief
+ * @maintenance
+ *  - Système snapshot : mem://technical/framework-snapshot-system
+ *  - Cycle de vie : mem://features/framework-lifecycle-management
+ *  - Politique de purge : mem://technical/data-retention-policy
+ */
 import { supabase } from "@/integrations/supabase/client";
 import type { FrameworkTheme, FrameworkSkill } from "@/lib/framework-loader";
-
-/**
- * Creates an archived snapshot of the current framework (with all themes and skills)
- * before applying changes. This preserves the previous version in the history.
- * Optimised: 3 queries total (1 framework + 1 batch themes + 1 batch skills).
- */
 export async function snapshotFramework(frameworkId: string): Promise<void> {
   // 1. Fetch current framework
   const { data: fw, error: fwError } = await supabase

@@ -1,3 +1,29 @@
+/**
+ * @hook useCreateCoach
+ * @description Hook centralisant toute la logique métier de création d'un coach.
+ *              Encapsule la gestion du formulaire (react-hook-form + Zod), les
+ *              modes Nouveau/Existant, l'upload photo, l'affectation multi-équipes
+ *              et les appels Edge Functions (admin-users / send-invitation).
+ * @param clubId — club cible auquel rattacher le coach
+ * @param open — état d'ouverture de la modale (pour reset auto)
+ * @param onSuccess — callback succès (rafraîchissement parent)
+ * @param onClose — callback fermeture après succès
+ * @returns Bundle de state, handlers et form pour CreateCoachModal
+ * @features
+ *  - Validation Zod (email format, nom requis)
+ *  - Mode "Nouveau" : invitation par Edge Function send-invitation
+ *  - Mode "Existant" : ajout du rôle via insertion user_roles
+ *  - TeamAssignmentMatrix : toggle équipes + sélection rôle Référent/Assistant
+ *  - Upload photo orchestré (local → create user → upload → update profile)
+ *  - Vérification limites plan via usePlanLimitHandler (PlanLimitAlert)
+ *  - Gestion erreurs Edge Functions via getEdgeFunctionErrorMessage
+ * @maintenance
+ *  - Workflow d'affectation : mem://logic/coach-assignment-workflow
+ *  - Multi-équipes & rôles : mem://features/coach-team-workflow
+ *  - Mode promotion : mem://features/user-role-management/promotion-mode
+ *  - Sync photo invitation : mem://technical/user-invitation-photo-sync
+ *  - Coach Référent intégrité : mem://logic/coach-role-integrity
+ */
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -1,3 +1,24 @@
+/**
+ * @hook useAuth + AuthProvider
+ * @description Provider et hook central d'authentification de l'application.
+ *              Gère la session Supabase, le profil enrichi (profiles + user_roles),
+ *              le rôle actif (multi-rôles) et expose les méthodes signIn/signOut.
+ * @access Wrapper racine de toute l'application (App.tsx)
+ * @features
+ *  - Listener supabase.auth.onAuthStateChange (rafraîchissement automatique)
+ *  - Chargement parallèle profiles + user_roles à chaque session
+ *  - Détermination du rôle actif (persistance localStorage par utilisateur)
+ *  - Détection compte soft-deleted (deleted_at) → signOut auto
+ *  - Méthodes : signIn, signOut, switchRole, refreshProfile
+ *  - Déduplication appels via état loading
+ * @maintenance
+ *  - Sécurité : ne JAMAIS stocker le rôle dans localStorage côté client
+ *    (vérification serveur uniquement via has_role / RLS)
+ *  - Soft delete : mem://technical/soft-delete-strategy
+ *  - Bascule de rôle : mem://auth/role-switching-logic
+ *  - Super Admin restreint : mem://auth/super-admin (asahand@protonmail.com)
+ *  - Anti-récursion RLS via SECURITY DEFINER : mem://technical/rls-recursion-prevention
+ */
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";

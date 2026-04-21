@@ -1,3 +1,20 @@
+/**
+ * @hook usePlan
+ * @description Hook fournissant le statut d'abonnement du club courant : plan
+ *              actif (free/pro), période d'essai, dates de fin, et les limites
+ *              applicables (max joueurs, max coachs, fonctionnalités premium).
+ * @returns { planStatus, loading } — PlanStatus = { plan, limits, subscription, isTrialActive, daysLeftInTrial }
+ * @features
+ *  - Récupération en cascade : profile → club_id → subscriptions actives
+ *  - Lecture des limites via plan_limits (table de référence par plan)
+ *  - Détection trial actif (is_trial=true + ends_at > now)
+ *  - Calcul jours restants pour TrialBanner
+ *  - Cache local pour éviter requêtes répétées
+ * @maintenance
+ *  - Limites consommées par usePlanLimitHandler (intercepte erreurs PLAN_LIMIT_*)
+ *  - Banner d'essai : src/components/subscription/TrialBanner.tsx
+ *  - Gestion limites : appliquée par triggers Postgres côté DB
+ */
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";

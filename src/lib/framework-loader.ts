@@ -1,3 +1,20 @@
+/**
+ * @module framework-loader
+ * @description Bibliothèque de chargement des référentiels de compétences depuis
+ *              la base. Gère deux sources : référentiel actif (competence_frameworks
+ *              + themes + skills) ou snapshot historique (framework_snapshots JSONB).
+ * @exports
+ *  - FrameworkTheme / FrameworkSkill : types normalisés
+ *  - loadFrameworkThemes : charge thèmes + compétences triés par order_index
+ * @features
+ *  - Chargement en 2 requêtes optimisées (themes + skills batch)
+ *  - Tri systématique par order_index pour cohérence visuelle
+ *  - Filtrage soft delete (deleted_at IS NULL)
+ * @maintenance
+ *  - Préférer cette fonction plutôt qu'un select direct (cohérence)
+ *  - Pour les snapshots : utiliser framework-snapshot.ts
+ *  - Cycle de vie : mem://features/framework-lifecycle-management
+ */
 import { supabase } from "@/integrations/supabase/client";
 
 export interface FrameworkTheme {

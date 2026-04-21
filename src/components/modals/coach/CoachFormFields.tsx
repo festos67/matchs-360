@@ -1,3 +1,24 @@
+/**
+ * @component CoachFormFields
+ * @description Sous-composant de formulaire utilisé dans CreateCoachModal et
+ *              EditCoachModal. Centralise les champs identité (prénom, nom, email,
+ *              surnom, photo) et le sélecteur Nouveau/Existant avec ses sous-flux.
+ * @props
+ *  - form: UseFormReturn<CoachFormData> — instance react-hook-form
+ *  - mode: "new" | "existing"
+ *  - existingUsers: ExistingUser[] — utilisateurs candidats pour l'ajout de rôle
+ *  - selectedExistingUser, onSelect, onClear — gestion sélection
+ *  - photoPreview, onPhotoSelected, onRemovePhoto — gestion photo
+ * @features
+ *  - Toggle UserPlus / UserCheck pour bascule de mode
+ *  - Combobox de recherche utilisateurs existants (avec rôles affichés en Badges)
+ *  - UserPhotoUpload avec recadrage circulaire
+ *  - Champs validés via la schema Zod parent (useCreateCoach)
+ * @maintenance
+ *  - Logique métier : useCreateCoach
+ *  - Mode promotion : mem://features/user-role-management/promotion-mode
+ *  - Combobox standard : mem://style/ui-patterns/entity-selection
+ */
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
