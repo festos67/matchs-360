@@ -61,6 +61,8 @@ interface SupporterData {
 }
 
 const STORAGE_KEY = "supporters-collapsed-players";
+const STORAGE_KEY_TEAMS = "supporters-collapsed-teams";
+const NO_TEAM_KEY = "__no_team__";
 
 const Supporters = () => {
   const { hasAdminRole: isAdmin, currentRole } = useAuth();
@@ -80,6 +82,14 @@ const Supporters = () => {
       return {};
     }
   });
+  const [collapsedTeams, setCollapsedTeams] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_TEAMS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     fetchSupporters();
@@ -89,6 +99,14 @@ const Supporters = () => {
     setCollapsedPlayers((prev) => {
       const next = { ...prev, [playerId]: !prev[playerId] };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const toggleTeam = (teamId: string) => {
+    setCollapsedTeams((prev) => {
+      const next = { ...prev, [teamId]: !prev[teamId] };
+      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(next));
       return next;
     });
   };
