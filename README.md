@@ -71,3 +71,23 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Sécurité
+
+### Buckets publics `club-logos` et `user-photos`
+Les buckets de stockage `club-logos` et `user-photos` sont configurés en **accès public** pour permettre l'affichage des images dans l'interface sans nécessiter d'authentification préalable.
+
+#### Pourquoi ce choix ?
+- **Paths non énumérables** : Les fichiers sont stockés avec des chemins basés sur des UUID (Universally Unique Identifiers), rendant impossible l'énumération par force brute sans connaître les identifiants exacts.
+- **Performances** : Les avatars et logos sont affichés fréquemment dans les listes, cartes et exports PDF ; les URLs signées impliqueraient une latence supplémentaire et une complexité de gestion du cache.
+
+#### Mitigations en place
+- **UUID comme barrière** : Les paths suivent le format `<bucket>/<uuid>/<timestamp>_<filename>.jpg` — une entropie suffisante pour empêcher la découverte de fichiers.
+- **Validation des uploads** :
+  - Taille maximale : 5 Mo
+  - Types MIME stricts : `image/jpeg`, `image/png`
+  - Recadrage côté client avant envoi (cropping + compression)
+- **RLS sur les métadonnées** : L'accès aux tables `profiles.photo_url` et `clubs.logo_url` est protégé par Row Level Security (RLS) — seuls les utilisateurs autorisés peuvent modifier ces champs.
+- **Prévention du listing** : Les buckets sont configurés sans listing de répertoire ; seul l'accès direct à un fichier connu est autorisé.
+- **Nettoyage automatique** : Les anciennes images sont purgées lors des mises à jour pour éviter l'accumulation de fichiers orphelins.
+- **Exports PDF** : Pour les impressions (`PrintablePlayerSheet`, `PrintableFramework`), les images sont pré-chargées en base64 via le hook `useImageAsBase64` afin d'éviter les problèmes CORS et garantir la fiabilité des exports.
