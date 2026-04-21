@@ -16,7 +16,7 @@
  *  - Visibilité par rôle : mem://logic/admin-visibility, coach-teams-visibility
  *  - Lancer : `bun test src/test/rls-security.test.ts`
  */
- *
+/*
  * Stratégie : on mocke `@/integrations/supabase/client` pour simuler
  * la réponse de PostgREST quand RLS bloque (data: [], error: null pour
  * SELECT — comportement standard PostgREST — ou error 42501 pour
