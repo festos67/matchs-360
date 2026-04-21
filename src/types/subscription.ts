@@ -1,3 +1,20 @@
+/**
+ * @module types/subscription
+ * @description Types TypeScript du domaine Abonnements & Plans. Miroir TS des
+ *              enums Postgres `subscription_plan` et `subscription_source`,
+ *              complété par les structures applicatives PlanLimits, Subscription
+ *              et PlanStatus consommées par usePlan / PlanLimitAlert / TrialBanner.
+ * @exports
+ *  - SubscriptionPlan : 'free' | 'pro'
+ *  - SubscriptionSource : 'direct' | 'trial' | 'district' | 'league' | 'federation'
+ *  - PlanLimits : limites par plan (max_teams, max_players_per_team, ...)
+ *  - Subscription : ligne de la table subscriptions
+ *  - PlanStatus : agrégat retourné par le hook usePlan
+ * @maintenance
+ *  - Doit rester synchronisé avec l'enum Postgres (voir types.ts auto-généré)
+ *  - Limites définies en DB (table plan_limits) — source de vérité serveur
+ *  - Hook consommateur : src/hooks/usePlan.ts
+ */
 export type SubscriptionPlan = 'free' | 'pro';
 export type SubscriptionSource = 'direct' | 'trial' | 'district' | 'league' | 'federation';
 

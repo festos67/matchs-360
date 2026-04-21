@@ -1,8 +1,21 @@
 /**
- * RLS Security Test Suite
- * ------------------------
- * Vérifie que le code client réagit correctement quand RLS rejette
- * une requête sensible pour un utilisateur non autorisé (coach/player).
+ * @test rls-security
+ * @description Suite de tests Vitest dédiée à la sécurité RLS (Row-Level Security)
+ *              côté client. Vérifie que le code applicatif gère correctement les
+ *              rejets de requêtes sensibles par Supabase pour des utilisateurs
+ *              non autorisés (coach hors équipe, joueur lambda, supporter).
+ * @access Test suite (Vitest)
+ * @scope
+ *  - Tentatives d'accès cross-club (coach → club voisin)
+ *  - Tentatives d'écriture sur entités non possédées
+ *  - Récupération de débriefs hors de la portée RBAC
+ *  - Mocks Supabase via vi.mock pour isoler les comportements
+ * @maintenance
+ *  - Politiques RLS : mem://technical/rls-policy-permissive
+ *  - Anti-récursion : mem://technical/rls-recursion-prevention
+ *  - Visibilité par rôle : mem://logic/admin-visibility, coach-teams-visibility
+ *  - Lancer : `bun test src/test/rls-security.test.ts`
+ */
  *
  * Stratégie : on mocke `@/integrations/supabase/client` pour simuler
  * la réponse de PostgREST quand RLS bloque (data: [], error: null pour
