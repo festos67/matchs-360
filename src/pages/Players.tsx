@@ -49,7 +49,6 @@ import { Search, Users, Loader2, User, ChevronDown, Plus, Pencil } from "lucide-
 import { Button } from "@/components/ui/button";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
-import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 
 interface PlayerData {
   id: string;
@@ -78,6 +77,7 @@ interface PlayerData {
 }
 
 const STORAGE_KEY = "players-collapsed-teams";
+const STORAGE_KEY_CLUBS = "players-collapsed-clubs";
 
 const Players = () => {
   const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
@@ -93,6 +93,14 @@ const Players = () => {
   const [collapsedTeams, setCollapsedTeams] = useState<Record<string, boolean>>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -125,6 +133,14 @@ const Players = () => {
     setCollapsedTeams((prev) => {
       const next = { ...prev, [teamId]: !prev[teamId] };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
       return next;
     });
   };
@@ -397,6 +413,8 @@ const Players = () => {
       .sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredPlayers]);
 
+  const showClubLevel = clubGroups.length > 1;
+
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
     const last = lastName?.charAt(0) || "";
@@ -581,46 +599,39 @@ const Players = () => {
             </p>
           </div>
         ) : clubGroups ? (
-          <div className="space-y-8">
-            {clubGroups.map((group) => (
-              <div key={group.clubId} className="space-y-3">
-                <ClubGroupHeader
-                  name={group.clubName}
-                  shortName={group.clubShortName}
-                  logoUrl={group.clubLogoUrl}
-                  primaryColor={group.clubPrimaryColor}
-                  count={group.totalPlayers}
-                />
-                <div className="space-y-3 pl-2">
+          <div className="space-y-4">
+            {clubGroups.map((group) => {
+              const clubOpen = collapsedClubs[group.clubId] !== true;
+              const renderTeams = (
+                <div className={showClubLevel ? "space-y-3 mt-2 pl-4 border-l-2 border-primary/20" : "space-y-3"}>
                   {group.teamsList.map((team) => {
                     const teamKey = `${group.clubId}:${team.teamId}`;
                     const isOpen = collapsedTeams[teamKey] !== true;
                     const color = team.teamColor || "#3B82F6";
+                    const teamInitials = (team.teamShortName || team.teamName.slice(0, 2)).toUpperCase();
                     return (
                       <Collapsible
                         key={team.teamId}
                         open={isOpen}
                         onOpenChange={() => toggleTeam(teamKey)}
                       >
-                        <CollapsibleTrigger
-                          className="flex items-center gap-2 w-full p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors cursor-pointer"
-                        >
+                        <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-primary/10 hover:bg-primary/15 transition-colors cursor-pointer">
                           <ChevronDown
                             className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "" : "-rotate-90"}`}
                           />
                           <div
-                            className="w-6 h-6 rounded flex items-center justify-center shrink-0 overflow-hidden"
+                            className="w-5 h-5 rounded flex items-center justify-center shrink-0"
                             style={{ backgroundColor: color }}
                           >
                             <span className="text-[9px] font-bold text-white leading-none">
-                              {(team.teamShortName || team.teamName.slice(0, 2)).toUpperCase()}
+                              {teamInitials}
                             </span>
                           </div>
-                          <span className="font-display font-semibold text-sm" style={{ color }}>
+                          <span className="font-display font-semibold text-sm uppercase tracking-wide">
                             {team.teamName}
                           </span>
                           <Badge variant="secondary" className="ml-auto text-xs">
-                            {team.players.length}
+                            {team.players.length} joueur{team.players.length > 1 ? "s" : ""}
                           </Badge>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
@@ -666,8 +677,48 @@ const Players = () => {
                     </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+
+              if (!showClubLevel) {
+                return <div key={group.clubId}>{renderTeams}</div>;
+              }
+
+              const clubInitials = (group.clubShortName || group.clubName.slice(0, 2)).toUpperCase();
+              const clubColor = group.clubPrimaryColor || "hsl(var(--primary))";
+              const totalTeams = group.teamsList.length + (group.noTeamPlayers.length > 0 ? 1 : 0);
+              return (
+                <Collapsible
+                  key={group.clubId}
+                  open={clubOpen}
+                  onOpenChange={() => toggleClub(group.clubId)}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-accent/10 hover:bg-accent/15 transition-colors cursor-pointer">
+                    <ChevronDown
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${clubOpen ? "" : "-rotate-90"}`}
+                    />
+                    <div
+                      className="w-6 h-6 rounded flex items-center justify-center overflow-hidden shrink-0"
+                      style={{ backgroundColor: group.clubLogoUrl ? "transparent" : clubColor }}
+                    >
+                      {group.clubLogoUrl ? (
+                        <img src={group.clubLogoUrl} alt={group.clubName} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-white leading-none">
+                          {clubInitials}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-display font-bold text-sm uppercase tracking-wider">
+                      {group.clubName}
+                    </span>
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {totalTeams} équipe{totalTeams > 1 ? "s" : ""} · {group.totalPlayers} joueur{group.totalPlayers > 1 ? "s" : ""}
+                    </Badge>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>{renderTeams}</CollapsibleContent>
+                </Collapsible>
+              );
+            })}
           </div>
         ) : null}
 
