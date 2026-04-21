@@ -1,3 +1,17 @@
+/**
+ * @component ClubTemplateSelector
+ * @description Sélecteur de modèle pour initialiser le référentiel d'une équipe.
+ *              Restreint aux modèles actifs du club parent (règle métier).
+ * @access Coach Référent, Responsable Club, Super Admin (depuis page équipe)
+ * @features
+ *  - Liste filtrée : référentiels du club non archivés uniquement
+ *  - Aperçu (description, nombre de thèmes/compétences)
+ *  - Sous-modale FrameworkNameModal pour nommer la copie
+ *  - Création par clonage du modèle club
+ * @maintenance
+ *  - Restriction aux modèles club actifs : mem://logic/team-framework-initialization-rules
+ *  - Gestion référentiel équipe : mem://features/team-framework-management
+ */
 import { useState, useEffect, useCallback } from "react";
 import { FileText, BookOpen, Users, FileQuestion, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";

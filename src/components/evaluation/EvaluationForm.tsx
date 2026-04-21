@@ -1,3 +1,27 @@
+/**
+ * @component EvaluationForm
+ * @description Formulaire principal de débrief coach (officiel). Composant central
+ *              affichant accordéons par thème, StarRating, commentaires, objectifs
+ *              et radar live. Gère brouillons, références score précédent, reset.
+ * @access Coach assigné, Coach Référent, Responsable Club, Super Admin
+ * @features
+ *  - ThemeAccordion par thème avec ouverture par défaut (UX standards)
+ *  - StarRating 0-5 + bouton "Non observé" (exclu des moyennes)
+ *  - Référence au score précédent via icône History
+ *  - Sticky footer (Save, Reset, Cancel) — UX standard
+ *  - Système brouillons (draft) : intercepte sortie sans save, reprise auto
+ *  - Distinction Reset (clear all) vs New (clear scores only via newEvalKey)
+ *  - AlertDialog de confirmation Reset avec bouton Cancel emphasisé
+ *  - Verrouillage lecture seule si historique passé ou coach non assigné
+ *  - forwardRef + useImperativeHandle pour exposer méthodes parent
+ * @maintenance
+ *  - Calculs scores : mem://logic/evaluation/calculations-logic
+ *  - Reset vs New : mem://logic/evaluation/reset-vs-new-behavior
+ *  - Brouillons : mem://features/evaluation-draft-system
+ *  - Permissions édition : mem://logic/debrief-editing-permissions
+ *  - Score précédent : mem://features/debrief-previous-score-reference
+ *  - Sécurité reset : mem://logic/evaluation-reset-safety
+ */
 import { useState, useEffect, useMemo, forwardRef, useImperativeHandle, useRef } from "react";
 import {
   Dialog,

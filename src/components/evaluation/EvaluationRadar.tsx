@@ -1,3 +1,18 @@
+/**
+ * @component EvaluationRadar
+ * @description Diagramme radar simple (recharts) affichant les moyennes par thème
+ *              d'un débrief unique. Mis à jour en live pendant la saisie du formulaire.
+ * @props
+ *  - data: RadarDataPoint[] — moyennes par thème (theme, score, color)
+ *  - maxScore?: number — échelle max (défaut 5)
+ * @features
+ *  - Animation fluide à chaque changement de score
+ *  - Couleurs par thème (HSL semantic tokens)
+ *  - ResponsiveContainer pour adaptation viewport
+ * @maintenance
+ *  - Calculs alimentation via calculateRadarData (lib/evaluation-utils)
+ *  - Stabilité visuelle : mem://technical/radar-chart-visual-stability
+ */
 import {
   Radar,
   RadarChart as RechartsRadarChart,

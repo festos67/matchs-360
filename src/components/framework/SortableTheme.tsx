@@ -1,3 +1,21 @@
+/**
+ * @component SortableTheme
+ * @description Conteneur de thème drag-and-drop incluant ses compétences (DndContext
+ *              imbriqué). Gère le réordonnancement local des skills et la suppression
+ *              du thème complet.
+ * @props
+ *  - theme: Theme + skills
+ *  - onUpdate / onDelete / onAddSkill
+ * @features
+ *  - Drag handle pour réordonner les thèmes (parent DndContext dans FrameworkEditDialog)
+ *  - DndContext interne pour réordonner les skills enfants
+ *  - Color picker 10-couleurs (mem://style/ui-patterns/color-picker)
+ *  - Bouton ajout compétence + suppression thème avec confirmation
+ *  - Refs externes pour autoscroll vers nouvelle compétence
+ * @maintenance
+ *  - Utilisé dans FrameworkEditDialog
+ *  - Couleurs de thème : palette HSL définie dans lib/theme-palette
+ */
 import { useState, RefObject, MutableRefObject } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";

@@ -1,3 +1,19 @@
+/**
+ * @component SupporterEvaluationForm
+ * @description Formulaire de débrief consultatif soumis par un supporter sur
+ *              invitation. Création d'une évaluation type='supporter' liée à
+ *              une supporter_evaluation_request.
+ * @access Supporter (via lien d'invitation, supporter_evaluation_requests)
+ * @features
+ *  - ThemeAccordion + StarRating standards
+ *  - Pas d'objectifs ni de références (vue limitée supporter)
+ *  - Mise à jour de supporter_evaluation_requests.status → completed
+ *  - Affichage Badge "Débrief consultatif" pour clarifier le statut
+ * @maintenance
+ *  - Accès supporter limité : mem://logic/supporter-data-access
+ *  - Type consultatif exclu stats : mem://logic/assessment-data-isolation-rules
+ *  - Identité Heart rose (mem://style/role-branding-standard)
+ */
 import { useState } from "react";
 import { Star, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";

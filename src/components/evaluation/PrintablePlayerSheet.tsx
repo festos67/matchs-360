@@ -1,3 +1,20 @@
+/**
+ * @component PrintablePlayerSheet
+ * @description Fiche joueur imprimable A4 (PDF export) avec identité MATCHS360,
+ *              radar, scores par compétence, progression, objectifs, commentaires.
+ *              Rendu hors-écran via forwardRef pour capture html2canvas.
+ * @access Génération via bouton Export PDF (Coachs, Club Admin, Super Admin)
+ * @features
+ *  - Identité MATCHS360 (logo agrandi, bleu primaire #3B82F6)
+ *  - PrintableRadarChart SVG embarqué (rendu déterministe pour PDF)
+ *  - Indicateurs progression (TrendingUp/Down) calculés sur 2 derniers débriefs
+ *  - Logos club + photo joueur convertis en base64 (useImagesAsBase64)
+ *  - Émojis de score (Meh/Smile/Laugh) pour visualisation rapide
+ * @maintenance
+ *  - Identité PDF : mem://style/pdf-reports-identity
+ *  - Logique progression : mem://features/progression-percentage-logic
+ *  - Calculs scores : mem://logic/evaluation/calculations-logic
+ */
 import { forwardRef } from "react";
 import { Star, Meh, Smile, SmilePlus, Laugh, Sparkles, TrendingUp, TrendingDown, Activity, type LucideIcon } from "lucide-react";
 import { 

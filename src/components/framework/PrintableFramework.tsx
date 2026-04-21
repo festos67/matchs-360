@@ -1,3 +1,19 @@
+/**
+ * @component PrintableFramework
+ * @description Référentiel de compétences imprimable (PDF A4). Utilise le terme
+ *              "Observateur" (et non "Évaluateur") et inclut une colonne vide
+ *              pour appréciation manuscrite.
+ * @access Bouton Export PDF (Responsable Club, Coach, Super Admin)
+ * @features
+ *  - Mise en page A4 portrait avec entête MATCHS360
+ *  - Colonnes : Compétence | Définition | Appréciation (vide) | Note
+ *  - Logo club converti en base64 (useImageAsBase64)
+ *  - Section objectifs fusionnée (1 colonne globale)
+ *  - Terminologie "Observateur" (mem://features/framework-printable-pdf)
+ * @maintenance
+ *  - Identité PDF : mem://style/pdf-reports-identity
+ *  - Spécifications : mem://features/framework-printable-pdf
+ */
 import { forwardRef } from "react";
 import { Activity } from "lucide-react";
 import { useImageAsBase64 } from "@/hooks/useImageAsBase64";

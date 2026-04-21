@@ -1,3 +1,19 @@
+/**
+ * @component SortableSkill
+ * @description Ligne de compétence drag-and-drop (@dnd-kit/sortable) au sein d'un
+ *              thème. Édition inline du nom et de la définition, suppression.
+ * @props
+ *  - skill: Skill — { id, name, definition, order_index }
+ *  - onUpdate / onDelete
+ * @features
+ *  - useSortable hook pour drag handle (GripVertical)
+ *  - Input nom + Textarea définition inline
+ *  - Bouton Trash2 pour suppression (text-destructive)
+ *  - Transform CSS pour animation drag
+ * @maintenance
+ *  - Utilisé dans FrameworkEditDialog
+ *  - Couleur bouton suppression = destructive (design tokens)
+ */
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";

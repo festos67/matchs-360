@@ -1,3 +1,22 @@
+/**
+ * @component FrameworkEditDialog
+ * @description Éditeur plein écran de référentiel de compétences avec drag-and-drop
+ *              (@dnd-kit). Permet d'ajouter/réordonner thèmes et compétences,
+ *              éditer définitions et couleurs.
+ * @access Responsable Club (modèle club), Coach Référent (référentiel équipe), Super Admin
+ * @features
+ *  - DndContext avec PointerSensor + KeyboardSensor pour accessibilité
+ *  - SortableTheme + SortableSkill (réorganisation drag-and-drop)
+ *  - Édition inline des noms via Input, définitions via Textarea
+ *  - Color picker 10-couleurs pour thèmes (mem://style/ui-patterns/color-picker)
+ *  - Persistence atomique sur close (transaction batch)
+ *  - Création snapshot JSONB lors de chaque save
+ * @maintenance
+ *  - Permissions édition : mem://logic/gestion-referentiels-permissions
+ *  - Snapshot system : mem://technical/framework-snapshot-system
+ *  - Cycle de vie : mem://features/framework-lifecycle-management
+ *  - Interaction définitions : mem://features/framework-editor-interaction
+ */
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
   DndContext,

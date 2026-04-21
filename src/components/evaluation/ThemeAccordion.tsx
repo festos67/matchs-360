@@ -1,3 +1,24 @@
+/**
+ * @component ThemeAccordion
+ * @description Accordéon par thème dans le formulaire de débrief. Affiche les
+ *              compétences avec StarRating, toggle "Non observé", commentaires
+ *              et indicateurs visuels (icônes œil, MessageSquare).
+ * @props
+ *  - theme: Theme + skills + scores
+ *  - onScoreChange / onCommentChange / onToggleObserved
+ *  - previousScores?: référence pour icône History
+ *  - readOnly?: boolean
+ * @features
+ *  - Ouverture par défaut (UX standards)
+ *  - Tooltip d'info pour les définitions de compétences
+ *  - Icône History pour consulter le score du débrief précédent
+ *  - Moyenne thème calculée live (calculateThemeAverage, exclut "non observé")
+ *  - Toggle EyeOff/Eye pour basculer "Non observé"
+ * @maintenance
+ *  - Calculs : mem://logic/evaluation/calculations-logic
+ *  - UX standards (accordéons ouverts) : mem://style/ux-standards
+ *  - Score précédent : mem://features/debrief-previous-score-reference
+ */
 import { useState } from "react";
 import { EyeOff, Eye, Info, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
 import { cn } from "@/lib/utils";

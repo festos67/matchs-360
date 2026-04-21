@@ -1,3 +1,20 @@
+/**
+ * @component SelfEvaluationForm
+ * @description Formulaire d'auto-débrief réservé aux joueurs. Variante simplifiée
+ *              de EvaluationForm sans objectifs ni références score précédent.
+ *              Les auto-débriefs sont consultatifs (exclus des stats officielles).
+ * @access Joueur uniquement (sur sa propre fiche)
+ * @features
+ *  - ThemeAccordion + StarRating + commentaires
+ *  - EvaluationRadar live pendant la saisie
+ *  - Pas de génération d'objectifs (réservée au coach)
+ *  - Création évaluation type='self' avec evaluator_id = player_id
+ *  - Brouillon localStorage pour reprise
+ * @maintenance
+ *  - Type consultatif exclu stats : mem://logic/assessment-data-isolation-rules
+ *  - Restrictions UI joueur : mem://features/player/interface-restrictions
+ *  - Disponibilité : nécessite team_membership (mem://logic/player-debrief-availability)
+ */
 import { useState, useMemo } from "react";
 import { Save, RotateCcw, FileText, Calendar, Loader2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";

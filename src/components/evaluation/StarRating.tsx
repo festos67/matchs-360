@@ -1,3 +1,18 @@
+/**
+ * @component StarRating
+ * @description Composant de notation 0-5 étoiles avec libellés explicites
+ *              (Insuffisant → Excellent). Hover preview + Tooltip d'aide.
+ * @props
+ *  - value: number — note actuelle (0-5)
+ *  - onChange: (value: number) => void
+ *  - readOnly?: boolean — verrouille la saisie
+ * @features
+ *  - 5 étoiles cliquables avec hover state
+ *  - Tooltip affichant le libellé du score (SCORE_LABELS)
+ *  - Score 0 = "Non noté" (différent de "Non observé" géré au niveau parent)
+ * @maintenance
+ *  - SCORE_LABELS centralisé dans lib/evaluation-utils
+ */
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
