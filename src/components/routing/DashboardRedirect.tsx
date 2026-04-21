@@ -1,3 +1,25 @@
+/**
+ * @component DashboardRedirect
+ * @description Page tampon montée sur /dashboard. Détermine le tableau de bord
+ *              cible selon le rôle actif (ou unique) de l'utilisateur et redirige
+ *              en navigate(replace). Si l'utilisateur a plusieurs rôles, propose
+ *              un sélecteur visuel pour choisir le profil de connexion.
+ * @access Utilisateurs authentifiés (toutes routes redirigent ici par défaut)
+ * @features
+ *  - Mapping rôle → route dashboard :
+ *      admin → /admin
+ *      club_admin → /club/dashboard
+ *      coach → /coach/dashboard
+ *      player → /player/dashboard
+ *      supporter → /supporter/dashboard
+ *  - Sélecteur visuel multi-rôles (cartes avec icônes role-branded)
+ *  - Persistance du choix via switchRole (useAuth)
+ *  - Loader Loader2 pendant la résolution
+ * @maintenance
+ *  - Bascule de rôle : mem://auth/role-switching-logic
+ *  - Identité visuelle par rôle : mem://style/role-branding-standard
+ *  - Ordre menu cible : mem://navigation/role-based-sidebar-order
+ */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

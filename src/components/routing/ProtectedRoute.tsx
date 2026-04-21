@@ -1,3 +1,23 @@
+/**
+ * @component ProtectedRoute
+ * @description Garde de routes (HOC) qui vérifie l'authentification et,
+ *              optionnellement, le contrôle d'accès basé sur les rôles (RBAC).
+ *              Affiche un loader pendant la vérification de session, redirige
+ *              vers /auth si non connecté, ou vers /dashboard si rôle invalide.
+ * @props
+ *  - children: ReactNode — page protégée à rendre si accès autorisé
+ *  - allowedRoles?: Array<app_role> — liste des rôles autorisés (undefined = tous)
+ * @access Wrapper utilisé par App.tsx autour des routes privées
+ * @features
+ *  - Loader spinner pendant vérification session Supabase
+ *  - Redirection /auth si pas de user
+ *  - Vérification any-role : l'utilisateur passe si AU MOINS un de ses rôles est autorisé
+ *  - Redirection /dashboard (puis DashboardRedirect → bon profil) si rôle insuffisant
+ * @maintenance
+ *  - Stratégie RBAC complète : mem://security/route-protection-rbac
+ *  - Liste des rôles : enum app_role dans types.ts
+ *  - Pour route publique : NE PAS encapsuler dans ProtectedRoute
+ */
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

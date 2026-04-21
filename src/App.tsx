@@ -1,3 +1,20 @@
+/**
+ * @component App
+ * @description Composant racine de l'application MATCHS360. Configure les
+ *              providers globaux (TanStack Query, Tooltip, Auth), les Toasters
+ *              (shadcn + Sonner), le routing React Router et le code-splitting
+ *              via React.lazy pour les pages non critiques.
+ * @architecture
+ *  - Critical path : Index, Auth chargés statiquement (1er paint rapide)
+ *  - Lazy : toutes les autres pages chargées à la demande (Suspense + Loader2)
+ *  - AuthProvider englobe les routes (session Supabase disponible partout)
+ *  - ProtectedRoute encapsule les routes privées avec contrôle RBAC
+ * @routes Voir <Routes> ci-dessous pour la cartographie complète
+ * @maintenance
+ *  - Ajout d'une route protégée : utiliser <ProtectedRoute allowedRoles={[...]}>
+ *  - Ajout d'une page : préférer lazy import pour rester < 200 KB initial bundle
+ *  - RBAC : mem://security/route-protection-rbac
+ */
 import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";

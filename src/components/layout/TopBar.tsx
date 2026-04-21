@@ -1,3 +1,24 @@
+/**
+ * @component TopBar
+ * @description Barre supérieure persistante de l'application. Contient le
+ *              déclencheur du menu mobile, la recherche globale, la cloche de
+ *              notifications, le sélecteur de rôle (multi-rôles) et le menu
+ *              utilisateur (profil, déconnexion).
+ * @access Tous rôles authentifiés
+ * @features
+ *  - MobileSidebar trigger (visible < md uniquement)
+ *  - GlobalSearch (Command Palette) : recherche multi-entités
+ *  - NotificationBell : alertes en temps réel
+ *  - RoleSwitcher : bascule entre les rôles de l'utilisateur (redirige vers le
+ *    premier menu du nouveau profil)
+ *  - DropdownMenu profil : Mon profil, Mon club (Club Admin), Déconnexion
+ * @maintenance
+ *  - Bascule de rôle : mem://auth/role-switching-logic
+ *  - Recherche globale : mem://navigation/global-search-command-palette
+ *  - Notifications : mem://features/in-app-notifications
+ *  - Responsive : mem://navigation/mobile-responsiveness
+ *  - Accès Mon Club (Club Admin uniquement) : mem://navigation/club-admin-navigation
+ */
 import { User, LogOut, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
