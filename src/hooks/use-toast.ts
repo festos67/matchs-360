@@ -1,3 +1,19 @@
+/**
+ * @hook useToast + toast()
+ * @description Système de toasts shadcn/ui (clone de react-hot-toast). Gère
+ *              une file de notifications limitée (TOAST_LIMIT = 1), avec actions,
+ *              auto-dismiss et reducer interne.
+ * @access Tous composants client
+ * @features
+ *  - API impérative `toast({ title, description, variant, action })`
+ *  - Hook `useToast()` pour accéder à la liste active depuis le Toaster
+ *  - Reducer interne (ADD_TOAST, UPDATE_TOAST, DISMISS_TOAST, REMOVE_TOAST)
+ *  - Auto-dismiss configurable via TOAST_REMOVE_DELAY
+ * @maintenance
+ *  - Fichier généré par shadcn — éviter les modifications profondes
+ *  - Pour notifications applicatives : préférer `sonner` (Sonner)
+ *    via `import { toast } from "sonner"` (déjà monté dans App.tsx)
+ */
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";
