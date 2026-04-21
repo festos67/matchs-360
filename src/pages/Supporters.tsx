@@ -301,46 +301,85 @@ const Supporters = () => {
     });
   }, [supporters, teamFilter, playerFilter, search]);
 
-  // Group by team → player
-  const teamGroups = useMemo(() => {
-    const teams: Record<
-      string,
-      {
-        teamName: string;
-        players: Record<string, { playerName: string; supporters: SupporterData[] }>;
-      }
-    > = {};
+  // Group by club → team → player
+  const clubGroups = useMemo(() => {
+    type TeamBucket = {
+      teamName: string;
+      teamColor: string | null;
+      teamShortName: string | null;
+      players: Record<string, { playerName: string; supporters: SupporterData[] }>;
+    };
+    type ClubBucket = {
+      clubName: string;
+      clubLogoUrl: string | null;
+      clubShortName: string | null;
+      clubPrimaryColor: string | null;
+      teams: Record<string, TeamBucket>;
+    };
+    const clubs: Record<string, ClubBucket> = {};
 
     filteredSupporters.forEach((supporter) => {
       supporter.players.forEach((player) => {
+        const clubKey = player.club_id || NO_CLUB_KEY;
         const teamKey = player.team_id || NO_TEAM_KEY;
-        const teamName = player.team_name || "Sans équipe";
-        if (!teams[teamKey]) {
-          teams[teamKey] = { teamName, players: {} };
+        if (!clubs[clubKey]) {
+          clubs[clubKey] = {
+            clubName: player.club_name || "Sans club",
+            clubLogoUrl: player.club_logo_url,
+            clubShortName: player.club_short_name,
+            clubPrimaryColor: player.club_primary_color,
+            teams: {},
+          };
         }
-        if (!teams[teamKey].players[player.id]) {
-          teams[teamKey].players[player.id] = { playerName: player.name, supporters: [] };
+        if (!clubs[clubKey].teams[teamKey]) {
+          clubs[clubKey].teams[teamKey] = {
+            teamName: player.team_name || "Sans équipe",
+            teamColor: player.team_color,
+            teamShortName: player.team_short_name,
+            players: {},
+          };
         }
-        if (!teams[teamKey].players[player.id].supporters.find((s) => s.id === supporter.id)) {
-          teams[teamKey].players[player.id].supporters.push(supporter);
+        const teamBucket = clubs[clubKey].teams[teamKey];
+        if (!teamBucket.players[player.id]) {
+          teamBucket.players[player.id] = { playerName: player.name, supporters: [] };
+        }
+        if (!teamBucket.players[player.id].supporters.find((s) => s.id === supporter.id)) {
+          teamBucket.players[player.id].supporters.push(supporter);
         }
       });
     });
 
-    return Object.entries(teams)
+    return Object.entries(clubs)
       .sort((a, b) => {
-        if (a[0] === NO_TEAM_KEY) return 1;
-        if (b[0] === NO_TEAM_KEY) return -1;
-        return a[1].teamName.localeCompare(b[1].teamName);
+        if (a[0] === NO_CLUB_KEY) return 1;
+        if (b[0] === NO_CLUB_KEY) return -1;
+        return a[1].clubName.localeCompare(b[1].clubName);
       })
-      .map(([teamId, group]) => ({
-        teamId,
-        teamName: group.teamName,
-        players: Object.entries(group.players).sort((a, b) =>
-          a[1].playerName.localeCompare(b[1].playerName),
-        ),
+      .map(([clubId, club]) => ({
+        clubId,
+        clubName: club.clubName,
+        clubLogoUrl: club.clubLogoUrl,
+        clubShortName: club.clubShortName,
+        clubPrimaryColor: club.clubPrimaryColor,
+        teams: Object.entries(club.teams)
+          .sort((a, b) => {
+            if (a[0] === NO_TEAM_KEY) return 1;
+            if (b[0] === NO_TEAM_KEY) return -1;
+            return a[1].teamName.localeCompare(b[1].teamName);
+          })
+          .map(([teamId, team]) => ({
+            teamId,
+            teamName: team.teamName,
+            teamColor: team.teamColor,
+            teamShortName: team.teamShortName,
+            players: Object.entries(team.players).sort((a, b) =>
+              a[1].playerName.localeCompare(b[1].playerName),
+            ),
+          })),
       }));
   }, [filteredSupporters]);
+
+  const showClubLevel = clubGroups.length > 1;
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
