@@ -1,3 +1,30 @@
+/**
+ * @page AdminDashboard
+ * @route /admin/dashboard
+ *
+ * Tableau de bord du Super Admin — vue omnisciente de la plateforme.
+ * (mem://features/admin/dashboard-layout)
+ *
+ * @description
+ * Centralise le pilotage en trois sections repliables (Vue globale, Liste,
+ * Pilotage). KPIs agrégés sur tous les clubs, équipes, joueurs et débriefs.
+ *
+ * @sections
+ * - **Vue globale** : StatsCards (clubs, équipes, joueurs, débriefs du mois)
+ * - **Liste** : table des derniers débriefs avec filtres croisés
+ *   (mem://features/debrief-filtering-workflow)
+ * - **Pilotage** : raccourcis vers les consoles de gestion
+ *
+ * @access Super Admin uniquement
+ *
+ * @maintenance
+ * - Les sections sont collapsibles ; l'état est persisté en localStorage pour
+ *   la prochaine visite
+ * - Les KPIs excluent les évaluations consultatives (self/supporter)
+ *   (mem://logic/assessment-data-isolation-rules)
+ * - L'admin voit toutes les données sans restriction RLS
+ *   (mem://logic/admin-visibility)
+ */
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

@@ -1,3 +1,19 @@
+/**
+ * @page SupporterDebriefs
+ * @route /supporter/debriefs
+ *
+ * Liste des débriefs créés par le Supporter courant.
+ *
+ * @description
+ * Filtre les évaluations sur `evaluator_id = user.id` et `type = "supporter"`.
+ * Permet au supporter de relire ses contributions.
+ *
+ * @access Supporter (auto-scopé)
+ *
+ * @maintenance
+ * Les débriefs supporter sont consultatifs (mem://logic/assessment-data-isolation-rules)
+ * et n'impactent pas la progression officielle du joueur.
+ */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

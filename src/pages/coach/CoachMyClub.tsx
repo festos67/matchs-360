@@ -1,3 +1,27 @@
+/**
+ * @page CoachMyClub
+ * @route /coach/my-club
+ *
+ * Vue d'ensemble du club pour le Coach (KPI + galerie d'équipes).
+ * (mem://features/coach/club-overview-dashboard)
+ *
+ * @description
+ * Première entrée du menu coach. Présente l'organisation globale du club
+ * (équipes, coachs, joueurs) sans permettre l'édition. Sert de hub de
+ * navigation visuelle vers les fiches équipes/joueurs.
+ *
+ * @sections
+ * - KPI : nombre d'équipes, joueurs, débriefs du mois
+ * - Mes Coachs : liste de tous les coachs du club avec leur rôle
+ *   (mem://logic/club-coach-scope)
+ * - Galerie d'équipes : cartes cliquables vers TeamDetail
+ *
+ * @access Coach (Référent ou Assistant)
+ *
+ * @maintenance
+ * Affiche aussi le logo du club pré-chargé en base64 pour les exports PDF
+ * éventuels.
+ */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

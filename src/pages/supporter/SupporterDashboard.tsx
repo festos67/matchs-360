@@ -1,3 +1,19 @@
+/**
+ * @page SupporterDashboard
+ * @route /supporter/dashboard
+ *
+ * Tableau de bord d'accueil du Supporter.
+ *
+ * @description
+ * Vue lecture seule des joueurs liés (via supporters_link). Affiche les
+ * invitations en attente de débrief (supporter_evaluation_requests).
+ *
+ * @access Supporter — voit uniquement ses joueurs liés
+ *   (mem://logic/supporter-data-access)
+ *
+ * @maintenance
+ * Les supporters ne voient PAS les auto-débriefs des joueurs (privacy).
+ */
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

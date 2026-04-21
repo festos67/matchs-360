@@ -1,3 +1,20 @@
+/**
+ * @page PlayerDashboard
+ * @route /player/dashboard
+ *
+ * Tableau de bord d'accueil du Joueur.
+ *
+ * @description
+ * Vue lecture seule centrée sur la progression personnelle : dernier débrief,
+ * progression, objectifs en cours, raccourci vers l'auto-débrief.
+ *
+ * @access Joueur (auto-scopé sur user.id via RLS)
+ *
+ * @maintenance
+ * Interface restreinte au mode consultation
+ * (mem://features/player/interface-restrictions). Le bouton "Auto-débrief"
+ * mène à /player/self-evaluation.
+ */
 import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";

@@ -1,3 +1,23 @@
+/**
+ * @page SelfEvaluation
+ * @route /player/self-evaluation
+ *
+ * Création d'une auto-évaluation par le Joueur.
+ * (mem://features/consultative-debrief-types)
+ *
+ * @description
+ * Formulaire dédié (SelfEvaluationForm) qui réutilise le framework actif de
+ * l'équipe du joueur. Le résultat est enregistré comme débrief de type "self"
+ * — exclu des stats officielles mais visible en overlay sur le radar.
+ *
+ * @access Joueur connecté avec affiliation d'équipe active
+ *   (mem://logic/player-debrief-availability)
+ *
+ * @maintenance
+ * - `evaluation_type = "self"` et `evaluator_id = user.id`
+ * - Compté dans la limite `max_self_evals_per_player` du plan
+ * - Soumis aux protections de brouillon (mem://features/evaluation-draft-system)
+ */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Star } from "lucide-react";

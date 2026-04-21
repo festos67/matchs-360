@@ -1,3 +1,14 @@
+/**
+ * @page Stats
+ * @route /stats
+ *
+ * Page placeholder pour la future console de statistiques avancées.
+ *
+ * @maintenance
+ * Cette page sera enrichie avec des graphiques agrégés par club/équipe/coach.
+ * Voir mem://features/stats-and-member-counting pour les règles de calcul
+ * (membres actifs, exclusion des évaluations consultatives, etc.).
+ */
 import { AppLayout } from "@/components/layout/AppLayout";
 
 const Stats = () => {

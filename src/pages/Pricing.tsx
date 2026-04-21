@@ -1,3 +1,25 @@
+/**
+ * @page Pricing
+ * @route /pricing
+ *
+ * Page comparative des plans d'abonnement (Free vs Pro).
+ *
+ * @description
+ * Affiche les fonctionnalités incluses dans chaque plan, basées sur la table
+ * `plan_limits` (max équipes, joueurs, débriefs, etc.). Le hook usePlan
+ * détecte le plan actuel du club et met en avant le plan opposé pour upgrade.
+ *
+ * @features
+ * - Cartes Free et Pro avec liste de features (✓ / ✗)
+ * - Badge "Plan actuel" sur la carte du plan en cours
+ * - CTA Upgrade qui redirige vers le checkout Stripe (à venir)
+ *
+ * @access Tout utilisateur authentifié (visible dans la sidebar des Club Admins)
+ *
+ * @maintenance
+ * La liste des features (`freeFeatures` / `proFeatures`) doit rester synchronisée
+ * avec les valeurs réelles de `plan_limits` côté BD.
+ */
 import { useNavigate } from "react-router-dom";
 import { Check, X, Sparkles, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";

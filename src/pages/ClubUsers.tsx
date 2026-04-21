@@ -1,3 +1,25 @@
+/**
+ * @page ClubUsers
+ * @route /club/users
+ *
+ * Console de gestion utilisateurs réservée aux Club Admins.
+ * (mem://features/club-admin/user-management, mem://features/user-management/club-admin-filters)
+ *
+ * @description
+ * Variante restreinte de /admin/users : ne montre que les utilisateurs rattachés
+ * au club du Club Admin courant. Filtrage côté client par équipe et type d'utilisateur.
+ *
+ * @features
+ * - Filtres : équipe, rôle, recherche full-text
+ * - Édition utilisateur (EditUserModal)
+ * - Actions Super Admin masquées (promotion, reset password)
+ *
+ * @access Club Admin uniquement (ProtectedRoute + filtre club_id côté requête)
+ *
+ * @maintenance
+ * Les actions sensibles (promotion Super Admin) sont strictement bloquées même
+ * si l'UI les exposait par erreur — sécurité côté edge function.
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

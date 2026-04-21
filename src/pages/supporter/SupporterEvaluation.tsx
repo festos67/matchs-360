@@ -1,3 +1,25 @@
+/**
+ * @page SupporterEvaluation
+ * @route /supporter/evaluation/:requestId
+ *
+ * Création d'un débrief Supporter sur invitation d'un coach.
+ *
+ * @description
+ * Cible un lien envoyé par RequestSupporterEvaluationModal. Le supporter
+ * remplit le SupporterEvaluationForm. La requête `supporter_evaluation_requests`
+ * passe à "completed" à la soumission.
+ *
+ * @validation
+ * - L'invitation doit exister et ne pas être expirée
+ * - Le supporter doit être lié au joueur (supporters_link)
+ * - Une seule réponse possible par invitation
+ *
+ * @access Supporter destinataire de l'invitation
+ *
+ * @maintenance
+ * - `evaluation_type = "supporter"` et `evaluator_id = supporter.id`
+ * - Compté dans `max_supporter_evals_per_player` du plan
+ */
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Heart, AlertTriangle } from "lucide-react";

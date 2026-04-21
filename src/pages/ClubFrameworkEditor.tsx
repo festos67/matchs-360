@@ -1,3 +1,30 @@
+/**
+ * @page ClubFrameworkEditor
+ * @route /clubs/:clubId/framework
+ *
+ * Éditeur plein écran du référentiel modèle d'un club.
+ * (mem://features/club-framework-management)
+ *
+ * @description
+ * Vue par défaut en lecture seule (ReadOnlyFrameworkView). Le bouton "Modifier"
+ * bascule en mode édition avec sauvegarde explicite. Inclut historique des
+ * versions, export PDF et réinitialisation depuis un modèle.
+ *
+ * @features
+ * - Lecture seule par défaut → bascule édition via Pencil
+ * - Historique des snapshots (FrameworkHistorySheet)
+ * - Reset depuis modèle standard (création d'un snapshot avant écrasement)
+ * - Export PDF avec logo club en base64
+ *
+ * @access (mem://logic/gestion-referentiels-permissions)
+ * - Club Admin du club : édition complète
+ * - Coach Référent d'une équipe du club : édition
+ * - Autres : lecture seule
+ *
+ * @maintenance
+ * Toute modification crée un snapshot dans `framework_snapshots`
+ * (mem://technical/framework-snapshot-system).
+ */
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {

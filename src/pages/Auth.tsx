@@ -1,3 +1,31 @@
+/**
+ * @page Auth
+ * @route /auth
+ *
+ * Page d'authentification (signup + login + reset password + Google OAuth).
+ *
+ * @description
+ * Point d'entrée non authentifié de l'application. Gère plusieurs flux :
+ * - Inscription email/mot de passe avec choix de rôle (Coach, Joueur, Supporter)
+ * - Connexion email/mot de passe
+ * - Connexion Google OAuth
+ * - Demande de réinitialisation du mot de passe
+ *
+ * @validation
+ * - Schéma Zod : email valide + mot de passe ≥ 6 caractères
+ * - Vérification du domaine email côté serveur
+ *
+ * @flows (mem://auth/invitation-system)
+ * - Si l'URL contient un token d'invitation dans le hash, redirige vers
+ *   /invite-accept avant de proposer le signup
+ * - Reset password : envoie un email via notify.match360.com
+ *
+ * @maintenance
+ * - Ne JAMAIS utiliser signup anonyme — toujours email/password
+ * - L'auto-confirm email doit rester désactivé en production
+ * - Les nouveaux comptes créés sans approbation préalable atterrissent sur
+ *   /pending-approval (mem://auth/super-admin)
+ */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart, Eye, EyeOff, HelpCircle, CheckCircle2, KeyRound, UserCheck, MailQuestion, Send } from "lucide-react";

@@ -1,3 +1,20 @@
+/**
+ * @page MyTeamRedirect
+ * @route /my-team
+ *
+ * Redirection automatique vers la fiche d'équipe principale du joueur courant.
+ *
+ * @description
+ * Page tampon utilisée dans la sidebar du rôle joueur. Récupère la première
+ * équipe active (`team_members.is_active = true`) du joueur via React Query
+ * puis redirige vers /teams/:id.
+ *
+ * @access Joueur connecté
+ *
+ * @maintenance
+ * Si le joueur n'a aucune équipe active, redirige vers /dashboard.
+ * Affiche un loader pendant la résolution pour éviter un flash blanc.
+ */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
