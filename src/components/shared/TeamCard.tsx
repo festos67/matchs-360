@@ -14,7 +14,6 @@
  *  - Layout cohérent avec mem://navigation/management-views
  */
 import { Link } from "react-router-dom";
-import { CircleAvatar } from "@/components/shared/CircleAvatar";
 
 interface TeamCardProps {
   id: string;
@@ -45,15 +44,22 @@ export const TeamCard = ({
 }: TeamCardProps) => {
   const content = (
     <div className="flex flex-col items-center text-center w-full">
-      <div className="w-full aspect-square max-w-[7rem]">
-        <CircleAvatar
-          shape="square"
-          name={name}
-          shortName={shortName}
-          color={color || "#3B82F6"}
-          size="responsive"
-          showName={false}
-        />
+      <div
+        className="w-full aspect-square max-w-[7rem] rounded-2xl flex items-center justify-center font-display font-bold text-white transition-transform group-hover:scale-105"
+        style={{
+          background: `linear-gradient(135deg, ${color || "#3B82F6"} 0%, ${color || "#3B82F6"}88 100%)`,
+          boxShadow: `0 4px 24px -4px ${color || "#3B82F6"}40`,
+        }}
+      >
+        <span className="text-[clamp(1rem,4vw,1.75rem)]">
+          {(shortName ||
+            name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase())}
+        </span>
       </div>
       <p className="font-semibold text-foreground mt-2 group-hover:text-primary transition-colors text-sm">
         {name}
