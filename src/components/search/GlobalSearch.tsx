@@ -1,3 +1,22 @@
+/**
+ * @component GlobalSearch
+ * @description Palette de commandes (Command Palette) accessible depuis la
+ *              TopBar et via raccourci ⌘K / Ctrl+K. Recherche multi-entités
+ *              en temps réel : clubs, équipes, joueurs, coachs, supporters.
+ *              Filtres en cascade (par type, par club) au survol.
+ * @access Tous rôles authentifiés (résultats filtrés par RLS)
+ * @features
+ *  - Dialog de dimensions fixes (h-560px, max-w-2xl) — anti-saut UI
+ *  - Recherche debounced sur multiples tables Supabase
+ *  - Filtres cascadants (type d'entité → club)
+ *  - Navigation clavier (↑↓, Enter)
+ *  - Icônes role-branded par type d'entité
+ *  - Raccourci global ⌘K via listener clavier
+ * @maintenance
+ *  - Spec UI : mem://navigation/global-search-command-palette
+ *  - Identité par rôle : mem://style/role-branding-standard
+ *  - Visibilité par rôle : RLS gère le filtrage côté DB
+ */
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Users, User, Loader2, Building2, UserCog, ChevronDown, Check, X } from "lucide-react";

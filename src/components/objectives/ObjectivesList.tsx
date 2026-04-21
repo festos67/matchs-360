@@ -1,3 +1,21 @@
+/**
+ * @component ObjectivesList
+ * @description Liste interactive des objectifs d'équipe (team_objectives).
+ *              Gère affichage, drag-drop de priorisation, édition inline,
+ *              duplication, suppression, et notifications automatiques aux
+ *              membres actifs lors de la création.
+ * @access Coach Référent, Responsable Club (édition) / Coach Assistant, Joueur (lecture)
+ * @features
+ *  - DnD via @dnd-kit pour réordonner (order_index persisté)
+ *  - Statut visuel (todo/in_progress/done) avec icônes Check/X
+ *  - Marquage priorité (Star)
+ *  - Pièces jointes (Paperclip) avec preview
+ *  - Mutation optimiste TanStack Query (rollback en cas d'erreur)
+ * @maintenance
+ *  - Notifications création : mem://features/team-objectives
+ *  - Lecture seule pour assistants : mem://features/coach-team-workflow
+ *  - Stats : composant ObjectivesStats associé
+ */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Target, Paperclip, FileText, Image, Pencil, Trash2, GripVertical, Check, X, Copy, Star, RotateCcw } from "lucide-react";

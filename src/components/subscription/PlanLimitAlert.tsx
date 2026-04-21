@@ -1,3 +1,23 @@
+/**
+ * @component PlanLimitAlert
+ * @description Modale (AlertDialog) incitative affichée lors d'un dépassement
+ *              de quota de plan (PLAN_LIMIT_*). Présente la limite atteinte,
+ *              les bénéfices du plan supérieur et un CTA vers /pricing.
+ * @access Tous rôles authentifiés (déclenchée par usePlanLimitHandler)
+ * @props
+ *  - open / onOpenChange
+ *  - feature: PlanLimitFeature — type de limite (teams, players, coaches, ...)
+ *  - currentPlan: subscription_plan — plan actif (free/pro)
+ * @features
+ *  - Messages contextuels par type de limite (titre + description adaptés)
+ *  - Icône AlertTriangle accentuée
+ *  - CTA primaire "Voir les plans" → navigate("/pricing")
+ *  - Bouton secondaire "Plus tard"
+ * @maintenance
+ *  - Orchestrateur : src/hooks/usePlanLimitHandler.tsx
+ *  - Détection erreurs : src/lib/plan-error-handler.ts
+ *  - Limites définies en DB (table plan_limits + triggers)
+ */
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle } from "lucide-react";
 import {

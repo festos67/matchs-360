@@ -1,3 +1,20 @@
+/**
+ * @modal ObjectiveModal
+ * @description Modale de création/édition d'un objectif (équipe ou joueur).
+ *              Gère la saisie titre/description, la priorité, le statut et
+ *              l'attachement de pièces jointes (objective_attachments).
+ * @access Coach Référent, Responsable Club, Super Admin (créateurs)
+ * @features
+ *  - Mode dual : create / edit (préremplissage en édition)
+ *  - Upload de fichiers via Supabase Storage (bucket objective-attachments)
+ *  - Toggle priorité (is_priority) + statut (todo/in_progress/done)
+ *  - Validation non-vide titre, deadline optionnelle
+ *  - AlertDialog anti-annulation si modifications non sauvegardées
+ * @maintenance
+ *  - Notifications auto à la création : mem://features/team-objectives
+ *  - Drag-drop priorisation : mem://features/player-objectives
+ *  - Pièces jointes : table objective_attachments / player_objective_attachments
+ */
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

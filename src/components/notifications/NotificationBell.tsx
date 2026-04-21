@@ -1,3 +1,21 @@
+/**
+ * @component NotificationBell
+ * @description Cloche de notifications dans la TopBar. Affiche un badge
+ *              compteur de notifications non lues, ouvre un Popover avec la
+ *              liste, et permet de marquer comme lu / naviguer vers la cible.
+ *              Souscription Realtime à la table notifications.
+ * @access Tous rôles authentifiés
+ * @features
+ *  - Souscription Supabase Realtime (postgres_changes filtré par user_id)
+ *  - Badge compteur (is_read=false) avec animation
+ *  - Icônes typées (Target, AlertTriangle, CheckCircle2, Info)
+ *  - Click → navigate vers notification.link + markAsRead
+ *  - Bouton "Tout marquer comme lu"
+ * @maintenance
+ *  - Système complet : mem://features/in-app-notifications
+ *  - Triggers DB pour création (objectifs, debriefs, invitations)
+ *  - Filtre RLS user_id = auth.uid()
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Target, Check, CheckCircle2, AlertTriangle, AlertCircle, Info } from "lucide-react";
