@@ -75,6 +75,19 @@ type TeamWithRelations = Tables<"teams"> & {
   team_members: TeamMemberPartial[];
 };
 
+const STORAGE_KEY_CLUBS = "teams-collapsed-clubs";
+
+/**
+ * Saison sportive courante (août → juillet).
+ * Ex: en mars 2026 → "2025-2026".
+ */
+const getCurrentSeason = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const startYear = now.getMonth() >= 6 ? y : y - 1;
+  return `${startYear}-${startYear + 1}`;
+};
+
 const Teams = () => {
   const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
   const queryClient = useQueryClient();
@@ -86,6 +99,24 @@ const Teams = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const currentSeason = getCurrentSeason();
 
   const { data: teams, isLoading } = useQuery({
     queryKey: ["teams", user?.id, currentRole?.role, showArchived],
