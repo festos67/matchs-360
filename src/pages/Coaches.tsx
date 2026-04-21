@@ -43,7 +43,12 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 interface CoachData {
   id: string;
