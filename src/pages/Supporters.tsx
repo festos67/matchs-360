@@ -104,6 +104,14 @@ const Supporters = () => {
       return {};
     }
   });
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     fetchSupporters();
@@ -121,6 +129,14 @@ const Supporters = () => {
     setCollapsedTeams((prev) => {
       const next = { ...prev, [teamId]: !prev[teamId] };
       localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
       return next;
     });
   };
