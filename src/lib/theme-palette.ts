@@ -1,6 +1,14 @@
 /**
- * Default light-mode palette for evaluation themes.
- * Used as a deterministic fallback when a theme has no explicit color.
+ * @module theme-palette
+ * @description Palette de couleurs par défaut (mode clair) attribuée aux thèmes
+ *              de référentiel lorsque aucune couleur explicite n'est définie.
+ *              Garantit un fallback déterministe et cohérent dans toute l'app
+ *              (radar, badges, headers de thème).
+ * @exports THEME_PALETTE — tableau de couleurs HSL ordonnées
+ * @maintenance
+ *  - Couleurs HSL pour cohérence avec le design system (mem://design)
+ *  - Sélecteur utilisateur : mem://style/ui-patterns/color-picker
+ *  - Index attribué par modulo (ordre stable des thèmes)
  */
 export const THEME_PALETTE = [
   "#1D4ED8", // Bleu roi
