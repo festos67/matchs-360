@@ -1,3 +1,16 @@
+/**
+ * @modal FrameworkNameModal
+ * @description Sous-modale légère utilisée pour saisir le nom d'une nouvelle
+ *              version de référentiel avant création/duplication. Appelée par
+ *              CreateClubFrameworkModal et le bouton "Réinitialiser" du référentiel.
+ * @access Responsable Club, Super Admin, Coach Référent
+ * @features
+ *  - Champ unique (nom du référentiel) avec validation non-vide
+ *  - Suggestion de nom par défaut basée sur la saison ou la date
+ *  - Confirmation par Enter
+ * @maintenance
+ *  - Lié au système de versioning : mem://features/framework-lifecycle-management
+ */
 import { useState, useEffect } from "react";
 import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";

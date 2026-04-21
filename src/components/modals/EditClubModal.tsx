@@ -1,3 +1,17 @@
+/**
+ * @modal EditClubModal
+ * @description Modale d'édition des informations d'un club existant : nom,
+ *              initiales, couleurs primaire/secondaire, logo.
+ * @access Super Admin, Responsable Club (sur son club)
+ * @features
+ *  - Pré-remplissage des champs depuis l'objet club
+ *  - Upload/remplacement logo via storage `club-logos` (chemins UUID non énumérables)
+ *  - ColorPickerButton (react-colorful) avec preview live
+ *  - Cache-busting par timestamp sur l'URL du logo
+ * @maintenance
+ *  - Sécurité storage : voir README section Sécurité (chemins UUID)
+ *  - Couleurs HSL semantic tokens (design system)
+ */
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

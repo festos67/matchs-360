@@ -1,3 +1,20 @@
+/**
+ * @modal RequestSupporterEvaluationModal
+ * @description Modale d'envoi de demandes de débrief consultatif aux supporters
+ *              liés à un joueur. Permet la sélection multiple et bloque les
+ *              supporters ayant déjà une demande en attente.
+ * @access Coach Référent, Responsable Club, Super Admin (depuis fiche joueur)
+ * @features
+ *  - Liste des supporters liés (via supporters_link) avec checkbox
+ *  - Indicateur "En attente" (Badge warning) pour demandes existantes
+ *  - Création en batch dans supporter_evaluation_requests
+ *  - Gestion d'erreur explicite sur duplicata
+ *  - Identité visuelle Heart orange (action sur supporter)
+ * @maintenance
+ *  - Débriefs consultatifs : mem://features/consultative-debrief-types
+ *  - Isolation données débriefs supporter : mem://logic/assessment-data-isolation-rules
+ *  - À refactoriser si dépasse les 250 lignes (actuellement 231)
+ */
 import { useState, useEffect } from "react";
 import { Heart, Send, Mail, Users } from "lucide-react";
 import {

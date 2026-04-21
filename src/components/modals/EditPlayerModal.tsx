@@ -1,3 +1,19 @@
+/**
+ * @modal EditPlayerModal
+ * @description Modale légère d'édition des informations d'un joueur : prénom,
+ *              nom, surnom, photo. Permet aussi d'ajouter des rôles cumulés via
+ *              AddRoleSection (ex: joueur + coach assistant).
+ * @access Super Admin, Responsable Club, Coach Référent (édition partielle)
+ * @features
+ *  - Pré-remplissage depuis l'objet player
+ *  - Upload/suppression photo avec preview circulaire
+ *  - Email en lecture seule (clé d'identification)
+ *  - AddRoleSection pour cumul de rôles dans le club
+ * @maintenance
+ *  - Permissions joueurs : mem://logic/permissions-joueurs
+ *  - Soft delete réservé Super Admin uniquement
+ *  - Edit flow rôles : mem://features/user-role-management/edit-flow
+ */
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";

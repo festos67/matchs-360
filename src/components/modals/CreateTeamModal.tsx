@@ -1,3 +1,19 @@
+/**
+ * @modal CreateTeamModal
+ * @description Modale de création d'une nouvelle équipe au sein d'un club.
+ *              Permet de définir nom, initiales, saison, couleur identitaire et
+ *              optionnellement de désigner un Coach Référent dès la création.
+ * @access Super Admin, Responsable Club (sur son club)
+ * @features
+ *  - Validation Zod du formulaire (nom requis, short_name 3 chars uppercase)
+ *  - Sélection optionnelle d'un Coach Référent existant via Combobox
+ *  - Initialisation automatique d'un référentiel d'équipe via modèle club
+ *  - AlertDialog anti-annulation pour confirmer la perte des données saisies
+ *  - Vérification des limites du plan (max_teams) avant création
+ * @maintenance
+ *  - Coach Référent = source de vérité dans team_members (mem://logic/coach-role-integrity)
+ *  - Initialisation référentiel restreinte aux modèles club actifs (mem://logic/team-framework-initialization-rules)
+ */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

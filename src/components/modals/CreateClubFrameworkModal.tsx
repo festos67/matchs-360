@@ -1,3 +1,20 @@
+/**
+ * @modal CreateClubFrameworkModal
+ * @description Modale d'initialisation du référentiel modèle d'un club. Propose
+ *              plusieurs sources : Modèle Standard MATCHS360 (6 catégories),
+ *              import depuis un autre club ou création vierge.
+ * @access Responsable Club, Super Admin
+ * @features
+ *  - Sélecteur de source (template standard / club existant / vide)
+ *  - Aperçu du référentiel sélectionné avant validation
+ *  - Sous-modale FrameworkNameModal pour nommer la version
+ *  - Création + redirection vers l'éditeur plein écran
+ *  - Historique des versions précédentes (icône History)
+ * @maintenance
+ *  - Modèle Standard : 6 catégories (mem://features/competence-framework-template)
+ *  - Cycle de vie référentiels : mem://features/framework-lifecycle-management
+ *  - Permissions édition : mem://logic/gestion-referentiels-permissions
+ */
 import { useState, useEffect, useCallback } from "react";
 import { FileText, Users, FileQuestion, ArrowRight, BookOpen, History } from "lucide-react";
 import { Button } from "@/components/ui/button";

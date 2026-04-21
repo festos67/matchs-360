@@ -1,3 +1,21 @@
+/**
+ * @modal CreateClubModal
+ * @description Modale de création d'un nouveau club (réservée Super Admin).
+ *              Gère un formulaire en 2 étapes : informations club (nom, initiales,
+ *              couleurs primaire/secondaire, logo) puis invitation du Responsable Club.
+ * @access Super Admin uniquement
+ * @features
+ *  - Validation Zod (nom requis, short_name 3 chars max auto-uppercase)
+ *  - ColorPickerButton (react-colorful) pour couleurs HSL
+ *  - Upload logo via storage `club-logos` (chemins UUID)
+ *  - Persistance brouillon (draft) en localStorage pour reprise
+ *  - Logique transactionnelle : rollback du club si invitation Responsable échoue
+ *  - AlertDialog anti-annulation pour éviter pertes de données
+ * @maintenance
+ *  - Voir mem://features/admin/club-management pour le flux transactionnel
+ *  - Voir mem://features/entity-short-names pour la gestion du short_name
+ *  - Standard modale : max-h-85vh + scroll interne (mem://style/ui-patterns/management-modals-standards)
+ */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

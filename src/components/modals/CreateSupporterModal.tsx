@@ -1,3 +1,19 @@
+/**
+ * @modal CreateSupporterModal
+ * @description Modale d'invitation d'un supporter (parent, proche) lié à un ou
+ *              plusieurs joueurs. Le supporter accède en lecture seule aux données
+ *              de ses joueurs et peut soumettre des débriefs consultatifs sur invitation.
+ * @access Coach Référent, Responsable Club, Super Admin (action depuis fiche joueur)
+ * @features
+ *  - Modes "Nouveau" / "Existant" pour éviter doublons (mem://features/user-role-management/promotion-mode)
+ *  - Lien automatique avec le joueur concerné via supporters_link
+ *  - Upload photo de profil avec recadrage circulaire
+ *  - Vérification limite plan (max_supporters_per_team)
+ *  - AlertDialog anti-annulation
+ * @maintenance
+ *  - Accès données supporter en lecture seule : mem://logic/supporter-data-access
+ *  - Identité visuelle Heart rose (mem://style/role-branding-standard)
+ */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -1,3 +1,21 @@
+/**
+ * @modal CreateCoachModal
+ * @description Modale d'invitation/ajout d'un coach à un club. Propose deux modes
+ *              (Nouveau / Existant) et permet d'affecter immédiatement le coach
+ *              à plusieurs équipes via une matrice avec choix du rôle.
+ * @access Super Admin, Responsable Club
+ * @features
+ *  - Mode "Nouveau" : invitation par email + photo
+ *  - Mode "Existant" : ajout du rôle coach à un utilisateur déjà inscrit
+ *  - TeamAssignmentMatrix : sélection multi-équipes + rôle (Référent/Assistant)
+ *  - Le coach peut être créé sans équipe (rattaché au club uniquement)
+ *  - Vérification limite plan (max_coaches_per_team)
+ *  - AlertDialog anti-annulation
+ * @maintenance
+ *  - Workflow d'affectation : mem://logic/coach-assignment-workflow
+ *  - Référent vs Assistant : mem://features/coach-team-workflow
+ *  - Hook useCreateCoach centralise la logique métier
+ */
 import { useState } from "react";
 import { UserCog } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

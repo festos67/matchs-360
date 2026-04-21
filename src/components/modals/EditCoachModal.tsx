@@ -1,3 +1,20 @@
+/**
+ * @modal EditCoachModal
+ * @description Modale d'édition d'un coach existant : informations personnelles,
+ *              affectations multi-équipes (matrice) et rôle (Référent/Assistant)
+ *              par équipe.
+ * @access Super Admin, Responsable Club
+ * @features
+ *  - Onglets : Profil / Affectations équipes
+ *  - TeamAssignmentMatrix : toggle équipe + sélection rôle Référent ou Assistant
+ *  - Switch d'activation/désactivation du compte
+ *  - Section AddRoleSection pour cumuler rôles (ex: coach + supporter)
+ *  - Upload/remplacement photo de profil
+ * @maintenance
+ *  - Workflow multi-équipes : mem://features/coach-team-workflow
+ *  - Affectation : mem://logic/coach-assignment-workflow
+ *  - Coach Référent vs Assistant : permissions distinctes
+ */
 import { useState, useEffect } from "react";
 import { UserCog, User, Users } from "lucide-react";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
