@@ -37,6 +37,7 @@ import { Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookO
 import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
+import { TeamCard } from "@/components/shared/TeamCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -84,6 +85,9 @@ interface Team {
   season: string | null;
   color: string | null;
   deleted_at: string | null;
+  playersCount?: number;
+  coachesCount?: number;
+  referentCoachName?: string;
 }
 
 interface ClubFramework {
@@ -92,6 +96,17 @@ interface ClubFramework {
   themes_count: number;
   skills_count: number;
 }
+
+/**
+ * Saison sportive courante (août → juillet). Ex: en mars 2026 → "2025-2026".
+ */
+const getCurrentSeason = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const startYear = now.getMonth() >= 6 ? y : y - 1;
+  return `${startYear}-${startYear + 1}`;
+};
+const currentSeason = getCurrentSeason();
 
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
@@ -160,7 +175,44 @@ export default function ClubDetail() {
         .is("deleted_at", null)
         .order("name");
       if (teamsError) throw teamsError;
-      setTeams(teamsData || []);
+      // Enrich teams with player/coach counts and referent coach name
+      const enrichedTeams = await Promise.all(
+        (teamsData || []).map(async (team) => {
+          const [{ count: pCount }, { count: cCount }, { data: refData }] = await Promise.all([
+            supabase
+              .from("team_members")
+              .select("*", { count: "exact", head: true })
+              .eq("team_id", team.id)
+              .eq("member_type", "player")
+              .eq("is_active", true),
+            supabase
+              .from("team_members")
+              .select("*", { count: "exact", head: true })
+              .eq("team_id", team.id)
+              .eq("member_type", "coach")
+              .eq("is_active", true),
+            supabase
+              .from("team_members")
+              .select("profiles:user_id (first_name, last_name)")
+              .eq("team_id", team.id)
+              .eq("member_type", "coach")
+              .eq("coach_role", "referent")
+              .eq("is_active", true)
+              .maybeSingle(),
+          ]);
+          const ref = (refData as any)?.profiles;
+          const referentCoachName = ref
+            ? `${ref.first_name || ""} ${ref.last_name || ""}`.trim() || "—"
+            : "—";
+          return {
+            ...team,
+            playersCount: pCount || 0,
+            coachesCount: cCount || 0,
+            referentCoachName,
+          } as Team;
+        })
+      );
+      setTeams(enrichedTeams);
 
       // Fetch archived teams (only for admins)
       if (isAdmin) {
@@ -512,13 +564,13 @@ export default function ClubDetail() {
         </h2>
         {canManageClub && !showArchived && (
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTeamModal(true)}>
-            <Plus className="w-3.5 h-3.5 text-primary" />Équipe
+            <Plus className="w-3.5 h-3.5 text-accent" />Équipe
           </Button>
         )}
       </div>
 
       {displayedTeams.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
           {displayedTeams.map((team, index) => (
             <div key={team.id} className="animate-fade-in-up opacity-0 relative group" style={{ animationDelay: `${index * 0.1}s` }}>
               {showArchived ? (
@@ -549,14 +601,15 @@ export default function ClubDetail() {
               ) : (
                 // Active team display
                 <>
-                  <CircleAvatar 
-                    shape="square"
+                  <TeamCard
+                    id={team.id}
                     name={team.name}
                     shortName={team.short_name}
-                    subtitle={team.season || ""} 
-                    color={team.color || club.primary_color} 
-                    size="lg" 
-                    onClick={() => navigate(`/teams/${team.id}`)} 
+                    color={team.color || club.primary_color}
+                    season={team.season}
+                    hideSeason={team.season === currentSeason}
+                    referentCoachName={team.referentCoachName}
+                    playerCount={team.playersCount}
                   />
                   {canManageClub && (
                     <Button
