@@ -521,13 +521,19 @@ const Supporters = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {teamGroups.map((team) => {
-              const teamOpen = collapsedTeams[team.teamId] !== true;
-              const totalSupporters = team.players.reduce(
-                (acc, [, p]) => acc + p.supporters.length,
-                0,
-              );
-              return (
+            {clubGroups.map((club) => {
+              const clubOpen = collapsedClubs[club.clubId] !== true;
+              const renderTeams = (
+                <div className={showClubLevel ? "space-y-4 mt-2 pl-4 border-l-2 border-primary/20" : "space-y-4"}>
+                  {club.teams.map((team) => {
+                    const teamOpen = collapsedTeams[team.teamId] !== true;
+                    const totalSupporters = team.players.reduce(
+                      (acc, [, p]) => acc + p.supporters.length,
+                      0,
+                    );
+                    const teamColor = team.teamColor || "hsl(var(--primary))";
+                    const teamInitials = (team.teamShortName || team.teamName.slice(0, 2)).toUpperCase();
+                    return (
                 <Collapsible
                   key={team.teamId}
                   open={teamOpen}
@@ -539,6 +545,14 @@ const Supporters = () => {
                         teamOpen ? "" : "-rotate-90"
                       }`}
                     />
+                    <div
+                      className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: teamColor }}
+                    >
+                      <span className="text-[9px] font-bold text-white leading-none">
+                        {teamInitials}
+                      </span>
+                    </div>
                     <span className="font-display font-semibold text-sm uppercase tracking-wide">
                       {team.teamName}
                     </span>
@@ -563,7 +577,7 @@ const Supporters = () => {
                                   isOpen ? "" : "-rotate-90"
                                 }`}
                               />
-                              <Heart className="w-4 h-4 text-primary" />
+                              <UserCircle className="w-4 h-4 text-success" />
                               <span className="font-display font-semibold text-sm">
                                 {group.playerName}
                               </span>
@@ -630,7 +644,7 @@ const Supporters = () => {
                                               variant="ghost"
                                               size="icon"
                                               onClick={() => openEditModal(supporter)}
-                                              className="text-blue-500 hover:text-blue-700"
+                                              className="text-blue-500 hover:text-blue-600"
                                             >
                                               <Edit className="w-4 h-4" />
                                             </Button>
@@ -647,6 +661,55 @@ const Supporters = () => {
                       })}
                     </div>
                   </CollapsibleContent>
+                </Collapsible>
+                    );
+                  })}
+                </div>
+              );
+
+              if (!showClubLevel) {
+                return <div key={club.clubId}>{renderTeams}</div>;
+              }
+
+              const clubInitials = (club.clubShortName || club.clubName.slice(0, 2)).toUpperCase();
+              const clubColor = club.clubPrimaryColor || "hsl(var(--primary))";
+              const totalTeams = club.teams.length;
+              const totalSupportersClub = club.teams.reduce(
+                (acc, t) => acc + t.players.reduce((a, [, p]) => a + p.supporters.length, 0),
+                0,
+              );
+              return (
+                <Collapsible
+                  key={club.clubId}
+                  open={clubOpen}
+                  onOpenChange={() => toggleClub(club.clubId)}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-accent/10 hover:bg-accent/15 transition-colors cursor-pointer">
+                    <ChevronDown
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${
+                        clubOpen ? "" : "-rotate-90"
+                      }`}
+                    />
+                    <div
+                      className="w-6 h-6 rounded flex items-center justify-center overflow-hidden shrink-0"
+                      style={{ backgroundColor: club.clubLogoUrl ? "transparent" : clubColor }}
+                    >
+                      {club.clubLogoUrl ? (
+                        <img src={club.clubLogoUrl} alt={club.clubName} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-white leading-none">
+                          {clubInitials}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-display font-bold text-sm uppercase tracking-wider">
+                      {club.clubName}
+                    </span>
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {totalTeams} équipe{totalTeams > 1 ? "s" : ""} · {totalSupportersClub} supporter{totalSupportersClub > 1 ? "s" : ""}
+                    </Badge>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>{renderTeams}</CollapsibleContent>
                 </Collapsible>
               );
             })}
