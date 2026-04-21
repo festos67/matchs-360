@@ -552,13 +552,13 @@ export default function ClubDetail() {
         </h2>
         {canManageClub && !showArchived && (
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTeamModal(true)}>
-            <Plus className="w-3.5 h-3.5 text-primary" />Équipe
+            <Plus className="w-3.5 h-3.5 text-accent" />Équipe
           </Button>
         )}
       </div>
 
       {displayedTeams.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
           {displayedTeams.map((team, index) => (
             <div key={team.id} className="animate-fade-in-up opacity-0 relative group" style={{ animationDelay: `${index * 0.1}s` }}>
               {showArchived ? (
@@ -589,14 +589,15 @@ export default function ClubDetail() {
               ) : (
                 // Active team display
                 <>
-                  <CircleAvatar 
-                    shape="square"
+                  <TeamCard
+                    id={team.id}
                     name={team.name}
                     shortName={team.short_name}
-                    subtitle={team.season || ""} 
-                    color={team.color || club.primary_color} 
-                    size="lg" 
-                    onClick={() => navigate(`/teams/${team.id}`)} 
+                    color={team.color || club.primary_color}
+                    season={team.season}
+                    hideSeason={team.season === currentSeason}
+                    referentCoachName={team.referentCoachName}
+                    playerCount={team.playersCount}
                   />
                   {canManageClub && (
                     <Button
