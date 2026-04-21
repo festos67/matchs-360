@@ -384,7 +384,11 @@ const Coaches = () => {
                     </TableHeader>
                     <TableBody>
                       {group.coaches.map((coach) => (
-                        <TableRow key={coach.id}>
+                        <TableRow
+                          key={coach.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleEdit(coach)}
+                        >
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-10 w-10">
@@ -440,7 +444,10 @@ const Coaches = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleEdit(coach)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(coach);
+                              }}
                             >
                               <Pencil className="w-4 h-4" />
                               <span className="sr-only">Éditer</span>
