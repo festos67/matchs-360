@@ -162,20 +162,43 @@ const Supporters = () => {
       // Fetch player team memberships
       const { data: playerTeams } = await supabase
         .from("team_members")
-        .select("user_id, team_id, teams:team_id (id, name)")
+        .select(
+          "user_id, team_id, teams:team_id (id, name, color, short_name, club_id, clubs:club_id (id, name, logo_url, short_name, primary_color))",
+        )
         .in("user_id", playerIds)
         .eq("member_type", "player")
         .eq("is_active", true);
 
-      const playerMap = new Map<string, { name: string; team_id: string | null; team_name: string | null }>();
+      const playerMap = new Map<
+        string,
+        {
+          name: string;
+          team_id: string | null;
+          team_name: string | null;
+          team_color: string | null;
+          team_short_name: string | null;
+          club_id: string | null;
+          club_name: string | null;
+          club_logo_url: string | null;
+          club_short_name: string | null;
+          club_primary_color: string | null;
+        }
+      >();
       (playerProfiles || []).forEach((p) => {
         const teamEntry = (playerTeams || []).find((t) => t.user_id === p.id);
-        const teamId = teamEntry ? (teamEntry.teams as any)?.id || null : null;
-        const teamName = teamEntry ? (teamEntry.teams as any)?.name || null : null;
+        const team = teamEntry ? (teamEntry.teams as any) : null;
+        const club = team?.clubs || null;
         playerMap.set(p.id, {
           name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Joueur",
-          team_id: teamId,
-          team_name: teamName,
+          team_id: team?.id || null,
+          team_name: team?.name || null,
+          team_color: team?.color || null,
+          team_short_name: team?.short_name || null,
+          club_id: club?.id || null,
+          club_name: club?.name || null,
+          club_logo_url: club?.logo_url || null,
+          club_short_name: club?.short_name || null,
+          club_primary_color: club?.primary_color || null,
         });
       });
 
@@ -188,6 +211,13 @@ const Supporters = () => {
             name: info?.name || "Joueur",
             team_id: info?.team_id || null,
             team_name: info?.team_name || null,
+            team_color: info?.team_color || null,
+            team_short_name: info?.team_short_name || null,
+            club_id: info?.club_id || null,
+            club_name: info?.club_name || null,
+            club_logo_url: info?.club_logo_url || null,
+            club_short_name: info?.club_short_name || null,
+            club_primary_color: info?.club_primary_color || null,
           };
         });
 
