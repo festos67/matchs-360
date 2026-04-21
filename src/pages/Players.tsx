@@ -504,6 +504,7 @@ const Players = () => {
       )}
     </TableRow>
   );
+  };
 
   return (
     <AppLayout>
