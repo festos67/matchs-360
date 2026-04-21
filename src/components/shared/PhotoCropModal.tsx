@@ -1,3 +1,22 @@
+/**
+ * @component PhotoCropModal
+ * @description Modale de recadrage circulaire d'une photo (react-easy-crop).
+ *              Étape obligatoire avant upload pour garantir un format avatar
+ *              cohérent (rond, JPEG qualité 92).
+ * @props
+ *  - imageSrc: string — image source à recadrer
+ *  - onCropComplete: (blob: Blob) => void
+ *  - onClose: () => void
+ * @features
+ *  - Cropper avec aspect 1:1 (carré → recadrage circulaire)
+ *  - Zoom slider et drag pour ajustement
+ *  - Génération blob JPEG qualité 92
+ *  - useCallback pour stabilité de la callback onCropComplete
+ * @maintenance
+ *  - Workflow média : mem://technical/media-processing-workflow
+ *  - Cache-busting timestamp sur URL résultante
+ *  - Utilisé dans Profile, EditPlayer, EditCoach, etc.
+ */
 import { useState, useCallback } from "react";
 import Cropper, { Area } from "react-easy-crop";
 import {

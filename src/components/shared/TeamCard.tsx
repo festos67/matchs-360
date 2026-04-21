@@ -1,3 +1,18 @@
+/**
+ * @component TeamCard
+ * @description Carte de présentation d'une équipe (avatar circulaire couleur,
+ *              nom, statistiques) cliquable redirigeant vers la fiche équipe.
+ * @props
+ *  - id / name / shortName / color / playersCount / coachName
+ * @features
+ *  - Wrapper Link vers /teams/:id
+ *  - CircleAvatar avec couleur identitaire de l'équipe
+ *  - Affichage compteur joueurs + nom du Coach Référent
+ *  - Hover state pour indication d'interactivité
+ * @maintenance
+ *  - Utilisé dans listings équipes et galerie dashboard club
+ *  - Layout cohérent avec mem://navigation/management-views
+ */
 import { Link } from "react-router-dom";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 

@@ -1,3 +1,21 @@
+/**
+ * @component CircleAvatar
+ * @description Avatar circulaire générique avec fallback initiales. Utilisé pour
+ *              clubs (logo + nom court), équipes (couleur) et utilisateurs (photo).
+ * @props
+ *  - name: string — nom complet pour calcul initiales
+ *  - shortName?: string — initiales personnalisées (sinon calcul auto)
+ *  - subtitle?: string — sous-titre optionnel
+ *  - imageUrl?: string — URL de l'image (logo / photo)
+ *  - size?: variant — "sm" | "md" | "lg" | "xl"
+ * @features
+ *  - Fallback initiales si pas d'image (sur 2 caractères max)
+ *  - Couleur de fond personnalisable (bg HSL)
+ *  - Affichage cohérent dans toute l'app (entité unifiée)
+ *  - Support overlay (children)
+ * @maintenance
+ *  - Layout entêtes entités : mem://style/ui-patterns/entity-header-layout
+ */
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 

@@ -1,3 +1,22 @@
+/**
+ * @component StatsCard
+ * @description Carte KPI réutilisable (titre, valeur, sous-titre, icône). Brique
+ *              de base de tous les dashboards (Admin, Club, Coach, Joueur).
+ * @props
+ *  - title: string
+ *  - value: string | number
+ *  - subtitle?: string — texte secondaire (variation, contexte)
+ *  - icon: LucideIcon
+ *  - variant?: "default" | "success" | "warning" | "destructive"
+ * @features
+ *  - Layout uniforme (icône + titre + valeur en gras)
+ *  - Couleur de fond selon variant (HSL semantic tokens)
+ *  - Subtitle pour contexte (ex: "+12% vs mois dernier")
+ *  - Hover state subtle
+ * @maintenance
+ *  - Comptage actifs uniquement : mem://features/stats-and-member-counting
+ *  - Design tokens HSL impérativement (jamais de couleurs hardcodées)
+ */
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 

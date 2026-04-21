@@ -1,3 +1,16 @@
+/**
+ * @component PlayerHistoryTab
+ * @description Wrapper léger de l'onglet "Historique" (renommé "Évolution" pour
+ *              les joueurs) sur la fiche joueur. Délègue l'affichage complet à
+ *              EvaluationHistory.
+ * @access Tous rôles avec accès à la fiche joueur
+ * @features
+ *  - Pass-through des évaluations + thèmes vers EvaluationHistory
+ *  - Gestion sélection courante et IDs de comparaison
+ * @maintenance
+ *  - Renommage "Évolution" pour joueur : mem://features/player/interface-restrictions
+ *  - Logique complète : voir EvaluationHistory.tsx
+ */
 import { EvaluationHistory } from "@/components/player/EvaluationHistory";
 import type { Evaluation, Theme } from "@/hooks/usePlayerData";
 

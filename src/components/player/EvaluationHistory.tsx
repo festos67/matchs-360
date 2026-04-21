@@ -1,3 +1,22 @@
+/**
+ * @component EvaluationHistory
+ * @description Liste chronologique des débriefs d'un joueur, segmentée en 3
+ *              sections (Coach officiel, Auto-débriefs joueur, Supporters).
+ *              Permet sélection, comparaison multi-couches, édition et archivage.
+ * @access Coachs, Responsables Club, Super Admin (vue God), Joueur (vue restreinte)
+ * @features
+ *  - 3 sections distinctes par type d'évaluation
+ *  - Sélection radio pour visualisation principale
+ *  - Checkbox de comparaison (jusqu'à 3 superpositions)
+ *  - Actions Edit / Archive / Delete avec permissions par rôle
+ *  - Affichage progression entre débriefs (TrendingUp icon)
+ *  - Format date locale FR (date-fns)
+ * @maintenance
+ *  - 3 sections : mem://features/evaluation-history
+ *  - Permissions édition : mem://logic/debrief-editing-permissions
+ *  - Vue God : mem://features/admin/god-view-capabilities
+ *  - Filtrage croisé : mem://features/debrief-filtering-workflow
+ */
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";

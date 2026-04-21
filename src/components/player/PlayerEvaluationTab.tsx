@@ -1,3 +1,20 @@
+/**
+ * @component PlayerEvaluationTab
+ * @description Onglet "Résultat" de la fiche joueur : affichage du dernier
+ *              débrief officiel (priorité coach), radar avec couches comparatives
+ *              (auto/supporter), restitution granulaire par compétence.
+ * @access Tous rôles avec accès à la fiche joueur (RLS)
+ * @features
+ *  - Vue par défaut : dernier débrief coach officiel
+ *  - Toggles "Auto-évaluation" / "Supporter" pour superposer (Checkbox)
+ *  - EvaluationRadar avec data dynamique selon couches actives
+ *  - Restitution granulaire (scores + commentaires + objectifs)
+ *  - Bouton "Nouveau débrief" (RotateCcw) selon permissions
+ * @maintenance
+ *  - Vue par défaut : mem://logic/radar-view-priority
+ *  - Restitution détaillée : mem://features/player-result-tab/detailed-view
+ *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
+ */
 import { useState, useCallback } from "react";
 import { ClipboardList, Heart, MessageSquare, Star } from "lucide-react";
 import { RotateCcw } from "lucide-react";

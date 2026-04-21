@@ -1,3 +1,24 @@
+/**
+ * @component ClubDashboardSections
+ * @description Sections analytiques du dashboard "Mon Club" (Responsable Club et
+ *              Coach). Regroupe KPIs, équipes, coachs, joueurs, débriefs récents
+ *              et permet la navigation rapide vers les vues détaillées.
+ * @access Responsable Club, Coach (vue restreinte aux équipes assignées)
+ * @features
+ *  - StatsCards : nombre de joueurs, équipes, coachs, débriefs
+ *  - Sections collapsibles (ChevronDown/Right) avec préférence utilisateur
+ *  - Galerie d'équipes avec progression KPI
+ *  - Tableau "Mes Coachs" avec rôles (Référent/Assistant)
+ *  - Liste des débriefs récents avec filtres rapides
+ *  - Recherche globale (Search)
+ *  - useQuery pour data fetching avec cache
+ * @maintenance
+ *  - Vue Responsable Club : mem://features/coach/club-overview-dashboard
+ *  - Section Coachs : mem://logic/club-coach-scope
+ *  - Comptage actifs uniquement : mem://features/stats-and-member-counting
+ *  - Visibilité coach : mem://logic/coach-teams-visibility
+ *  - KPI progression équipe : mem://features/team-progression-kpi
+ */
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
