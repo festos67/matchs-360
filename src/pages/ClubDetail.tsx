@@ -163,7 +163,44 @@ export default function ClubDetail() {
         .is("deleted_at", null)
         .order("name");
       if (teamsError) throw teamsError;
-      setTeams(teamsData || []);
+      // Enrich teams with player/coach counts and referent coach name
+      const enrichedTeams = await Promise.all(
+        (teamsData || []).map(async (team) => {
+          const [{ count: pCount }, { count: cCount }, { data: refData }] = await Promise.all([
+            supabase
+              .from("team_members")
+              .select("*", { count: "exact", head: true })
+              .eq("team_id", team.id)
+              .eq("member_type", "player")
+              .eq("is_active", true),
+            supabase
+              .from("team_members")
+              .select("*", { count: "exact", head: true })
+              .eq("team_id", team.id)
+              .eq("member_type", "coach")
+              .eq("is_active", true),
+            supabase
+              .from("team_members")
+              .select("profiles:user_id (first_name, last_name)")
+              .eq("team_id", team.id)
+              .eq("member_type", "coach")
+              .eq("coach_role", "referent")
+              .eq("is_active", true)
+              .maybeSingle(),
+          ]);
+          const ref = (refData as any)?.profiles;
+          const referentCoachName = ref
+            ? `${ref.first_name || ""} ${ref.last_name || ""}`.trim() || "—"
+            : "—";
+          return {
+            ...team,
+            playersCount: pCount || 0,
+            coachesCount: cCount || 0,
+            referentCoachName,
+          } as Team;
+        })
+      );
+      setTeams(enrichedTeams);
 
       // Fetch archived teams (only for admins)
       if (isAdmin) {
