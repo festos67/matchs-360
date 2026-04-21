@@ -606,8 +606,7 @@ export default function ClubDetail() {
                     name={team.name}
                     shortName={team.short_name}
                     color={team.color || club.primary_color}
-                    season={team.season}
-                    hideSeason={team.season === currentSeason}
+                    hideSeason
                     referentCoachName={team.referentCoachName}
                     playerCount={team.playersCount}
                   />
