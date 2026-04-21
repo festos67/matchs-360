@@ -46,7 +46,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Search, Heart, Loader2, ChevronDown, Plus, Edit } from "lucide-react";
+import { Search, Heart, Loader2, ChevronDown, Plus, Edit, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { EditUserModal } from "@/components/modals/EditUserModal";
@@ -57,12 +57,26 @@ interface SupporterData {
   first_name: string | null;
   last_name: string | null;
   photo_url: string | null;
-  players: { id: string; name: string; team_id: string | null; team_name: string | null }[];
+  players: {
+    id: string;
+    name: string;
+    team_id: string | null;
+    team_name: string | null;
+    team_color: string | null;
+    team_short_name: string | null;
+    club_id: string | null;
+    club_name: string | null;
+    club_logo_url: string | null;
+    club_short_name: string | null;
+    club_primary_color: string | null;
+  }[];
 }
 
 const STORAGE_KEY = "supporters-collapsed-players";
 const STORAGE_KEY_TEAMS = "supporters-collapsed-teams";
+const STORAGE_KEY_CLUBS = "supporters-collapsed-clubs";
 const NO_TEAM_KEY = "__no_team__";
+const NO_CLUB_KEY = "__no_club__";
 
 const Supporters = () => {
   const { hasAdminRole: isAdmin, currentRole } = useAuth();
