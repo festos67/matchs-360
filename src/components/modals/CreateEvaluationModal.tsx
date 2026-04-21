@@ -1,3 +1,21 @@
+/**
+ * @modal CreateEvaluationModal
+ * @description Modale de création d'un nouveau débrief (évaluation officielle).
+ *              S'adapte au contexte d'ouverture : depuis une équipe (joueur pré-rempli),
+ *              depuis la fiche joueur (équipe pré-remplie) ou depuis la recherche globale.
+ * @access Coachs assignés, Responsables Club, Super Admin
+ * @features
+ *  - Sélection en cascade : équipe → joueur → référentiel
+ *  - Combobox de recherche pour chaque entité (mem://style/ui-patterns/entity-selection)
+ *  - Génération automatique d'un nom de débrief (date + joueur)
+ *  - Snapshot JSONB du référentiel créé en parallèle (cf. framework_snapshots)
+ *  - Vérification limite plan (max_coach_evals_per_player)
+ *  - Redirection automatique vers le formulaire après création
+ * @maintenance
+ *  - Logique d'adaptation contextuelle : mem://features/evaluation-creation-context
+ *  - evaluator_id défini par auth.uid() (mem://technical/evaluation-structure)
+ *  - Snapshot automatique : mem://technical/framework-snapshot-system
+ */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";

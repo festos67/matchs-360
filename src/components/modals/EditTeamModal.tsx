@@ -1,3 +1,19 @@
+/**
+ * @modal EditTeamModal
+ * @description Modale d'édition d'une équipe existante : nom, initiales, saison,
+ *              couleur, et gestion du Coach Référent. Inclut une zone de
+ *              soft-delete (archivage) accessible aux Super Admins.
+ * @access Super Admin, Responsable Club, Coach Référent (édition partielle)
+ * @features
+ *  - Édition métadonnées équipe avec validation
+ *  - Réassignation du Coach Référent (réactive team_members existant si possible)
+ *  - Bouton de suppression (soft delete via deleted_at)
+ *  - AlertDialog de confirmation pour archivage
+ * @maintenance
+ *  - Coach Référent intégrité : mem://logic/coach-role-integrity
+ *  - Soft delete : mem://technical/soft-delete-strategy
+ *  - Édition flow rôles : mem://features/user-role-management/edit-flow
+ */
 import { useState, useEffect } from "react";
 import { Users, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { ColorPickerButton } from "@/components/shared/ColorPickerButton";

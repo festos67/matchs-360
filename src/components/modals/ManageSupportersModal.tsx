@@ -1,3 +1,19 @@
+/**
+ * @modal ManageSupportersModal
+ * @description Modale unifiée (h-640px fixe) pour gérer les supporters d'un joueur :
+ *              ajouter/inviter, lier des supporters existants, supprimer des liens.
+ *              Centralise toutes les actions sur supporters_link pour ce joueur.
+ * @access Coach Référent, Responsable Club, Super Admin (depuis fiche joueur)
+ * @features
+ *  - Liste des supporters actuellement liés avec action de retrait
+ *  - Formulaire d'invitation rapide (email + nom)
+ *  - Sélection d'un supporter existant via Combobox
+ *  - Vérification limite plan (max_supporters_per_team)
+ *  - useQuery + useQueryClient pour invalidation cache temps réel
+ * @maintenance
+ *  - Modale centralisée : mem://features/supporter-management/centralized-modal
+ *  - Hauteur fixe pour éviter sauts de mise en page
+ */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

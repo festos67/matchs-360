@@ -1,3 +1,20 @@
+/**
+ * @component PlayerSelector
+ * @description Composant Combobox spécialisé pour sélection multi-joueurs avec
+ *              recherche en temps réel. Utilisé dans les flows nécessitant de
+ *              cibler plusieurs joueurs (ex: assignation équipe, demandes débrief).
+ * @props
+ *  - players: Player[] — liste source filtrable
+ *  - selectedIds: string[] — IDs sélectionnés (controlled)
+ *  - onChange: (ids: string[]) => void
+ * @features
+ *  - Recherche fuzzy sur prénom + nom + surnom
+ *  - Affichage des sélectionnés en Badges removables
+ *  - ScrollArea pour grandes listes
+ *  - Popover avec ChevronDown
+ * @maintenance
+ *  - Conforme au pattern Combobox global : mem://style/ui-patterns/entity-selection
+ */
 import { useState, useMemo } from "react";
 import { Check, X, Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";

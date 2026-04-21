@@ -1,3 +1,20 @@
+/**
+ * @modal EditUserModal
+ * @description Modale d'édition complète d'un utilisateur (vue Super Admin).
+ *              Permet d'éditer profil, gérer rôles cumulés, affecter équipes,
+ *              réinitialiser le mot de passe et soft-delete le compte.
+ * @access Super Admin uniquement (god view)
+ * @features
+ *  - Édition profil complet (prénom, nom, surnom, email, photo)
+ *  - Gestion multi-rôles via Badges (admin / club_admin / coach / player / supporter)
+ *  - Action "Promouvoir Super Admin" restreinte à asahand@protonmail.com
+ *  - Reset password en mode test (Edge Function admin-users)
+ *  - Soft delete via deleted_at avec confirmation
+ * @maintenance
+ *  - Sécurité Super Admin : mem://auth/super-admin
+ *  - Action admin guard : mem://security/admin-actions-guard
+ *  - Gestion users admin : mem://features/admin/user-management
+ */
 import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";

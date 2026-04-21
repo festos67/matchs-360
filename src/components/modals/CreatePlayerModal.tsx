@@ -1,3 +1,21 @@
+/**
+ * @modal CreatePlayerModal
+ * @description Modale d'invitation/ajout d'un joueur à une équipe. Propose deux modes :
+ *              création d'un nouveau joueur (invitation par email) ou rattachement
+ *              d'un utilisateur existant déjà présent dans la base.
+ * @access Coach Référent (équipe), Responsable Club, Super Admin
+ * @features
+ *  - Mode "Nouveau" : formulaire complet (prénom, nom, surnom, email, photo)
+ *  - Mode "Existant" : recherche d'un utilisateur via Combobox + ajout du rôle player
+ *  - Workflow de mutation si le joueur appartient déjà à une autre équipe (transfert atomique)
+ *  - Upload photo via flow local→create user→upload→update profile
+ *  - Vérification limite plan (max_players_per_team)
+ *  - AlertDialog anti-annulation
+ * @maintenance
+ *  - Mode promotion : mem://features/user-role-management/promotion-mode
+ *  - Mutation atomique : mem://features/player-mutation
+ *  - Sync photo invitation : mem://technical/user-invitation-photo-sync
+ */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

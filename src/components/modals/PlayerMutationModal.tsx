@@ -1,3 +1,19 @@
+/**
+ * @modal PlayerMutationModal
+ * @description Modale de mutation (transfert) d'un joueur d'une équipe vers une
+ *              autre. Opération atomique qui réactive le team_member, bascule le
+ *              référentiel cible et réinitialise la vue d'évaluation.
+ * @access Coach Référent (de l'équipe source ou cible), Responsable Club, Super Admin
+ * @features
+ *  - Combobox de sélection de l'équipe cible (filtrée par club)
+ *  - Affichage de l'historique des mutations précédentes (icône History)
+ *  - Champ raison de mutation (textarea optionnel, archivé dans archived_reason)
+ *  - AlertTriangle pour avertir de l'impact (changement de référentiel)
+ *  - Confirmation explicite avant exécution
+ * @maintenance
+ *  - Mutation atomique complète : mem://features/player-mutation
+ *  - Conserve historique débriefs (snapshots indépendants)
+ */
 import { useState, useEffect } from "react";
 import { ArrowRight, AlertTriangle, History } from "lucide-react";
 import {
