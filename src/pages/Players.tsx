@@ -426,7 +426,11 @@ const Players = () => {
     return fullName || player.nickname || player.email;
   };
 
-  const renderPlayerRow = (player: PlayerData, showTeams = true) => (
+  const renderPlayerRow = (player: PlayerData, showTeams = true) => {
+    // Use first team color for avatar, fallback to primary
+    const teamColor = player.teams[0]?.color || null;
+    
+    return (
     <TableRow
       key={player.id}
       className="cursor-pointer hover:bg-muted/50"
@@ -436,7 +440,16 @@ const Players = () => {
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={player.photo_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+            <AvatarFallback 
+              className="font-medium"
+              style={teamColor ? {
+                backgroundColor: `${teamColor}20`,
+                color: teamColor,
+              } : {
+                backgroundColor: 'hsl(var(--primary) / 0.1)',
+                color: 'hsl(var(--primary))',
+              }}
+            >
               {getInitials(player.first_name, player.last_name)}
             </AvatarFallback>
           </Avatar>
