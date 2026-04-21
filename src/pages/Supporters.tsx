@@ -1,3 +1,29 @@
+/**
+ * @page Supporters
+ * @route /supporters
+ *
+ * Annuaire des supporters (parents, proches) liés à un ou plusieurs joueurs.
+ *
+ * @description
+ * Vue tabulaire groupée par joueur. Les supporters disposent d'un accès lecture
+ * seule au framework et peuvent créer des débriefs uniquement sur invitation.
+ * (mem://logic/supporter-data-access)
+ *
+ * @features
+ * - Recherche par nom/email
+ * - Filtres cascadés (club → équipe → joueur)
+ * - Création (CreateSupporterModal) avec liaison à un joueur
+ * - Édition via EditUserModal
+ *
+ * @access
+ * - Super Admin / Club Admin : tous supporters de leur scope
+ * - Coach : supporters des joueurs de ses équipes
+ *
+ * @maintenance
+ * Les liaisons supporter ↔ joueur sont gérées via `supporters_link`. La
+ * gestion centralisée se fait via ManageSupportersModal
+ * (mem://features/supporter-management/centralized-modal).
+ */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";

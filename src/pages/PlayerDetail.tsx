@@ -1,3 +1,43 @@
+/**
+ * @page PlayerDetail
+ * @route /players/:playerId
+ *
+ * Fiche détaillée d'un joueur — pivot central de l'application.
+ *
+ * @description
+ * Page la plus complexe de l'app. Centralise la consultation et la création de
+ * débriefs pour un joueur, l'historique de ses évaluations, ses objectifs
+ * individuels et le référentiel de compétences associé à son équipe.
+ *
+ * @tabs
+ * - **Résultat** : dernière évaluation officielle (radar coach par défaut, voir
+ *   mem://logic/radar-view-priority). Possibilité d'overlay self/supporter.
+ * - **Évolution** (alias "Historique" pour les non-joueurs) : 3 sections —
+ *   Coach, Auto-débrief, Supporter (mem://features/evaluation-history).
+ * - **Objectifs** : objectifs individuels avec drag-drop priorité
+ *   (mem://features/player-objectives).
+ * - **Référentiel** : vue lecture seule du framework actif.
+ *
+ * @access
+ * - Coach assigné : peut créer/éditer débriefs (sauf historiques figés)
+ * - Coach Référent / Club Admin / Admin : édition étendue + reset framework
+ * - Joueur (lui-même) : lecture seule + bouton self-débrief
+ *   (mem://features/player/interface-restrictions)
+ * - Supporter lié : peut consulter résultat + créer débrief sur invitation
+ *
+ * @features
+ * - Système de **brouillons** anti-perte (mem://features/evaluation-draft-system)
+ * - **Mutation** de joueur entre équipes (mem://features/player-mutation)
+ * - Export PDF avec pré-chargement base64 (PrintablePlayerSheet)
+ * - Reset / Nouveau débrief — comportements distincts
+ *   (mem://logic/evaluation/reset-vs-new-behavior)
+ *
+ * @maintenance
+ * - L'auteur d'un débrief est identifié par `evaluator_id` (mem://technical/evaluation-structure)
+ * - Snapshot du framework déclenché à chaque création de débrief
+ *   (mem://technical/framework-snapshot-system)
+ * - Calculs de progression : voir mem://features/progression-percentage-logic
+ */
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star } from "lucide-react";

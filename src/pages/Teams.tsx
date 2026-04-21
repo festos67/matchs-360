@@ -1,3 +1,29 @@
+/**
+ * @page Teams
+ * @route /teams
+ *
+ * Annuaire des équipes — groupé par club.
+ *
+ * @description
+ * Vue carte des équipes accessibles. Utilise React Query pour le cache et la
+ * synchronisation automatique après création/archivage.
+ *
+ * @features
+ * - Filtres par club et par saison
+ * - Switch "Afficher archivées" (Super Admin / Club Admin)
+ * - Restauration d'équipes soft-deleted (mem://features/archived-entities-restoration)
+ * - Création directe (CreateTeamModal)
+ *
+ * @access
+ * - Super Admin : toutes équipes
+ * - Club Admin : équipes de son club
+ * - Coach : équipes assignées via team_members
+ * - Joueur : son équipe d'affiliation uniquement
+ *
+ * @maintenance
+ * Le soft-delete via `deleted_at` doit être systématiquement filtré
+ * (mem://technical/soft-delete-strategy).
+ */
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
