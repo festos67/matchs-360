@@ -83,6 +83,22 @@ const Coaches = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
   const [teamFilter, setTeamFilter] = useState("all");
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     fetchCoaches();
