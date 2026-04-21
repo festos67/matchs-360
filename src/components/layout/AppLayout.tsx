@@ -1,3 +1,20 @@
+/**
+ * @component AppLayout
+ * @description Layout standard de toutes les pages authentifiées : combine la
+ *              Sidebar (desktop) + TopBar + TrialBanner (essai/free) + zone
+ *              principale scrollable avec max-w-7xl centré.
+ * @props children: ReactNode — contenu de la page rendue
+ * @access Tous rôles authentifiés (les pages publiques ne l'utilisent pas)
+ * @features
+ *  - Layout flex h-screen (sidebar fixe + zone scrollable)
+ *  - TrialBanner conditionnel (affiché si plan free ou trial actif)
+ *  - custom-scrollbar pour cohérence visuelle desktop
+ *  - Padding responsive (p-3 mobile / p-6 desktop)
+ * @maintenance
+ *  - Pour pages plein écran (éditeurs) : ne pas utiliser AppLayout
+ *  - Voir mem://navigation/mobile-responsiveness
+ *  - TrialBanner : src/components/subscription/TrialBanner.tsx
+ */
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";

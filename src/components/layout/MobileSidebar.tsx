@@ -1,3 +1,18 @@
+/**
+ * @component MobileSidebar
+ * @description Tiroir de navigation pour les écrans mobiles (< md). Affiche
+ *              un bouton hamburger dans la TopBar qui ouvre un Sheet shadcn
+ *              latéral contenant le même SidebarContent que la version desktop.
+ * @access Tous rôles authentifiés (visible uniquement sur mobile)
+ * @features
+ *  - Bouton trigger caché en md+ (className="md:hidden")
+ *  - Sheet shadcn (side="left", w-64) avec fond sidebar cohérent
+ *  - VisuallyHidden SheetTitle pour accessibilité (a11y screen readers)
+ *  - Fermeture automatique au clic sur un item de navigation (onNavigate)
+ * @maintenance
+ *  - Stratégie responsive : mem://navigation/mobile-responsiveness
+ *  - SidebarContent partagé : src/components/layout/Sidebar.tsx
+ */
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";

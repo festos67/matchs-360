@@ -1,3 +1,23 @@
+/**
+ * @component Sidebar + SidebarContent
+ * @description Barre latérale de navigation principale (desktop fixe / mobile
+ *              en Sheet via MobileSidebar). Le menu affiché dépend strictement
+ *              du rôle actif de l'utilisateur (currentRole), avec un ordre et
+ *              des entrées spécifiques par profil.
+ * @access Tous rôles authentifiés (rendu conditionnel par rôle)
+ * @features
+ *  - SidebarContent : composant interne réutilisable (desktop + Sheet mobile)
+ *  - Menus différenciés : Admin / Club Admin / Coach / Joueur / Supporter
+ *  - Indication visuelle de la route active (highlight primary)
+ *  - Bouton de déconnexion en pied de menu
+ *  - Identité visuelle MATCHS360 (logo + couleur primaire #3B82F6)
+ * @maintenance
+ *  - Ordre menu par rôle : mem://navigation/role-based-sidebar-order
+ *  - Identité visuelle par rôle : mem://style/role-branding-standard
+ *  - Responsive (mobile drawer) : mem://navigation/mobile-responsiveness
+ *  - Navigation Club Admin : mem://navigation/club-admin-navigation
+ *  - Restrictions joueur : mem://features/player/interface-restrictions
+ */
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
