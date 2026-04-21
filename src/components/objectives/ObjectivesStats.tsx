@@ -1,3 +1,17 @@
+/**
+ * @component ObjectivesStats
+ * @description Carte compacte affichant le bilan des objectifs d'une équipe :
+ *              comptage par statut (terminés / en cours / total) avec icônes.
+ *              Affichée dans l'onglet Performance de la page équipe.
+ * @access Tous rôles ayant accès à l'équipe
+ * @features
+ *  - useQuery pour comptage temps réel (invalidé à chaque mutation)
+ *  - Icônes Check/X/Target avec compteurs
+ *  - Format compact pour cohérence avec carte Progression
+ * @maintenance
+ *  - Layout Performance : mem://features/team-performance-layout
+ *  - Source : table team_objectives filtrée par team_id
+ */
 import { useQuery } from "@tanstack/react-query";
 import { Check, X, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

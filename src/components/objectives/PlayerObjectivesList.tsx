@@ -1,3 +1,20 @@
+/**
+ * @component PlayerObjectivesList
+ * @description Liste des objectifs individuels d'un joueur (player_objectives).
+ *              Variante de ObjectivesList scopée au joueur, avec gestion DnD,
+ *              priorisation, copie depuis objectifs d'équipe et pièces jointes.
+ * @access Coach Référent, Responsable Club (édition) / Joueur, Assistant (lecture)
+ * @features
+ *  - Identique ObjectivesList mais sur table player_objectives
+ *  - Bouton "Copier depuis l'équipe" (Users icon) pour cloner team_objectives
+ *  - DnD prioritisation par player_id + team_id
+ *  - Pièces jointes via player_objective_attachments
+ *  - Lecture seule pour le joueur lui-même (consultation)
+ * @maintenance
+ *  - Spec complète : mem://features/player-objectives
+ *  - Restrictions interface joueur : mem://features/player/interface-restrictions
+ *  - Permissions assistants : mem://features/coach-team-workflow
+ */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Target, Paperclip, FileText, Image, Pencil, Trash2, GripVertical, Check, X, Copy, Star, RotateCcw, Users } from "lucide-react";

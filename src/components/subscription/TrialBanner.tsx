@@ -1,3 +1,22 @@
+/**
+ * @component TrialBanner
+ * @description Bandeau persistant affiché en haut de l'AppLayout pour les clubs
+ *              en période d'essai (trial) ou plan gratuit (free). Communique
+ *              le statut d'abonnement avec CTA d'upgrade vers /pricing.
+ * @access Affiché si isTrial ou isFree (depuis usePlan)
+ * @props
+ *  - isTrial: boolean — essai actif
+ *  - isFree: boolean — plan gratuit (sans essai actif)
+ *  - trialDaysLeft: number — jours restants si trial
+ * @features
+ *  - Message dynamique selon contexte (essai expirant / plan gratuit)
+ *  - Icône Sparkles (essai) ou Info (free)
+ *  - Bouton "Découvrir les plans" → /pricing
+ *  - Bouton X pour masquer (dismiss session)
+ * @maintenance
+ *  - Statut plan via hook : src/hooks/usePlan.ts
+ *  - Affichage AppLayout : src/components/layout/AppLayout.tsx
+ */
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Info, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
