@@ -50,6 +50,8 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 
+const STORAGE_KEY_CLUBS = "coaches-collapsed-clubs";
+
 interface CoachData {
   id: string;
   email: string;
