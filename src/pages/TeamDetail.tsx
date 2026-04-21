@@ -384,9 +384,10 @@ export default function TeamDetail() {
       )}
 
       <div className="glass-card p-6 mb-5">
-        <div className="flex items-center gap-8">
-          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
-          <div className="flex-1">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8">
+          <div className="flex items-center gap-6 flex-1 min-w-0">
+            <div className="w-20 h-20 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
+            <div className="flex-1 min-w-0">
             <h1 className="text-4xl font-display font-bold">
               {team.name}
             </h1>
@@ -397,39 +398,46 @@ export default function TeamDetail() {
               <span className="flex items-center gap-1.5">• {supporterCount} supporter{supporterCount > 1 ? "s" : ""}</span>
               {team.season && <Badge variant="secondary">{team.season}</Badge>}
             </div>
+            </div>
           </div>
           {canManageTeam && !isPlayerViewing && (
-            <div className="flex items-start gap-2">
-              {/* Référentiel button - distinct style */}
-              <Button
-                size="sm"
-                className="gap-2 justify-start h-10 bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-md"
-                onClick={handleGoToFramework}
-              >
-                <BookOpen className="w-4 h-4" />
-                Référentiel équipe
-              </Button>
-
-              <div className="flex flex-col gap-1.5">
-                {(isAdmin || isClubAdmin) && (
-                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}><Plus className="w-3.5 h-3.5 text-accent" />Coach</Button>
-                )}
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowPlayerModal(true)}><Plus className="w-3.5 h-3.5 text-accent" />Joueur</Button>
-                {(isAdmin || isClubAdmin || isReferentCoach) && (
-                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowSupporterModal(true)}><Plus className="w-3.5 h-3.5 text-accent" />Supporter</Button>
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {(isAdmin || isClubAdmin || isReferentCoach) && (
-                  <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => setShowTeamSettings(true)}>
-                    <Settings className="w-4 h-4 text-accent" />
-                    Paramètres
+            <div className="flex flex-wrap gap-3 lg:flex-shrink-0">
+              {/* Bloc Ajouts */}
+              <div className="bg-card border border-border rounded-xl p-3 flex-1 min-w-[160px] lg:flex-initial lg:w-[160px]">
+                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Ajouter</p>
+                <div className="flex flex-col gap-1.5">
+                  {(isAdmin || isClubAdmin) && (
+                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowCoachModal(true)}>
+                      <Plus className="w-3.5 h-3.5 text-accent" />Coach
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowPlayerModal(true)}>
+                    <Plus className="w-3.5 h-3.5 text-accent" />Joueur
                   </Button>
-                )}
-                <Button variant="outline" size="sm" className="gap-2 justify-start" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
-                  <ClipboardList className="w-4 h-4 text-accent" />
-                  Débriefs
-                </Button>
+                  {(isAdmin || isClubAdmin || isReferentCoach) && (
+                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowSupporterModal(true)}>
+                      <Plus className="w-3.5 h-3.5 text-accent" />Supporter
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Bloc Gestion */}
+              <div className="bg-card border border-border rounded-xl p-3 flex-1 min-w-[180px] lg:flex-initial lg:w-[180px]">
+                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
+                <div className="flex flex-col gap-1.5">
+                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={handleGoToFramework}>
+                    <BookOpen className="w-3.5 h-3.5 text-accent" />Référentiel équipe
+                  </Button>
+                  {(isAdmin || isClubAdmin || isReferentCoach) && (
+                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowTeamSettings(true)}>
+                      <Settings className="w-3.5 h-3.5 text-accent" />Paramètres
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
+                    <ClipboardList className="w-3.5 h-3.5 text-accent" />Débriefs
+                  </Button>
+                </div>
               </div>
             </div>
           )}
