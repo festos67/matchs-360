@@ -238,6 +238,7 @@ const Coaches = () => {
 
   const groupedCoaches = useMemo(() => {
     const groups: Record<string, {
+      clubId: string;
       clubName: string;
       clubShortName: string | null;
       clubLogoUrl: string | null;
@@ -248,6 +249,7 @@ const Coaches = () => {
       const key = coach.club_id || "no-club";
       if (!groups[key]) {
         groups[key] = {
+          clubId: key,
           clubName: coach.club_name || "Sans club",
           clubShortName: coach.club_short_name || null,
           clubLogoUrl: coach.club_logo_url || null,
@@ -259,6 +261,8 @@ const Coaches = () => {
     });
     return Object.values(groups).sort((a, b) => a.clubName.localeCompare(b.clubName));
   }, [filteredCoaches]);
+
+  const showClubLevel = groupedCoaches.length > 1;
 
   useEffect(() => { setTeamFilter("all"); }, [clubFilter]);
 
