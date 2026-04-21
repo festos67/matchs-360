@@ -37,6 +37,7 @@ import { Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookO
 import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
+import { TeamCard } from "@/components/shared/TeamCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -95,6 +96,17 @@ interface ClubFramework {
   themes_count: number;
   skills_count: number;
 }
+
+/**
+ * Saison sportive courante (août → juillet). Ex: en mars 2026 → "2025-2026".
+ */
+const getCurrentSeason = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const startYear = now.getMonth() >= 6 ? y : y - 1;
+  return `${startYear}-${startYear + 1}`;
+};
+const currentSeason = getCurrentSeason();
 
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
