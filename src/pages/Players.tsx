@@ -49,7 +49,6 @@ import { Search, Users, Loader2, User, ChevronDown, Plus, Pencil } from "lucide-
 import { Button } from "@/components/ui/button";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
-import { ClubGroupHeader } from "@/components/shared/ClubGroupHeader";
 
 interface PlayerData {
   id: string;
