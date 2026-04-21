@@ -46,7 +46,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Search, Heart, Loader2, ChevronDown, Plus, Edit } from "lucide-react";
+import { Search, Heart, Loader2, ChevronDown, Plus, Edit, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { EditUserModal } from "@/components/modals/EditUserModal";
@@ -57,12 +57,26 @@ interface SupporterData {
   first_name: string | null;
   last_name: string | null;
   photo_url: string | null;
-  players: { id: string; name: string; team_id: string | null; team_name: string | null }[];
+  players: {
+    id: string;
+    name: string;
+    team_id: string | null;
+    team_name: string | null;
+    team_color: string | null;
+    team_short_name: string | null;
+    club_id: string | null;
+    club_name: string | null;
+    club_logo_url: string | null;
+    club_short_name: string | null;
+    club_primary_color: string | null;
+  }[];
 }
 
 const STORAGE_KEY = "supporters-collapsed-players";
 const STORAGE_KEY_TEAMS = "supporters-collapsed-teams";
+const STORAGE_KEY_CLUBS = "supporters-collapsed-clubs";
 const NO_TEAM_KEY = "__no_team__";
+const NO_CLUB_KEY = "__no_club__";
 
 const Supporters = () => {
   const { hasAdminRole: isAdmin, currentRole } = useAuth();
@@ -90,6 +104,14 @@ const Supporters = () => {
       return {};
     }
   });
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     fetchSupporters();
@@ -107,6 +129,14 @@ const Supporters = () => {
     setCollapsedTeams((prev) => {
       const next = { ...prev, [teamId]: !prev[teamId] };
       localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
       return next;
     });
   };
@@ -148,20 +178,43 @@ const Supporters = () => {
       // Fetch player team memberships
       const { data: playerTeams } = await supabase
         .from("team_members")
-        .select("user_id, team_id, teams:team_id (id, name)")
+        .select(
+          "user_id, team_id, teams:team_id (id, name, color, short_name, club_id, clubs:club_id (id, name, logo_url, short_name, primary_color))",
+        )
         .in("user_id", playerIds)
         .eq("member_type", "player")
         .eq("is_active", true);
 
-      const playerMap = new Map<string, { name: string; team_id: string | null; team_name: string | null }>();
+      const playerMap = new Map<
+        string,
+        {
+          name: string;
+          team_id: string | null;
+          team_name: string | null;
+          team_color: string | null;
+          team_short_name: string | null;
+          club_id: string | null;
+          club_name: string | null;
+          club_logo_url: string | null;
+          club_short_name: string | null;
+          club_primary_color: string | null;
+        }
+      >();
       (playerProfiles || []).forEach((p) => {
         const teamEntry = (playerTeams || []).find((t) => t.user_id === p.id);
-        const teamId = teamEntry ? (teamEntry.teams as any)?.id || null : null;
-        const teamName = teamEntry ? (teamEntry.teams as any)?.name || null : null;
+        const team = teamEntry ? (teamEntry.teams as any) : null;
+        const club = team?.clubs || null;
         playerMap.set(p.id, {
           name: `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Joueur",
-          team_id: teamId,
-          team_name: teamName,
+          team_id: team?.id || null,
+          team_name: team?.name || null,
+          team_color: team?.color || null,
+          team_short_name: team?.short_name || null,
+          club_id: club?.id || null,
+          club_name: club?.name || null,
+          club_logo_url: club?.logo_url || null,
+          club_short_name: club?.short_name || null,
+          club_primary_color: club?.primary_color || null,
         });
       });
 
@@ -174,6 +227,13 @@ const Supporters = () => {
             name: info?.name || "Joueur",
             team_id: info?.team_id || null,
             team_name: info?.team_name || null,
+            team_color: info?.team_color || null,
+            team_short_name: info?.team_short_name || null,
+            club_id: info?.club_id || null,
+            club_name: info?.club_name || null,
+            club_logo_url: info?.club_logo_url || null,
+            club_short_name: info?.club_short_name || null,
+            club_primary_color: info?.club_primary_color || null,
           };
         });
 
@@ -241,46 +301,85 @@ const Supporters = () => {
     });
   }, [supporters, teamFilter, playerFilter, search]);
 
-  // Group by team → player
-  const teamGroups = useMemo(() => {
-    const teams: Record<
-      string,
-      {
-        teamName: string;
-        players: Record<string, { playerName: string; supporters: SupporterData[] }>;
-      }
-    > = {};
+  // Group by club → team → player
+  const clubGroups = useMemo(() => {
+    type TeamBucket = {
+      teamName: string;
+      teamColor: string | null;
+      teamShortName: string | null;
+      players: Record<string, { playerName: string; supporters: SupporterData[] }>;
+    };
+    type ClubBucket = {
+      clubName: string;
+      clubLogoUrl: string | null;
+      clubShortName: string | null;
+      clubPrimaryColor: string | null;
+      teams: Record<string, TeamBucket>;
+    };
+    const clubs: Record<string, ClubBucket> = {};
 
     filteredSupporters.forEach((supporter) => {
       supporter.players.forEach((player) => {
+        const clubKey = player.club_id || NO_CLUB_KEY;
         const teamKey = player.team_id || NO_TEAM_KEY;
-        const teamName = player.team_name || "Sans équipe";
-        if (!teams[teamKey]) {
-          teams[teamKey] = { teamName, players: {} };
+        if (!clubs[clubKey]) {
+          clubs[clubKey] = {
+            clubName: player.club_name || "Sans club",
+            clubLogoUrl: player.club_logo_url,
+            clubShortName: player.club_short_name,
+            clubPrimaryColor: player.club_primary_color,
+            teams: {},
+          };
         }
-        if (!teams[teamKey].players[player.id]) {
-          teams[teamKey].players[player.id] = { playerName: player.name, supporters: [] };
+        if (!clubs[clubKey].teams[teamKey]) {
+          clubs[clubKey].teams[teamKey] = {
+            teamName: player.team_name || "Sans équipe",
+            teamColor: player.team_color,
+            teamShortName: player.team_short_name,
+            players: {},
+          };
         }
-        if (!teams[teamKey].players[player.id].supporters.find((s) => s.id === supporter.id)) {
-          teams[teamKey].players[player.id].supporters.push(supporter);
+        const teamBucket = clubs[clubKey].teams[teamKey];
+        if (!teamBucket.players[player.id]) {
+          teamBucket.players[player.id] = { playerName: player.name, supporters: [] };
+        }
+        if (!teamBucket.players[player.id].supporters.find((s) => s.id === supporter.id)) {
+          teamBucket.players[player.id].supporters.push(supporter);
         }
       });
     });
 
-    return Object.entries(teams)
+    return Object.entries(clubs)
       .sort((a, b) => {
-        if (a[0] === NO_TEAM_KEY) return 1;
-        if (b[0] === NO_TEAM_KEY) return -1;
-        return a[1].teamName.localeCompare(b[1].teamName);
+        if (a[0] === NO_CLUB_KEY) return 1;
+        if (b[0] === NO_CLUB_KEY) return -1;
+        return a[1].clubName.localeCompare(b[1].clubName);
       })
-      .map(([teamId, group]) => ({
-        teamId,
-        teamName: group.teamName,
-        players: Object.entries(group.players).sort((a, b) =>
-          a[1].playerName.localeCompare(b[1].playerName),
-        ),
+      .map(([clubId, club]) => ({
+        clubId,
+        clubName: club.clubName,
+        clubLogoUrl: club.clubLogoUrl,
+        clubShortName: club.clubShortName,
+        clubPrimaryColor: club.clubPrimaryColor,
+        teams: Object.entries(club.teams)
+          .sort((a, b) => {
+            if (a[0] === NO_TEAM_KEY) return 1;
+            if (b[0] === NO_TEAM_KEY) return -1;
+            return a[1].teamName.localeCompare(b[1].teamName);
+          })
+          .map(([teamId, team]) => ({
+            teamId,
+            teamName: team.teamName,
+            teamColor: team.teamColor,
+            teamShortName: team.teamShortName,
+            players: Object.entries(team.players).sort((a, b) =>
+              a[1].playerName.localeCompare(b[1].playerName),
+            ),
+          })),
       }));
   }, [filteredSupporters]);
+
+  const showClubLevel = clubGroups.length > 1;
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
@@ -422,13 +521,19 @@ const Supporters = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {teamGroups.map((team) => {
-              const teamOpen = collapsedTeams[team.teamId] !== true;
-              const totalSupporters = team.players.reduce(
-                (acc, [, p]) => acc + p.supporters.length,
-                0,
-              );
-              return (
+            {clubGroups.map((club) => {
+              const clubOpen = collapsedClubs[club.clubId] !== true;
+              const renderTeams = (
+                <div className={showClubLevel ? "space-y-4 mt-2 pl-4 border-l-2 border-primary/20" : "space-y-4"}>
+                  {club.teams.map((team) => {
+                    const teamOpen = collapsedTeams[team.teamId] !== true;
+                    const totalSupporters = team.players.reduce(
+                      (acc, [, p]) => acc + p.supporters.length,
+                      0,
+                    );
+                    const teamColor = team.teamColor || "hsl(var(--primary))";
+                    const teamInitials = (team.teamShortName || team.teamName.slice(0, 2)).toUpperCase();
+                    return (
                 <Collapsible
                   key={team.teamId}
                   open={teamOpen}
@@ -440,6 +545,14 @@ const Supporters = () => {
                         teamOpen ? "" : "-rotate-90"
                       }`}
                     />
+                    <div
+                      className="w-5 h-5 rounded flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: teamColor }}
+                    >
+                      <span className="text-[9px] font-bold text-white leading-none">
+                        {teamInitials}
+                      </span>
+                    </div>
                     <span className="font-display font-semibold text-sm uppercase tracking-wide">
                       {team.teamName}
                     </span>
@@ -464,7 +577,7 @@ const Supporters = () => {
                                   isOpen ? "" : "-rotate-90"
                                 }`}
                               />
-                              <Heart className="w-4 h-4 text-primary" />
+                              <UserCircle className="w-4 h-4 text-success" />
                               <span className="font-display font-semibold text-sm">
                                 {group.playerName}
                               </span>
@@ -531,7 +644,7 @@ const Supporters = () => {
                                               variant="ghost"
                                               size="icon"
                                               onClick={() => openEditModal(supporter)}
-                                              className="text-blue-500 hover:text-blue-700"
+                                              className="text-blue-500 hover:text-blue-600"
                                             >
                                               <Edit className="w-4 h-4" />
                                             </Button>
@@ -548,6 +661,55 @@ const Supporters = () => {
                       })}
                     </div>
                   </CollapsibleContent>
+                </Collapsible>
+                    );
+                  })}
+                </div>
+              );
+
+              if (!showClubLevel) {
+                return <div key={club.clubId}>{renderTeams}</div>;
+              }
+
+              const clubInitials = (club.clubShortName || club.clubName.slice(0, 2)).toUpperCase();
+              const clubColor = club.clubPrimaryColor || "hsl(var(--primary))";
+              const totalTeams = club.teams.length;
+              const totalSupportersClub = club.teams.reduce(
+                (acc, t) => acc + t.players.reduce((a, [, p]) => a + p.supporters.length, 0),
+                0,
+              );
+              return (
+                <Collapsible
+                  key={club.clubId}
+                  open={clubOpen}
+                  onOpenChange={() => toggleClub(club.clubId)}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full p-3 rounded-lg bg-accent/10 hover:bg-accent/15 transition-colors cursor-pointer">
+                    <ChevronDown
+                      className={`w-4 h-4 text-muted-foreground transition-transform ${
+                        clubOpen ? "" : "-rotate-90"
+                      }`}
+                    />
+                    <div
+                      className="w-6 h-6 rounded flex items-center justify-center overflow-hidden shrink-0"
+                      style={{ backgroundColor: club.clubLogoUrl ? "transparent" : clubColor }}
+                    >
+                      {club.clubLogoUrl ? (
+                        <img src={club.clubLogoUrl} alt={club.clubName} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-white leading-none">
+                          {clubInitials}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-display font-bold text-sm uppercase tracking-wider">
+                      {club.clubName}
+                    </span>
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {totalTeams} équipe{totalTeams > 1 ? "s" : ""} · {totalSupportersClub} supporter{totalSupportersClub > 1 ? "s" : ""}
+                    </Badge>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>{renderTeams}</CollapsibleContent>
                 </Collapsible>
               );
             })}
