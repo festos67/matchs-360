@@ -241,20 +241,45 @@ const Supporters = () => {
     });
   }, [supporters, teamFilter, playerFilter, search]);
 
-  // Group by player
-  const playerGroups = useMemo(() => {
-    const groups: Record<string, { playerName: string; teamName: string | null; supporters: SupporterData[] }> = {};
+  // Group by team → player
+  const teamGroups = useMemo(() => {
+    const teams: Record<
+      string,
+      {
+        teamName: string;
+        players: Record<string, { playerName: string; supporters: SupporterData[] }>;
+      }
+    > = {};
+
     filteredSupporters.forEach((supporter) => {
       supporter.players.forEach((player) => {
-        if (!groups[player.id]) {
-          groups[player.id] = { playerName: player.name, teamName: player.team_name, supporters: [] };
+        const teamKey = player.team_id || NO_TEAM_KEY;
+        const teamName = player.team_name || "Sans équipe";
+        if (!teams[teamKey]) {
+          teams[teamKey] = { teamName, players: {} };
         }
-        if (!groups[player.id].supporters.find((s) => s.id === supporter.id)) {
-          groups[player.id].supporters.push(supporter);
+        if (!teams[teamKey].players[player.id]) {
+          teams[teamKey].players[player.id] = { playerName: player.name, supporters: [] };
+        }
+        if (!teams[teamKey].players[player.id].supporters.find((s) => s.id === supporter.id)) {
+          teams[teamKey].players[player.id].supporters.push(supporter);
         }
       });
     });
-    return Object.entries(groups).sort((a, b) => a[1].playerName.localeCompare(b[1].playerName));
+
+    return Object.entries(teams)
+      .sort((a, b) => {
+        if (a[0] === NO_TEAM_KEY) return 1;
+        if (b[0] === NO_TEAM_KEY) return -1;
+        return a[1].teamName.localeCompare(b[1].teamName);
+      })
+      .map(([teamId, group]) => ({
+        teamId,
+        teamName: group.teamName,
+        players: Object.entries(group.players).sort((a, b) =>
+          a[1].playerName.localeCompare(b[1].playerName),
+        ),
+      }));
   }, [filteredSupporters]);
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
