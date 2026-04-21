@@ -84,6 +84,9 @@ interface Team {
   season: string | null;
   color: string | null;
   deleted_at: string | null;
+  playersCount?: number;
+  coachesCount?: number;
+  referentCoachName?: string;
 }
 
 interface ClubFramework {
