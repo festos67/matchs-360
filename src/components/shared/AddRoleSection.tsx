@@ -1,3 +1,22 @@
+/**
+ * @component AddRoleSection
+ * @description Section embeddable dans les modales d'édition utilisateur permettant
+ *              de cumuler des rôles supplémentaires (ex: joueur → ajouter coach).
+ *              Réactive les team_members existants pour éviter les conflits d'index.
+ * @props
+ *  - userId / clubId / currentRole / onRoleAdded
+ * @features
+ *  - Sélecteur de rôle disponible (rôles non encore attribués)
+ *  - Si rôle = coach : sélection équipe(s) + rôle Référent/Assistant
+ *  - Si rôle = player : sélection équipe avec vérif limites plan
+ *  - Si rôle = supporter : sélection joueur(s) à supporter
+ *  - Réactivation team_members.deleted_at = NULL si existant
+ *  - Création user_roles entry
+ * @maintenance
+ *  - Réactivation pour éviter doublons : mem://features/user-role-management/edit-flow
+ *  - Mode promotion : mem://features/user-role-management/promotion-mode
+ *  - Index unique métier : mem://technical/database-integrity
+ */
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";

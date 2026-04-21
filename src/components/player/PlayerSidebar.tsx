@@ -1,3 +1,27 @@
+/**
+ * @component PlayerSidebar
+ * @description Carte latérale (sidebar) de la fiche joueur affichant identité,
+ *              équipe, et toutes les actions de gestion (modales, exports, mutations).
+ *              Actions alignées à droite et masquées pour le joueur lui-même.
+ * @access Coachs, Responsables Club, Super Admin (actions). Joueur (vue identité).
+ * @features
+ *  - Avatar, nom, surnom, équipe et club
+ *  - Bouton "Nouveau débrief" (Star) — selon permissions
+ *  - Bouton "Auto-débrief" (Star) pour le joueur uniquement
+ *  - Modale ManageSupporters (Heart)
+ *  - Modale RequestSupporterEvaluation (Heart orange)
+ *  - Modale PlayerMutation (ArrowRightLeft)
+ *  - Modale EditPlayer (Edit bleu)
+ *  - Bouton Export PDF (Printer)
+ *  - Bouton Soft Delete (Trash2) — Super Admin uniquement
+ *  - Lock icon si pas d'équipe assignée (débrief impossible)
+ * @maintenance
+ *  - Layout actions : mem://features/player/management-actions-layout
+ *  - Restrictions joueur : mem://features/player/interface-restrictions
+ *  - Disponibilité débrief : mem://logic/player-debrief-availability
+ *  - Permissions joueur : mem://logic/permissions-joueurs
+ *  - Edit icon bleu : mem://style/ui-patterns/management-actions
+ */
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Lock, Printer, Star, Trash2, Users } from "lucide-react";

@@ -1,3 +1,20 @@
+/**
+ * @component RoleSwitcher
+ * @description Sélecteur de rôle dans la TopBar pour utilisateurs multi-rôles.
+ *              Permet de basculer entre les profils (Admin, Club Admin, Coach,
+ *              Player, Supporter) avec redirection vers le menu approprié.
+ * @access Tout utilisateur avec ≥2 rôles
+ * @features
+ *  - DropdownMenu avec icônes par rôle (identité visuelle stricte)
+ *  - Redirection auto vers la première page du menu du nouveau rôle
+ *  - Persistance du rôle actif (contexte useAuth)
+ *  - Indicateur visuel du rôle courant
+ * @maintenance
+ *  - Redirection logique : mem://auth/role-switching-logic
+ *  - Identité visuelle par rôle : mem://style/role-branding-standard
+ *    Admin (Shield rouge) / Club Admin (Building2 primary) / Coach (UserCog orange)
+ *    Player (UserCircle vert) / Supporter (Heart rose)
+ */
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
 import {

@@ -1,3 +1,20 @@
+/**
+ * @component RadarChart (shared)
+ * @description Composant radar générique (recharts) avec légende intégrée.
+ *              Utilisé en dehors du contexte évaluation (ex: comparaisons stats,
+ *              dashboards). Variante plus simple que ComparisonRadar.
+ * @props
+ *  - data: any[] — points du radar
+ *  - dataKeys: string[] — clés à tracer
+ *  - colors?: string[] — couleurs HSL
+ * @features
+ *  - PolarGrid + PolarAngleAxis + PolarRadiusAxis
+ *  - Legend intégrée (peut causer resize, préférer ComparisonRadar pour éval)
+ *  - ResponsiveContainer
+ * @maintenance
+ *  - Pour les évaluations, préférer ComparisonRadar (légende externe)
+ *  - Stabilité : mem://technical/radar-chart-visual-stability
+ */
 import {
   Radar,
   RadarChart as RechartsRadarChart,

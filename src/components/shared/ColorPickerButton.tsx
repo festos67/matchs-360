@@ -1,3 +1,21 @@
+/**
+ * @component ColorPickerButton
+ * @description Bouton ouvrant un Popover avec sélecteur de couleur RGB
+ *              (react-colorful). Utilisé pour les couleurs primaire/secondaire
+ *              des clubs et équipes. Conversion RGB ↔ HSL pour design tokens.
+ * @props
+ *  - color: string — couleur actuelle (HSL string)
+ *  - onChange: (color: string) => void
+ *  - label?: string
+ * @features
+ *  - RgbColorPicker (react-colorful) full feature
+ *  - Input hex pour saisie manuelle
+ *  - Pipette icon pour sélection visuelle
+ *  - Preview live de la couleur sur le bouton
+ * @maintenance
+ *  - Pattern color picker : mem://style/ui-patterns/color-picker
+ *  - react-colorful pour clubs/équipes/profils, grille 10 couleurs pour thèmes
+ */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

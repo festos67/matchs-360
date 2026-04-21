@@ -1,3 +1,22 @@
+/**
+ * @component ClubGroupHeader
+ * @description Bandeau séparateur affichant un club (logo, nom, initiales) au-dessus
+ *              d'un groupe d'éléments (équipes, joueurs, coachs). Utilisé pour
+ *              structurer les listes hiérarchiques par club.
+ * @props
+ *  - name: string — nom du club
+ *  - shortName?: string — initiales du club
+ *  - logoUrl?: string — URL du logo
+ *  - primaryColor?: string — couleur identitaire
+ *  - count?: number — nombre d'éléments dans le groupe
+ * @features
+ *  - Bandeau coloré avec couleur primaire du club
+ *  - Badge optionnel pour le compte d'éléments
+ *  - Logo + initiales fallback
+ * @maintenance
+ *  - Listings groupés : mem://features/grouped-listings-logic
+ *  - Vues de gestion : mem://navigation/management-views
+ */
 interface ClubGroupHeaderProps {
   name: string;
   shortName?: string | null;

@@ -1,3 +1,17 @@
+/**
+ * @component ThemeToggle
+ * @description Bouton de bascule thème clair/sombre. Persistance dans localStorage
+ *              (clé "match360-theme"). Application immédiate via classe sur <html>.
+ * @access Tous utilisateurs (présent dans la TopBar)
+ * @features
+ *  - Toggle Sun ↔ Moon
+ *  - Persistance localStorage
+ *  - Application instantanée (pas de flash au reload via init dans index.html)
+ *  - Respect des design tokens HSL (light/dark définis dans index.css)
+ * @maintenance
+ *  - Tous les composants doivent utiliser les semantic tokens (HSL)
+ *  - Aucune couleur hardcodée pour garantir le support des deux modes
+ */
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,19 @@
+/**
+ * @component SupporterRequestsPanel
+ * @description Panneau récapitulatif des demandes de débrief consultatif envoyées
+ *              aux supporters d'un joueur. Statuts visuels (En attente / Complété /
+ *              Expiré) et action de relance.
+ * @access Coachs, Responsables Club, Super Admin (sur fiche joueur)
+ * @features
+ *  - Liste des supporter_evaluation_requests pour le joueur
+ *  - Statuts : Clock (pending) / CheckCircle (completed) / Mail (sent)
+ *  - Action de relance (Send) si demande expirée
+ *  - Format date FR (date-fns)
+ *  - Lien direct vers le débrief complété
+ * @maintenance
+ *  - Débriefs consultatifs : mem://features/consultative-debrief-types
+ *  - Identité Heart orange (action sur supporter)
+ */
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";

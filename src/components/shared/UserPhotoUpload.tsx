@@ -1,3 +1,23 @@
+/**
+ * @component UserPhotoUpload
+ * @description Composant d'upload de photo de profil avec preview circulaire,
+ *              fallback initiales et action de suppression. Déclenche PhotoCropModal
+ *              en amont pour garantir le recadrage.
+ * @props
+ *  - photoPreview: string | null — URL/data preview
+ *  - initials: string — fallback si pas de photo
+ *  - onFileSelected: (file, preview) => void
+ *  - onRemovePhoto: () => void
+ * @features
+ *  - Avatar circulaire (Avatar shadcn) avec fallback
+ *  - Bouton Camera pour sélection fichier
+ *  - Bouton X pour suppression
+ *  - Validation type/taille avec toast d'erreur
+ *  - Input file caché (ref)
+ * @maintenance
+ *  - Workflow média complet : mem://technical/media-processing-workflow
+ *  - Sync invitation : mem://technical/user-invitation-photo-sync
+ */
 import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, X } from "lucide-react";
