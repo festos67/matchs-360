@@ -77,6 +77,7 @@ interface PlayerData {
 }
 
 const STORAGE_KEY = "players-collapsed-teams";
+const STORAGE_KEY_CLUBS = "players-collapsed-clubs";
 
 const Players = () => {
   const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
@@ -92,6 +93,14 @@ const Players = () => {
   const [collapsedTeams, setCollapsedTeams] = useState<Record<string, boolean>>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [collapsedClubs, setCollapsedClubs] = useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLUBS);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -124,6 +133,14 @@ const Players = () => {
     setCollapsedTeams((prev) => {
       const next = { ...prev, [teamId]: !prev[teamId] };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const toggleClub = (clubId: string) => {
+    setCollapsedClubs((prev) => {
+      const next = { ...prev, [clubId]: !prev[clubId] };
+      localStorage.setItem(STORAGE_KEY_CLUBS, JSON.stringify(next));
       return next;
     });
   };
