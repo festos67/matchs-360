@@ -237,24 +237,24 @@ export function PlayerSidebar({
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
           <div className="flex flex-col gap-1.5">
             {canMutate && (
-              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onEditPlayer}>
-                <Edit className="w-3.5 h-3.5 text-blue-500" />Modifier
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onEditPlayer}>
+                <Edit className="w-3.5 h-3.5 text-accent" />Modifier
               </Button>
             )}
             {canMutate && teamMembership && (
-              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onTransferPlayer}>
-                <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Transférer
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onTransferPlayer}>
+                <ArrowRightLeft className="w-3.5 h-3.5 text-accent" />Transférer
               </Button>
             )}
             {canEvaluate && teamMembership && (
-              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onManageSupporters}>
-                <Users className="w-3.5 h-3.5 text-primary" />Supporters
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onManageSupporters}>
+                <Users className="w-3.5 h-3.5 text-accent" />Supporters
               </Button>
             )}
             {isAdmin && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold text-destructive hover:bg-destructive/10 border-destructive/30">
+                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-destructive hover:bg-destructive/10 border-destructive/30">
                     <Trash2 className="w-3.5 h-3.5" />Supprimer
                   </Button>
                 </AlertDialogTrigger>
@@ -293,10 +293,6 @@ export function PlayerSidebar({
         </div>
       )}
 
-      {/* Bouton Imprimer */}
-      {hasSelectedEvaluation && (
-        <PrintResultButton onPrint={onPrint} />
-      )}
     </aside>
   );
 }
