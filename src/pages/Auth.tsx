@@ -262,9 +262,7 @@ export default function Auth() {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center">
-              <Activity className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <RadarPulseLogo size={56} />
             <div>
               <h1 className="font-display text-3xl font-bold">MATCHS360</h1>
               <p className="text-sm text-muted-foreground">Donnez vie à vos actions socio-sportives</p>
