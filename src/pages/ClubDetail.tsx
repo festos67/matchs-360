@@ -389,7 +389,7 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex flex-wrap items-center gap-5">
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-start gap-5">
         {/* Logo club */}
         <div
           className="rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
@@ -415,43 +415,40 @@ export default function ClubDetail() {
             {club.referent_name && <>Référent : {club.referent_name} · </>}
             {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""} · {coachCount} coach{coachCount > 1 ? "s" : ""} · {playerCount} joueur{playerCount > 1 ? "s" : ""} · {supporterCount} supporter{supporterCount > 1 ? "s" : ""}
           </p>
-
-          {/* Sous-cadre Effectif sous le titre */}
-          {canManageClub && (
-            <div className="flex flex-col gap-1.5 w-full mt-4">
-              <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 px-1">
-                Effectif
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2 rounded-xl border border-border bg-muted/30">
-                {([
-                  { type: "coach" as AddEntityType, onClick: () => setShowCoachModal(true) },
-                  { type: "team" as AddEntityType, onClick: () => setShowTeamModal(true) },
-                  { type: "player" as AddEntityType, onClick: () => setShowPlayerModal(true) },
-                  { type: "supporter" as AddEntityType, onClick: () => setShowSupporterModal(true) },
-                ]).map(({ type, onClick }) => (
-                  <AddEntityButton key={type} type={type} onClick={onClick} />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Actions */}
+        {/* Bouton Paramètres en haut à droite */}
         {canManageClub && (
-          <div className="flex flex-col items-stretch md:items-end justify-center gap-2 flex-shrink-0 w-full md:w-auto self-center">
-            {/* Bouton Paramètres isolé au-dessus */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 w-full md:w-auto md:self-end"
-              onClick={() => setShowClubSettings(true)}
-            >
-              <Settings className="w-3.5 h-3.5 text-orange-500" />
-              Paramètres
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 flex-shrink-0"
+            onClick={() => setShowClubSettings(true)}
+          >
+            <Settings className="w-3.5 h-3.5 text-orange-500" />
+            Paramètres
+          </Button>
         )}
       </Card>
+
+      {/* Sous-cadre Effectif sous le cadre titre */}
+      {canManageClub && (
+        <div className="flex flex-col gap-1.5 mb-8">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 px-1">
+            Effectif
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2 rounded-xl border border-border bg-muted/30">
+            {([
+              { type: "coach" as AddEntityType, onClick: () => setShowCoachModal(true) },
+              { type: "team" as AddEntityType, onClick: () => setShowTeamModal(true) },
+              { type: "player" as AddEntityType, onClick: () => setShowPlayerModal(true) },
+              { type: "supporter" as AddEntityType, onClick: () => setShowSupporterModal(true) },
+            ]).map(({ type, onClick }) => (
+              <AddEntityButton key={type} type={type} onClick={onClick} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Dashboard sections: Vue globale, Liste équipes, Mes Coachs */}
       {canManageClub && id && (
