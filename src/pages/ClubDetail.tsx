@@ -456,19 +456,19 @@ export default function ClubDetail() {
               onClick={() => navigate(`/clubs/${club.id}/framework`)}
             >
               <CardHeader className="py-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                       <BookOpen className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{clubFramework.name}</CardTitle>
-                      <CardDescription>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base truncate">{clubFramework.name}</CardTitle>
+                      <CardDescription className="truncate">
                         {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
                     <Button 
                       variant="outline" 
                       size="sm"
