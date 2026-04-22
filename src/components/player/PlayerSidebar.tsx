@@ -255,7 +255,7 @@ export function PlayerSidebar({
             )}
             {canEvaluate && teamMembership && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onManageSupporters}>
-                <Users className="w-3.5 h-3.5 text-accent" />Supporters
+                <Users className="w-3.5 h-3.5 text-accent" />Invitation supporters
               </Button>
             )}
             {isAdmin && (
