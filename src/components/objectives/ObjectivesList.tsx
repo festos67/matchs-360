@@ -88,7 +88,7 @@ function SortableObjectiveCard({
   onDelete,
   onFinalize,
   onDuplicate,
-  getFileUrl,
+  openAttachment,
   getFileIcon,
 }: {
   obj: Objective;
@@ -97,7 +97,7 @@ function SortableObjectiveCard({
   onDelete: (id: string) => void;
   onFinalize: (id: string, result: "succeeded" | "missed") => void;
   onDuplicate: (obj: Objective) => void;
-  getFileUrl: (path: string) => string;
+  openAttachment: (path: string) => void;
   getFileIcon: (type: string | null) => JSX.Element;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: obj.id });
@@ -129,11 +129,11 @@ function SortableObjectiveCard({
           {obj.attachments && obj.attachments.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {obj.attachments.map((att) => (
-                <a key={att.id} href={getFileUrl(att.file_path)} target="_blank" rel="noopener noreferrer"
+                <button key={att.id} type="button" onClick={() => openAttachment(att.file_path)}
                   className="flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/80 text-[11px] transition-colors">
                   {getFileIcon(att.file_type)}
                   <span className="max-w-[120px] truncate">{att.file_name}</span>
-                </a>
+                </button>
               ))}
             </div>
           )}
