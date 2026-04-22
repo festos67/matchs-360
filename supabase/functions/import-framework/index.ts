@@ -110,105 +110,22 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Check if target already has a framework (non-archived)
-    let existingFrameworkQuery = supabaseAdmin
-      .from("competence_frameworks")
-      .select("id")
-      .eq("is_archived", false);
-    
-    if (isClubImport) {
-      existingFrameworkQuery = existingFrameworkQuery
-        .eq("club_id", targetClubId)
-        .eq("is_template", true);
-    } else {
-      existingFrameworkQuery = existingFrameworkQuery
-        .eq("team_id", targetTeamId);
-    }
-    
-    const { data: existingFramework } = await existingFrameworkQuery.maybeSingle();
+    // ============================================================
+    // ATOMIC IMPORT — single transaction with advisory lock.
+    // Prevents concurrent imports from corrupting the same target.
+    // Authorization has already been enforced above.
+    // ============================================================
+    const { data: newFrameworkId, error: rpcError } = await supabaseAdmin.rpc(
+      "import_framework_atomic",
+      {
+        p_source_framework_id: sourceFrameworkId,
+        p_target_team_id: isClubImport ? null : targetTeamId,
+        p_target_club_id: isClubImport ? targetClubId : null,
+        p_framework_name: frameworkName,
+      },
+    );
 
-    let newFrameworkId: string;
-
-    if (existingFramework) {
-      // Delete existing themes and skills (cascade will handle skills)
-      await supabaseAdmin
-        .from("themes")
-        .delete()
-        .eq("framework_id", existingFramework.id);
-      
-      newFrameworkId = existingFramework.id;
-      
-      // Update framework name and ensure not archived
-      await supabaseAdmin
-        .from("competence_frameworks")
-        .update({ name: frameworkName, is_archived: false, archived_at: null })
-        .eq("id", existingFramework.id);
-    } else {
-      // Create new framework
-      const insertData: any = {
-        name: frameworkName,
-        is_template: isClubImport,
-      };
-      
-      if (isClubImport) {
-        insertData.club_id = targetClubId;
-        insertData.team_id = null;
-      } else {
-        insertData.team_id = targetTeamId;
-      }
-
-      const { data: newFramework, error: createError } = await supabaseAdmin
-        .from("competence_frameworks")
-        .insert(insertData)
-        .select()
-        .single();
-
-      if (createError) throw createError;
-      newFrameworkId = newFramework.id;
-    }
-
-    // Get source themes with skills
-    const { data: sourceThemes, error: themesError } = await supabaseAdmin
-      .from("themes")
-      .select("*, skills(*)")
-      .eq("framework_id", sourceFrameworkId)
-      .order("order_index");
-
-    if (themesError) throw themesError;
-
-    console.log(`Found ${sourceThemes?.length || 0} themes to copy`);
-
-    // Copy themes and skills
-    for (const theme of sourceThemes || []) {
-      const { data: newTheme, error: themeError } = await supabaseAdmin
-        .from("themes")
-        .insert({
-          framework_id: newFrameworkId,
-          name: theme.name,
-          color: theme.color,
-          order_index: theme.order_index,
-        })
-        .select()
-        .single();
-
-      if (themeError) throw themeError;
-
-      // Copy skills for this theme
-      const skillsToInsert = (theme.skills || []).map((skill: any) => ({
-        theme_id: newTheme.id,
-        name: skill.name,
-        definition: skill.definition,
-        order_index: skill.order_index,
-      }));
-
-      if (skillsToInsert.length > 0) {
-        const { error: skillsError } = await supabaseAdmin
-          .from("skills")
-          .insert(skillsToInsert);
-
-        if (skillsError) throw skillsError;
-      }
-    }
+    if (rpcError) throw rpcError;
 
     console.log(`Successfully imported framework to ${targetType} ${targetId}`);
 
