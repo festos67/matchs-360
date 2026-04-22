@@ -134,7 +134,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         <Link to={getDashboardPath()} className="flex items-center gap-3 px-2" onClick={handleLinkClick}>
           <RadarPulseLogo size={54} />
           <span className="font-display text-2xl font-extrabold text-accent tracking-tight leading-tight">
-            MATCHS360
+            MATCHS<span style={{ color: "#3B82F6" }}>360</span>
           </span>
         </Link>
       </div>
