@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
           console.warn('Skipping duplicate send (already sent)', {
             queue,
             msg_id: msg.msg_id,
-            message_id: payload.message_id,
+            recipient: maskEmail(payload.to),
           })
           const { error: dupDelError } = await supabase.rpc('delete_email', {
             queue_name: queue,
