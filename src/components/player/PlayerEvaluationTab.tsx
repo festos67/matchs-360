@@ -161,7 +161,7 @@ export function PlayerEvaluationTab({
                 })() : "Aucune évaluation"}
               </p>
             </div>
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-4 flex-nowrap">
               {canEvaluate && !showComparison && (
                 <>
                   {previousCoachEvaluation && (
