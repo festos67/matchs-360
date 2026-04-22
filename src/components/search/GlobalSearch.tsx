@@ -168,7 +168,14 @@ export const GlobalSearch = () => {
       setLoading(true);
       try {
         const searchResults: SearchResult[] = [];
-        const searchTerm = query.trim() ? `%${query}%` : null;
+        // Escape PostgREST .or() DSL metacharacters to prevent filter injection.
+        // PostgREST uses , . : ( ) and " as separators/delimiters in the .or() string.
+        // We replace them with the SQL LIKE wildcard `_` (single char) so the search
+        // remains usable on names containing such characters without breaking the DSL.
+        const escapePostgrestOrValue = (raw: string) =>
+          raw.replace(/[,.:()"\\]/g, "_");
+        const safeQuery = query.trim() ? escapePostgrestOrValue(query.trim()) : "";
+        const searchTerm = safeQuery ? `%${safeQuery}%` : null;
 
         // Build team ID filter from clubs if needed
         let teamIdFilter: string[] | null = null;
