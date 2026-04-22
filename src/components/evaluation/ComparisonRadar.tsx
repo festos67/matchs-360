@@ -14,7 +14,7 @@
  *  - Stabilité visuelle : mem://technical/radar-chart-visual-stability
  *  - Capacités god view (Admin/Club Admin) : mem://features/admin/god-view-capabilities
  */
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import * as RechartsPrimitive from "recharts";
 
 const Radar = RechartsPrimitive.Radar as unknown as ComponentType<any>;
@@ -82,6 +82,49 @@ const useIsDarkMode = () => {
 // et on force la palette néon haute-visibilité
 const adaptColorForDark = (_hex: string | undefined): string | undefined => undefined;
 
+// Hook: observe container width for responsive radar sizing
+const useContainerWidth = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    if (!ref.current) return;
+    const el = ref.current;
+    const update = () => setWidth(el.clientWidth);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width] as const;
+};
+
+// Render multi-line theme labels (wraps long names on small screens)
+const renderAngleTick = (fontSize: number, fontWeight: number, fill: string, maxCharsPerLine: number) => (props: any) => {
+  const { x, y, payload, textAnchor } = props;
+  const text = String(payload.value || "");
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  words.forEach((w) => {
+    const candidate = current ? `${current} ${w}` : w;
+    if (candidate.length > maxCharsPerLine && current) {
+      lines.push(current);
+      current = w;
+    } else {
+      current = candidate;
+    }
+  });
+  if (current) lines.push(current);
+  const lineHeight = fontSize + 2;
+  return (
+    <text x={x} y={y} textAnchor={textAnchor} fill={fill} fontSize={fontSize} fontWeight={fontWeight}>
+      {lines.map((line, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? 0 : lineHeight}>{line}</tspan>
+      ))}
+    </text>
+  );
+};
+
 export const ComparisonRadar = ({
   datasets,
   primaryColor,
@@ -89,6 +132,17 @@ export const ComparisonRadar = ({
 }: ComparisonRadarProps) => {
   if (datasets.length === 0) return null;
   const isDark = useIsDarkMode();
+  const [containerRef, containerWidth] = useContainerWidth();
+  // Responsive breakpoints
+  const isXs = containerWidth > 0 && containerWidth < 380;
+  const isSm = containerWidth >= 380 && containerWidth < 560;
+  const chartHeight = isXs ? 300 : isSm ? 350 : 403;
+  const outerRadius = isXs ? "65%" : isSm ? "72%" : "80%";
+  const themeFontSize = isXs ? 10 : isSm ? 11 : (isDark ? 14 : 13);
+  const radiusFontSize = isXs ? 9 : isSm ? 10 : (isDark ? 13 : 12);
+  const themeFontWeight = isDark ? 700 : 500;
+  const themeFill = isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))";
+  const maxCharsPerLine = isXs ? 10 : isSm ? 14 : 18;
   const COMPARISON_COLORS = isDark ? COMPARISON_COLORS_DARK : COMPARISON_COLORS_LIGHT;
   // Mode sombre: jaune vif pour le dataset courant, indépendant de la couleur club
   const effectivePrimary = isDark
@@ -112,21 +166,17 @@ export const ComparisonRadar = ({
   const comparisonDatasets = datasets.filter(d => !d.isCurrent);
 
   return (
-    <div className="w-full">
-      <div className="h-[403px] relative radar-themed">
+    <div className="w-full" ref={containerRef}>
+      <div className="relative radar-themed" style={{ height: chartHeight }}>
         <ResponsiveContainer width="100%" height="100%">
-          <RechartsRadarChart cx="50%" cy="50%" outerRadius="80%" data={mergedData}>
+          <RechartsRadarChart cx="50%" cy="50%" outerRadius={outerRadius} data={mergedData}>
             <PolarGrid
               stroke="hsl(var(--muted-foreground) / 0.5)"
               gridType="polygon"
             />
             <PolarAngleAxis
               dataKey="theme"
-              tick={{
-                fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                fontSize: isDark ? 14 : 13,
-                fontWeight: isDark ? 700 : 500,
-              }}
+              tick={renderAngleTick(themeFontSize, themeFontWeight, themeFill, maxCharsPerLine)}
               tickLine={{ stroke: isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))" }}
             />
             <PolarRadiusAxis
@@ -134,7 +184,7 @@ export const ComparisonRadar = ({
               domain={[0, 5]}
               tick={{
                 fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                fontSize: isDark ? 13 : 12,
+                fontSize: radiusFontSize,
                 fontWeight: isDark ? 600 : 400,
               }}
               tickCount={6}
