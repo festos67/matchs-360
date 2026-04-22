@@ -388,7 +388,7 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex flex-wrap items-start gap-5">
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex flex-wrap items-center gap-5">
         {/* Logo club */}
         <div
           className="w-42 h-42 rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
@@ -406,7 +406,7 @@ export default function ClubDetail() {
         </div>
 
         {/* Infos */}
-        <div className="flex-1 min-w-[200px] self-center">
+        <div className="flex-1 min-w-[200px]">
           <h2 className="font-display text-[25px] leading-tight font-extrabold text-foreground tracking-tight truncate">
             {club.name}
           </h2>
@@ -418,7 +418,7 @@ export default function ClubDetail() {
 
         {/* Actions */}
         {canManageClub && (
-          <div className="flex flex-col items-stretch md:items-end gap-2 flex-shrink-0 w-full md:w-auto">
+          <div className="flex flex-col items-stretch md:items-end justify-center gap-2 flex-shrink-0 w-full md:w-auto self-center">
             {/* Bouton Paramètres isolé au-dessus */}
             <Button
               variant="outline"
