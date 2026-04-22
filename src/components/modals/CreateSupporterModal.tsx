@@ -133,9 +133,17 @@ export const CreateSupporterModal = ({
 
   const uploadPhotoForUser = async (userId: string): Promise<string | null> => {
     if (!photoFile) return null;
-    const ext = photoFile.name.split(".").pop() || "png";
-    const path = `${userId}/photo.${ext}`;
-    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    let validated;
+    try {
+      validated = (await import("@/lib/upload-validation")).validateUpload(photoFile, "image");
+    } catch (e) {
+      console.error("Photo validation failed:", e);
+      return null;
+    }
+    const path = `${userId}/photo.${validated.safeExt}`;
+    const { error } = await supabase.storage
+      .from("user-photos")
+      .upload(path, photoFile, { upsert: true, contentType: validated.contentType });
     if (error) {
       console.error("Photo upload error:", error);
       return null;

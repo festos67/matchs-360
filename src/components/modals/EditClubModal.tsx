@@ -90,9 +90,12 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
 
   const uploadLogo = async (): Promise<string | null> => {
     if (!logoFile) return null;
-    const ext = logoFile.name.split(".").pop() || "png";
-    const path = `${club.id}/logo.${ext}`;
-    const { error } = await supabase.storage.from("club-logos").upload(path, logoFile, { upsert: true });
+    const { validateUpload } = await import("@/lib/upload-validation");
+    const { contentType, safeExt } = validateUpload(logoFile, "image");
+    const path = `${club.id}/logo.${safeExt}`;
+    const { error } = await supabase.storage
+      .from("club-logos")
+      .upload(path, logoFile, { upsert: true, contentType });
     if (error) throw error;
     const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(path);
     return urlData.publicUrl;

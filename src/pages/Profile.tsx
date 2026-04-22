@@ -158,11 +158,12 @@ export default function Profile() {
 
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile || !user) return null;
-    const ext = photoFile.name.split(".").pop() || "png";
-    const path = `${user.id}/photo.${ext}`;
+    const { validateUpload } = await import("@/lib/upload-validation");
+    const { contentType, safeExt } = validateUpload(photoFile, "image");
+    const path = `${user.id}/photo.${safeExt}`;
     const { error } = await supabase.storage
       .from("user-photos")
-      .upload(path, photoFile, { upsert: true });
+      .upload(path, photoFile, { upsert: true, contentType });
     if (error) throw error;
     const { data: urlData } = supabase.storage
       .from("user-photos")
