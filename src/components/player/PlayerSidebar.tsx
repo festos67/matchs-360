@@ -171,7 +171,7 @@ export function PlayerSidebar({
             {!isViewingHistory && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button className="w-full gap-1.5 justify-start bg-accent text-accent-foreground hover:bg-accent/90 h-8 text-[11px] font-bold px-2.5">
+                  <Button className="w-full gap-1.5 justify-start bg-accent text-accent-foreground hover:bg-accent/90 h-9 text-[11px] font-bold px-2.5">
                     <ClipboardList className="w-3.5 h-3.5" />Nouveau débrief
                   </Button>
                 </AlertDialogTrigger>
@@ -204,7 +204,7 @@ export function PlayerSidebar({
             )}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold">
+                <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary">
                   <Star className="w-3.5 h-3.5 text-accent" />Auto-débrief
                 </Button>
               </AlertDialogTrigger>
@@ -221,9 +221,12 @@ export function PlayerSidebar({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onRequestSupporterEval}>
-              <Heart className="w-3.5 h-3.5 text-success" />Supporter
+            <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onRequestSupporterEval}>
+              <Heart className="w-3.5 h-3.5 text-accent" />Supporter
             </Button>
+            {hasSelectedEvaluation && (
+              <PrintResultButton onPrint={onPrint} />
+            )}
           </div>
         </div>
       )}
