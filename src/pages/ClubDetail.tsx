@@ -38,6 +38,7 @@ import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { TeamCard } from "@/components/shared/TeamCard";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -422,31 +423,38 @@ export default function ClubDetail() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-2 justify-start w-full md:w-auto md:self-end"
+              className="gap-2 w-full md:w-auto md:self-end"
               onClick={() => setShowClubSettings(true)}
             >
               <Settings className="w-3.5 h-3.5 text-orange-500" />
               Paramètres
             </Button>
 
-            {/* Sous-cadre Effectif avec titre discret */}
-            <div className="flex flex-col gap-1 w-full md:w-auto">
+            {/* Sous-cadre Effectif : tuiles élégantes avec icône de rôle */}
+            <div className="flex flex-col gap-1.5 w-full md:w-auto">
               <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 px-1">
                 Effectif
               </span>
-              <div className="flex flex-wrap md:flex-col gap-1.5 p-2 rounded-xl border border-border bg-muted/30 w-full md:w-auto">
-                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowCoachModal(true)}>
-                  <Plus className="w-3.5 h-3.5 text-orange-500" />Coach
-                </Button>
-                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowTeamModal(true)}>
-                  <Plus className="w-3.5 h-3.5 text-orange-500" />Équipe
-                </Button>
-                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowPlayerModal(true)}>
-                  <Plus className="w-3.5 h-3.5 text-orange-500" />Joueur
-                </Button>
-                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowSupporterModal(true)}>
-                  <Plus className="w-3.5 h-3.5 text-orange-500" />Supporter
-                </Button>
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 gap-2 p-2 rounded-xl border border-border bg-muted/30">
+                {[
+                  { label: "Coach", Icon: UserCog, color: "text-orange-500", bg: "bg-orange-500/10", onClick: () => setShowCoachModal(true) },
+                  { label: "Équipe", Icon: Users, color: "text-primary", bg: "bg-primary/10", onClick: () => setShowTeamModal(true) },
+                  { label: "Joueur", Icon: UserCircle, color: "text-green-500", bg: "bg-green-500/10", onClick: () => setShowPlayerModal(true) },
+                  { label: "Supporter", Icon: Heart, color: "text-pink-500", bg: "bg-pink-500/10", onClick: () => setShowSupporterModal(true) },
+                ].map(({ label, Icon, color, bg, onClick }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={onClick}
+                    className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground min-w-[110px]"
+                  >
+                    <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0", bg)}>
+                      <Icon className={cn("w-4 h-4", color)} />
+                    </span>
+                    <span className="flex-1 text-left truncate">{label}</span>
+                    <Plus className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                  </button>
+                ))}
               </div>
             </div>
           </div>
