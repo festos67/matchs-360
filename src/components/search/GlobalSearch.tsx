@@ -452,7 +452,10 @@ export const GlobalSearch = () => {
         className="relative w-full md:w-96 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-muted/70 border border-border hover:border-primary/40 hover:bg-muted transition-all text-left min-w-0 shadow-sm"
       >
         <Search className="w-4 h-4 text-primary" />
-        <span className="text-sm text-muted-foreground flex-1">Rechercher un club, une équipe, un joueur...</span>
+        <span className="text-sm text-muted-foreground flex-1 truncate min-w-0">
+          <span>Rechercher</span>
+          <span className="hidden sm:inline"> un club, une équipe, un joueur...</span>
+        </span>
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
