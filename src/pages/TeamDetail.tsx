@@ -396,12 +396,13 @@ export default function TeamDetail() {
               {canManageTeam && !isPlayerViewing && (isAdmin || isClubAdmin || isReferentCoach) && (
                 <Button
                   variant="outline"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
+                  size="sm"
+                  className="gap-1.5 text-[11px] h-9 px-2.5 font-semibold"
                   onClick={() => setShowTeamSettings(true)}
                   title="Paramètres de l'équipe"
                 >
-                  <Settings className="w-4 h-4 text-blue-500" />
+                  <Settings className="w-3.5 h-3.5 text-blue-500" />
+                  Paramètres
                 </Button>
               )}
             </div>
