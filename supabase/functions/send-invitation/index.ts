@@ -124,9 +124,9 @@ const throwEmailDeliveryError = (providerError: EmailProviderError): never => {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
