@@ -521,44 +521,48 @@ export default function FrameworkEditor() {
   return (
     <AppLayout>
       <div className="pb-20">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div className="flex items-start gap-4 min-w-0 flex-1">
-            <Button variant="ghost" className="-ml-2 flex-shrink-0 mt-1" onClick={() => navigate(`/teams/${teamId}`)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour
-            </Button>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <FileText className="w-6 h-6 text-primary flex-shrink-0" />
-                {canEdit ? (
-                  <Input
-                    value={frameworkName}
-                    onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
-                    placeholder="Nom du référentiel"
-                    className="text-2xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
-                  />
-                ) : (
-                  <h1 className="text-2xl font-display font-bold truncate">{frameworkName || "Référentiel"}</h1>
-                )}
-              </div>
+        <Button variant="ghost" className="-ml-2 mb-4" onClick={() => navigate(`/teams/${teamId}`)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+
+        {/* Header card (titre + sous-titre + bandeau d'actions à gauche) */}
+        <div className="mb-6 rounded-xl border border-border bg-card px-4 sm:px-6 py-5 shadow-sm">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+              <FileText className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              {canEdit ? (
+                <Input
+                  value={frameworkName}
+                  onChange={(e) => { setFrameworkName(e.target.value); setHasChanges(true); }}
+                  placeholder="Nom du référentiel"
+                  className="!text-2xl font-display font-bold h-auto py-1 border-transparent hover:border-input focus:border-input bg-transparent"
+                />
+              ) : (
+                <h1 className="!text-2xl font-display font-bold truncate">{frameworkName || "Référentiel"}</h1>
+              )}
               <p className="text-muted-foreground text-sm mt-1">
-                {team.name} • {team.club?.name}
+                {team.name} • {team.club?.name} • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
               </p>
             </div>
           </div>
+
           {framework && (
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="w-4 h-4 mr-2" />
-                Imprimer
-              </Button>
-              {canEdit && (
-                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-                  <History className="w-4 h-4 mr-2" />
-                  Historique
+            <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handlePrint}>
+                  <Printer className="w-4 h-4 mr-2 text-orange-500" />
+                  Imprimer
                 </Button>
-              )}
+                {canEdit && (
+                  <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                    <History className="w-4 h-4 mr-2 text-orange-500" />
+                    Historique
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>

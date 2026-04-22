@@ -33,8 +33,9 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Save, Plus, Undo2, X, AlertTriangle } from "lucide-react";
+import { Save, Plus, Undo2, X, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import {
   AlertDialog,
@@ -69,7 +70,7 @@ interface FrameworkEditDialogProps {
   themes: Theme[];
   frameworkName: string;
   saving: boolean;
-  onSave: (themes: Theme[]) => void;
+  onSave: (themes: Theme[], name: string) => void;
   onCancel: () => void;
 }
 
@@ -82,22 +83,25 @@ export const FrameworkEditDialog = ({
   onCancel,
 }: FrameworkEditDialogProps) => {
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [name, setName] = useState(frameworkName);
   const [history, setHistory] = useState<Theme[][]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const hasChanges = history.length > 0;
+  const nameChanged = name.trim() !== frameworkName.trim();
+  const hasChanges = history.length > 0 || nameChanged;
 
   // Initialize themes when dialog opens
   useEffect(() => {
     if (open) {
       const snapshot = JSON.parse(JSON.stringify(initialThemes));
       setThemes(snapshot);
+      setName(frameworkName);
       setHistory([]);
     }
-  }, [open, initialThemes]);
+  }, [open, initialThemes, frameworkName]);
 
   // Push current state to history before each mutation
   const pushHistory = useCallback(() => {
@@ -203,7 +207,7 @@ export const FrameworkEditDialog = ({
 
   const handleSaveAndClose = () => {
     setShowExitConfirm(false);
-    onSave(themes);
+    onSave(themes, name.trim() || frameworkName);
   };
 
   const handleDiscardAndClose = () => {
@@ -229,45 +233,58 @@ export const FrameworkEditDialog = ({
       >
         <div className="fixed inset-4 md:inset-8 lg:inset-12 z-50 bg-background border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-              <div>
-                <h2 className="text-lg font-display font-bold">Mode modification</h2>
-                <p className="text-sm text-muted-foreground">{frameworkName}</p>
+          <div className="px-4 sm:px-6 py-4 border-b border-border bg-card">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span className="text-xs font-medium uppercase tracking-wide text-amber-500">Mode modification</span>
+                </div>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nom du référentiel"
+                  className="!text-2xl font-display font-bold h-auto py-1 mt-1 border-transparent hover:border-input focus:border-input bg-transparent"
+                />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUndo}
-                disabled={!hasChanges || saving}
-              >
-                <Undo2 className="w-4 h-4 mr-2" />
-                Annuler dernière modification
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRequestClose}
-                disabled={saving}
-              >
-                <X className="w-4 h-4 mr-2" />
-                Annuler
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => onSave(themes)}
-                disabled={saving || themes.length === 0}
-              >
-                {saving ? (
-                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                Sauvegarder
-              </Button>
+
+            <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUndo}
+                  disabled={!hasChanges || saving}
+                >
+                  <Undo2 className="w-4 h-4 mr-2 text-orange-500" />
+                  Annuler dernière modification
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRequestClose}
+                  disabled={saving}
+                >
+                  <X className="w-4 h-4 mr-2 text-orange-500" />
+                  Annuler
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => onSave(themes, name.trim() || frameworkName)}
+                  disabled={saving || themes.length === 0 || !name.trim()}
+                >
+                  {saving ? (
+                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Sauvegarder
+                </Button>
+              </div>
             </div>
           </div>
 

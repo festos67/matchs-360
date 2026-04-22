@@ -108,6 +108,7 @@ export default function ClubFrameworkEditor() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showEditConfirm, setShowEditConfirm] = useState(false);
   const [pendingEditThemes, setPendingEditThemes] = useState<Theme[] | null>(null);
+  const [pendingEditName, setPendingEditName] = useState<string>("");
   const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -180,9 +181,10 @@ export default function ClubFrameworkEditor() {
     }
   };
 
-  // Called from FrameworkEditDialog with the edited themes
-  const handleEditSave = (editedThemes: Theme[]) => {
+  // Called from FrameworkEditDialog with the edited themes and (possibly) modified name
+  const handleEditSave = (editedThemes: Theme[], editedName: string) => {
     setPendingEditThemes(editedThemes);
+    setPendingEditName(editedName);
     setShowEditDialog(false);
     setShowNameModal(true);
   };
@@ -493,7 +495,7 @@ export default function ClubFrameworkEditor() {
             setPendingEditThemes(null);
           }
         }}
-        currentName={frameworkName}
+        currentName={pendingEditName || frameworkName}
         onConfirm={handleSave}
         saving={saving}
       />
