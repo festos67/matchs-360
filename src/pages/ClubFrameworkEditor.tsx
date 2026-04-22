@@ -296,7 +296,7 @@ export default function ClubFrameworkEditor() {
             </div>
             {framework && (
               <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex-shrink-0">
-                <Printer className="w-4 h-4 mr-2 text-primary" />
+                <Printer className="w-4 h-4 mr-2 text-orange-500" />
                 Imprimer
               </Button>
             )}
