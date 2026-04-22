@@ -61,7 +61,10 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="glass-card overflow-hidden">
+    <div
+      className="glass-card overflow-hidden"
+      style={{ backgroundColor: hexToRgba(theme.color, 0.04) }}
+    >
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <div
           className="flex items-center gap-3 p-4 border-b border-border"
