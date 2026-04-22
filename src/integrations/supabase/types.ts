@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_role: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          record_id: string | null
+          request_id: string | null
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_role?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          record_id?: string | null
+          request_id?: string | null
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          record_id?: string | null
+          request_id?: string | null
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       clubs: {
         Row: {
           created_at: string
@@ -1297,6 +1342,7 @@ export type Database = {
         }
         Returns: number
       }
+      purge_old_audit_log: { Args: never; Returns: undefined }
       purge_old_evaluations: { Args: never; Returns: undefined }
       purge_old_frameworks: { Args: never; Returns: undefined }
       read_email_batch: {
