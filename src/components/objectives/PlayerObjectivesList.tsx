@@ -82,13 +82,13 @@ interface PlayerObjectivesListProps {
 }
 
 function SortableCard({
-  obj, canEdit, onEdit, onDelete, onFinalize, onDuplicate, getFileUrl, getFileIcon,
+  obj, canEdit, onEdit, onDelete, onFinalize, onDuplicate, openAttachment, getFileIcon,
 }: {
   obj: Objective; canEdit: boolean;
   onEdit: (o: Objective) => void; onDelete: (id: string) => void;
   onFinalize: (id: string, r: "succeeded" | "missed") => void;
   onDuplicate: (o: Objective) => void;
-  getFileUrl: (p: string) => string; getFileIcon: (t: string | null) => JSX.Element;
+  openAttachment: (p: string) => void; getFileIcon: (t: string | null) => JSX.Element;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: obj.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
@@ -114,11 +114,11 @@ function SortableCard({
           {obj.attachments && obj.attachments.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {obj.attachments.map((att) => (
-                <a key={att.id} href={getFileUrl(att.file_path)} target="_blank" rel="noopener noreferrer"
+                <button key={att.id} type="button" onClick={() => openAttachment(att.file_path)}
                   className="flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/80 text-[11px] transition-colors">
                   {getFileIcon(att.file_type)}
                   <span className="max-w-[120px] truncate">{att.file_name}</span>
-                </a>
+                </button>
               ))}
             </div>
           )}
@@ -293,9 +293,15 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
     }
   };
 
-  const getFileUrl = (path: string) => {
-    const { data } = supabase.storage.from("objective-attachments").getPublicUrl(path);
-    return data.publicUrl;
+  const openAttachment = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("objective-attachments")
+      .createSignedUrl(path, 300);
+    if (error || !data?.signedUrl) {
+      toast.error("Impossible d'ouvrir la pièce jointe");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const getFileIcon = (type: string | null) => {
@@ -426,7 +432,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
                             onDelete={(id) => deleteMutation.mutate(id)}
                             onFinalize={(id, r) => finalizeMutation.mutate({ id, result: r })}
                             onDuplicate={(o) => duplicateMutation.mutate(o)}
-                            getFileUrl={getFileUrl} getFileIcon={getFileIcon} />
+                            openAttachment={openAttachment} getFileIcon={getFileIcon} />
                         ))}
                       </div>
                     </SortableContext>
