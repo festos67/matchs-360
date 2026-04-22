@@ -379,7 +379,6 @@ export default function PlayerDetail() {
             isViewingHistory={isViewingHistory}
             comparisonIds={comparisonIds}
             onReturnToCurrent={handleReturnToCurrent}
-            onClearComparison={() => setComparisonIds([])}
             onToggleComparison={toggleComparison}
           />
         </TabsContent>
