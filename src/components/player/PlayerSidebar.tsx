@@ -173,7 +173,7 @@ export function PlayerSidebar({
                 <AlertDialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground hover:bg-secondary hover:border-primary/40"
+                    className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-orange-500/50 hover:bg-secondary hover:border-orange-500"
                   >
                     <Plus className="w-4 h-4 text-orange-500 shrink-0" />
                     <span className="flex-1 text-left truncate">Nouveau débrief</span>
