@@ -49,6 +49,7 @@ import { Search, Users, Loader2, User, ChevronDown, Plus, Pencil } from "lucide-
 import { Button } from "@/components/ui/button";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 
 interface PlayerData {
   id: string;
@@ -517,34 +518,21 @@ const Players = () => {
             <p className="text-muted-foreground mt-1">{pageSubtitle}</p>
           </div>
           {currentRole?.role === "club_admin" && currentRole?.club_id && (
-            <Button variant="accent" onClick={() => setShowCreatePlayer(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Ajouter un joueur
-            </Button>
+            <AddEntityButton type="player" onClick={() => setShowCreatePlayer(true)} />
           )}
           {currentRole?.role === "admin" && (
-            <Button
-              variant="accent"
-              onClick={() => setShowCreatePlayer(true)}
-              className="gap-2"
-              disabled={clubFilter === "all"}
-              title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un joueur
-            </Button>
+            <AddEntityButton
+              type="player"
+              onClick={() => clubFilter !== "all" && setShowCreatePlayer(true)}
+              className={clubFilter === "all" ? "opacity-50 cursor-not-allowed" : undefined}
+            />
           )}
           {isCoach && (
-            <Button
-              variant="accent"
-              onClick={() => setShowCreatePlayer(true)}
-              className="gap-2"
-              disabled={!coachClubId}
-              title={!coachClubId ? "Sélectionnez d'abord un club dans le filtre" : undefined}
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un joueur
-            </Button>
+            <AddEntityButton
+              type="player"
+              onClick={() => coachClubId && setShowCreatePlayer(true)}
+              className={!coachClubId ? "opacity-50 cursor-not-allowed" : undefined}
+            />
           )}
         </div>
 
