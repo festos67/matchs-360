@@ -406,8 +406,8 @@ export default function ClubDetail() {
           )}
         </div>
 
-        {/* Infos */}
-        <div className="flex-1 min-w-[200px] flex flex-col justify-center">
+        {/* Infos — centrées verticalement sur la hauteur du logo */}
+        <div className="flex-1 min-w-[200px] self-stretch flex flex-col justify-center">
           <h2 className="font-display text-[25px] leading-tight font-extrabold text-foreground tracking-tight truncate">
             {club.name}
           </h2>
