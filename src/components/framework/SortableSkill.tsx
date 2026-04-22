@@ -62,8 +62,8 @@ export const SortableSkill = ({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    backgroundColor: `${baseColor}1F`, // ~12% alpha
-    borderColor: `${baseColor}40`, // ~25% alpha
+    backgroundColor: `${baseColor}47`, // ~28% alpha
+    borderColor: `${baseColor}73`, // ~45% alpha
   };
 
   return (
