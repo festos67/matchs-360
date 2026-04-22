@@ -39,6 +39,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { TeamCard } from "@/components/shared/TeamCard";
 import { cn } from "@/lib/utils";
+import { AddEntityButton, type AddEntityType } from "@/components/shared/AddEntityButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -436,24 +437,13 @@ export default function ClubDetail() {
                 Effectif
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 gap-2 p-2 rounded-xl border border-border bg-muted/30">
-                {[
-                  { label: "Coach", Icon: UserCog, color: "text-orange-500", bg: "bg-orange-500/10", onClick: () => setShowCoachModal(true) },
-                  { label: "Équipe", Icon: Users, color: "text-primary", bg: "bg-primary/10", onClick: () => setShowTeamModal(true) },
-                  { label: "Joueur", Icon: UserCircle, color: "text-green-500", bg: "bg-green-500/10", onClick: () => setShowPlayerModal(true) },
-                  { label: "Supporter", Icon: Heart, color: "text-pink-500", bg: "bg-pink-500/10", onClick: () => setShowSupporterModal(true) },
-                ].map(({ label, Icon, color, bg, onClick }) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={onClick}
-                    className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground min-w-[110px]"
-                  >
-                    <Plus className="w-4 h-4 text-orange-500 shrink-0" />
-                    <span className="flex-1 text-left truncate">{label}</span>
-                    <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0", bg)}>
-                      <Icon className={cn("w-4 h-4", color)} />
-                    </span>
-                  </button>
+                {([
+                  { type: "coach" as AddEntityType, onClick: () => setShowCoachModal(true) },
+                  { type: "team" as AddEntityType, onClick: () => setShowTeamModal(true) },
+                  { type: "player" as AddEntityType, onClick: () => setShowPlayerModal(true) },
+                  { type: "supporter" as AddEntityType, onClick: () => setShowSupporterModal(true) },
+                ]).map(({ type, onClick }) => (
+                  <AddEntityButton key={type} type={type} onClick={onClick} />
                 ))}
               </div>
             </div>
@@ -588,9 +578,7 @@ export default function ClubDetail() {
           {showArchived ? "Équipes archivées" : "Équipes"}
         </h2>
         {canManageClub && !showArchived && (
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowTeamModal(true)}>
-            <Plus className="w-3.5 h-3.5 text-accent" />Équipe
-          </Button>
+          <AddEntityButton type="team" onClick={() => setShowTeamModal(true)} />
         )}
       </div>
 

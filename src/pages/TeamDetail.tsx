@@ -58,6 +58,7 @@ import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { ReadOnlyFrameworkView } from "@/components/framework/ReadOnlyFrameworkView";
 import { FrameworkEditDialog } from "@/components/framework/FrameworkEditDialog";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { useReactToPrint } from "react-to-print";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
@@ -407,17 +408,11 @@ export default function TeamDetail() {
                 <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Ajouter</p>
                 <div className="flex flex-col gap-1.5">
                   {(isAdmin || isClubAdmin) && (
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowCoachModal(true)}>
-                      <Plus className="w-3.5 h-3.5 text-accent" />Coach
-                    </Button>
+                    <AddEntityButton type="coach" onClick={() => setShowCoachModal(true)} className="w-full" />
                   )}
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowPlayerModal(true)}>
-                    <Plus className="w-3.5 h-3.5 text-accent" />Joueur
-                  </Button>
+                  <AddEntityButton type="player" onClick={() => setShowPlayerModal(true)} className="w-full" />
                   {(isAdmin || isClubAdmin || isReferentCoach) && (
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowSupporterModal(true)}>
-                      <Plus className="w-3.5 h-3.5 text-accent" />Supporter
-                    </Button>
+                    <AddEntityButton type="supporter" onClick={() => setShowSupporterModal(true)} className="w-full" />
                   )}
                 </div>
               </div>
@@ -467,7 +462,7 @@ export default function TeamDetail() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-display font-semibold">Coachs</h2>
-              {!isPlayerViewing && (isAdmin || isClubAdmin) && <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><Plus className="w-4 h-4 text-accent" />Coach</Button>}
+              {!isPlayerViewing && (isAdmin || isClubAdmin) && <AddEntityButton type="coach" onClick={() => setShowCoachModal(true)} />}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {coaches.map((coach, index) => (
@@ -482,7 +477,7 @@ export default function TeamDetail() {
           <div className="glass-card p-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-display font-semibold">Joueurs ({players.length})</h2>
-              {!isPlayerViewing && canManageTeam && <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowPlayerModal(true)}><Plus className="w-4 h-4 text-accent" />Joueur</Button>}
+              {!isPlayerViewing && canManageTeam && <AddEntityButton type="player" onClick={() => setShowPlayerModal(true)} />}
             </div>
             {players.length > 0 ? (
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
