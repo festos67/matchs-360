@@ -389,13 +389,13 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-start gap-5">
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-center gap-5">
         {/* Logo club */}
         <div
           className="rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
           style={{
-            width: "9.45rem",
-            height: "9.45rem",
+            width: "8.5rem",
+            height: "8.5rem",
             ...(club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : {}),
           }}
         >
@@ -407,7 +407,7 @@ export default function ClubDetail() {
         </div>
 
         {/* Infos */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[200px] flex flex-col justify-center">
           <h2 className="font-display text-[25px] leading-tight font-extrabold text-foreground tracking-tight truncate">
             {club.name}
           </h2>
