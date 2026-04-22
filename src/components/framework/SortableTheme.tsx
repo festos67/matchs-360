@@ -134,14 +134,23 @@ export const SortableTheme = ({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className="glass-card overflow-hidden"
+      style={{
+        ...style,
+        backgroundColor: `${theme.color || "#3B82F6"}14`, // ~8% alpha
+        borderColor: `${theme.color || "#3B82F6"}55`,
+      }}
+      className="overflow-hidden rounded-xl border-2"
     >
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {/* Header */}
-        <div 
-          className="flex items-center gap-3 p-4 border-b border-border"
-          style={{ borderLeftWidth: 4, borderLeftColor: theme.color || "#3B82F6" }}
+        <div
+          className="flex items-center gap-3 p-4 border-b"
+          style={{
+            backgroundColor: `${theme.color || "#3B82F6"}33`, // ~20% alpha
+            borderBottomColor: `${theme.color || "#3B82F6"}55`,
+            borderLeftWidth: 4,
+            borderLeftColor: theme.color || "#3B82F6",
+          }}
         >
           {canEdit && (
             <button
