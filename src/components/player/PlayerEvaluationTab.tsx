@@ -16,13 +16,12 @@
  *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
  */
 import { useState, useCallback } from "react";
-import { ClipboardList, Heart, MessageSquare, Star } from "lucide-react";
+import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, getScoreLabel, type ThemeScores } from "@/lib/evaluation-utils";
 import { cn } from "@/lib/utils";
@@ -177,7 +176,7 @@ export function PlayerEvaluationTab({
                     <div className="flex items-center gap-2">
                       <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
                       <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5">
-                        <Star className="w-4 h-4 text-amber-500" />Auto-éval
+                        <UserCircle className="w-4 h-4 text-green-500" />Auto-éval
                       </Label>
                     </div>
                   )}
@@ -202,8 +201,20 @@ export function PlayerEvaluationTab({
               <ComparisonRadar datasets={getMultiSourceOverlayDatasets()} primaryColor={teamColor} />
             ) : showComparison ? (
               <ComparisonRadar datasets={getComparisonDatasets()} primaryColor={teamColor} />
+            ) : selectedEvaluation ? (
+              <ComparisonRadar
+                datasets={[{
+                  id: selectedEvaluation.id,
+                  label: selectedEvaluation.name,
+                  date: selectedEvaluation.date,
+                  data: radarData,
+                  color: teamColor,
+                  isCurrent: true,
+                }]}
+                primaryColor={teamColor}
+              />
             ) : (
-              <EvaluationRadar data={radarData} primaryColor={teamColor} />
+              <div className="h-[350px] flex items-center justify-center text-muted-foreground">Aucune évaluation disponible</div>
             )
           ) : (
             <div className="h-[350px] flex items-center justify-center text-muted-foreground">Aucune évaluation disponible</div>
