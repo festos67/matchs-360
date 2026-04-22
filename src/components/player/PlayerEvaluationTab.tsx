@@ -24,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
-import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
+import { calculateRadarData, calculateOverallAverage, formatAverage, getScoreLabel, type ThemeScores } from "@/lib/evaluation-utils";
 import { cn } from "@/lib/utils";
 import { getThemePaletteColor } from "@/lib/theme-palette";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
@@ -225,7 +225,9 @@ export function PlayerEvaluationTab({
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
                       <span className="text-sm font-medium">{theme.name}</span>
                     </div>
-                    <span className="text-sm text-muted-foreground">{themeData?.score || 0}/5</span>
+                    <span className="text-sm text-muted-foreground">
+                      {themeData?.score ? getScoreLabel(themeData.score) : "—"}
+                    </span>
                   </div>
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((themeData?.score || 0) / 5) * 100}%`, backgroundColor: color }} />
@@ -265,7 +267,9 @@ export function PlayerEvaluationTab({
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
                     <span className="font-semibold text-sm">{theme.name}</span>
                   </div>
-                  <span className="font-bold text-sm" style={{ color }}>{formatAverage(avgScore)}/5</span>
+                  <span className="font-bold text-sm" style={{ color }}>
+                    {avgScore !== null ? getScoreLabel(avgScore) : "—"}
+                  </span>
                 </div>
                 <div className="divide-y divide-border">
                   {theme.skills.map((skill) => {
