@@ -181,7 +181,7 @@ export function PlayerEvaluationTab({
                   <div className="flex items-center gap-2 shrink-0">
                     <Checkbox id="coach-layer" checked={comparisonIds.includes(previousCoachEvaluation.id)} onCheckedChange={() => onToggleComparison(previousCoachEvaluation.id)} />
                     <Label htmlFor="coach-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <ClipboardList className="w-4 h-4 text-primary" />Dernier débrief
+                      <ClipboardList className="w-4 h-4 text-orange-500" />Dernier débrief
                     </Label>
                   </div>
                 )}
