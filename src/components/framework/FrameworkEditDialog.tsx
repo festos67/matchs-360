@@ -33,8 +33,9 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Save, Plus, Undo2, X, AlertTriangle } from "lucide-react";
+import { Save, Plus, Undo2, X, AlertTriangle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import {
   AlertDialog,
