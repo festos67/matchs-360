@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -153,9 +154,7 @@ export default function ResetPassword() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <Activity className="w-7 h-7 text-primary-foreground" />
-          </div>
+          <RadarPulseLogo size={48} />
           <div>
             <h1 className="font-display text-2xl font-bold">MATCHS360</h1>
             <p className="text-sm text-muted-foreground">Sports Analytics Platform</p>
