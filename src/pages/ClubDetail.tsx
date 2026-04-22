@@ -448,11 +448,11 @@ export default function ClubDetail() {
                     onClick={onClick}
                     className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground min-w-[110px]"
                   >
+                    <Plus className="w-4 h-4 text-orange-500 shrink-0" />
+                    <span className="flex-1 text-left truncate">{label}</span>
                     <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0", bg)}>
                       <Icon className={cn("w-4 h-4", color)} />
                     </span>
-                    <span className="flex-1 text-left truncate">{label}</span>
-                    <Plus className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
                   </button>
                 ))}
               </div>
