@@ -205,7 +205,7 @@ export function PlayerSidebar({
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary">
-                  <Star className="w-3.5 h-3.5 text-accent" />Auto-débrief
+                  <Star className="w-3.5 h-3.5 text-accent" />Auto-débrief joueur
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -222,7 +222,7 @@ export function PlayerSidebar({
               </AlertDialogContent>
             </AlertDialog>
             <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onRequestSupporterEval}>
-              <Heart className="w-3.5 h-3.5 text-accent" />Supporter
+              <Heart className="w-3.5 h-3.5 text-accent" />Avis supporter
             </Button>
             {hasSelectedEvaluation && (
               <PrintResultButton onPrint={onPrint} />
@@ -238,12 +238,12 @@ export function PlayerSidebar({
           <div className="flex flex-col gap-1.5">
             {canMutate && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onEditPlayer}>
-                <Edit className="w-3.5 h-3.5 text-accent" />Modifier
+                <Edit className="w-3.5 h-3.5 text-accent" />Modifier joueur
               </Button>
             )}
             {canMutate && teamMembership && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onTransferPlayer}>
-                <ArrowRightLeft className="w-3.5 h-3.5 text-accent" />Transférer
+                <ArrowRightLeft className="w-3.5 h-3.5 text-accent" />Transférer joueur
               </Button>
             )}
             {canEvaluate && teamMembership && (
@@ -255,7 +255,7 @@ export function PlayerSidebar({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-destructive hover:bg-destructive/10 border-destructive/30">
-                    <Trash2 className="w-3.5 h-3.5" />Supprimer
+                    <Trash2 className="w-3.5 h-3.5" />Supprimer joueur
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
