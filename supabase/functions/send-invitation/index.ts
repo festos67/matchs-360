@@ -8,6 +8,22 @@ const corsHeaders = {
 };
 
 /**
+ * SECURITY: HTML entity escape to prevent XSS / phishing injection
+ * via user-controlled fields (clubs.name, firstName, role labels) that
+ * are interpolated into outbound email HTML. Covers the OWASP minimum set.
+ */
+function escapeHtml(input: unknown): string {
+  if (input === null || input === undefined) return "";
+  return String(input)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/\//g, "&#x2F;");
+}
+
+/**
  * SECURITY: whitelist of trusted origins allowed to be used as `redirectTo`
  * in invitation links. Prevents an attacker from forging the Origin header
  * to make the invitation email link to a phishing domain.
