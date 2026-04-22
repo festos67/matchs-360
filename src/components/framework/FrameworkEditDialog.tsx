@@ -70,7 +70,7 @@ interface FrameworkEditDialogProps {
   themes: Theme[];
   frameworkName: string;
   saving: boolean;
-  onSave: (themes: Theme[]) => void;
+  onSave: (themes: Theme[], name: string) => void;
   onCancel: () => void;
 }
 
@@ -83,22 +83,25 @@ export const FrameworkEditDialog = ({
   onCancel,
 }: FrameworkEditDialogProps) => {
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [name, setName] = useState(frameworkName);
   const [history, setHistory] = useState<Theme[][]>([]);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const newThemeInputRef = useRef<HTMLInputElement>(null);
   const newSkillInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  const hasChanges = history.length > 0;
+  const nameChanged = name.trim() !== frameworkName.trim();
+  const hasChanges = history.length > 0 || nameChanged;
 
   // Initialize themes when dialog opens
   useEffect(() => {
     if (open) {
       const snapshot = JSON.parse(JSON.stringify(initialThemes));
       setThemes(snapshot);
+      setName(frameworkName);
       setHistory([]);
     }
-  }, [open, initialThemes]);
+  }, [open, initialThemes, frameworkName]);
 
   // Push current state to history before each mutation
   const pushHistory = useCallback(() => {
