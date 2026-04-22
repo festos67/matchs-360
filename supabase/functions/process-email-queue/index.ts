@@ -25,6 +25,17 @@ function getRetryAfterSeconds(error: unknown): number {
   return 60
 }
 
+// Mask an email address for log output (PII protection).
+// "john.doe@example.com" -> "j***e@example.com"
+// Falsy / malformed values return a stable placeholder.
+function maskEmail(value: unknown): string {
+  if (typeof value !== 'string' || !value.includes('@')) return '<invalid>'
+  const [local, domain] = value.split('@')
+  if (!local || !domain) return '<invalid>'
+  if (local.length <= 2) return `${local[0] ?? '*'}***@${domain}`
+  return `${local[0]}***${local[local.length - 1]}@${domain}`
+}
+
 Deno.serve(async (req) => {
   const apiKey = Deno.env.get('LOVABLE_API_KEY')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
