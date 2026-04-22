@@ -392,10 +392,10 @@ export default function ClubDetail() {
       <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex flex-wrap items-center gap-5">
         {/* Logo club */}
         <div
-          className="w-42 h-42 rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
+          className="rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
           style={{
-            width: "10.5rem",
-            height: "10.5rem",
+            width: "9.45rem",
+            height: "9.45rem",
             ...(club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : {}),
           }}
         >
@@ -415,6 +415,25 @@ export default function ClubDetail() {
             {club.referent_name && <>Référent : {club.referent_name} · </>}
             {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""} · {coachCount} coach{coachCount > 1 ? "s" : ""} · {playerCount} joueur{playerCount > 1 ? "s" : ""} · {supporterCount} supporter{supporterCount > 1 ? "s" : ""}
           </p>
+
+          {/* Sous-cadre Effectif sous le titre */}
+          {canManageClub && (
+            <div className="flex flex-col gap-1.5 w-full mt-4">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 px-1">
+                Effectif
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2 rounded-xl border border-border bg-muted/30">
+                {([
+                  { type: "coach" as AddEntityType, onClick: () => setShowCoachModal(true) },
+                  { type: "team" as AddEntityType, onClick: () => setShowTeamModal(true) },
+                  { type: "player" as AddEntityType, onClick: () => setShowPlayerModal(true) },
+                  { type: "supporter" as AddEntityType, onClick: () => setShowSupporterModal(true) },
+                ]).map(({ type, onClick }) => (
+                  <AddEntityButton key={type} type={type} onClick={onClick} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -430,23 +449,6 @@ export default function ClubDetail() {
               <Settings className="w-3.5 h-3.5 text-orange-500" />
               Paramètres
             </Button>
-
-            {/* Sous-cadre Effectif : tuiles élégantes avec icône de rôle */}
-            <div className="flex flex-col gap-1.5 w-full md:w-auto">
-              <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 px-1">
-                Effectif
-              </span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 gap-2 p-2 rounded-xl border border-border bg-muted/30">
-                {([
-                  { type: "coach" as AddEntityType, onClick: () => setShowCoachModal(true) },
-                  { type: "team" as AddEntityType, onClick: () => setShowTeamModal(true) },
-                  { type: "player" as AddEntityType, onClick: () => setShowPlayerModal(true) },
-                  { type: "supporter" as AddEntityType, onClick: () => setShowSupporterModal(true) },
-                ]).map(({ type, onClick }) => (
-                  <AddEntityButton key={type} type={type} onClick={onClick} />
-                ))}
-              </div>
-            </div>
           </div>
         )}
       </Card>
