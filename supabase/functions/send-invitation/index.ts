@@ -107,6 +107,91 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid email address");
     }
 
+    // ============================================================
+    // AUTHORIZATION — caller must have rights over the target clubId
+    // ============================================================
+    if (!clubId) throw new Error("clubId is required");
+
+    const { data: callerAdmin } = await supabaseAdmin
+      .from("user_roles").select("id").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+    const callerIsAdmin = !!callerAdmin;
+
+    const { data: callerClubAdminRows } = await supabaseAdmin
+      .from("user_roles").select("club_id")
+      .eq("user_id", user.id).eq("role", "club_admin");
+    const callerClubAdminIds = (callerClubAdminRows?.map(r => r.club_id).filter(Boolean) ?? []) as string[];
+    const callerIsClubAdminOfTarget = callerClubAdminIds.includes(clubId);
+
+    // Coach (referent) of any team in target club?
+    const { data: callerRefTeams } = await supabaseAdmin
+      .from("team_members")
+      .select("teams!inner(club_id)")
+      .eq("user_id", user.id)
+      .eq("member_type", "coach")
+      .eq("coach_role", "referent")
+      .eq("is_active", true)
+      .is("deleted_at", null);
+    // deno-lint-ignore no-explicit-any
+    const callerIsRefCoachOfClub = (callerRefTeams ?? []).some((t: any) => t.teams?.club_id === clubId);
+
+    // Only admin / club_admin / referent coach (of that club) may invite
+    if (!callerIsAdmin && !callerIsClubAdminOfTarget && !callerIsRefCoachOfClub) {
+      return new Response(JSON.stringify({ error: "Forbidden: you cannot invite into this club" }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Only admin / club_admin may grant club_admin or coach roles
+    if ((intendedRole === "club_admin" || intendedRole === "coach") &&
+        !callerIsAdmin && !callerIsClubAdminOfTarget) {
+      return new Response(JSON.stringify({ error: "Forbidden: only club admins can grant this role" }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Verify teamId belongs to clubId
+    if (teamId) {
+      const { data: tgtTeam } = await supabaseAdmin
+        .from("teams").select("club_id").eq("id", teamId).maybeSingle();
+      if (!tgtTeam || tgtTeam.club_id !== clubId) {
+        return new Response(JSON.stringify({ error: "Team does not belong to club" }), {
+          status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      // Referent coach can only invite within their own teams
+      if (!callerIsAdmin && !callerIsClubAdminOfTarget) {
+        // deno-lint-ignore no-explicit-any
+        const allowedTeamIds = (callerRefTeams ?? []).map((t: any) => (t as any).team_id ?? null);
+        // Re-fetch team_id list explicitly (the join above doesn't expose it)
+        const { data: refTeamIds } = await supabaseAdmin
+          .from("team_members").select("team_id")
+          .eq("user_id", user.id).eq("member_type", "coach")
+          .eq("coach_role", "referent").eq("is_active", true).is("deleted_at", null);
+        const tids = (refTeamIds?.map(r => r.team_id) ?? []) as string[];
+        if (!tids.includes(teamId)) {
+          return new Response(JSON.stringify({ error: "Team outside your scope" }), {
+            status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        }
+      }
+    }
+
+    // playerIds (supporter): every player must belong to caller's club scope
+    if (intendedRole === "supporter" && playerIds && playerIds.length > 0) {
+      const { data: playerTms } = await supabaseAdmin
+        .from("team_members")
+        .select("user_id, teams!inner(club_id)")
+        .in("user_id", playerIds)
+        .eq("member_type", "player").eq("is_active", true).is("deleted_at", null);
+      // deno-lint-ignore no-explicit-any
+      const allValid = playerIds.every((pid) => (playerTms ?? []).some((m: any) => m.user_id === pid && m.teams?.club_id === clubId));
+      if (!allValid) {
+        return new Response(JSON.stringify({ error: "One or more players are outside the target club" }), {
+          status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
     // Use the origin from the request, falling back to referer
     const origin = req.headers.get("origin") || 
                    (req.headers.get("referer") ? new URL(req.headers.get("referer")!).origin : null);
