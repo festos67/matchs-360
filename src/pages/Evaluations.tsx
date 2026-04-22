@@ -74,6 +74,16 @@ export default function Evaluations() {
     }
   }, [user, authLoading, navigate]);
 
+  // Auto-open create modal when arriving with ?new=1
+  useEffect(() => {
+    if (searchParams.get("new") === "1" && canCreate) {
+      setShowCreateModal(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete("new");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, canCreate, setSearchParams]);
+
   useEffect(() => {
     if (user) {
       fetchEvaluations();

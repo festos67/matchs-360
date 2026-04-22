@@ -394,16 +394,18 @@ export default function TeamDetail() {
                 {team.name}
               </h1>
               {canManageTeam && !isPlayerViewing && (isAdmin || isClubAdmin || isReferentCoach) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-[11px] h-9 px-2.5 font-semibold"
+                <button
+                  type="button"
                   onClick={() => setShowTeamSettings(true)}
                   title="Paramètres de l'équipe"
+                  className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground"
                 >
-                  <Settings className="w-3.5 h-3.5 text-blue-500" />
-                  Paramètres
-                </Button>
+                  <Settings className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span className="flex-1 text-left">Paramètres</span>
+                  <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-blue-500/10">
+                    <Settings className="w-4 h-4 text-blue-500" />
+                  </span>
+                </button>
               )}
             </div>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
@@ -438,12 +440,39 @@ export default function TeamDetail() {
           <div className="bg-card border border-border rounded-xl p-3 flex-1">
             <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
             <div className="flex flex-wrap gap-1.5">
-              <Button variant="outline" size="sm" className="flex-1 min-w-[140px] gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold" onClick={handleGoToFramework}>
-                <BookOpen className="w-3.5 h-3.5 text-orange-500" />Référentiel équipe
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 min-w-[140px] gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
-                <ClipboardList className="w-3.5 h-3.5 text-orange-500" />Débriefs
-              </Button>
+              <button
+                type="button"
+                onClick={handleGoToFramework}
+                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground flex-1 min-w-[140px]"
+              >
+                <BookOpen className="w-4 h-4 text-orange-500 shrink-0" />
+                <span className="flex-1 text-left truncate">Référentiel équipe</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-orange-500/10">
+                  <BookOpen className="w-4 h-4 text-orange-500" />
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/evaluations?team_id=${id}`)}
+                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground flex-1 min-w-[140px]"
+              >
+                <ClipboardList className="w-4 h-4 text-orange-500 shrink-0" />
+                <span className="flex-1 text-left truncate">Débriefs de l'équipe</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-orange-500/10">
+                  <ClipboardList className="w-4 h-4 text-orange-500" />
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/evaluations?team_id=${id}&new=1`)}
+                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-orange-500 bg-background hover:bg-orange-500/5 hover:shadow-sm transition-all text-sm font-medium text-foreground flex-1 min-w-[140px]"
+              >
+                <Plus className="w-4 h-4 text-orange-500 shrink-0" />
+                <span className="flex-1 text-left truncate">Nouveau débrief</span>
+                <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-orange-500/10">
+                  <ClipboardList className="w-4 h-4 text-orange-500" />
+                </span>
+              </button>
             </div>
           </div>
         </div>
