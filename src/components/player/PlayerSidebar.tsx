@@ -171,7 +171,7 @@ export function PlayerSidebar({
             {!isViewingHistory && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button className="w-full gap-1.5 justify-start bg-accent text-accent-foreground hover:bg-accent/90 h-8 text-[11px] font-bold px-2.5">
+                  <Button className="w-full gap-1.5 justify-start bg-accent text-accent-foreground hover:bg-accent/90 h-9 text-[11px] font-bold px-2.5">
                     <ClipboardList className="w-3.5 h-3.5" />Nouveau débrief
                   </Button>
                 </AlertDialogTrigger>
@@ -204,7 +204,7 @@ export function PlayerSidebar({
             )}
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold">
+                <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary">
                   <Star className="w-3.5 h-3.5 text-accent" />Auto-débrief
                 </Button>
               </AlertDialogTrigger>
@@ -221,9 +221,12 @@ export function PlayerSidebar({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onRequestSupporterEval}>
-              <Heart className="w-3.5 h-3.5 text-success" />Supporter
+            <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onRequestSupporterEval}>
+              <Heart className="w-3.5 h-3.5 text-accent" />Supporter
             </Button>
+            {hasSelectedEvaluation && (
+              <PrintResultButton onPrint={onPrint} />
+            )}
           </div>
         </div>
       )}
@@ -234,24 +237,24 @@ export function PlayerSidebar({
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
           <div className="flex flex-col gap-1.5">
             {canMutate && (
-              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onEditPlayer}>
-                <Edit className="w-3.5 h-3.5 text-blue-500" />Modifier
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onEditPlayer}>
+                <Edit className="w-3.5 h-3.5 text-accent" />Modifier
               </Button>
             )}
             {canMutate && teamMembership && (
-              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onTransferPlayer}>
-                <ArrowRightLeft className="w-3.5 h-3.5 text-primary" />Transférer
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onTransferPlayer}>
+                <ArrowRightLeft className="w-3.5 h-3.5 text-accent" />Transférer
               </Button>
             )}
             {canEvaluate && teamMembership && (
-              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={onManageSupporters}>
-                <Users className="w-3.5 h-3.5 text-primary" />Supporters
+              <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary" onClick={onManageSupporters}>
+                <Users className="w-3.5 h-3.5 text-accent" />Supporters
               </Button>
             )}
             {isAdmin && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold text-destructive hover:bg-destructive/10 border-destructive/30">
+                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-destructive hover:bg-destructive/10 border-destructive/30">
                     <Trash2 className="w-3.5 h-3.5" />Supprimer
                   </Button>
                 </AlertDialogTrigger>
@@ -290,10 +293,6 @@ export function PlayerSidebar({
         </div>
       )}
 
-      {/* Bouton Imprimer */}
-      {hasSelectedEvaluation && (
-        <PrintResultButton onPrint={onPrint} />
-      )}
     </aside>
   );
 }
@@ -309,10 +308,10 @@ function PrintResultButton({ onPrint }: { onPrint: () => void }) {
       <Button
         variant="outline"
         size="sm"
-        className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
+        className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary"
         onClick={onPrint}
       >
-        <Printer className="w-3.5 h-3.5 text-primary" />Imprimer résultat
+        <Printer className="w-3.5 h-3.5 text-accent" />Imprimer résultat
       </Button>
     );
   }
@@ -323,9 +322,9 @@ function PrintResultButton({ onPrint }: { onPrint: () => void }) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
+          className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary"
         >
-          <Lock className="w-3.5 h-3.5 text-muted-foreground" />Imprimer résultat
+          <Lock className="w-3.5 h-3.5 text-accent" />Imprimer résultat
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
