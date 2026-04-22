@@ -219,15 +219,12 @@ const CoachMyClub = () => {
     <AppLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
               <Building2 className="w-7 h-7 text-primary" />
               {club?.name || "Mon Club"}
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Vue d'ensemble du club
-            </p>
           </div>
           {club && (
             club.logo_url ? (
@@ -256,27 +253,34 @@ const CoachMyClub = () => {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatsCard
-            title="Coachs"
-            value={coachesCount != null ? String(coachesCount) : "-"}
-            icon={UserCog}
-          />
-          <StatsCard
-            title="Équipes"
-            value={loadingTeams ? "-" : String(clubTeams?.length || 0)}
-            icon={Users}
-          />
-          <StatsCard
-            title="Joueurs"
-            value={loadingMembers ? "-" : String(totalPlayers)}
-            icon={UserCircle}
-          />
-          <StatsCard
-            title="Supporters"
-            value={supportersCount != null ? String(supportersCount) : "-"}
-            icon={Heart}
-          />
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-3">Vue d'ensemble du club</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatsCard
+              title="Coachs"
+              value={coachesCount != null ? String(coachesCount) : "-"}
+              icon={UserCog}
+              iconClassName="bg-orange-500/10 text-orange-500"
+            />
+            <StatsCard
+              title="Équipes"
+              value={loadingTeams ? "-" : String(clubTeams?.length || 0)}
+              icon={Users}
+              iconClassName="bg-primary/10 text-primary"
+            />
+            <StatsCard
+              title="Joueurs"
+              value={loadingMembers ? "-" : String(totalPlayers)}
+              icon={UserCircle}
+              iconClassName="bg-green-500/10 text-green-500"
+            />
+            <StatsCard
+              title="Supporters"
+              value={supportersCount != null ? String(supportersCount) : "-"}
+              icon={Heart}
+              iconClassName="bg-pink-500/10 text-pink-500"
+            />
+          </div>
         </div>
 
         {/* Référentiel du club */}
