@@ -387,21 +387,25 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex items-center gap-5">
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex flex-wrap items-start gap-5">
         {/* Logo club */}
         <div
-          className="w-28 h-28 rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
-          style={club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : undefined}
+          className="w-42 h-42 rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
+          style={{
+            width: "10.5rem",
+            height: "10.5rem",
+            ...(club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : {}),
+          }}
         >
           {!club.logo_url && (
-            <span className="font-display text-3xl font-extrabold text-foreground">
+            <span className="font-display text-5xl font-extrabold text-foreground">
               {club.short_name || club.name.slice(0, 2).toUpperCase()}
             </span>
           )}
         </div>
 
         {/* Infos */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-[200px] self-center">
           <h2 className="font-display text-[22px] font-extrabold text-foreground tracking-tight truncate">
             {club.name}
           </h2>
@@ -413,8 +417,9 @@ export default function ClubDetail() {
 
         {/* Actions */}
         {canManageClub && (
-          <div className="flex items-start gap-2 flex-shrink-0">
-            <div className="flex flex-col gap-1.5">
+          <div className="flex items-start gap-2 flex-shrink-0 w-full md:w-auto">
+            {/* Sous-cadre boutons d'ajout */}
+            <div className="flex flex-col gap-1.5 p-2 rounded-xl border border-border bg-muted/30">
               <Button size="sm" variant="outline" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}>
                 <Plus className="w-3.5 h-3.5 text-orange-500" />Coach
               </Button>
@@ -428,6 +433,7 @@ export default function ClubDetail() {
                 <Plus className="w-3.5 h-3.5 text-orange-500" />Supporter
               </Button>
             </div>
+            {/* Bouton Paramètres isolé */}
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowClubSettings(true)}>
               <Settings className="w-3.5 h-3.5 text-orange-500" />
               Paramètres
