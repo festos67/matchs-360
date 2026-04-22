@@ -136,10 +136,9 @@ export const SortableTheme = ({
       ref={setNodeRef}
       style={{
         ...style,
-        backgroundColor: `${theme.color || "#3B82F6"}14`, // ~8% alpha
         borderColor: `${theme.color || "#3B82F6"}55`,
       }}
-      className="overflow-hidden rounded-xl border-2"
+      className="overflow-hidden rounded-xl border-2 bg-card"
     >
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         {/* Header */}
@@ -249,6 +248,7 @@ export const SortableTheme = ({
                       key={skill.id}
                       skill={skill}
                       canEdit={canEdit}
+                      themeColor={theme.color}
                       inputRef={skill.isNew ? (el) => skillInputRefs.current[skill.id] = el : undefined}
                       onUpdate={(updates) => onUpdateSkill(skill.id, updates)}
                       onDelete={() => onDeleteSkill(skill.id)}
