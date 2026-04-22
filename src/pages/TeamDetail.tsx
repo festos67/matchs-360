@@ -578,63 +578,68 @@ export default function TeamDetail() {
           <div ref={frameworkRef}>
             {framework ? (
               <div className="pb-8">
-                {/* Framework header */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                {/* Framework header card (titre + sous-titre + bandeau d'actions à gauche) */}
+                <div className="mb-6 rounded-xl border border-border bg-card px-4 sm:px-6 py-5 shadow-sm">
+                  <div className="flex items-center gap-4 min-w-0">
                     <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
                       <BookOpen className="w-6 h-6 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h2 className="!text-2xl font-display font-bold">{framework.name}</h2>
-                      <p className="text-muted-foreground mt-1">
+                      <h2 className="!text-2xl font-display font-bold truncate">{framework.name}</h2>
+                      <p className="text-muted-foreground mt-1 text-sm">
                         {team.name} • {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {canEditFramework && (
-                      <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)}>
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Modifier
-                      </Button>
-                    )}
-                    {!isSupporterViewing && (
-                      <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
-                        <History className="w-4 h-4 mr-2" />
-                        Historique
-                      </Button>
-                    )}
-                    {!isSupporterViewing && (
-                      <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
-                        <Printer className="w-4 h-4 mr-2" />
-                        Imprimer
-                      </Button>
-                    )}
-                    {canEditFramework && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                            <RotateCcw className="w-4 h-4 mr-2" />
-                            Supprimer
+
+                  {(canEditFramework || !isSupporterViewing) && (
+                    <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {canEditFramework && (
+                          <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)}>
+                            <Pencil className="w-4 h-4 mr-2 text-orange-500" />
+                            Modifier
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Supprimer le référentiel ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                              Supprimer
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </div>
+                        )}
+                        {!isSupporterViewing && (
+                          <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
+                            <History className="w-4 h-4 mr-2 text-orange-500" />
+                            Historique
+                          </Button>
+                        )}
+                        {!isSupporterViewing && (
+                          <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
+                            <Printer className="w-4 h-4 mr-2 text-orange-500" />
+                            Imprimer
+                          </Button>
+                        )}
+                        {canEditFramework && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                                <RotateCcw className="w-4 h-4 mr-2 text-destructive" />
+                                Supprimer
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer le référentiel ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                  Supprimer
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Full read-only framework view */}
