@@ -17,8 +17,8 @@
  *  - Cache-busting timestamp sur URL résultante
  *  - Utilisé dans Profile, EditPlayer, EditCoach, etc.
  */
-import { useState, useCallback } from "react";
-import Cropper, { Area } from "react-easy-crop";
+import { useState, useCallback, type ComponentType } from "react";
+import CropperImport, { Area } from "react-easy-crop";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut, Check, X } from "lucide-react";
+
+const Cropper = CropperImport as unknown as ComponentType<any>;
 
 interface PhotoCropModalProps {
   open: boolean;

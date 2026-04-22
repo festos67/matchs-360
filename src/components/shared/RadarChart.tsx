@@ -155,7 +155,7 @@ export const RadarChart = ({
               wrapperStyle={{
                 paddingTop: "20px",
               }}
-              formatter={(value) => (
+              formatter={(value: string) => (
                 <span className="text-muted-foreground text-sm">{value}</span>
               )}
             />
