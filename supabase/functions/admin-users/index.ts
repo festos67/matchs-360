@@ -69,6 +69,67 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ============================================================
+    // Multi-tenant scope helpers
+    // ============================================================
+    const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
+    const forbidden = (msg = "Forbidden: outside your club scope") =>
+      new Response(JSON.stringify({ error: msg }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    // Returns true if a target user belongs (via profile, role or active team membership) to one of the caller's clubs.
+    const userInClubAdminScope = async (targetUserId: string): Promise<boolean> => {
+      if (isAdmin) return true;
+      if (!targetUserId || clubAdminClubIds.length === 0) return false;
+
+      // Never allow operating on a Super Admin
+      const { data: targetAdminRole } = await supabaseAdmin
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", targetUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (targetAdminRole) return false;
+
+      // Check via auth email (Super Admin email is always off-limits)
+      try {
+        const { data: targetAuth } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+        if (targetAuth?.user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL) return false;
+      } catch (_e) { /* ignore */ }
+
+      const { data: prof } = await supabaseAdmin
+        .from("profiles").select("club_id").eq("id", targetUserId).maybeSingle();
+      if (prof?.club_id && clubAdminClubIds.includes(prof.club_id)) return true;
+
+      const { data: roles } = await supabaseAdmin
+        .from("user_roles").select("club_id").eq("user_id", targetUserId);
+      if (roles?.some(r => r.club_id && clubAdminClubIds.includes(r.club_id))) return true;
+
+      const { data: tms } = await supabaseAdmin
+        .from("team_members")
+        .select("teams!inner(club_id)")
+        .eq("user_id", targetUserId)
+        .eq("is_active", true)
+        .is("deleted_at", null);
+      // deno-lint-ignore no-explicit-any
+      if (tms?.some((m: any) => m.teams?.club_id && clubAdminClubIds.includes(m.teams.club_id))) return true;
+
+      return false;
+    };
+
+    const clubInScope = (cid?: string | null) =>
+      isAdmin || (!!cid && clubAdminClubIds.includes(cid));
+
+    const teamInScope = async (tid?: string | null): Promise<boolean> => {
+      if (isAdmin) return true;
+      if (!tid) return false;
+      const { data: t } = await supabaseAdmin
+        .from("teams").select("club_id").eq("id", tid).maybeSingle();
+      return !!t?.club_id && clubAdminClubIds.includes(t.club_id);
+    };
+
     const url = new URL(req.url);
     const clubIdFilter = url.searchParams.get("clubId");
 
