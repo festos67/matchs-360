@@ -385,26 +385,13 @@ export default function TeamDetail() {
       )}
 
       <div className="glass-card p-6 mb-5">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-8">
           <div className="flex items-center gap-6 flex-1 min-w-0">
             <div className="w-20 h-20 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
             <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-4xl font-display font-bold">
-                {team.name}
-              </h1>
-              {canManageTeam && !isPlayerViewing && (isAdmin || isClubAdmin || isReferentCoach) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setShowTeamSettings(true)}
-                >
-                  <Settings className="w-3.5 h-3.5 text-orange-500" />
-                  Paramètres
-                </Button>
-              )}
-            </div>
+            <h1 className="text-4xl font-display font-bold">
+              {team.name}
+            </h1>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">{team.club?.name}</span>
               <span className="flex items-center gap-1.5">• {coaches.length} coach{coaches.length > 1 ? "es" : ""}</span>
@@ -414,6 +401,19 @@ export default function TeamDetail() {
             </div>
             </div>
           </div>
+          {canManageTeam && !isPlayerViewing && (isAdmin || isClubAdmin || isReferentCoach) && (
+            <div className="flex-shrink-0 self-start">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowTeamSettings(true)}
+              >
+                <Settings className="w-3.5 h-3.5 text-orange-500" />
+                Paramètres
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
