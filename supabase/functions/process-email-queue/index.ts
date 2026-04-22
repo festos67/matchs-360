@@ -25,6 +25,17 @@ function getRetryAfterSeconds(error: unknown): number {
   return 60
 }
 
+// Mask an email address for log output (PII protection).
+// "john.doe@example.com" -> "j***e@example.com"
+// Falsy / malformed values return a stable placeholder.
+function maskEmail(value: unknown): string {
+  if (typeof value !== 'string' || !value.includes('@')) return '<invalid>'
+  const [local, domain] = value.split('@')
+  if (!local || !domain) return '<invalid>'
+  if (local.length <= 2) return `${local[0] ?? '*'}***@${domain}`
+  return `${local[0]}***${local[local.length - 1]}@${domain}`
+}
+
 Deno.serve(async (req) => {
   const apiKey = Deno.env.get('LOVABLE_API_KEY')
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -97,6 +108,7 @@ Deno.serve(async (req) => {
             msg_id: msg.msg_id,
             queued_at: payload.queued_at,
             ttl_minutes: ttlMinutes[queue],
+            recipient: maskEmail(payload.to),
           })
           await supabase.from('email_send_log').insert({
             message_id: payload.message_id,
@@ -152,7 +164,7 @@ Deno.serve(async (req) => {
           console.warn('Skipping duplicate send (already sent)', {
             queue,
             msg_id: msg.msg_id,
-            message_id: payload.message_id,
+            recipient: maskEmail(payload.to),
           })
           const { error: dupDelError } = await supabase.rpc('delete_email', {
             queue_name: queue,
@@ -211,6 +223,7 @@ Deno.serve(async (req) => {
           msg_id: msg.msg_id,
           read_ct: msg.read_ct,
           error: errorMsg,
+          recipient: maskEmail(payload.to),
         })
 
         // Log every send failure to email_send_log for visibility
