@@ -219,6 +219,8 @@ interface ThemeAccordionProps {
   onObjectiveChange: (objective: string) => void;
   disabled?: boolean;
   defaultOpen?: boolean;
+  showDefinitionInline?: boolean;
+  showAverageAsLabel?: boolean;
 }
 
 export const ThemeAccordion = ({
@@ -234,6 +236,8 @@ export const ThemeAccordion = ({
   onObjectiveChange,
   disabled = false,
   defaultOpen = true,
+  showDefinitionInline = false,
+  showAverageAsLabel = false,
 }: ThemeAccordionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
