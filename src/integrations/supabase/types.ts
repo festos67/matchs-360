@@ -1353,6 +1353,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      validate_storage_url: {
+        Args: { _bucket: string; _url: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
