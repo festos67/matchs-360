@@ -131,17 +131,10 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       {/* Logo */}
       <div className="px-4 pt-6 pb-4 border-b border-sidebar-border">
         <Link to={getDashboardPath()} className="flex items-center gap-3 px-2" onClick={handleLinkClick}>
-          <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(226_72%_38%)] flex items-center justify-center text-primary-foreground text-xs font-extrabold">
-            M
-          </div>
-          <div>
-            <span className="font-display text-[15px] font-extrabold text-sidebar-foreground tracking-tight block leading-tight">
-              MATCHS360
-            </span>
-            <div className="text-[9px] text-sidebar-foreground/60 tracking-[0.12em] uppercase">
-              Sports Analytics
-            </div>
-          </div>
+          <RadarPulseLogo size={36} />
+          <span className="font-display text-[15px] font-extrabold text-sidebar-foreground tracking-tight leading-tight">
+            MATCHS360
+          </span>
         </Link>
       </div>
 
