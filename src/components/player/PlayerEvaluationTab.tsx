@@ -220,12 +220,12 @@ export function PlayerEvaluationTab({
               const color = theme.color || getThemePaletteColor(themeIndex);
               return (
                 <div key={theme.id}>
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                      <span className="text-sm font-medium truncate">{theme.name}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground flex-shrink-0 whitespace-nowrap">
+                  <div className="flex items-start gap-2 mb-1">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: color }} />
+                    <span className="text-sm font-medium flex-1 min-w-0 break-words">{theme.name}</span>
+                  </div>
+                  <div className="flex justify-end mb-1">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {themeData?.score ? getScoreLabel(themeData.score) : "—"}
                     </span>
                   </div>
