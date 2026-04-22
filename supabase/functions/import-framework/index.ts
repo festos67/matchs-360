@@ -51,6 +51,69 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Importing framework ${sourceFrameworkId} to ${targetType} ${targetId}`);
 
+    // ============================================================
+    // AUTHORIZATION — verify caller can read source AND write target
+    // ============================================================
+    const callerId = claimsData.claims.sub as string;
+
+    // 1) Is caller super admin?
+    const { data: adminRole } = await supabaseAdmin
+      .from("user_roles").select("id").eq("user_id", callerId).eq("role", "admin").maybeSingle();
+    const isAdmin = !!adminRole;
+
+    // 2) Resolve source framework's owning club (template) or team
+    const { data: srcFw, error: srcFwError } = await supabaseAdmin
+      .from("competence_frameworks")
+      .select("id, club_id, team_id, is_template")
+      .eq("id", sourceFrameworkId)
+      .maybeSingle();
+    if (srcFwError || !srcFw) throw new Error("Source framework not found");
+
+    const forbidden = (msg: string) =>
+      new Response(JSON.stringify({ error: msg }), {
+        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+
+    if (!isAdmin) {
+      // Caller's club_admin clubs
+      const { data: caClubs } = await supabaseAdmin
+        .from("user_roles").select("club_id")
+        .eq("user_id", callerId).eq("role", "club_admin");
+      const myClubIds = (caClubs?.map(r => r.club_id).filter(Boolean) ?? []) as string[];
+
+      // Caller's referent-coach team ids
+      const { data: refTeams } = await supabaseAdmin
+        .from("team_members").select("team_id")
+        .eq("user_id", callerId).eq("member_type", "coach")
+        .eq("coach_role", "referent").eq("is_active", true).is("deleted_at", null);
+      const myRefTeamIds = (refTeams?.map(r => r.team_id) ?? []) as string[];
+
+      // ---- READ check on source ----
+      let srcSourceClubId: string | null = srcFw.club_id;
+      if (!srcSourceClubId && srcFw.team_id) {
+        const { data: srcTeam } = await supabaseAdmin
+          .from("teams").select("club_id").eq("id", srcFw.team_id).maybeSingle();
+        srcSourceClubId = srcTeam?.club_id ?? null;
+      }
+      const canReadSource =
+        (srcSourceClubId && myClubIds.includes(srcSourceClubId)) ||
+        (srcFw.team_id && myRefTeamIds.includes(srcFw.team_id));
+      if (!canReadSource) return forbidden("Source framework outside your scope");
+
+      // ---- WRITE check on target ----
+      if (isClubImport) {
+        if (!myClubIds.includes(targetClubId!)) return forbidden("Target club outside your scope");
+      } else {
+        const { data: tgtTeam } = await supabaseAdmin
+          .from("teams").select("club_id").eq("id", targetTeamId!).maybeSingle();
+        const tgtClubId = tgtTeam?.club_id ?? null;
+        const canWriteTarget =
+          (tgtClubId && myClubIds.includes(tgtClubId)) ||
+          myRefTeamIds.includes(targetTeamId!);
+        if (!canWriteTarget) return forbidden("Target team outside your scope");
+      }
+    }
+
     // Check if target already has a framework (non-archived)
     let existingFrameworkQuery = supabaseAdmin
       .from("competence_frameworks")

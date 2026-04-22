@@ -69,6 +69,67 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ============================================================
+    // Multi-tenant scope helpers
+    // ============================================================
+    const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
+    const forbidden = (msg = "Forbidden: outside your club scope") =>
+      new Response(JSON.stringify({ error: msg }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    // Returns true if a target user belongs (via profile, role or active team membership) to one of the caller's clubs.
+    const userInClubAdminScope = async (targetUserId: string): Promise<boolean> => {
+      if (isAdmin) return true;
+      if (!targetUserId || clubAdminClubIds.length === 0) return false;
+
+      // Never allow operating on a Super Admin
+      const { data: targetAdminRole } = await supabaseAdmin
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", targetUserId)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (targetAdminRole) return false;
+
+      // Check via auth email (Super Admin email is always off-limits)
+      try {
+        const { data: targetAuth } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+        if (targetAuth?.user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL) return false;
+      } catch (_e) { /* ignore */ }
+
+      const { data: prof } = await supabaseAdmin
+        .from("profiles").select("club_id").eq("id", targetUserId).maybeSingle();
+      if (prof?.club_id && clubAdminClubIds.includes(prof.club_id)) return true;
+
+      const { data: roles } = await supabaseAdmin
+        .from("user_roles").select("club_id").eq("user_id", targetUserId);
+      if (roles?.some(r => r.club_id && clubAdminClubIds.includes(r.club_id))) return true;
+
+      const { data: tms } = await supabaseAdmin
+        .from("team_members")
+        .select("teams!inner(club_id)")
+        .eq("user_id", targetUserId)
+        .eq("is_active", true)
+        .is("deleted_at", null);
+      // deno-lint-ignore no-explicit-any
+      if (tms?.some((m: any) => m.teams?.club_id && clubAdminClubIds.includes(m.teams.club_id))) return true;
+
+      return false;
+    };
+
+    const clubInScope = (cid?: string | null) =>
+      isAdmin || (!!cid && clubAdminClubIds.includes(cid));
+
+    const teamInScope = async (tid?: string | null): Promise<boolean> => {
+      if (isAdmin) return true;
+      if (!tid) return false;
+      const { data: t } = await supabaseAdmin
+        .from("teams").select("club_id").eq("id", tid).maybeSingle();
+      return !!t?.club_id && clubAdminClubIds.includes(t.club_id);
+    };
+
     const url = new URL(req.url);
     const clubIdFilter = url.searchParams.get("clubId");
 
@@ -196,6 +257,8 @@ Deno.serve(async (req) => {
           });
         }
 
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
           email_confirm: true,
         });
@@ -210,6 +273,21 @@ Deno.serve(async (req) => {
       // Add role
       if (action === "add-role") {
         const { userId, role, clubId, teamId, playerId, coachRole } = body;
+
+        // Block privilege escalation: only super admin may grant 'admin'
+        if (role === "admin") return forbidden("Only Super Admin can grant admin role");
+
+        // Target user must be within caller's scope
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
+        // The clubId / teamId being granted must also be in scope
+        if (clubId && !clubInScope(clubId)) return forbidden("Club outside your scope");
+        if (teamId && !(await teamInScope(teamId))) return forbidden("Team outside your scope");
+
+        // Supporter target player must also be in scope
+        if (role === "supporter" && playerId && !(await userInClubAdminScope(playerId))) {
+          return forbidden("Player outside your scope");
+        }
 
         // Check if role already exists
         const { data: existingRole } = await supabaseAdmin
@@ -293,6 +371,26 @@ Deno.serve(async (req) => {
       if (action === "remove-role") {
         const { roleId, teamMembershipId, supporterLinkId } = body;
 
+        if (!isAdmin) {
+          if (roleId) {
+            const { data: r } = await supabaseAdmin
+              .from("user_roles").select("user_id, club_id, role").eq("id", roleId).maybeSingle();
+            if (!r) return forbidden();
+            if (r.role === "admin") return forbidden("Cannot remove admin role");
+            if (!clubInScope(r.club_id) && !(await userInClubAdminScope(r.user_id))) return forbidden();
+          }
+          if (teamMembershipId) {
+            const { data: tm } = await supabaseAdmin
+              .from("team_members").select("team_id, user_id").eq("id", teamMembershipId).maybeSingle();
+            if (!tm || !(await teamInScope(tm.team_id))) return forbidden();
+          }
+          if (supporterLinkId) {
+            const { data: sl } = await supabaseAdmin
+              .from("supporters_link").select("player_id, supporter_id").eq("id", supporterLinkId).maybeSingle();
+            if (!sl || !(await userInClubAdminScope(sl.player_id))) return forbidden();
+          }
+        }
+
         if (roleId) {
           await supabaseAdmin.from("user_roles").delete().eq("id", roleId);
         }
@@ -311,6 +409,8 @@ Deno.serve(async (req) => {
       // Update profile
       if (action === "update-profile") {
         const { userId, firstName, lastName, nickname, photoUrl } = body;
+
+        if (!(await userInClubAdminScope(userId))) return forbidden();
 
         const updateData: Record<string, unknown> = {
           first_name: firstName,
@@ -338,6 +438,14 @@ Deno.serve(async (req) => {
       if (action === "soft-delete") {
         const { userId } = body;
 
+        if (!userId) {
+          return new Response(JSON.stringify({ error: "userId required" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (userId === user.id) return forbidden("You cannot delete yourself");
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
         // Mark profile as deleted
         await supabaseAdmin
           .from("profiles")
@@ -358,6 +466,8 @@ Deno.serve(async (req) => {
       // Restore user
       if (action === "restore") {
         const { userId } = body;
+
+        if (!(await userInClubAdminScope(userId))) return forbidden();
 
         await supabaseAdmin
           .from("profiles")
@@ -386,6 +496,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
+
+        // CRITICAL: only Super Admin may change another user's password
+        if (!isAdmin) return forbidden("Only Super Admin can change passwords");
 
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
           password: newPassword,
@@ -451,6 +564,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
+
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+        if (clubId && !clubInScope(clubId)) return forbidden("Club outside your scope");
 
         const origin = req.headers.get("origin") || "https://lovable.dev";
         
