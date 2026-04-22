@@ -109,7 +109,16 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
                 src={clubLogoSrc}
                 alt={clubName}
                 crossOrigin="anonymous"
-                style={{ width: "32px", height: "32px", objectFit: "contain", marginLeft: "auto" }}
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  objectFit: "contain",
+                  marginLeft: "auto",
+                  borderRadius: "8px",
+                  border: "1px solid #E5E7EB",
+                  background: "#FFFFFF",
+                  padding: "2px",
+                }}
               />
             )}
           </div>
