@@ -1,9 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 interface ImportTemplateRequest {
   sourceFrameworkId: string;
@@ -13,9 +9,9 @@ interface ImportTemplateRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
