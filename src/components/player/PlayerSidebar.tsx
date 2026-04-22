@@ -24,7 +24,7 @@
  */
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Lock, Printer, Star, Trash2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Lock, Plus, Printer, Star, Trash2, Users } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -171,8 +171,15 @@ export function PlayerSidebar({
             {!isViewingHistory && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button className="w-full gap-1.5 justify-start bg-accent text-accent-foreground hover:bg-accent/90 h-9 text-[11px] font-bold px-2.5">
-                    <ClipboardList className="w-3.5 h-3.5" />Nouveau débrief
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground hover:bg-secondary hover:border-primary/40"
+                  >
+                    <Plus className="w-4 h-4 text-orange-500 shrink-0" />
+                    <span className="flex-1 text-left truncate">Nouveau débrief</span>
+                    <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15">
+                      <ClipboardList className="w-4 h-4 text-accent" />
+                    </span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
