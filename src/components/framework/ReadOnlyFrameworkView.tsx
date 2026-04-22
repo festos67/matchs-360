@@ -95,8 +95,8 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
                 key={skill.id}
                 className="p-3 rounded-lg border space-y-1"
                 style={{
-                  backgroundColor: hexToRgba(theme.color, 0.28),
-                  borderColor: hexToRgba(theme.color, 0.45),
+                  backgroundColor: hexToRgba(theme.color, 0.06),
+                  borderColor: hexToRgba(theme.color, 0.15),
                 }}
               >
                 <p className="text-base font-semibold">{skill.name}</p>
