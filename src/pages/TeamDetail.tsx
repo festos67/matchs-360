@@ -462,7 +462,7 @@ export default function TeamDetail() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-display font-semibold">Coachs</h2>
-              {!isPlayerViewing && (isAdmin || isClubAdmin) && <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowCoachModal(true)}><Plus className="w-4 h-4 text-accent" />Coach</Button>}
+              {!isPlayerViewing && (isAdmin || isClubAdmin) && <AddEntityButton type="coach" onClick={() => setShowCoachModal(true)} />}
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {coaches.map((coach, index) => (
@@ -477,7 +477,7 @@ export default function TeamDetail() {
           <div className="glass-card p-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-display font-semibold">Joueurs ({players.length})</h2>
-              {!isPlayerViewing && canManageTeam && <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowPlayerModal(true)}><Plus className="w-4 h-4 text-accent" />Joueur</Button>}
+              {!isPlayerViewing && canManageTeam && <AddEntityButton type="player" onClick={() => setShowPlayerModal(true)} />}
             </div>
             {players.length > 0 ? (
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
