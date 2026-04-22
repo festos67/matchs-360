@@ -256,7 +256,9 @@ const handler = async (req: Request): Promise<Response> => {
       // Build the proper invite link that redirects through Supabase auth
       // The action_link from generateLink goes through /auth/v1/verify which redirects to our app
       const inviteLink = inviteData.properties.action_link;
-      console.log("Generated invite link (action_link):", inviteLink);
+      // SECURITY: never log the full action_link — it contains the invitation
+      // token_hash which can be used to hijack the invitation. Log only metadata.
+      console.log("Invite link generated", { userId, hasLink: !!inviteLink });
 
       // Send invitation email via Resend
       if (!resend) {
@@ -330,7 +332,9 @@ const handler = async (req: Request): Promise<Response> => {
         throwEmailDeliveryError(emailResult.error as EmailProviderError);
       }
 
-      console.log("Invitation email sent successfully to:", email, "messageId:", emailResult.data?.id);
+      // SECURITY: avoid logging full email (PII). Mask local part.
+      const maskedEmail = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
+      console.log("Invitation email sent", { recipient: maskedEmail, messageId: emailResult.data?.id });
 
       // Wait for trigger to create profile
       await new Promise(resolve => setTimeout(resolve, 500));

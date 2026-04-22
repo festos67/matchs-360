@@ -668,7 +668,11 @@ Deno.serve(async (req) => {
               `,
             });
             emailSent = true;
-            console.log("Resend invitation email sent to:", email);
+            // SECURITY: avoid logging full email (PII). Mask local part.
+            console.log(
+              "Resend invitation email sent",
+              { recipient: email.replace(/^(.{2}).*(@.*)$/, "$1***$2") },
+            );
           } catch (emailError) {
             console.error("Failed to send email via Resend:", emailError);
           }
