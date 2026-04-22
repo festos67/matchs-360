@@ -223,6 +223,7 @@ Deno.serve(async (req) => {
           msg_id: msg.msg_id,
           read_ct: msg.read_ct,
           error: errorMsg,
+          recipient: maskEmail(payload.to),
         })
 
         // Log every send failure to email_send_log for visibility
