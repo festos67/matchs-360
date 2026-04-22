@@ -12,7 +12,7 @@
  *  - Lié au système de versioning : mem://features/framework-lifecycle-management
  */
 import { useState, useEffect } from "react";
-import { FileText } from "lucide-react";
+import { FileText, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -58,13 +58,13 @@ export function FrameworkNameModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <DialogTitle>Nom du référentiel</DialogTitle>
+              <DialogTitle>Confirmer la sauvegarde</DialogTitle>
               <DialogDescription>
-                Confirmez ou modifiez le nom avant de sauvegarder
+                Vérifiez le titre du référentiel. Vous pouvez encore le modifier avant de sauvegarder.
               </DialogDescription>
             </div>
           </div>
