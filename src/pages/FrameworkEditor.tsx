@@ -68,6 +68,7 @@ import { SortableTheme } from "@/components/framework/SortableTheme";
 import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
+import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { useReactToPrint } from "react-to-print";
@@ -331,125 +332,12 @@ export default function FrameworkEditor() {
 
     try {
       // Snapshot current state before saving changes (non-blocking)
-      try {
-        await snapshotFramework(framework.id);
-      } catch (snapError) {
-        console.warn("Snapshot failed, continuing save:", snapError);
-      }
+      snapshotFramework(framework.id).catch((snapError) => {
+        console.warn("Snapshot failed (background):", snapError);
+      });
 
-      // Update framework name
-      const { error: fwError } = await supabase
-        .from("competence_frameworks")
-        .update({ name: confirmedName })
-        .eq("id", framework.id);
-
-      if (fwError) throw fwError;
-
-      // Track all persisted theme IDs (existing + newly created) for cleanup
-      const allPersistedThemeIds: string[] = [];
-
-      // Save themes
-      for (const theme of themes) {
-        if (theme.isNew) {
-          // Create new theme
-          const { data: newTheme, error } = await supabase
-            .from("themes")
-            .insert({
-              framework_id: framework.id,
-              name: theme.name,
-              color: theme.color,
-              order_index: theme.order_index,
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-          allPersistedThemeIds.push(newTheme.id);
-
-          // Create skills for new theme
-          if (theme.skills.length > 0) {
-            const skillsToInsert = theme.skills.map(s => ({
-              theme_id: newTheme.id,
-              name: s.name,
-              definition: s.definition,
-              order_index: s.order_index,
-            }));
-            const { error: skillsError } = await supabase.from("skills").insert(skillsToInsert);
-            if (skillsError) throw skillsError;
-          }
-        } else {
-          allPersistedThemeIds.push(theme.id);
-
-          // Update existing theme
-          const { error: themeError } = await supabase
-            .from("themes")
-            .update({
-              name: theme.name,
-              color: theme.color,
-              order_index: theme.order_index,
-            })
-            .eq("id", theme.id);
-
-          if (themeError) throw themeError;
-
-          // Handle skills
-          const persistedSkillIds: string[] = [];
-
-          for (const skill of theme.skills) {
-            if (skill.isNew) {
-              const { data: insertedSkill, error: insertError } = await supabase
-                .from("skills")
-                .insert({
-                  theme_id: theme.id,
-                  name: skill.name,
-                  definition: skill.definition,
-                  order_index: skill.order_index,
-                })
-                .select("id")
-                .single();
-
-              if (insertError) throw insertError;
-              if (insertedSkill?.id) persistedSkillIds.push(insertedSkill.id);
-            } else {
-              const { error: updateError } = await supabase
-                .from("skills")
-                .update({
-                  name: skill.name,
-                  definition: skill.definition,
-                  order_index: skill.order_index,
-                })
-                .eq("id", skill.id);
-
-              if (updateError) throw updateError;
-              persistedSkillIds.push(skill.id);
-            }
-          }
-
-          // Delete removed skills from this theme
-          if (persistedSkillIds.length > 0) {
-            await supabase
-              .from("skills")
-              .delete()
-              .eq("theme_id", theme.id)
-              .not("id", "in", `(${persistedSkillIds.join(",")})`);
-          } else {
-            // If none exist, delete all existing skills for this theme
-            await supabase
-              .from("skills")
-              .delete()
-              .eq("theme_id", theme.id);
-          }
-        }
-      }
-
-      // Delete removed themes - uses ALL persisted IDs (existing + new)
-      if (allPersistedThemeIds.length > 0) {
-        await supabase
-          .from("themes")
-          .delete()
-          .eq("framework_id", framework.id)
-          .not("id", "in", `(${allPersistedThemeIds.join(",")})`);
-      }
+      // Optimized parallel + batched save (replaces ~60 sequential round-trips)
+      await saveFrameworkChanges(framework.id, confirmedName, themes);
 
       toast.success("Référentiel sauvegardé avec succès");
       setHasChanges(false);
