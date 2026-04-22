@@ -460,10 +460,7 @@ const Supporters = () => {
             </p>
           </div>
           {canCreate && currentRole?.club_id && (
-            <Button variant="accent" onClick={() => setShowCreateSupporter(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Ajouter un supporter
-            </Button>
+            <AddEntityButton type="supporter" onClick={() => setShowCreateSupporter(true)} />
           )}
         </div>
 
