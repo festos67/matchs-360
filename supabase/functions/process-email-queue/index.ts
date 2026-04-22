@@ -38,8 +38,10 @@ Deno.serve(async (req) => {
     )
   }
 
-  // Auth: verify_jwt = true in config.toml — Supabase gateway validates the
-  // service role JWT from the pg_cron Authorization header before this runs.
+  // Auth: verify_jwt = true in supabase/config.toml — the Supabase gateway
+  // rejects any request without a valid JWT (401) BEFORE this handler runs.
+  // The pg_cron job (managed by Lovable email infrastructure) authenticates
+  // with the service_role JWT stored in Vault (email_queue_service_role_key).
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
