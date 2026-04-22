@@ -96,11 +96,11 @@ export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherP
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 min-w-0 max-w-[260px]">
+        <Button variant="ghost" size="sm" className="gap-2 min-w-0 max-w-full">
           <Icon className={`w-4 h-4 shrink-0 ${config.color}`} />
           <span className="hidden sm:inline shrink-0">{config.label}</span>
           {current.club_id && clubNames[current.club_id] && (
-            <span className="text-muted-foreground text-xs hidden lg:inline truncate min-w-0">
+            <span className="text-muted-foreground text-xs hidden md:inline truncate min-w-0">
               ({clubNames[current.club_id]})
             </span>
           )}
