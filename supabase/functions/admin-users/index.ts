@@ -567,8 +567,9 @@ Deno.serve(async (req) => {
           });
         }
 
-        if (newPassword.length < 6) {
-          return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
+        // Admin reset: enforce 14 chars minimum (CNIL/OWASP for privileged actions)
+        if (typeof newPassword !== "string" || newPassword.length < 14 || newPassword.length > 128) {
+          return new Response(JSON.stringify({ error: "Password must be between 14 and 128 characters" }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -599,8 +600,8 @@ Deno.serve(async (req) => {
           });
         }
 
-        if (newPassword.length < 6) {
-          return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
+        if (typeof newPassword !== "string" || newPassword.length < 14 || newPassword.length > 128) {
+          return new Response(JSON.stringify({ error: "Password must be between 14 and 128 characters" }), {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });

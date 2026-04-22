@@ -624,7 +624,7 @@ export default function ClubUsers() {
                 </p>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-2">
-                    Nouveau mot de passe (min. 6 caractères)
+                    Nouveau mot de passe (min. {ADMIN_MIN_LENGTH} caractères)
                   </label>
                   <Input
                     type="password"
@@ -632,6 +632,7 @@ export default function ClubUsers() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">{ADMIN_PASSWORD_HELP_TEXT}</p>
                 </div>
               </div>
             </AlertDialogDescription>
