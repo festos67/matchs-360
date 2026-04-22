@@ -293,9 +293,15 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
     }
   };
 
-  const getFileUrl = (path: string) => {
-    const { data } = supabase.storage.from("objective-attachments").getPublicUrl(path);
-    return data.publicUrl;
+  const openAttachment = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("objective-attachments")
+      .createSignedUrl(path, 300);
+    if (error || !data?.signedUrl) {
+      toast.error("Impossible d'ouvrir la pièce jointe");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const getFileIcon = (type: string | null) => {
@@ -426,7 +432,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
                             onDelete={(id) => deleteMutation.mutate(id)}
                             onFinalize={(id, r) => finalizeMutation.mutate({ id, result: r })}
                             onDuplicate={(o) => duplicateMutation.mutate(o)}
-                            getFileUrl={getFileUrl} getFileIcon={getFileIcon} />
+                            openAttachment={openAttachment} getFileIcon={getFileIcon} />
                         ))}
                       </div>
                     </SortableContext>
