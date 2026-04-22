@@ -27,6 +27,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -294,21 +295,15 @@ const Coaches = () => {
             </p>
           </div>
           {(currentRole?.role === "club_admin" && currentRole?.club_id) && (
-            <Button variant="accent" onClick={() => setCreateModalOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un coach
-            </Button>
+            <AddEntityButton type="coach" label="Ajouter un coach" onClick={() => setCreateModalOpen(true)} />
           )}
           {currentRole?.role === "admin" && (
-            <Button
-              variant="accent"
+            <AddEntityButton
+              type="coach"
+              label="Ajouter un coach"
               onClick={() => setCreateModalOpen(true)}
-              disabled={clubFilter === "all"}
-              title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un coach
-            </Button>
+              className={clubFilter === "all" ? "opacity-50 pointer-events-none" : ""}
+            />
           )}
         </div>
 

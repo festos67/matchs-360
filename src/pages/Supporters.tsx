@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -460,10 +461,7 @@ const Supporters = () => {
             </p>
           </div>
           {canCreate && currentRole?.club_id && (
-            <Button variant="accent" onClick={() => setShowCreateSupporter(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Ajouter un supporter
-            </Button>
+            <AddEntityButton type="supporter" label="Ajouter un supporter" onClick={() => setShowCreateSupporter(true)} />
           )}
         </div>
 
