@@ -308,10 +308,10 @@ function PrintResultButton({ onPrint }: { onPrint: () => void }) {
       <Button
         variant="outline"
         size="sm"
-        className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
+        className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary"
         onClick={onPrint}
       >
-        <Printer className="w-3.5 h-3.5 text-primary" />Imprimer résultat
+        <Printer className="w-3.5 h-3.5 text-accent" />Imprimer résultat
       </Button>
     );
   }
@@ -322,9 +322,9 @@ function PrintResultButton({ onPrint }: { onPrint: () => void }) {
         <Button
           variant="outline"
           size="sm"
-          className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold"
+          className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-primary"
         >
-          <Lock className="w-3.5 h-3.5 text-muted-foreground" />Imprimer résultat
+          <Lock className="w-3.5 h-3.5 text-accent" />Imprimer résultat
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
