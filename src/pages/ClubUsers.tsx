@@ -54,6 +54,7 @@ import {
   Users,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ADMIN_MIN_LENGTH, ADMIN_PASSWORD_HELP_TEXT, validateAdminPassword } from "@/lib/password-policy";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -263,8 +264,9 @@ export default function ClubUsers() {
   };
 
   const handleResetPassword = async (targetUser: AdminUser) => {
-    if (!newPassword || newPassword.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+    const pwdError = validateAdminPassword(newPassword);
+    if (pwdError) {
+      toast.error(pwdError);
       return;
     }
     try {
@@ -622,7 +624,7 @@ export default function ClubUsers() {
                 </p>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-2">
-                    Nouveau mot de passe (min. 6 caractères)
+                    Nouveau mot de passe (min. {ADMIN_MIN_LENGTH} caractères)
                   </label>
                   <Input
                     type="password"
@@ -630,6 +632,7 @@ export default function ClubUsers() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">{ADMIN_PASSWORD_HELP_TEXT}</p>
                 </div>
               </div>
             </AlertDialogDescription>
@@ -638,7 +641,7 @@ export default function ClubUsers() {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <Button
               onClick={() => resetPasswordUser && handleResetPassword(resetPasswordUser)}
-              disabled={newPassword.length < 6 || actionLoading === resetPasswordUser?.id}
+              disabled={newPassword.length < ADMIN_MIN_LENGTH || actionLoading === resetPasswordUser?.id}
               className="bg-orange-600 text-white hover:bg-orange-700"
             >
               <KeyRound className="w-4 h-4 mr-2" />

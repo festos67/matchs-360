@@ -38,10 +38,11 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
+import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+  password: userPasswordSchema,
 });
 
 const signUpSchema = authSchema.extend({
@@ -117,8 +118,8 @@ export default function Auth() {
     try {
       if (isTestMode) {
         // Mode test: réinitialiser directement via l'edge function
-        if (!newPassword || newPassword.length < 6) {
-          toast.error("Le nouveau mot de passe doit contenir au moins 6 caractères");
+        if (!newPassword || newPassword.length < USER_MIN_LENGTH) {
+          toast.error(`Le nouveau mot de passe doit contenir au moins ${USER_MIN_LENGTH} caractères`);
           setLoading(false);
           return;
         }

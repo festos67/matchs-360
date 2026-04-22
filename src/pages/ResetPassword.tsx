@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { validateUserPassword } from "@/lib/password-policy";
 import { toast } from "sonner";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 
@@ -80,8 +81,9 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+    const pwdError = validateUserPassword(password);
+    if (pwdError) {
+      toast.error(pwdError);
       return;
     }
 

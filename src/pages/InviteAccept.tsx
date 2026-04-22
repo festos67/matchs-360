@@ -35,9 +35,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
+import { userPasswordSchema, USER_MIN_LENGTH } from "@/lib/password-policy";
 
 const passwordSchema = z.object({
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  password: userPasswordSchema,
   confirmPassword: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Les mots de passe ne correspondent pas",

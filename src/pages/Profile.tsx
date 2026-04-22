@@ -49,6 +49,7 @@ import {
   Save,
 } from "lucide-react";
 import { PhotoCropModal } from "@/components/shared/PhotoCropModal";
+import { validateUserPassword, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib/password-policy";
 
 const roleConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   admin: { label: "Administrateur", icon: Shield, color: "bg-destructive text-destructive-foreground" },
@@ -225,8 +226,9 @@ export default function Profile() {
       toast.error("Les mots de passe ne correspondent pas");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+    const pwdError = validateUserPassword(newPassword);
+    if (pwdError) {
+      toast.error(pwdError);
       return;
     }
     try {
@@ -415,8 +417,9 @@ export default function Profile() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Minimum 6 caractères"
+                placeholder={`Minimum ${USER_MIN_LENGTH} caractères`}
               />
+              <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
