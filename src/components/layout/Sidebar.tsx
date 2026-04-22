@@ -133,7 +133,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       <div className="px-4 pt-6 pb-4 border-b border-sidebar-border">
         <Link to={getDashboardPath()} className="flex items-center gap-3 px-2" onClick={handleLinkClick}>
           <RadarPulseLogo size={36} />
-          <span className="font-display text-[15px] font-extrabold text-sidebar-foreground tracking-tight leading-tight">
+          <span className="font-display text-2xl font-extrabold text-accent tracking-tight leading-tight">
             MATCHS360
           </span>
         </Link>
