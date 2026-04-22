@@ -61,10 +61,7 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div
-      className="glass-card overflow-hidden"
-      style={{ backgroundColor: hexToRgba(theme.color, 0.04) }}
-    >
+    <div className="glass-card overflow-hidden">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <div
           className="flex items-center gap-3 p-4 border-b border-border"
@@ -96,7 +93,11 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
             {theme.skills.map((skill) => (
               <div
                 key={skill.id}
-                className="p-3 rounded-lg bg-muted/40 border-2 border-border space-y-1"
+                className="p-3 rounded-lg border space-y-1"
+                style={{
+                  backgroundColor: hexToRgba(theme.color, 0.12),
+                  borderColor: hexToRgba(theme.color, 0.25),
+                }}
               >
                 <p className="text-base font-semibold">{skill.name}</p>
                 {skill.definition ? (
