@@ -32,14 +32,14 @@ export const AddEntityButton = ({ type, onClick, className, label }: AddEntityBu
       type="button"
       onClick={onClick}
       className={cn(
-        "group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground min-w-[110px]",
+        "group relative inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground max-w-full min-w-0",
         className,
       )}
     >
       <Plus className="w-4 h-4 text-orange-500 shrink-0" />
-      <span className="flex-1 text-left truncate">{label ?? defaultLabel}</span>
-      <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0", bg)}>
-        <Icon className={cn("w-4 h-4", color)} />
+      <span className="flex-1 min-w-0 text-left truncate">{label ?? defaultLabel}</span>
+      <span className={cn("flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-md shrink-0", bg)}>
+        <Icon className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", color)} />
       </span>
     </button>
   );
