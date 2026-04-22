@@ -92,6 +92,11 @@ export const SkillRow = ({
               </Tooltip>
             )}
           </div>
+          {showDefinitionInline && skill.definition && (
+            <p className="text-xs text-muted-foreground mt-1 leading-snug">
+              {skill.definition}
+            </p>
+          )}
         </div>
 
         {/* Star rating */}
