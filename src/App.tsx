@@ -64,6 +64,7 @@ const MySupporters = lazy(() => import("./pages/player/MySupporters"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Supporters = lazy(() => import("./pages/Supporters"));
 const Pricing = lazy(() => import("./pages/Pricing"));
+const LogoDemo = lazy(() => import("./pages/LogoDemo"));
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/invite/accept" element={<InviteAccept />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/logo-demo" element={<LogoDemo />} />
 
               {/* Dashboard redirect */}
               <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
