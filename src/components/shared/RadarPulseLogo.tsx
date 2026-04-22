@@ -61,8 +61,8 @@ export const RadarPulseLogo = ({ size = 56, className }: RadarPulseLogoProps) =>
     >
       <style>{`
         @keyframes radar-wave {
-          0%, 100% { transform: scale(1);    opacity: 0.55; }
-          50%      { transform: scale(1.08); opacity: 1;    }
+          0%, 100% { transform: scale(1.5);    opacity: 0.55; }
+          50%      { transform: scale(1.62);   opacity: 1;    }
         }
         .rpl-ring {
           transform-origin: 100px 100px;
