@@ -96,7 +96,7 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
             {theme.skills.map((skill) => (
               <div
                 key={skill.id}
-                className="p-3 rounded-lg bg-muted/40 border border-border/60 space-y-1"
+                className="p-3 rounded-lg bg-muted/40 border-2 border-border space-y-1"
               >
                 <p className="text-base font-semibold">{skill.name}</p>
                 {skill.definition ? (
