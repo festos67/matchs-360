@@ -386,7 +386,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                           onDelete={(id) => deleteMutation.mutate(id)}
                           onFinalize={(id, result) => finalizeMutation.mutate({ id, result })}
                           onDuplicate={(o) => duplicateMutation.mutate(o)}
-                          getFileUrl={getFileUrl}
+                          openAttachment={openAttachment}
                           getFileIcon={getFileIcon}
                         />
                       ))}
@@ -400,7 +400,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                       key={obj.id}
                       obj={obj}
                       onDuplicate={(o) => duplicateMutation.mutate(o)}
-                      getFileUrl={getFileUrl}
+                      openAttachment={openAttachment}
                       getFileIcon={getFileIcon}
                     />
                   ))}
