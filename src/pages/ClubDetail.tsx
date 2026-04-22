@@ -389,7 +389,7 @@ export default function ClubDetail() {
         </h1>
         <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
       </div>
-      <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-center gap-5">
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-start gap-5">
         {/* Logo club */}
         <div
           className="rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
@@ -417,12 +417,12 @@ export default function ClubDetail() {
           </p>
         </div>
 
-        {/* Bouton Paramètres en haut à droite */}
+        {/* Bouton Paramètres en haut à droite, aligné avec le logo */}
         {canManageClub && (
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 flex-shrink-0"
+            className="gap-2 flex-shrink-0 ml-auto self-start"
             onClick={() => setShowClubSettings(true)}
           >
             <Settings className="w-3.5 h-3.5 text-orange-500" />
