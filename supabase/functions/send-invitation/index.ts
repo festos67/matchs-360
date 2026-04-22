@@ -1,11 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 /**
  * SECURITY: HTML entity escape to prevent XSS / phishing injection
@@ -129,9 +124,9 @@ const throwEmailDeliveryError = (providerError: EmailProviderError): never => {
 };
 
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
