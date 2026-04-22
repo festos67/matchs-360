@@ -406,10 +406,10 @@ export default function ClubDetail() {
 
         {/* Infos */}
         <div className="flex-1 min-w-[200px] self-center">
-          <h2 className="font-display text-[22px] font-extrabold text-foreground tracking-tight truncate">
+          <h2 className="font-display text-[33px] leading-tight font-extrabold text-foreground tracking-tight truncate">
             {club.name}
           </h2>
-          <p className="text-[12px] text-muted-foreground mt-1">
+          <p className="text-[18px] text-muted-foreground mt-1">
             {club.referent_name && <>Référent : {club.referent_name} · </>}
             {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""} · {coachCount} coach{coachCount > 1 ? "s" : ""} · {playerCount} joueur{playerCount > 1 ? "s" : ""} · {supporterCount} supporter{supporterCount > 1 ? "s" : ""}
           </p>
@@ -417,27 +417,38 @@ export default function ClubDetail() {
 
         {/* Actions */}
         {canManageClub && (
-          <div className="flex items-start gap-2 flex-shrink-0 w-full md:w-auto">
-            {/* Sous-cadre boutons d'ajout */}
-            <div className="flex flex-col gap-1.5 p-2 rounded-xl border border-border bg-muted/30">
-              <Button size="sm" variant="outline" className="gap-2 justify-start" onClick={() => setShowCoachModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-orange-500" />Coach
-              </Button>
-              <Button size="sm" variant="outline" className="gap-2 justify-start" onClick={() => setShowTeamModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-orange-500" />Équipe
-              </Button>
-              <Button size="sm" variant="outline" className="gap-2 justify-start" onClick={() => setShowPlayerModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-orange-500" />Joueur
-              </Button>
-              <Button size="sm" variant="outline" className="gap-2 justify-start" onClick={() => setShowSupporterModal(true)}>
-                <Plus className="w-3.5 h-3.5 text-orange-500" />Supporter
-              </Button>
-            </div>
-            {/* Bouton Paramètres isolé */}
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowClubSettings(true)}>
+          <div className="flex flex-col items-stretch md:items-end gap-2 flex-shrink-0 w-full md:w-auto">
+            {/* Bouton Paramètres isolé au-dessus */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 justify-start w-full md:w-auto md:self-end"
+              onClick={() => setShowClubSettings(true)}
+            >
               <Settings className="w-3.5 h-3.5 text-orange-500" />
               Paramètres
             </Button>
+
+            {/* Sous-cadre Effectif avec titre discret */}
+            <div className="flex flex-col gap-1 w-full md:w-auto">
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 px-1">
+                Effectif
+              </span>
+              <div className="flex flex-wrap md:flex-col gap-1.5 p-2 rounded-xl border border-border bg-muted/30 w-full md:w-auto">
+                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowCoachModal(true)}>
+                  <Plus className="w-3.5 h-3.5 text-orange-500" />Coach
+                </Button>
+                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowTeamModal(true)}>
+                  <Plus className="w-3.5 h-3.5 text-orange-500" />Équipe
+                </Button>
+                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowPlayerModal(true)}>
+                  <Plus className="w-3.5 h-3.5 text-orange-500" />Joueur
+                </Button>
+                <Button size="sm" variant="outline" className="gap-2 justify-start flex-1 md:flex-none min-w-[120px]" onClick={() => setShowSupporterModal(true)}>
+                  <Plus className="w-3.5 h-3.5 text-orange-500" />Supporter
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </Card>
