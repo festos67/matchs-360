@@ -389,9 +389,22 @@ export default function TeamDetail() {
           <div className="flex items-center gap-6 flex-1 min-w-0">
             <div className="w-20 h-20 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
             <div className="flex-1 min-w-0">
-            <h1 className="text-4xl font-display font-bold">
-              {team.name}
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-4xl font-display font-bold">
+                {team.name}
+              </h1>
+              {canManageTeam && !isPlayerViewing && (isAdmin || isClubAdmin || isReferentCoach) && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 rounded-full"
+                  onClick={() => setShowTeamSettings(true)}
+                  title="Paramètres de l'équipe"
+                >
+                  <Settings className="w-4 h-4 text-blue-500" />
+                </Button>
+              )}
+            </div>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">{team.club?.name}</span>
               <span className="flex items-center gap-1.5">• {coaches.length} coach{coaches.length > 1 ? "es" : ""}</span>
@@ -401,43 +414,39 @@ export default function TeamDetail() {
             </div>
             </div>
           </div>
-          {canManageTeam && !isPlayerViewing && (
-            <div className="flex flex-wrap gap-3 lg:flex-shrink-0">
-              {/* Bloc Ajouts */}
-              <div className="bg-card border border-border rounded-xl p-3 flex-1 min-w-[160px] lg:flex-initial lg:w-[160px]">
-                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Ajouter</p>
-                <div className="flex flex-col gap-1.5">
-                  {(isAdmin || isClubAdmin) && (
-                    <AddEntityButton type="coach" onClick={() => setShowCoachModal(true)} className="w-full" />
-                  )}
-                  <AddEntityButton type="player" onClick={() => setShowPlayerModal(true)} className="w-full" />
-                  {(isAdmin || isClubAdmin || isReferentCoach) && (
-                    <AddEntityButton type="supporter" onClick={() => setShowSupporterModal(true)} className="w-full" />
-                  )}
-                </div>
-              </div>
-
-              {/* Bloc Gestion */}
-              <div className="bg-card border border-border rounded-xl p-3 flex-1 min-w-[180px] lg:flex-initial lg:w-[180px]">
-                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
-                <div className="flex flex-col gap-1.5">
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={handleGoToFramework}>
-                    <BookOpen className="w-3.5 h-3.5 text-accent" />Référentiel équipe
-                  </Button>
-                  {(isAdmin || isClubAdmin || isReferentCoach) && (
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowTeamSettings(true)}>
-                      <Settings className="w-3.5 h-3.5 text-accent" />Paramètres
-                    </Button>
-                  )}
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
-                    <ClipboardList className="w-3.5 h-3.5 text-accent" />Débriefs
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {canManageTeam && !isPlayerViewing && (
+        <div className="flex flex-col md:flex-row gap-3 mb-4">
+          {/* Bloc Ajouter */}
+          <div className="bg-card border border-border rounded-xl p-3 flex-1">
+            <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Ajouter</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(isAdmin || isClubAdmin) && (
+                <AddEntityButton type="coach" onClick={() => setShowCoachModal(true)} className="flex-1 min-w-[140px]" />
+              )}
+              <AddEntityButton type="player" onClick={() => setShowPlayerModal(true)} className="flex-1 min-w-[140px]" />
+              {(isAdmin || isClubAdmin || isReferentCoach) && (
+                <AddEntityButton type="supporter" onClick={() => setShowSupporterModal(true)} className="flex-1 min-w-[140px]" />
+              )}
+            </div>
+          </div>
+
+          {/* Bloc Gestion */}
+          <div className="bg-card border border-border rounded-xl p-3 flex-1">
+            <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
+            <div className="flex flex-wrap gap-1.5">
+              <Button variant="outline" size="sm" className="flex-1 min-w-[140px] gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold" onClick={handleGoToFramework}>
+                <BookOpen className="w-3.5 h-3.5 text-orange-500" />Référentiel équipe
+              </Button>
+              <Button variant="outline" size="sm" className="flex-1 min-w-[140px] gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold" onClick={() => navigate(`/evaluations?team_id=${id}`)}>
+                <ClipboardList className="w-3.5 h-3.5 text-orange-500" />Débriefs
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-muted/80 border border-border h-14 p-1.5 rounded-xl w-full shadow-sm">
