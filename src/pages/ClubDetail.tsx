@@ -407,10 +407,10 @@ export default function ClubDetail() {
 
         {/* Infos */}
         <div className="flex-1 min-w-[200px] self-center">
-          <h2 className="font-display text-[33px] leading-tight font-extrabold text-foreground tracking-tight truncate">
+          <h2 className="font-display text-[25px] leading-tight font-extrabold text-foreground tracking-tight truncate">
             {club.name}
           </h2>
-          <p className="text-[18px] text-muted-foreground mt-1">
+          <p className="text-[14px] text-muted-foreground mt-1">
             {club.referent_name && <>Référent : {club.referent_name} · </>}
             {activeTeamsCount} équipe{activeTeamsCount > 1 ? "s" : ""} · {coachCount} coach{coachCount > 1 ? "s" : ""} · {playerCount} joueur{playerCount > 1 ? "s" : ""} · {supporterCount} supporter{supporterCount > 1 ? "s" : ""}
           </p>
