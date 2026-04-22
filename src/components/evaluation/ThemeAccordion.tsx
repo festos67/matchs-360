@@ -313,6 +313,7 @@ export const ThemeAccordion = ({
                   onNotObservedChange={(isNotObserved) => onNotObservedChange(skill.id, isNotObserved)}
                   onCommentChange={(comment) => onCommentChange(skill.id, comment)}
                   disabled={disabled}
+                  showDefinitionInline={showDefinitionInline}
                 />
               );
             })}
