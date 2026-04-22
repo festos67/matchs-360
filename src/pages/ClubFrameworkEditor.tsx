@@ -381,40 +381,44 @@ export default function ClubFrameworkEditor() {
   return (
     <AppLayout>
       <div className="pb-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+        {/* Title card */}
+        <div className="mb-4 rounded-xl border border-border bg-card px-4 sm:px-6 py-5 shadow-sm">
+          <div className="flex items-center gap-4 min-w-0">
             <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
               <BookOpen className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="!text-2xl font-display font-bold">{frameworkName || "Référentiel du Club"}</h1>
-              <p className="text-muted-foreground mt-1">
+              <h1 className="!text-2xl font-display font-bold truncate">{frameworkName || "Référentiel du Club"}</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
                 {club.name} • Modèle du club • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
               </p>
             </div>
           </div>
-          {framework && (
-            <div className="flex items-center gap-2">
+        </div>
+
+        {/* Actions card (paysage, sous le titre) */}
+        {framework && (
+          <div className="mb-8 rounded-xl border border-border bg-card px-4 sm:px-6 py-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-2">
               {canEdit && (
-                <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)}>
-                  <Pencil className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)} className="flex-1 sm:flex-none min-w-0">
+                  <Pencil className="w-4 h-4 mr-2 text-orange-500" />
                   Modifier
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-                <History className="w-4 h-4 mr-2 text-accent" />
+              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="flex-1 sm:flex-none min-w-0">
+                <History className="w-4 h-4 mr-2 text-orange-500" />
                 Historique
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handlePrint()}>
-                <Printer className="w-4 h-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex-1 sm:flex-none min-w-0">
+                <Printer className="w-4 h-4 mr-2 text-orange-500" />
                 Imprimer
               </Button>
               {canEdit && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                      <RotateCcw className="w-4 h-4 mr-2" />
+                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive flex-1 sm:flex-none min-w-0">
+                      <RotateCcw className="w-4 h-4 mr-2 text-destructive" />
                       Supprimer
                     </Button>
                   </AlertDialogTrigger>
@@ -435,8 +439,8 @@ export default function ClubFrameworkEditor() {
                 </AlertDialog>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Read-only Framework View */}
         {themes.length > 0 ? (
