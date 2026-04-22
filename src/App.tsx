@@ -66,7 +66,7 @@ const Supporters = lazy(() => import("./pages/Supporters"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const LogoDemo = lazy(() => import("./pages/LogoDemo"));
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
