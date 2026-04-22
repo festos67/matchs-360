@@ -270,15 +270,24 @@ export const ThemeAccordion = ({
 
             {/* Average score display */}
             <div className="text-right">
-              <div className="flex items-center gap-2">
+              {showAverageAsLabel ? (
                 <span
-                  className="text-2xl font-display font-bold"
+                  className="text-base font-display font-semibold"
                   style={{ color: themeColor || "hsl(var(--primary))" }}
                 >
-                  {formatAverage(average)}
+                  {average !== null ? getScoreLabel(average) : "—"}
                 </span>
-                <span className="text-muted-foreground">/5</span>
-              </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-2xl font-display font-bold"
+                    style={{ color: themeColor || "hsl(var(--primary))" }}
+                  >
+                    {formatAverage(average)}
+                  </span>
+                  <span className="text-muted-foreground">/5</span>
+                </div>
+              )}
             </div>
           </button>
         </CollapsibleTrigger>
