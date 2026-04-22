@@ -311,9 +311,20 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
     }
   };
 
-  const getFileUrl = (path: string) => {
-    const { data } = supabase.storage.from("objective-attachments").getPublicUrl(path);
-    return data.publicUrl;
+  const getFileUrl = async (path: string) => {
+    const { data, error } = await supabase.storage
+      .from("objective-attachments")
+      .createSignedUrl(path, 300);
+    if (error || !data?.signedUrl) {
+      toast.error("Impossible d'ouvrir la pièce jointe");
+      return null;
+    }
+    return data.signedUrl;
+  };
+
+  const openAttachment = async (path: string) => {
+    const url = await getFileUrl(path);
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const getFileIcon = (type: string | null) => {
