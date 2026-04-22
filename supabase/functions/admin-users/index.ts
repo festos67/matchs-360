@@ -410,6 +410,8 @@ Deno.serve(async (req) => {
       if (action === "update-profile") {
         const { userId, firstName, lastName, nickname, photoUrl } = body;
 
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
         const updateData: Record<string, unknown> = {
           first_name: firstName,
           last_name: lastName,
@@ -436,6 +438,14 @@ Deno.serve(async (req) => {
       if (action === "soft-delete") {
         const { userId } = body;
 
+        if (!userId) {
+          return new Response(JSON.stringify({ error: "userId required" }), {
+            status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (userId === user.id) return forbidden("You cannot delete yourself");
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
         // Mark profile as deleted
         await supabaseAdmin
           .from("profiles")
@@ -456,6 +466,8 @@ Deno.serve(async (req) => {
       // Restore user
       if (action === "restore") {
         const { userId } = body;
+
+        if (!(await userInClubAdminScope(userId))) return forbidden();
 
         await supabaseAdmin
           .from("profiles")
@@ -484,6 +496,9 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
+
+        // CRITICAL: only Super Admin may change another user's password
+        if (!isAdmin) return forbidden("Only Super Admin can change passwords");
 
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
           password: newPassword,
