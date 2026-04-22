@@ -15,8 +15,46 @@
  *  - Spécifications : mem://features/framework-printable-pdf
  */
 import { forwardRef } from "react";
-import { Activity } from "lucide-react";
 import { useImageAsBase64 } from "@/hooks/useImageAsBase64";
+
+// Couleurs alignées avec l'identité applicative (light mode)
+// --accent (MATCHS, orange) : hsl(13 65% 52%) ≈ #D24E2A
+// --secondary-foreground (360, navy) : hsl(224 76% 24%) ≈ #0F2466
+// --primary (radar) : hsl(224 76% 33%) ≈ #163A9E
+const BRAND_ORANGE = "#D24E2A";
+const BRAND_NAVY = "#0F2466";
+const BRAND_PRIMARY = "#163A9E";
+
+const RadarLogoSvg = ({ size = 34 }: { size?: number }) => {
+  const polygon = (radius: number) => {
+    const sides = 8;
+    const pts: string[] = [];
+    for (let i = 0; i < sides; i++) {
+      const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+      pts.push(`${100 + radius * Math.cos(angle)},${100 + radius * Math.sin(angle)}`);
+    }
+    return pts.join(" ");
+  };
+  const axis = Array.from({ length: 8 }).map((_, i) => {
+    const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+    return (
+      <line key={i} x1="100" y1="100"
+        x2={100 + 80 * Math.cos(angle)}
+        y2={100 + 80 * Math.sin(angle)}
+        stroke={BRAND_PRIMARY} strokeOpacity="0.35" strokeWidth="0.6" />
+    );
+  });
+  return (
+    <svg width={size} height={size} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="MATCHS360" role="img">
+      <g>{axis}</g>
+      <polygon points={polygon(48)} fill={BRAND_PRIMARY} fillOpacity="0.08" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polygon points={polygon(84)} fill="none" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polygon points={polygon(120)} fill="none" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polyline points="55,100 85,100 95,75 105,125 115,100 145,100"
+        fill="none" stroke={BRAND_PRIMARY} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
 
 interface Skill {
   id: string;
@@ -62,8 +100,10 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
         {/* Header */}
         <div style={{ borderBottom: "3px solid #3B82F6", paddingBottom: "14px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-            <Activity style={{ width: "30px", height: "30px", color: "#3B82F6" }} />
-            <span style={{ fontSize: "20px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1.5px" }}>MATCHS360</span>
+            <RadarLogoSvg size={36} />
+            <span style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.5px", fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}>
+              <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: BRAND_NAVY }}>360</span>
+            </span>
             {clubLogoSrc && (
               <img
                 src={clubLogoSrc}
@@ -172,8 +212,10 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
         {/* Footer */}
         <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: "8px", marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Activity style={{ width: "12px", height: "12px", color: "#3B82F6" }} />
-            <span style={{ fontSize: "9px", color: "#9CA3AF", fontWeight: 600 }}>MATCHS360</span>
+            <RadarLogoSvg size={14} />
+            <span style={{ fontSize: "10px", fontWeight: 700, fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}>
+              <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: BRAND_NAVY }}>360</span>
+            </span>
           </div>
         </div>
       </div>
