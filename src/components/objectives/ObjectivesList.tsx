@@ -523,7 +523,7 @@ function ReadOnlyObjectiveCard({
                   className="flex items-center gap-1 px-2 py-1 rounded bg-muted hover:bg-muted/80 text-[11px] transition-colors">
                   {getFileIcon(att.file_type)}
                   <span className="max-w-[120px] truncate">{att.file_name}</span>
-                </a>
+                </button>
               ))}
             </div>
           )}
