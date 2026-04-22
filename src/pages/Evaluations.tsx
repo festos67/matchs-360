@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 
 interface Evaluation {
   id: string;
@@ -228,10 +229,7 @@ export default function Evaluations() {
           </p>
         </div>
         {canCreate && (
-          <Button variant="accent" onClick={() => setShowCreateModal(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Nouveau débrief
-          </Button>
+          <AddEntityButton type="evaluation" onClick={() => setShowCreateModal(true)} />
         )}
       </div>
 
