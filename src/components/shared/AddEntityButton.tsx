@@ -5,16 +5,17 @@
  *              avec icône de rôle à droite. Identité visuelle alignée sur la
  *              standardisation des rôles (mem://style/role-branding-standard).
  */
-import { Plus, UserCog, Users, UserCircle, Heart, type LucideIcon } from "lucide-react";
+import { Plus, UserCog, Users, UserCircle, Heart, Building2, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AddEntityType = "coach" | "team" | "player" | "supporter";
+export type AddEntityType = "coach" | "team" | "player" | "supporter" | "club";
 
 const ENTITY_CONFIG: Record<AddEntityType, { label: string; Icon: LucideIcon; color: string; bg: string }> = {
   coach: { label: "Coach", Icon: UserCog, color: "text-orange-500", bg: "bg-orange-500/10" },
   team: { label: "Équipe", Icon: Users, color: "text-primary", bg: "bg-primary/10" },
   player: { label: "Joueur", Icon: UserCircle, color: "text-green-500", bg: "bg-green-500/10" },
   supporter: { label: "Supporter", Icon: Heart, color: "text-pink-500", bg: "bg-pink-500/10" },
+  club: { label: "Club", Icon: Building2, color: "text-primary", bg: "bg-primary/10" },
 };
 
 interface AddEntityButtonProps {
