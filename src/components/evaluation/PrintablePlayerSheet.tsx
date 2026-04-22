@@ -21,6 +21,7 @@ import {
   calculateRadarData, 
   calculateThemeAverage, 
   formatAverage,
+  getScoreLabel,
   type ThemeScores 
 } from "@/lib/evaluation-utils";
 import { PrintableRadarChart } from "./PrintableRadarChart";
@@ -340,7 +341,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                       <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: item.color }} />
                       <span style={{ fontSize: "13px", fontWeight: 500, color: "#111827" }}>{item.theme}</span>
                     </div>
-                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>{item.score.toFixed(1)}/5</span>
+                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>
+                      {item.score > 0 ? getScoreLabel(item.score) : "—"}
+                    </span>
                   </div>
                   <div style={{ height: "6px", backgroundColor: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
                     <div style={{ height: "100%", borderRadius: "999px", width: `${(item.score / 5) * 100}%`, backgroundColor: item.color }} />
@@ -407,7 +410,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                       <h3 style={{ fontWeight: 600, color: "#111827", fontSize: "13px", margin: 0 }}>{theme.name}</h3>
                     </div>
                     <span style={{ fontWeight: "bold", fontSize: "13px", color: theme.color || "#3B82F6" }}>
-                      {formatAverage(themeAverage)}/5
+                      {themeAverage !== null ? getScoreLabel(themeAverage) : "—"}
                     </span>
                   </div>
 
