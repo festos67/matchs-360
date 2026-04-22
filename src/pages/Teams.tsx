@@ -270,10 +270,7 @@ const Teams = () => {
             </p>
           </div>
           {(isAdmin || currentRole?.role === "club_admin") && (
-            <Button variant="accent" onClick={() => setShowCreateTeam(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Nouvelle équipe
-            </Button>
+            <AddEntityButton type="team" onClick={() => setShowCreateTeam(true)} />
           )}
         </div>
 
