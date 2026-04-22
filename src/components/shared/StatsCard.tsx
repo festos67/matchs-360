@@ -31,6 +31,7 @@ interface StatsCardProps {
   };
   color?: "primary" | "success" | "warning" | "destructive";
   className?: string;
+  iconClassName?: string;
 }
 
 const colorClasses = {
@@ -60,6 +61,7 @@ export const StatsCard = ({
   trend,
   color = "primary",
   className,
+  iconClassName,
 }: StatsCardProps) => {
   return (
     <div className={cn("stats-card py-2.5 px-3", className)}>
@@ -83,7 +85,8 @@ export const StatsCard = ({
         <div
           className={cn(
             "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-            colorClasses[color].icon
+            colorClasses[color].icon,
+            iconClassName
           )}
         >
           <Icon className="w-4 h-4" />
