@@ -14,17 +14,16 @@
  *  - Stabilité visuelle : mem://technical/radar-chart-visual-stability
  *  - Capacités god view (Admin/Club Admin) : mem://features/admin/god-view-capabilities
  */
-import {
-  Radar,
-  RadarChart as RechartsRadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Tooltip,
-  
-} from "recharts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
+import * as RechartsPrimitive from "recharts";
+
+const Radar = RechartsPrimitive.Radar as unknown as ComponentType<any>;
+const RechartsRadarChart = RechartsPrimitive.RadarChart as unknown as ComponentType<any>;
+const PolarGrid = RechartsPrimitive.PolarGrid as unknown as ComponentType<any>;
+const PolarAngleAxis = RechartsPrimitive.PolarAngleAxis as unknown as ComponentType<any>;
+const PolarRadiusAxis = RechartsPrimitive.PolarRadiusAxis as unknown as ComponentType<any>;
+const ResponsiveContainer = RechartsPrimitive.ResponsiveContainer as unknown as ComponentType<any>;
+const Tooltip = RechartsPrimitive.Tooltip as unknown as ComponentType<any>;
 
 interface RadarDataPoint {
   theme: string;
@@ -217,7 +216,7 @@ export const ComparisonRadar = ({
       </div>
 
       {/* Custom legend for better visibility — reserved space to prevent chart resize */}
-      <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border min-h-[2.5rem]">
+      <div className="flex flex-wrap content-start justify-center gap-x-4 gap-y-2 mt-4 pt-4 border-t border-border min-h-[3.75rem]">
         {datasets.length > 1 &&
           datasets.map((dataset) => (
             <div key={dataset.id} className="flex items-center gap-2">
