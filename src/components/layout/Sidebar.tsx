@@ -19,6 +19,7 @@
  *  - Restrictions joueur : mem://features/player/interface-restrictions
  */
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { 
   LayoutDashboard, 
   Building2, 
@@ -32,7 +33,8 @@ import {
   ClipboardList,
   UserCog,
   UserCircle,
-  Heart
+  Heart,
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +43,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
 import { Crown } from "lucide-react";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
+import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 
 // Navigation items by role
 const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string | null) => {
@@ -104,6 +107,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
   const { isFree, isTrial } = usePlan();
+  const [showCreateEval, setShowCreateEval] = useState(false);
 
   const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
 
@@ -218,6 +222,24 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
             <span>Passer en Pro</span>
           </Link>
         )}
+
+        {/* Quick action: Nouveau débrief (coach) */}
+        {currentRole?.role === "coach" && (
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate?.();
+              setShowCreateEval(true);
+            }}
+            className="mt-4 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium border border-accent/30 bg-accent/5 hover:bg-accent/10 transition-all"
+          >
+            <Plus className="w-4 h-4 text-orange-500 shrink-0" />
+            <span className="flex-1 text-left truncate text-foreground">Nouveau débrief</span>
+            <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15">
+              <ClipboardList className="w-4 h-4 text-accent" />
+            </span>
+          </button>
+        )}
       </nav>
 
       {/* Bottom Actions */}
@@ -243,6 +265,13 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           <span>Déconnexion</span>
         </button>
       </div>
+
+      {currentRole?.role === "coach" && (
+        <CreateEvaluationModal
+          open={showCreateEval}
+          onOpenChange={setShowCreateEval}
+        />
+      )}
     </>
   );
 };
