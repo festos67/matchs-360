@@ -92,7 +92,7 @@ const RadarPulseLogo = ({ size = 160 }: { size?: number }) => {
 
       {/* Pulse ECG centrale (statique, navy) */}
       <polyline
-        points="55,100 72,100 78,100 82,82 88,118 94,72 100,128 106,90 112,105 118,100 145,100"
+        points="55,100 85,100 95,75 105,125 115,100 145,100"
         fill="none"
         stroke="hsl(222, 75%, 30%)"
         strokeWidth="3"
@@ -114,7 +114,7 @@ const CirclePulseLogo = ({ size = 160 }: { size?: number }) => (
     `}</style>
     <circle cx="100" cy="100" r="70" fill="hsl(217, 91%, 70%)" fillOpacity="0.25" className="c1" />
     <polyline
-      points="55,100 72,100 78,100 82,82 88,118 94,72 100,128 106,90 112,105 118,100 145,100"
+      points="55,100 85,100 95,75 105,125 115,100 145,100"
       fill="none"
       stroke="hsl(222, 75%, 30%)"
       strokeWidth="3"
