@@ -50,6 +50,7 @@ import { Search, Heart, Loader2, ChevronDown, Plus, Edit, UserCircle } from "luc
 import { Button } from "@/components/ui/button";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { EditUserModal } from "@/components/modals/EditUserModal";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 
 interface SupporterData {
   id: string;

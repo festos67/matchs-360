@@ -49,6 +49,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 
 const STORAGE_KEY_CLUBS = "coaches-collapsed-clubs";
 
