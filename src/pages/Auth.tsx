@@ -604,8 +604,8 @@ export default function Auth() {
         
         <div className="relative z-10 text-center max-w-md px-8">
           <div className="mb-10">
-            <div className="w-48 h-48 mx-auto rounded-full bg-primary/20 flex items-center justify-center animate-pulse-glow">
-              <Activity className="w-24 h-24 text-primary" />
+            <div className="mx-auto w-48 h-48 flex items-center justify-center">
+              <RadarPulseLogo size={192} />
             </div>
           </div>
           <h3 className="text-3xl font-display font-bold mb-4 whitespace-nowrap">
