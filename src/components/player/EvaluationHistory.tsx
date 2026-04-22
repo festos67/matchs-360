@@ -241,7 +241,7 @@ export function EvaluationHistory({
         )}
 
         <div
-          className="flex-1 flex items-center gap-4 cursor-pointer"
+          className="flex-1 min-w-0 flex items-center gap-4 cursor-pointer"
           onClick={() => onViewEvaluation(evaluation)}
         >
           <div
@@ -267,9 +267,9 @@ export function EvaluationHistory({
               <Star className="w-6 h-6 text-amber-500" />
             )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-               <p className={`font-medium ${isArchived ? "line-through text-muted-foreground" : ""}`}>
+               <p className={`font-medium break-words min-w-0 ${isArchived ? "line-through text-muted-foreground" : ""}`}>
                  {evaluation.name}
                </p>
                {isArchived && (
