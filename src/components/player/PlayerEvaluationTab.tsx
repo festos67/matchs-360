@@ -139,9 +139,9 @@ export function PlayerEvaluationTab({
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
         {/* Radar */}
-        <div className="xl:col-span-2 glass-card p-6">
+        <div className="2xl:col-span-2 glass-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-display font-semibold">Analyse des résultats</h2>
