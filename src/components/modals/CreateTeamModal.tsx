@@ -16,7 +16,6 @@
  */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Users, ShieldCheck } from "lucide-react";
 import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
@@ -49,6 +48,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const getSeasonOptions = () => {
   const now = new Date();
@@ -116,7 +116,7 @@ export const CreateTeamModal = ({
     setValue,
     formState: { errors },
   } = useForm<TeamFormData>({
-    resolver: zodResolver(teamSchema),
+    resolver: typedZodResolver<TeamFormData>(teamSchema),
     defaultValues: {
       season: getCurrentSeason(),
       color: clubColor,
