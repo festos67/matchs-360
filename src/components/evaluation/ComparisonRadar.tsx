@@ -113,9 +113,9 @@ export const ComparisonRadar = ({
 
   return (
     <div className="w-full">
-      <div className="h-[350px] relative radar-themed">
+      <div className="h-[403px] relative radar-themed">
         <ResponsiveContainer width="100%" height="100%">
-          <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={mergedData}>
+          <RechartsRadarChart cx="50%" cy="50%" outerRadius="80%" data={mergedData}>
             <PolarGrid
               stroke="hsl(var(--muted-foreground) / 0.5)"
               gridType="polygon"
@@ -124,7 +124,7 @@ export const ComparisonRadar = ({
               dataKey="theme"
               tick={{
                 fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                fontSize: isDark ? 12 : 11,
+                fontSize: isDark ? 14 : 13,
                 fontWeight: isDark ? 700 : 500,
               }}
               tickLine={{ stroke: isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))" }}
@@ -134,7 +134,7 @@ export const ComparisonRadar = ({
               domain={[0, 5]}
               tick={{
                 fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-                fontSize: isDark ? 11 : 10,
+                fontSize: isDark ? 13 : 12,
                 fontWeight: isDark ? 600 : 400,
               }}
               tickCount={6}
