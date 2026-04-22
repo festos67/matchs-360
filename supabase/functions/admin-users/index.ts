@@ -565,6 +565,9 @@ Deno.serve(async (req) => {
           });
         }
 
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+        if (clubId && !clubInScope(clubId)) return forbidden("Club outside your scope");
+
         const origin = req.headers.get("origin") || "https://lovable.dev";
         
         // Generate new invite link
