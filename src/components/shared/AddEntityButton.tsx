@@ -32,7 +32,7 @@ export const AddEntityButton = ({ type, onClick, className, label }: AddEntityBu
       type="button"
       onClick={onClick}
       className={cn(
-        "group relative inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-lg border border-orange-500/40 bg-background hover:border-orange-500/70 hover:shadow-sm transition-all text-sm font-medium text-foreground max-w-full min-w-0",
+        "group relative inline-flex items-center gap-2 px-2.5 sm:px-3 py-2 rounded-lg border border-orange-500/20 bg-background hover:border-orange-500/40 hover:shadow-sm transition-all text-sm font-medium text-foreground max-w-full min-w-0",
         className,
       )}
     >
