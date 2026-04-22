@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { snapshotFramework } from "@/lib/framework-snapshot";
+import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { ReadOnlyFrameworkView } from "@/components/framework/ReadOnlyFrameworkView";
