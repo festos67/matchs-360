@@ -550,8 +550,8 @@ const handler = async (req: Request): Promise<Response> => {
               <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
               <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
               <p style="color: #3f3f46; line-height: 1.6;">
-                Vous avez été ajouté(e) à <strong>${club?.name || "MATCHS360"}</strong> 
-                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+                Vous avez été ajouté(e) à <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> 
+                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.
               </p>
               <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
                 Accéder à mon espace
