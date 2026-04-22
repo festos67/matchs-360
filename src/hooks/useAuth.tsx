@@ -22,6 +22,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { queryClient } from "@/App";
 
 interface Profile {
   id: string;
@@ -159,6 +160,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRoles([]);
     setCurrentRoleState(null);
     localStorage.removeItem(CURRENT_ROLE_KEY);
+    // Clear cached queries to prevent cross-user data leakage on the same tab
+    queryClient.clear();
   };
 
   // isAdmin = currently ACTING as admin (for UI)
