@@ -436,11 +436,11 @@ export default function TeamDetail() {
           {/* Bloc Gestion */}
           <div className="bg-card border border-border rounded-xl p-3 flex-1">
             <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-col gap-1.5">
               <button
                 type="button"
                 onClick={handleGoToFramework}
-                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground flex-1 min-w-0"
+                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground w-full"
               >
                 <BookOpen className="w-4 h-4 text-orange-500 shrink-0" />
                 <span className="flex-1 text-left truncate">Référentiel équipe</span>
@@ -451,7 +451,7 @@ export default function TeamDetail() {
               <button
                 type="button"
                 onClick={() => navigate(`/evaluations?team_id=${id}&new=1`)}
-                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-orange-500 bg-background hover:bg-orange-500/5 hover:shadow-sm transition-all text-sm font-medium text-foreground flex-1 min-w-0"
+                className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-orange-500 bg-background hover:bg-orange-500/5 hover:shadow-sm transition-all text-sm font-medium text-foreground w-full"
               >
                 <Plus className="w-4 h-4 text-orange-500 shrink-0" />
                 <span className="flex-1 text-left truncate">Nouveau débrief</span>
