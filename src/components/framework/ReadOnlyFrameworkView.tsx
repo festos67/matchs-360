@@ -47,6 +47,16 @@ export const ReadOnlyFrameworkView = ({ themes }: ReadOnlyFrameworkViewProps) =>
   );
 };
 
+/** Convertit "#RRGGBB" en "rgba(r,g,b,alpha)". Fallback bleu primaire si invalide. */
+const hexToRgba = (hex: string | null | undefined, alpha: number) => {
+  const fallback = "#3B82F6";
+  const value = (hex && /^#?[0-9a-f]{6}$/i.test(hex.replace("#", "")) ? hex : fallback).replace("#", "");
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -55,7 +65,11 @@ const ReadOnlyTheme = ({ theme }: { theme: Theme }) => {
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <div
           className="flex items-center gap-3 p-4 border-b border-border"
-          style={{ borderLeftWidth: 4, borderLeftColor: theme.color || "#3B82F6" }}
+          style={{
+            borderLeftWidth: 4,
+            borderLeftColor: theme.color || "#3B82F6",
+            backgroundColor: hexToRgba(theme.color, 0.1),
+          }}
         >
           <CollapsibleTrigger asChild>
             <button className="p-1 rounded hover:bg-muted">
