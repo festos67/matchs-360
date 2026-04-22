@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 
 const features = [
   {
@@ -136,9 +137,7 @@ export default function Index() {
         {/* Header */}
         <nav className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center animate-pulse-glow">
-              <Activity className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <RadarPulseLogo size={56} />
             <div>
               <span className="font-display text-3xl font-bold">MATCHS360</span>
               <p className="text-sm text-muted-foreground">Donnez vie à vos actions socio-sportives</p>
