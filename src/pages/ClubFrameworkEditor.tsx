@@ -495,7 +495,7 @@ export default function ClubFrameworkEditor() {
             setPendingEditThemes(null);
           }
         }}
-        currentName={frameworkName}
+        currentName={pendingEditName || frameworkName}
         onConfirm={handleSave}
         saving={saving}
       />
