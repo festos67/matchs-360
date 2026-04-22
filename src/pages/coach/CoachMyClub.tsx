@@ -219,14 +219,40 @@ const CoachMyClub = () => {
     <AppLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
-            <Building2 className="w-7 h-7 text-primary" />
-            {club?.name || "Mon Club"}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Vue d'ensemble du club
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+              <Building2 className="w-7 h-7 text-primary" />
+              {club?.name || "Mon Club"}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Vue d'ensemble du club
+            </p>
+          </div>
+          {club && (
+            club.logo_url ? (
+              <img
+                src={club.logo_url}
+                alt={club.name}
+                className="w-16 h-16 rounded-xl object-contain border border-border bg-card flex-shrink-0"
+              />
+            ) : (
+              <div
+                className="w-16 h-16 rounded-xl flex items-center justify-center font-display font-bold text-white text-lg flex-shrink-0"
+                style={{
+                  background: `linear-gradient(135deg, ${club.primary_color || "#3B82F6"} 0%, ${club.primary_color || "#3B82F6"}88 100%)`,
+                }}
+              >
+                {club.short_name ||
+                  club.name
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+              </div>
+            )
+          )}
         </div>
 
         {/* KPI Cards */}
