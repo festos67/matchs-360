@@ -260,10 +260,10 @@ const CoachMyClub = () => {
           <button
             type="button"
             onClick={() => navigate(`/clubs/${clubId}/framework`)}
-            className="w-full text-left bg-card rounded-xl border border-border p-4 hover:border-accent/50 hover:shadow-sm transition-all flex items-center gap-4"
+            className="w-full text-left bg-card rounded-xl border border-border p-4 hover:border-primary/50 hover:shadow-sm transition-all flex items-center gap-4"
           >
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-5 h-5 text-accent" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground truncate">{clubFramework.name}</p>
@@ -279,7 +279,7 @@ const CoachMyClub = () => {
                 handlePrint();
               }}
             >
-              <Printer className="w-4 h-4 mr-2 text-accent" />
+              <Printer className="w-4 h-4 mr-2 text-primary" />
               Imprimer
             </Button>
           </button>
