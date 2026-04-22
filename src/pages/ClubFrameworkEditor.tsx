@@ -294,26 +294,26 @@ export default function ClubFrameworkEditor() {
                 {club.name} • Modèle du club • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
               </p>
             </div>
+            {framework && (
+              <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex-shrink-0">
+                <Printer className="w-4 h-4 mr-2 text-primary" />
+                Imprimer
+              </Button>
+            )}
           </div>
 
-          {framework && (
+          {framework && canEdit && (
             <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
               <div className="flex flex-wrap items-center gap-2">
-                {canEdit && (
-                  <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)}>
-                    <Pencil className="w-4 h-4 mr-2 text-orange-500" />
-                    Modifier
-                  </Button>
-                )}
+                <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)}>
+                  <Pencil className="w-4 h-4 mr-2 text-orange-500" />
+                  Modifier
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
                   <History className="w-4 h-4 mr-2 text-orange-500" />
                   Historique
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handlePrint()}>
-                  <Printer className="w-4 h-4 mr-2 text-orange-500" />
-                  Imprimer
-                </Button>
-                {canEdit && (
+                {true && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
