@@ -257,6 +257,8 @@ Deno.serve(async (req) => {
           });
         }
 
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
           email_confirm: true,
         });
@@ -271,6 +273,21 @@ Deno.serve(async (req) => {
       // Add role
       if (action === "add-role") {
         const { userId, role, clubId, teamId, playerId, coachRole } = body;
+
+        // Block privilege escalation: only super admin may grant 'admin'
+        if (role === "admin") return forbidden("Only Super Admin can grant admin role");
+
+        // Target user must be within caller's scope
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
+        // The clubId / teamId being granted must also be in scope
+        if (clubId && !clubInScope(clubId)) return forbidden("Club outside your scope");
+        if (teamId && !(await teamInScope(teamId))) return forbidden("Team outside your scope");
+
+        // Supporter target player must also be in scope
+        if (role === "supporter" && playerId && !(await userInClubAdminScope(playerId))) {
+          return forbidden("Player outside your scope");
+        }
 
         // Check if role already exists
         const { data: existingRole } = await supabaseAdmin
@@ -353,6 +370,26 @@ Deno.serve(async (req) => {
       // Remove role
       if (action === "remove-role") {
         const { roleId, teamMembershipId, supporterLinkId } = body;
+
+        if (!isAdmin) {
+          if (roleId) {
+            const { data: r } = await supabaseAdmin
+              .from("user_roles").select("user_id, club_id, role").eq("id", roleId).maybeSingle();
+            if (!r) return forbidden();
+            if (r.role === "admin") return forbidden("Cannot remove admin role");
+            if (!clubInScope(r.club_id) && !(await userInClubAdminScope(r.user_id))) return forbidden();
+          }
+          if (teamMembershipId) {
+            const { data: tm } = await supabaseAdmin
+              .from("team_members").select("team_id, user_id").eq("id", teamMembershipId).maybeSingle();
+            if (!tm || !(await teamInScope(tm.team_id))) return forbidden();
+          }
+          if (supporterLinkId) {
+            const { data: sl } = await supabaseAdmin
+              .from("supporters_link").select("player_id, supporter_id").eq("id", supporterLinkId).maybeSingle();
+            if (!sl || !(await userInClubAdminScope(sl.player_id))) return forbidden();
+          }
+        }
 
         if (roleId) {
           await supabaseAdmin.from("user_roles").delete().eq("id", roleId);
