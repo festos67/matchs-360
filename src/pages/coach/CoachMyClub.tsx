@@ -255,6 +255,8 @@ const CoachMyClub = () => {
 
         {/* Référentiel du club */}
         {clubFramework && clubId && (
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-3">Référentiel du club</h2>
           <button
             type="button"
             onClick={() => navigate(`/clubs/${clubId}/framework`)}
@@ -281,35 +283,42 @@ const CoachMyClub = () => {
               Imprimer
             </Button>
           </button>
+          </div>
         )}
 
         {/* Teams circles */}
-        <div className="bg-card rounded-xl border border-border p-6">
+        <div>
           <h2 className="text-xl font-semibold text-foreground mb-6">Équipes du club</h2>
 
           {loadingTeams || loadingMembers ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2">
-                  <Skeleton className="w-24 h-24 rounded-full" />
+                  <Skeleton className="w-full aspect-square max-w-[7rem] rounded-2xl" />
                   <Skeleton className="h-4 w-20" />
                   <Skeleton className="h-3 w-16" />
                 </div>
               ))}
             </div>
           ) : teamsWithInfo.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
               {teamsWithInfo.map((team) => (
                 <Link key={team.id} to={`/teams/${team.id}`} className="group">
                   <div className="flex flex-col items-center text-center">
-                    <CircleAvatar
-                      shape="square"
-                      name={team.name}
-                      shortName={team.short_name}
-                      color={team.color || "#3B82F6"}
-                      size="md"
-                      showName={false}
-                    />
+                    <div
+                      className="w-full aspect-square max-w-[7rem] rounded-2xl flex items-center justify-center font-display font-bold text-white text-[clamp(1rem,4vw,1.75rem)] transition-transform group-hover:-translate-y-0.5 group-hover:shadow-lg"
+                      style={{
+                        background: `linear-gradient(135deg, ${team.color || "#3B82F6"} 0%, ${team.color || "#3B82F6"}88 100%)`,
+                      }}
+                    >
+                      {team.short_name ||
+                        team.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                    </div>
                     <p className="font-semibold text-foreground mt-2 group-hover:text-primary transition-colors text-sm">
                       {team.name}
                     </p>
