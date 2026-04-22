@@ -157,7 +157,13 @@ export function PlayerEvaluationTab({
                   const playerName = `${player.first_name || ""} ${player.last_name || ""}`.trim();
                   const coachName = referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : "";
                   const evalDate = new Date(selectedEvaluation.date);
-                  return `Débrief N°${evalNumber} – ${playerName} – ${coachName} – ${evalDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })} ${evalDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+                   return (
+                     <>
+                       Débrief N°{evalNumber} – {playerName}
+                       <br />
+                       {coachName} – {evalDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })} {evalDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                     </>
+                   );
                 })() : "Aucune évaluation"}
               </p>
             </div>
