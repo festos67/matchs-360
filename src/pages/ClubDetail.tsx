@@ -392,14 +392,20 @@ export default function ClubDetail() {
       <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-start gap-5">
         {/* Logo club */}
         <div
-          className="rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
+          className="relative rounded-2xl overflow-hidden bg-secondary flex-shrink-0 flex items-center justify-center"
           style={{
             width: "8.5rem",
             height: "8.5rem",
-            ...(club.logo_url ? { background: `url(${club.logo_url}) center/cover` } : {}),
           }}
         >
-          {!club.logo_url && (
+          {club.logo_url ? (
+            <img
+              src={club.logo_url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
             <span className="font-display text-5xl font-extrabold text-foreground">
               {club.short_name || club.name.slice(0, 2).toUpperCase()}
             </span>

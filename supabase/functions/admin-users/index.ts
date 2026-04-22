@@ -51,6 +51,33 @@ function getSafeOrigin(req: Request): string {
   return FALLBACK_ORIGIN;
 }
 
+/**
+ * SECURITY: validate user-provided photo URL.
+ * Only allows HTTPS URLs pointing to the project's Supabase Storage
+ * public bucket `user-photos`. Rejects data:, javascript:, http:, and
+ * any external origin. Prevents tracking pixels, XSS via SVG, SSRF
+ * reconnaissance, and DoS via oversized remote images.
+ */
+const MAX_PHOTO_URL_LENGTH = 2048;
+function isValidPhotoUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  if (value.length === 0 || value.length > MAX_PHOTO_URL_LENGTH) return false;
+  let parsed: URL;
+  try { parsed = new URL(value); } catch { return false; }
+  if (parsed.protocol !== "https:") return false;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  let allowedHost = "";
+  try { allowedHost = new URL(supabaseUrl).host; } catch { /* noop */ }
+  if (!allowedHost || parsed.host !== allowedHost) return false;
+
+  // Must point to the public user-photos bucket.
+  if (!parsed.pathname.startsWith("/storage/v1/object/public/user-photos/")) {
+    return false;
+  }
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -464,7 +491,16 @@ Deno.serve(async (req) => {
           updated_at: new Date().toISOString(),
         };
         if (photoUrl !== undefined) {
-          updateData.photo_url = photoUrl;
+          if (photoUrl === null || photoUrl === "") {
+            updateData.photo_url = null;
+          } else if (isValidPhotoUrl(photoUrl)) {
+            updateData.photo_url = photoUrl;
+          } else {
+            return new Response(
+              JSON.stringify({ error: "Invalid photoUrl: must be HTTPS URL on Supabase user-photos bucket" }),
+              { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
         }
 
         const { error } = await supabaseAdmin
