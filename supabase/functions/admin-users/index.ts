@@ -689,7 +689,7 @@ Deno.serve(async (req) => {
                     
                     <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
                       Bonjour,<br><br>
-                      Vous avez été invité(e) à rejoindre <strong>${clubName}</strong>${rolesText ? ` en tant que <strong>${rolesText}</strong>` : ""}.
+                      Vous avez été invité(e) à rejoindre <strong>${escapeHtml(clubName)}</strong>${rolesText ? ` en tant que <strong>${escapeHtml(rolesText)}</strong>` : ""}.
                       <br><br>
                       Ceci est un rappel de votre invitation en attente.
                     </p>
@@ -700,7 +700,7 @@ Deno.serve(async (req) => {
                     
                     <p style="color: #71717a; font-size: 12px; line-height: 1.6;">
                       Ou copiez ce lien dans votre navigateur :<br>
-                      <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${inviteLink}</a>
+                      <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${escapeHtml(inviteLink)}</a>
                     </p>
                     
                     <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 32px 0;">
