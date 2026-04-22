@@ -100,8 +100,10 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
         {/* Header */}
         <div style={{ borderBottom: "3px solid #3B82F6", paddingBottom: "14px", marginBottom: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-            <Activity style={{ width: "30px", height: "30px", color: "#3B82F6" }} />
-            <span style={{ fontSize: "20px", fontWeight: 700, color: "#3B82F6", letterSpacing: "1.5px" }}>MATCHS360</span>
+            <RadarLogoSvg size={36} />
+            <span style={{ fontSize: "22px", fontWeight: 800, letterSpacing: "-0.5px", fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}>
+              <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: BRAND_NAVY }}>360</span>
+            </span>
             {clubLogoSrc && (
               <img
                 src={clubLogoSrc}
@@ -210,8 +212,10 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
         {/* Footer */}
         <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: "8px", marginTop: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <Activity style={{ width: "12px", height: "12px", color: "#3B82F6" }} />
-            <span style={{ fontSize: "9px", color: "#9CA3AF", fontWeight: 600 }}>MATCHS360</span>
+            <RadarLogoSvg size={14} />
+            <span style={{ fontSize: "10px", fontWeight: 700, fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}>
+              <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: BRAND_NAVY }}>360</span>
+            </span>
           </div>
         </div>
       </div>
