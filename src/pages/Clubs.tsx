@@ -33,6 +33,7 @@ import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -114,10 +115,7 @@ export default function Clubs() {
           </p>
         </div>
         {isAdmin && (
-          <Button variant="accent" className="gap-2" onClick={() => setShowCreateModal(true)}>
-            <Plus className="w-4 h-4" />
-            Nouveau club
-          </Button>
+          <AddEntityButton type="club" onClick={() => setShowCreateModal(true)} />
         )}
       </div>
 
