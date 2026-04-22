@@ -8,6 +8,22 @@ const corsHeaders = {
 };
 
 /**
+ * SECURITY: HTML entity escape to prevent XSS / phishing injection
+ * via user-controlled fields (clubs.name, firstName, role labels) that
+ * are interpolated into outbound email HTML. Covers the OWASP minimum set.
+ */
+function escapeHtml(input: unknown): string {
+  if (input === null || input === undefined) return "";
+  return String(input)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/\//g, "&#x2F;");
+}
+
+/**
  * SECURITY: whitelist of trusted origins allowed to be used as `redirectTo`
  * in invitation links. Prevents an attacker from forging the Origin header
  * to make the invitation email link to a phishing domain.
@@ -348,9 +364,9 @@ const handler = async (req: Request): Promise<Response> => {
               <h2 style="color: #18181b; font-size: 20px; margin-bottom: 16px;">Vous êtes invité(e) !</h2>
               
               <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
-                Bonjour${firstName ? ` ${firstName}` : ""},<br><br>
-                Vous avez été invité(e) à rejoindre <strong>${club?.name || "MATCHS360"}</strong> 
-                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+                Bonjour${firstName ? ` ${escapeHtml(firstName)}` : ""},<br><br>
+                Vous avez été invité(e) à rejoindre <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> 
+                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.
               </p>
               
               <a href="${inviteLink}" style="display: block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 24px;">
@@ -359,7 +375,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <p style="color: #71717a; font-size: 12px; line-height: 1.6;">
                 Ou copiez ce lien dans votre navigateur :<br>
-                <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${inviteLink}</a>
+                <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${escapeHtml(inviteLink)}</a>
               </p>
               
               <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 32px 0;">
@@ -534,8 +550,8 @@ const handler = async (req: Request): Promise<Response> => {
               <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
               <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
               <p style="color: #3f3f46; line-height: 1.6;">
-                Vous avez été ajouté(e) à <strong>${club?.name || "MATCHS360"}</strong> 
-                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+                Vous avez été ajouté(e) à <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> 
+                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.
               </p>
               <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
                 Accéder à mon espace
