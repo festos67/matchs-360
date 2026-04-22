@@ -7,6 +7,56 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * SECURITY: whitelist of trusted origins allowed to be used as `redirectTo`
+ * in invitation links. Prevents an attacker from forging the Origin header
+ * to make the invitation email link to a phishing domain.
+ * Extra origins can be added via the ALLOWED_ORIGINS env var (comma-separated).
+ */
+const FALLBACK_ORIGIN = "https://matchs360.lovable.app";
+const STATIC_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+  /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i,
+  /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i,
+  /^https:\/\/([a-z0-9-]+\.)*sandbox\.lovable\.dev$/i,
+  /^http:\/\/localhost(:\d+)?$/i,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/i,
+];
+
+function isOriginAllowed(origin: string | null): boolean {
+  if (!origin) return false;
+  try {
+    // Validate it parses as a URL
+    new URL(origin);
+  } catch {
+    return false;
+  }
+  if (STATIC_ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin))) return true;
+  const extra = (Deno.env.get("ALLOWED_ORIGINS") || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return extra.includes(origin);
+}
+
+function getSafeOrigin(req: Request): string {
+  const candidate =
+    req.headers.get("origin") ||
+    (req.headers.get("referer")
+      ? (() => {
+          try {
+            return new URL(req.headers.get("referer")!).origin;
+          } catch {
+            return null;
+          }
+        })()
+      : null);
+  if (candidate && isOriginAllowed(candidate)) return candidate;
+  if (candidate) {
+    console.warn("Rejected untrusted origin, falling back to canonical URL");
+  }
+  return FALLBACK_ORIGIN;
+}
+
 interface InvitationRequest {
   email: string;
   firstName?: string;
@@ -192,13 +242,9 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Use the origin from the request, falling back to referer
-    const origin = req.headers.get("origin") || 
-                   (req.headers.get("referer") ? new URL(req.headers.get("referer")!).origin : null);
-    
-    if (!origin) {
-      throw new Error("Could not determine application origin");
-    }
+    // SECURITY: validate Origin/Referer against whitelist to prevent phishing
+    // via forged headers in the generated invitation link.
+    const origin = getSafeOrigin(req);
 
     // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
