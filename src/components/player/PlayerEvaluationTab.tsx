@@ -19,6 +19,7 @@ import { useState, useCallback } from "react";
 import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
