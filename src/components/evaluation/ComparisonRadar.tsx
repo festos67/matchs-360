@@ -124,19 +124,19 @@ export const ComparisonRadar = ({
             <PolarAngleAxis
               dataKey="theme"
               tick={{
-                fill: "hsl(var(--foreground))",
-                fontSize: 12,
-                fontWeight: 700,
+                fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                fontSize: isDark ? 12 : 11,
+                fontWeight: isDark ? 700 : 500,
               }}
-              tickLine={{ stroke: "hsl(var(--muted-foreground) / 0.5)" }}
+              tickLine={{ stroke: isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))" }}
             />
             <PolarRadiusAxis
               angle={90}
               domain={[0, 5]}
               tick={{
-                fill: "hsl(var(--foreground))",
-                fontSize: 11,
-                fontWeight: 600,
+                fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                fontSize: isDark ? 11 : 10,
+                fontWeight: isDark ? 600 : 400,
               }}
               tickCount={6}
               axisLine={false}
@@ -216,10 +216,10 @@ export const ComparisonRadar = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Custom legend for better visibility */}
-      {datasets.length > 1 && (
-        <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border">
-          {datasets.map((dataset) => (
+      {/* Custom legend for better visibility — reserved space to prevent chart resize */}
+      <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-border min-h-[2.5rem]">
+        {datasets.length > 1 &&
+          datasets.map((dataset) => (
             <div key={dataset.id} className="flex items-center gap-2">
               <div
                 className="w-4 h-1 rounded-full"
@@ -231,17 +231,16 @@ export const ComparisonRadar = ({
               <span className="text-xs text-muted-foreground">
                 {dataset.label}
                 <span className="ml-1 text-muted-foreground/60">
-                  ({new Date(dataset.date).toLocaleDateString("fr-FR", { 
-                    day: "numeric", 
+                  ({new Date(dataset.date).toLocaleDateString("fr-FR", {
+                    day: "numeric",
                     month: "short",
-                    year: "2-digit"
+                    year: "2-digit",
                   })})
                 </span>
               </span>
             </div>
           ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 };
