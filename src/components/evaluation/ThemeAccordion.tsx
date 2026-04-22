@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StarRating } from "./StarRating";
-import { calculateThemeAverage, formatAverage, SCORE_LABELS, type SkillScore } from "@/lib/evaluation-utils";
+import { calculateThemeAverage, formatAverage, SCORE_LABELS, getScoreLabel, type SkillScore } from "@/lib/evaluation-utils";
 
 interface Skill {
   id: string;
@@ -43,6 +43,7 @@ interface SkillRowProps {
   onNotObservedChange: (isNotObserved: boolean) => void;
   onCommentChange: (comment: string) => void;
   disabled?: boolean;
+  showDefinitionInline?: boolean;
 }
 
 export const SkillRow = ({
@@ -53,6 +54,7 @@ export const SkillRow = ({
   onNotObservedChange,
   onCommentChange,
   disabled = false,
+  showDefinitionInline = false,
 }: SkillRowProps) => {
   const [showComment, setShowComment] = useState(!!score.comment);
   const [showPreviousScore, setShowPreviousScore] = useState(false);
@@ -90,6 +92,11 @@ export const SkillRow = ({
               </Tooltip>
             )}
           </div>
+          {showDefinitionInline && skill.definition && (
+            <p className="text-xs text-muted-foreground mt-1 leading-snug">
+              {skill.definition}
+            </p>
+          )}
         </div>
 
         {/* Star rating */}
@@ -212,6 +219,8 @@ interface ThemeAccordionProps {
   onObjectiveChange: (objective: string) => void;
   disabled?: boolean;
   defaultOpen?: boolean;
+  showDefinitionInline?: boolean;
+  showAverageAsLabel?: boolean;
 }
 
 export const ThemeAccordion = ({
@@ -227,6 +236,8 @@ export const ThemeAccordion = ({
   onObjectiveChange,
   disabled = false,
   defaultOpen = true,
+  showDefinitionInline = false,
+  showAverageAsLabel = false,
 }: ThemeAccordionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
@@ -259,15 +270,24 @@ export const ThemeAccordion = ({
 
             {/* Average score display */}
             <div className="text-right">
-              <div className="flex items-center gap-2">
+              {showAverageAsLabel ? (
                 <span
-                  className="text-2xl font-display font-bold"
+                  className="text-base font-display font-semibold"
                   style={{ color: themeColor || "hsl(var(--primary))" }}
                 >
-                  {formatAverage(average)}
+                  {average !== null ? getScoreLabel(average) : "—"}
                 </span>
-                <span className="text-muted-foreground">/5</span>
-              </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span
+                    className="text-2xl font-display font-bold"
+                    style={{ color: themeColor || "hsl(var(--primary))" }}
+                  >
+                    {formatAverage(average)}
+                  </span>
+                  <span className="text-muted-foreground">/5</span>
+                </div>
+              )}
             </div>
           </button>
         </CollapsibleTrigger>
@@ -293,6 +313,7 @@ export const ThemeAccordion = ({
                   onNotObservedChange={(isNotObserved) => onNotObservedChange(skill.id, isNotObserved)}
                   onCommentChange={(comment) => onCommentChange(skill.id, comment)}
                   disabled={disabled}
+                  showDefinitionInline={showDefinitionInline}
                 />
               );
             })}
