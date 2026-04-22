@@ -108,6 +108,7 @@ Deno.serve(async (req) => {
             msg_id: msg.msg_id,
             queued_at: payload.queued_at,
             ttl_minutes: ttlMinutes[queue],
+            recipient: maskEmail(payload.to),
           })
           await supabase.from('email_send_log').insert({
             message_id: payload.message_id,
