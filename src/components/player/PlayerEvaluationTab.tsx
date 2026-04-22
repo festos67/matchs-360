@@ -19,7 +19,6 @@ import { useState, useCallback } from "react";
 import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
@@ -41,7 +40,6 @@ interface PlayerEvaluationTabProps {
   isViewingHistory: boolean;
   comparisonIds: string[];
   onReturnToCurrent: () => void;
-  onClearComparison: () => void;
   onToggleComparison: (id: string) => void;
 }
 
@@ -60,7 +58,6 @@ export function PlayerEvaluationTab({
   isViewingHistory,
   comparisonIds,
   onReturnToCurrent,
-  onClearComparison,
   onToggleComparison,
 }: PlayerEvaluationTabProps) {
   const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
@@ -191,7 +188,7 @@ export function PlayerEvaluationTab({
                   <div className="flex items-center gap-2 shrink-0">
                     <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
                     <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <UserCircle className="w-4 h-4 text-green-500" />Auto-éval
+                      <UserCircle className="w-4 h-4 text-success" />Auto-éval
                     </Label>
                   </div>
                 )}
@@ -199,7 +196,7 @@ export function PlayerEvaluationTab({
                   <div className="flex items-center gap-2 shrink-0">
                     <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
                     <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <Heart className="w-4 h-4 text-orange-500" />Supporter
+                      <Heart className="w-4 h-4 text-accent" />Supporter
                     </Label>
                   </div>
                 )}
