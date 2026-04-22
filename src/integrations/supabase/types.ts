@@ -1304,6 +1304,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      import_framework_atomic: {
+        Args: {
+          p_framework_name: string
+          p_source_framework_id: string
+          p_target_club_id: string
+          p_target_team_id: string
+        }
+        Returns: string
+      }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_club_admin: {
         Args: { _club_id: string; _user_id: string }
