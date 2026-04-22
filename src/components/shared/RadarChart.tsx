@@ -15,17 +15,17 @@
  *  - Pour les évaluations, préférer ComparisonRadar (légende externe)
  *  - Stabilité : mem://technical/radar-chart-visual-stability
  */
-import {
-  Radar,
-  RadarChart as RechartsRadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
+import * as RechartsPrimitive from "recharts";
+
+const Radar = RechartsPrimitive.Radar as unknown as ComponentType<any>;
+const RechartsRadarChart = RechartsPrimitive.RadarChart as unknown as ComponentType<any>;
+const PolarGrid = RechartsPrimitive.PolarGrid as unknown as ComponentType<any>;
+const PolarAngleAxis = RechartsPrimitive.PolarAngleAxis as unknown as ComponentType<any>;
+const PolarRadiusAxis = RechartsPrimitive.PolarRadiusAxis as unknown as ComponentType<any>;
+const ResponsiveContainer = RechartsPrimitive.ResponsiveContainer as unknown as ComponentType<any>;
+const Legend = RechartsPrimitive.Legend as unknown as ComponentType<any>;
+const Tooltip = RechartsPrimitive.Tooltip as unknown as ComponentType<any>;
 
 interface RadarDataPoint {
   skill: string;
@@ -155,7 +155,7 @@ export const RadarChart = ({
               wrapperStyle={{
                 paddingTop: "20px",
               }}
-              formatter={(value) => (
+              formatter={(value: string) => (
                 <span className="text-muted-foreground text-sm">{value}</span>
               )}
             />

@@ -18,7 +18,6 @@
  */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Building2, X, Image } from "lucide-react";
 import { ColorPickerButton } from "@/components/shared/ColorPickerButton";
@@ -42,6 +41,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const DRAFT_KEY = "create-club-draft";
 
@@ -110,7 +110,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
     setValue,
     formState: { errors },
   } = useForm<ClubFormData>({
-    resolver: zodResolver(clubSchema),
+    resolver: typedZodResolver<ClubFormData>(clubSchema),
     defaultValues: draft
       ? { ...defaultValues, ...draft }
       : defaultValues,

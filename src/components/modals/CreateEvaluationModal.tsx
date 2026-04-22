@@ -19,7 +19,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Trophy, Search, User } from "lucide-react";
 import {
@@ -42,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const evaluationSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
@@ -107,7 +107,7 @@ export const CreateEvaluationModal = ({
     watch,
     formState: { errors },
   } = useForm<EvaluationFormData>({
-    resolver: zodResolver(evaluationSchema),
+    resolver: typedZodResolver<EvaluationFormData>(evaluationSchema),
     defaultValues: {
       name: `Débrief ${new Date().toLocaleDateString("fr-FR")}`,
     },

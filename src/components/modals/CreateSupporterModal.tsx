@@ -16,7 +16,6 @@
  */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Heart } from "lucide-react";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
@@ -42,6 +41,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -88,7 +88,7 @@ export const CreateSupporterModal = ({
     setValue,
     formState: { errors },
   } = useForm<SupporterFormData>({
-    resolver: zodResolver(supporterSchema),
+    resolver: typedZodResolver<SupporterFormData>(supporterSchema),
     defaultValues: {
       playerIds: [],
     },

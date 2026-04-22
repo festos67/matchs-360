@@ -16,7 +16,6 @@
  */
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Plus, Trash2, UserPlus, Mail } from "lucide-react";
@@ -34,6 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -81,7 +81,7 @@ export const ManageSupportersModal = ({
     reset,
     formState: { errors },
   } = useForm<SupporterFormData>({
-    resolver: zodResolver(supporterSchema),
+    resolver: typedZodResolver<SupporterFormData>(supporterSchema),
   });
 
   interface SupporterLinkRow {

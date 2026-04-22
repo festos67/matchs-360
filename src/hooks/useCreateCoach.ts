@@ -26,13 +26,13 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import type { TeamAssignmentItem } from "@/components/modals/shared/TeamAssignmentMatrix";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const coachSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -71,7 +71,7 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   const form = useForm<CoachFormData>({
-    resolver: zodResolver(coachSchema),
+    resolver: typedZodResolver<CoachFormData>(coachSchema),
   });
 
   useEffect(() => {

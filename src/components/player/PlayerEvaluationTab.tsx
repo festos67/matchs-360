@@ -149,10 +149,10 @@ export function PlayerEvaluationTab({
       <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
         {/* Radar */}
         <div className="2xl:col-span-2 glass-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
+          <div className="flex items-start justify-between gap-4 mb-4 min-h-[5.5rem]">
+            <div className="min-h-[3.5rem] flex-1">
               <h2 className="text-xl font-display font-semibold">Analyse des résultats</h2>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground mt-1 min-h-[2.5rem]">
                 {hasComparisonLayers ? (() => {
                   const sources = [];
                   if (comparisonIds.length > 0) sources.push("Dernier débrief");
@@ -176,7 +176,7 @@ export function PlayerEvaluationTab({
                 })() : "Aucune évaluation"}
               </p>
             </div>
-              <div className="flex items-center gap-4 flex-nowrap">
+              <div className="flex items-center gap-4 flex-nowrap min-h-[2.5rem] shrink-0 self-start">
                 {previousCoachEvaluation && (
                   <div className="flex items-center gap-2 shrink-0">
                     <Checkbox id="coach-layer" checked={comparisonIds.includes(previousCoachEvaluation.id)} onCheckedChange={() => onToggleComparison(previousCoachEvaluation.id)} />

@@ -13,16 +13,16 @@
  *  - Calculs alimentation via calculateRadarData (lib/evaluation-utils)
  *  - Stabilité visuelle : mem://technical/radar-chart-visual-stability
  */
-import {
-  Radar,
-  RadarChart as RechartsRadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ComponentType } from "react";
+import * as RechartsPrimitive from "recharts";
+
+const Radar = RechartsPrimitive.Radar as unknown as ComponentType<any>;
+const RechartsRadarChart = RechartsPrimitive.RadarChart as unknown as ComponentType<any>;
+const PolarGrid = RechartsPrimitive.PolarGrid as unknown as ComponentType<any>;
+const PolarAngleAxis = RechartsPrimitive.PolarAngleAxis as unknown as ComponentType<any>;
+const PolarRadiusAxis = RechartsPrimitive.PolarRadiusAxis as unknown as ComponentType<any>;
+const ResponsiveContainer = RechartsPrimitive.ResponsiveContainer as unknown as ComponentType<any>;
+const Tooltip = RechartsPrimitive.Tooltip as unknown as ComponentType<any>;
 
 interface RadarDataPoint {
   theme: string;

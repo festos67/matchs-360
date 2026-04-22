@@ -18,7 +18,6 @@
  */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { User, AlertTriangle, UserPlus, ArrowRightLeft, Search, Check } from "lucide-react";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
@@ -67,6 +66,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
+import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -137,7 +137,7 @@ export const CreatePlayerModal = ({
     watch,
     formState: { errors },
   } = useForm<PlayerFormData>({
-    resolver: zodResolver(playerSchema),
+    resolver: typedZodResolver<PlayerFormData>(playerSchema),
     defaultValues: {
       teamId: defaultTeamId || "",
     },
