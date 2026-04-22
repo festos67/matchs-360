@@ -50,7 +50,6 @@ import { Search, Heart, Loader2, ChevronDown, Plus, Edit, UserCircle } from "luc
 import { Button } from "@/components/ui/button";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { EditUserModal } from "@/components/modals/EditUserModal";
-import { AddEntityButton } from "@/components/shared/AddEntityButton";
 
 interface SupporterData {
   id: string;
@@ -461,7 +460,10 @@ const Supporters = () => {
             </p>
           </div>
           {canCreate && currentRole?.club_id && (
-            <AddEntityButton type="supporter" onClick={() => setShowCreateSupporter(true)} />
+            <Button variant="accent" onClick={() => setShowCreateSupporter(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Ajouter un supporter
+            </Button>
           )}
         </div>
 

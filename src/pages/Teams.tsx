@@ -57,7 +57,6 @@ import {
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { TeamCard } from "@/components/shared/TeamCard";
-import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {
@@ -271,7 +270,10 @@ const Teams = () => {
             </p>
           </div>
           {(isAdmin || currentRole?.role === "club_admin") && (
-            <AddEntityButton type="team" onClick={() => setShowCreateTeam(true)} />
+            <Button variant="accent" onClick={() => setShowCreateTeam(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Nouvelle équipe
+            </Button>
           )}
         </div>
 

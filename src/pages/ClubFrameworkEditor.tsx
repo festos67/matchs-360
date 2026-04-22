@@ -381,64 +381,66 @@ export default function ClubFrameworkEditor() {
   return (
     <AppLayout>
       <div className="pb-8">
-        {/* Header card */}
-        <div className="mb-8 rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h1 className="!text-2xl font-display font-bold truncate">{frameworkName || "Référentiel du Club"}</h1>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {club.name} • Modèle du club • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
-                </p>
-              </div>
+        {/* Title card */}
+        <div className="mb-4 rounded-xl border border-border bg-card px-4 sm:px-6 py-5 shadow-sm">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-6 h-6 text-primary" />
             </div>
-            {framework && (
-              <div className="rounded-lg border border-border bg-muted/30 p-2 flex flex-wrap items-center gap-2 lg:flex-nowrap">
-                {canEdit && (
-                  <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)} className="flex-1 lg:flex-none min-w-0">
-                    <Pencil className="w-4 h-4 mr-2 text-orange-500" />
-                    Modifier
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="flex-1 lg:flex-none min-w-0">
-                  <History className="w-4 h-4 mr-2 text-orange-500" />
-                  Historique
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex-1 lg:flex-none min-w-0">
-                  <Printer className="w-4 h-4 mr-2 text-orange-500" />
-                  Imprimer
-                </Button>
-                {canEdit && (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive flex-1 lg:flex-none min-w-0">
-                        <RotateCcw className="w-4 h-4 mr-2 text-destructive" />
-                        Supprimer
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                          Supprimer
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
-              </div>
-            )}
+            <div className="flex-1 min-w-0">
+              <h1 className="!text-2xl font-display font-bold truncate">{frameworkName || "Référentiel du Club"}</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {club.name} • Modèle du club • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* Actions card (paysage, sous le titre) */}
+        {framework && (
+          <div className="mb-8 rounded-xl border border-border bg-card px-4 sm:px-6 py-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {canEdit && (
+                <Button variant="outline" size="sm" onClick={() => setShowEditConfirm(true)} className="flex-1 sm:flex-none min-w-0">
+                  <Pencil className="w-4 h-4 mr-2 text-orange-500" />
+                  Modifier
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => setShowHistory(true)} className="flex-1 sm:flex-none min-w-0">
+                <History className="w-4 h-4 mr-2 text-orange-500" />
+                Historique
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handlePrint()} className="flex-1 sm:flex-none min-w-0">
+                <Printer className="w-4 h-4 mr-2 text-orange-500" />
+                Imprimer
+              </Button>
+              {canEdit && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive flex-1 sm:flex-none min-w-0">
+                      <RotateCcw className="w-4 h-4 mr-2 text-destructive" />
+                      Supprimer
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteFramework} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Supprimer
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Read-only Framework View */}
         {themes.length > 0 ? (

@@ -49,7 +49,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-import { AddEntityButton } from "@/components/shared/AddEntityButton";
 
 const STORAGE_KEY_CLUBS = "coaches-collapsed-clubs";
 
@@ -295,14 +294,21 @@ const Coaches = () => {
             </p>
           </div>
           {(currentRole?.role === "club_admin" && currentRole?.club_id) && (
-            <AddEntityButton type="coach" onClick={() => setCreateModalOpen(true)} />
+            <Button variant="accent" onClick={() => setCreateModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un coach
+            </Button>
           )}
           {currentRole?.role === "admin" && (
-            <AddEntityButton
-              type="coach"
-              onClick={() => clubFilter !== "all" && setCreateModalOpen(true)}
-              className={clubFilter === "all" ? "opacity-50 cursor-not-allowed" : undefined}
-            />
+            <Button
+              variant="accent"
+              onClick={() => setCreateModalOpen(true)}
+              disabled={clubFilter === "all"}
+              title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un coach
+            </Button>
           )}
         </div>
 
