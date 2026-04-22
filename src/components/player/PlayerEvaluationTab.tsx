@@ -89,41 +89,51 @@ export function PlayerEvaluationTab({
   }, [selectedEvalThemes]);
 
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
-  const showComparison = comparisonIds.length > 0;
 
   const latestCoachEvaluation = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
   const latestSelfEvaluation = evaluations.find(e => e.type === "self" && !e.deleted_at && e.framework_id === frameworkId);
   const latestSupporterEvaluation = evaluations.find(e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId);
   const currentFrameworkCoachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
   const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
+  const hasComparisonLayers = comparisonIds.length > 0 || showSelfEvalLayer || showSupporterLayer;
 
-  const isMultiSourceMode = showSelfEvalLayer || showSupporterLayer;
-
-  const getMultiSourceOverlayDatasets = () => {
+  const getDisplayedDatasets = () => {
     const datasets: Array<{ id: string; label: string; date: string; data: ReturnType<typeof calculateRadarData>; color: string; isCurrent?: boolean }> = [];
-    if (selectedEvaluation) {
-      datasets.push({ id: selectedEvaluation.id, label: selectedEvaluation.name, date: selectedEvaluation.date, data: calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation)), color: teamColor, isCurrent: true });
-    }
-    if (showSelfEvalLayer && latestSelfEvaluation && latestSelfEvaluation.id !== selectedEvaluation?.id) {
-      datasets.push({ id: latestSelfEvaluation.id, label: "Auto-débrief", date: latestSelfEvaluation.date, data: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)), color: "#F59E0B", isCurrent: false });
-    }
-    if (showSupporterLayer && latestSupporterEvaluation && latestSupporterEvaluation.id !== selectedEvaluation?.id) {
-      datasets.push({ id: latestSupporterEvaluation.id, label: "Débrief Supporter", date: latestSupporterEvaluation.date, data: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)), color: "#F97316", isCurrent: false });
-    }
-    return datasets;
-  };
+    const seenIds = new Set<string>();
 
-  const getComparisonDatasets = () => {
-    const datasets: Array<{ id: string; label: string; date: string; data: ReturnType<typeof calculateRadarData>; color: string; isCurrent?: boolean }> = [];
-    if (selectedEvaluation) {
-      datasets.push({ id: selectedEvaluation.id, label: selectedEvaluation.name, date: selectedEvaluation.date, data: calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation)), color: teamColor, isCurrent: true });
-    }
+    const pushDataset = (
+      evaluation: Evaluation | null,
+      options: { label?: string; color: string; isCurrent?: boolean },
+    ) => {
+      if (!evaluation || seenIds.has(evaluation.id)) return;
+      seenIds.add(evaluation.id);
+      datasets.push({
+        id: evaluation.id,
+        label: options.label || evaluation.name,
+        date: evaluation.date,
+        data: calculateRadarData(getRadarDataFromEvaluation(evaluation)),
+        color: options.color,
+        isCurrent: options.isCurrent,
+      });
+    };
+
+    pushDataset(selectedEvaluation, { color: teamColor, isCurrent: true });
+
     comparisonIds.forEach((evalId, index) => {
       const evaluation = evaluations.find(e => e.id === evalId);
-      if (evaluation && evaluation.id !== selectedEvaluation?.id) {
-        datasets.push({ id: evaluation.id, label: evaluation.name, date: evaluation.date, data: calculateRadarData(getRadarDataFromEvaluation(evaluation)), color: COMPARISON_COLORS[index % COMPARISON_COLORS.length], isCurrent: false });
-      }
+      pushDataset(evaluation ?? null, {
+        color: COMPARISON_COLORS[index % COMPARISON_COLORS.length],
+      });
     });
+
+    if (showSelfEvalLayer) {
+      pushDataset(latestSelfEvaluation, { label: "Auto-débrief", color: "#F59E0B" });
+    }
+
+    if (showSupporterLayer) {
+      pushDataset(latestSupporterEvaluation, { label: "Débrief Supporter", color: "#F97316" });
+    }
+
     return datasets;
   };
 
@@ -145,11 +155,12 @@ export function PlayerEvaluationTab({
             <div>
               <h2 className="text-xl font-display font-semibold">Analyse des résultats</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                {isMultiSourceMode ? (() => {
+                {hasComparisonLayers ? (() => {
                   const sources = [];
+                  if (comparisonIds.length > 0) sources.push("Dernier débrief");
                   if (showSelfEvalLayer && latestSelfEvaluation) sources.push("Auto-éval");
                   if (showSupporterLayer && latestSupporterEvaluation) sources.push("Supporter");
-                  return sources.length > 0 ? `Comparaison: ${sources.join(" vs ")}` : "Sélectionnez au moins une source";
+                  return sources.length > 0 ? `Comparaison: ${sources.join(" + ")}` : "Sélectionnez au moins une source";
                 })() : selectedEvaluation ? (() => {
                   const coachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                   const evalIndex = coachEvals.findIndex(e => e.id === selectedEvaluation.id);
@@ -167,56 +178,38 @@ export function PlayerEvaluationTab({
                 })() : "Aucune évaluation"}
               </p>
             </div>
-            <div className="flex items-center gap-4 flex-nowrap">
-              {canEvaluate && !showComparison && (
-                <>
-                  {previousCoachEvaluation && (
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="coach-layer" checked={comparisonIds.includes(previousCoachEvaluation.id)} onCheckedChange={(checked) => { onToggleComparison(previousCoachEvaluation.id); }} />
-                      <Label htmlFor="coach-layer" className="text-sm cursor-pointer flex items-center gap-1.5">
-                        <ClipboardList className="w-4 h-4 text-primary" />Dernier débrief
-                      </Label>
-                    </div>
-                  )}
-                  {!!latestSelfEvaluation && (
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
-                      <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5">
-                        <UserCircle className="w-4 h-4 text-green-500" />Auto-éval
-                      </Label>
-                    </div>
-                  )}
-                  {!!latestSupporterEvaluation && (
-                    <div className="flex items-center gap-2">
-                      <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
-                      <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5">
-                        <Heart className="w-4 h-4 text-orange-500" />Supporter
-                      </Label>
-                    </div>
-                  )}
-                </>
-              )}
-              {showComparison && (
-                <Button variant="outline" size="sm" onClick={onClearComparison}>Effacer comparaison</Button>
-              )}
-            </div>
+              <div className="flex items-center gap-4 flex-nowrap">
+                {previousCoachEvaluation && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Checkbox id="coach-layer" checked={comparisonIds.includes(previousCoachEvaluation.id)} onCheckedChange={() => onToggleComparison(previousCoachEvaluation.id)} />
+                    <Label htmlFor="coach-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                      <ClipboardList className="w-4 h-4 text-primary" />Dernier débrief
+                    </Label>
+                  </div>
+                )}
+                {!!latestSelfEvaluation && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
+                    <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                      <UserCircle className="w-4 h-4 text-green-500" />Auto-éval
+                    </Label>
+                  </div>
+                )}
+                {!!latestSupporterEvaluation && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
+                    <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                      <Heart className="w-4 h-4 text-orange-500" />Supporter
+                    </Label>
+                  </div>
+                )}
+              </div>
           </div>
 
           {radarData.length > 0 ? (
-            isMultiSourceMode ? (
-              <ComparisonRadar datasets={getMultiSourceOverlayDatasets()} primaryColor={teamColor} />
-            ) : showComparison ? (
-              <ComparisonRadar datasets={getComparisonDatasets()} primaryColor={teamColor} />
-            ) : selectedEvaluation ? (
+            selectedEvaluation ? (
               <ComparisonRadar
-                datasets={[{
-                  id: selectedEvaluation.id,
-                  label: selectedEvaluation.name,
-                  date: selectedEvaluation.date,
-                  data: radarData,
-                  color: teamColor,
-                  isCurrent: true,
-                }]}
+                datasets={getDisplayedDatasets()}
                 primaryColor={teamColor}
               />
             ) : (
