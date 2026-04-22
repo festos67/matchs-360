@@ -24,6 +24,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { StatsCard } from "@/components/shared/StatsCard";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import {
   Users, Trophy, UserCog, Eye, Plus, User, Search,
   ChevronDown, ChevronRight, Target, BarChart3, TrendingUp, Shield,
@@ -440,12 +441,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             icon={Users}
             isOpen={teamsOpen}
             onToggle={() => setTeamsOpen(!teamsOpen)}
-            action={
-              <Button variant="outline" size="sm" className="gap-2" onClick={onCreateTeam}>
-                <Plus className="w-3.5 h-3.5 text-accent" />
-                Équipe
-              </Button>
-            }
+            action={<AddEntityButton type="team" onClick={onCreateTeam} />}
           />
           <CollapsibleContent>
             <div className="px-4 md:px-5 pb-2">
@@ -505,12 +501,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             icon={UserCog}
             isOpen={coachesOpen}
             onToggle={() => setCoachesOpen(!coachesOpen)}
-            action={
-              <Button variant="outline" size="sm" className="gap-2" onClick={onCreateCoach}>
-                <Plus className="w-3.5 h-3.5 text-accent" />
-                Coach
-              </Button>
-            }
+            action={<AddEntityButton type="coach" onClick={onCreateCoach} />}
           />
           <CollapsibleContent>
             <div className="px-4 md:px-5 pb-2">
