@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StarRating } from "./StarRating";
-import { calculateThemeAverage, formatAverage, SCORE_LABELS, type SkillScore } from "@/lib/evaluation-utils";
+import { calculateThemeAverage, formatAverage, SCORE_LABELS, getScoreLabel, type SkillScore } from "@/lib/evaluation-utils";
 
 interface Skill {
   id: string;
@@ -43,6 +43,7 @@ interface SkillRowProps {
   onNotObservedChange: (isNotObserved: boolean) => void;
   onCommentChange: (comment: string) => void;
   disabled?: boolean;
+  showDefinitionInline?: boolean;
 }
 
 export const SkillRow = ({
@@ -53,6 +54,7 @@ export const SkillRow = ({
   onNotObservedChange,
   onCommentChange,
   disabled = false,
+  showDefinitionInline = false,
 }: SkillRowProps) => {
   const [showComment, setShowComment] = useState(!!score.comment);
   const [showPreviousScore, setShowPreviousScore] = useState(false);
