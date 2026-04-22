@@ -160,9 +160,12 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
 
   const uploadLogo = async (clubId: string): Promise<string | null> => {
     if (!logoFile) return null;
-    const ext = logoFile.name.split(".").pop() || "png";
-    const path = `${clubId}/logo.${ext}`;
-    const { error } = await supabase.storage.from("club-logos").upload(path, logoFile, { upsert: true });
+    const { validateUpload } = await import("@/lib/upload-validation");
+    const { contentType, safeExt } = validateUpload(logoFile, "image");
+    const path = `${clubId}/logo.${safeExt}`;
+    const { error } = await supabase.storage
+      .from("club-logos")
+      .upload(path, logoFile, { upsert: true, contentType });
     if (error) throw error;
     const { data: urlData } = supabase.storage.from("club-logos").getPublicUrl(path);
     return urlData.publicUrl;

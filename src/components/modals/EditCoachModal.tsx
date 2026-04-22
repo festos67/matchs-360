@@ -213,9 +213,12 @@ export const EditCoachModal = ({
 
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile) return null;
-    const ext = photoFile.name.split(".").pop() || "png";
-    const path = `${coach.id}/photo.${ext}`;
-    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    const { validateUpload } = await import("@/lib/upload-validation");
+    const { contentType, safeExt } = validateUpload(photoFile, "image");
+    const path = `${coach.id}/photo.${safeExt}`;
+    const { error } = await supabase.storage
+      .from("user-photos")
+      .upload(path, photoFile, { upsert: true, contentType });
     if (error) throw error;
     const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
     return `${urlData.publicUrl}?t=${Date.now()}`;

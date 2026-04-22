@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
+import { validateUpload, UploadValidationError } from "@/lib/upload-validation";
 
 interface Player {
   id: string;
@@ -63,9 +64,11 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
 
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile) return null;
-    const ext = photoFile.name.split(".").pop() || "png";
-    const path = `${player.id}/photo.${ext}`;
-    const { error } = await supabase.storage.from("user-photos").upload(path, photoFile, { upsert: true });
+    const { contentType, safeExt } = validateUpload(photoFile, "image");
+    const path = `${player.id}/photo.${safeExt}`;
+    const { error } = await supabase.storage
+      .from("user-photos")
+      .upload(path, photoFile, { upsert: true, contentType });
     if (error) throw error;
     const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
     return `${urlData.publicUrl}?t=${Date.now()}`;
@@ -103,7 +106,8 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
       onOpenChange(false);
     } catch (error: unknown) {
       console.error("Error updating player:", error);
-      toast.error("Erreur lors de la mise à jour");
+      const msg = error instanceof UploadValidationError ? error.message : "Erreur lors de la mise à jour";
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

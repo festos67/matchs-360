@@ -356,9 +356,12 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
       }
 
       for (const file of newFiles) {
-        const ext = file.name.split(".").pop();
-        const filePath = `player/${playerId}/${objectiveId}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage.from("objective-attachments").upload(filePath, file);
+        const { validateUpload } = await import("@/lib/upload-validation");
+        const { contentType, safeExt } = validateUpload(file, "attachment");
+        const filePath = `player/${playerId}/${objectiveId}/${crypto.randomUUID()}.${safeExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("objective-attachments")
+          .upload(filePath, file, { contentType });
         if (uploadError) throw uploadError;
         const { error: insertError } = await (supabase as any).from("player_objective_attachments").insert({
           objective_id: objectiveId!,
