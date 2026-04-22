@@ -32,6 +32,7 @@ interface Skill {
 interface SortableSkillProps {
   skill: Skill;
   canEdit: boolean;
+  themeColor?: string | null;
   inputRef?: (el: HTMLInputElement | null) => void;
   onUpdate: (updates: Partial<Skill>) => void;
   onDelete: () => void;
@@ -40,6 +41,7 @@ interface SortableSkillProps {
 export const SortableSkill = ({
   skill,
   canEdit,
+  themeColor,
   inputRef,
   onUpdate,
   onDelete,
@@ -55,17 +57,20 @@ export const SortableSkill = ({
     isDragging,
   } = useSortable({ id: skill.id });
 
+  const baseColor = themeColor || "#3B82F6";
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    backgroundColor: `${baseColor}1F`, // ~12% alpha
+    borderColor: `${baseColor}40`, // ~25% alpha
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="grid grid-cols-[auto_1fr_1.5fr_auto] gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group items-start"
+      className="grid grid-cols-[auto_1fr_1.5fr_auto] gap-3 p-2 rounded-lg border transition-colors group items-start"
     >
       {/* Drag handle */}
       {canEdit ? (
