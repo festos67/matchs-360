@@ -21,11 +21,35 @@ import { useAuth } from "./useAuth";
 import type { PlanStatus, PlanLimits, Subscription, SubscriptionPlan } from "@/types/subscription";
 
 export function usePlan() {
-  const { profile } = useAuth();
+  const { profile, hasAdminRole } = useAuth();
   const [planStatus, setPlanStatus] = useState<PlanStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Recettage : les super admins sont toujours considérés Pro côté UI
+    // (le bypass DB est géré par get_club_plan()).
+    if (hasAdminRole) {
+      (async () => {
+        const { data: limits } = await supabase
+          .from("plan_limits")
+          .select("*")
+          .eq("plan", "pro")
+          .single();
+        setPlanStatus({
+          plan: "pro",
+          limits: limits as PlanLimits,
+          subscription: null,
+          isTrial: false,
+          trialDaysLeft: null,
+          seasonEnd: "",
+          isProration: false,
+          prorataAmount: null,
+        });
+        setLoading(false);
+      })();
+      return;
+    }
+
     if (!profile?.club_id) {
       setLoading(false);
       return;
@@ -87,7 +111,7 @@ export function usePlan() {
     };
 
     fetchPlan();
-  }, [profile?.club_id]);
+  }, [profile?.club_id, hasAdminRole]);
 
   const isPro = planStatus?.plan === "pro";
   const isFree = planStatus?.plan === "free";
