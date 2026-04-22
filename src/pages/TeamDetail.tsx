@@ -58,6 +58,7 @@ import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { ReadOnlyFrameworkView } from "@/components/framework/ReadOnlyFrameworkView";
 import { FrameworkEditDialog } from "@/components/framework/FrameworkEditDialog";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { useReactToPrint } from "react-to-print";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
@@ -407,17 +408,11 @@ export default function TeamDetail() {
                 <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Ajouter</p>
                 <div className="flex flex-col gap-1.5">
                   {(isAdmin || isClubAdmin) && (
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowCoachModal(true)}>
-                      <Plus className="w-3.5 h-3.5 text-accent" />Coach
-                    </Button>
+                    <AddEntityButton type="coach" onClick={() => setShowCoachModal(true)} className="w-full" />
                   )}
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowPlayerModal(true)}>
-                    <Plus className="w-3.5 h-3.5 text-accent" />Joueur
-                  </Button>
+                  <AddEntityButton type="player" onClick={() => setShowPlayerModal(true)} className="w-full" />
                   {(isAdmin || isClubAdmin || isReferentCoach) && (
-                    <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-8 px-2.5 font-semibold" onClick={() => setShowSupporterModal(true)}>
-                      <Plus className="w-3.5 h-3.5 text-accent" />Supporter
-                    </Button>
+                    <AddEntityButton type="supporter" onClick={() => setShowSupporterModal(true)} className="w-full" />
                   )}
                 </div>
               </div>
