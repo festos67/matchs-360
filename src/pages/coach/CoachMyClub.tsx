@@ -279,7 +279,7 @@ const CoachMyClub = () => {
                 handlePrint();
               }}
             >
-              <Printer className="w-4 h-4 mr-2 text-primary" />
+              <Printer className="w-4 h-4 mr-2 text-orange-500" />
               Imprimer
             </Button>
           </button>
