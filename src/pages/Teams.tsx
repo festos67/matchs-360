@@ -57,6 +57,7 @@ import {
 import { toast } from "sonner";
 import { CreateTeamModal } from "@/components/modals/CreateTeamModal";
 import { TeamCard } from "@/components/shared/TeamCard";
+import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import type { Tables } from "@/integrations/supabase/types";
 
 type TeamMemberPartial = {

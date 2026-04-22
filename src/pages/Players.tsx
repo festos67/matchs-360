@@ -517,34 +517,23 @@ const Players = () => {
             <p className="text-muted-foreground mt-1">{pageSubtitle}</p>
           </div>
           {currentRole?.role === "club_admin" && currentRole?.club_id && (
-            <Button variant="accent" onClick={() => setShowCreatePlayer(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Ajouter un joueur
-            </Button>
+            <AddEntityButton type="player" label="Ajouter un joueur" onClick={() => setShowCreatePlayer(true)} />
           )}
           {currentRole?.role === "admin" && (
-            <Button
-              variant="accent"
+            <AddEntityButton
+              type="player"
+              label="Ajouter un joueur"
               onClick={() => setShowCreatePlayer(true)}
-              className="gap-2"
-              disabled={clubFilter === "all"}
-              title={clubFilter === "all" ? "Sélectionnez d'abord un club dans le filtre" : undefined}
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un joueur
-            </Button>
+              className={clubFilter === "all" ? "opacity-50 pointer-events-none" : ""}
+            />
           )}
           {isCoach && (
-            <Button
-              variant="accent"
+            <AddEntityButton
+              type="player"
+              label="Ajouter un joueur"
               onClick={() => setShowCreatePlayer(true)}
-              className="gap-2"
-              disabled={!coachClubId}
-              title={!coachClubId ? "Sélectionnez d'abord un club dans le filtre" : undefined}
-            >
-              <Plus className="w-4 h-4" />
-              Ajouter un joueur
-            </Button>
+              className={!coachClubId ? "opacity-50 pointer-events-none" : ""}
+            />
           )}
         </div>
 
