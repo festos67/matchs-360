@@ -417,8 +417,9 @@ export default function Profile() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Minimum 6 caractères"
+                placeholder={`Minimum ${USER_MIN_LENGTH} caractères`}
               />
+              <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">
