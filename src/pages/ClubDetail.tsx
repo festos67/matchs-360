@@ -38,6 +38,7 @@ import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { TeamCard } from "@/components/shared/TeamCard";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
