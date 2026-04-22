@@ -37,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
+import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
