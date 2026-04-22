@@ -364,9 +364,9 @@ const handler = async (req: Request): Promise<Response> => {
               <h2 style="color: #18181b; font-size: 20px; margin-bottom: 16px;">Vous êtes invité(e) !</h2>
               
               <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
-                Bonjour${firstName ? ` ${firstName}` : ""},<br><br>
-                Vous avez été invité(e) à rejoindre <strong>${club?.name || "MATCHS360"}</strong> 
-                en tant que <strong>${roleLabels[intendedRole] || intendedRole}</strong>.
+                Bonjour${firstName ? ` ${escapeHtml(firstName)}` : ""},<br><br>
+                Vous avez été invité(e) à rejoindre <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> 
+                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.
               </p>
               
               <a href="${inviteLink}" style="display: block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 24px;">
@@ -375,7 +375,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <p style="color: #71717a; font-size: 12px; line-height: 1.6;">
                 Ou copiez ce lien dans votre navigateur :<br>
-                <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${inviteLink}</a>
+                <a href="${inviteLink}" style="color: #2563eb; word-break: break-all;">${escapeHtml(inviteLink)}</a>
               </p>
               
               <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 32px 0;">
