@@ -662,7 +662,7 @@ const Players = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {team.players.map((player) => renderPlayerRow(player, false))}
+                                {team.players.map((player) => renderPlayerRow(player, false, team.teamColor))}
                               </TableBody>
                             </Table>
                           </div>
