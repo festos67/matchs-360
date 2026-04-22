@@ -6,6 +6,35 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * SECURITY: whitelist of trusted origins allowed in `redirectTo` for
+ * invitation re-sends. Prevents phishing via forged Origin header.
+ */
+const FALLBACK_ORIGIN = "https://matchs360.lovable.app";
+const STATIC_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+  /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i,
+  /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i,
+  /^https:\/\/([a-z0-9-]+\.)*sandbox\.lovable\.dev$/i,
+  /^http:\/\/localhost(:\d+)?$/i,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/i,
+];
+
+function isOriginAllowed(origin: string | null): boolean {
+  if (!origin) return false;
+  try { new URL(origin); } catch { return false; }
+  if (STATIC_ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin))) return true;
+  const extra = (Deno.env.get("ALLOWED_ORIGINS") || "")
+    .split(",").map((s) => s.trim()).filter(Boolean);
+  return extra.includes(origin);
+}
+
+function getSafeOrigin(req: Request): string {
+  const candidate = req.headers.get("origin");
+  if (candidate && isOriginAllowed(candidate)) return candidate;
+  if (candidate) console.warn("Rejected untrusted origin, falling back to canonical URL");
+  return FALLBACK_ORIGIN;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -568,7 +597,8 @@ Deno.serve(async (req) => {
         if (!(await userInClubAdminScope(userId))) return forbidden();
         if (clubId && !clubInScope(clubId)) return forbidden("Club outside your scope");
 
-        const origin = req.headers.get("origin") || "https://lovable.dev";
+        // SECURITY: validate Origin against whitelist (anti-phishing)
+        const origin = getSafeOrigin(req);
         
         // Generate new invite link
         const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
