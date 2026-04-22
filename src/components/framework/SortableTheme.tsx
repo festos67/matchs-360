@@ -41,10 +41,13 @@ import {
   Trash2,
   Plus,
   Palette,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { THEME_PALETTE, THEME_PALETTE_LABELS } from "@/lib/theme-palette";
 import { SortableSkill } from "./SortableSkill";
 
 interface Skill {
@@ -93,6 +96,7 @@ export const SortableTheme = ({
 }: SortableThemeProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const currentColor = (theme.color || "#3B82F6").toUpperCase();
 
   const {
     attributes,
@@ -125,11 +129,6 @@ export const SortableTheme = ({
       onReorderSkills(oldIndex, newIndex);
     }
   };
-
-  const colors = [
-    "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6",
-    "#EC4899", "#14B8A6", "#F97316", "#6366F1", "#84CC16",
-  ];
 
   return (
     <div
@@ -189,29 +188,59 @@ export const SortableTheme = ({
 
           {canEdit && (
             <div className="flex items-center gap-1">
-              <div className="relative">
-                <button
-                  className="p-2 rounded hover:bg-muted"
-                  onClick={() => setShowColorPicker(!showColorPicker)}
-                >
-                  <Palette className="w-4 h-4" style={{ color: theme.color || "#3B82F6" }} />
-                </button>
-                {showColorPicker && (
-                  <div className="absolute right-0 top-full mt-2 p-2 bg-popover border border-border rounded-lg shadow-lg z-50 grid grid-cols-5 gap-1">
-                    {colors.map((color) => (
-                      <button
-                        key={color}
-                        className="w-6 h-6 rounded-full border-2 border-transparent hover:border-foreground transition-colors"
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                          onUpdate({ color });
-                          setShowColorPicker(false);
-                        }}
-                      />
-                    ))}
+              <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Choisir la couleur de la thématique"
+                    className="flex items-center gap-1.5 p-1.5 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <span
+                      className="w-5 h-5 rounded-full border border-border shadow-sm"
+                      style={{ backgroundColor: currentColor }}
+                    />
+                    <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="end" side="bottom">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Couleur de la thématique
+                    </p>
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {THEME_PALETTE.map((color) => {
+                        const isActive = color.toUpperCase() === currentColor;
+                        return (
+                          <button
+                            key={color}
+                            type="button"
+                            title={THEME_PALETTE_LABELS[color] || color}
+                            aria-label={THEME_PALETTE_LABELS[color] || color}
+                            aria-pressed={isActive}
+                            onClick={() => {
+                              onUpdate({ color });
+                              setShowColorPicker(false);
+                            }}
+                            className={`w-8 h-8 rounded-md flex items-center justify-center transition-all hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${
+                              isActive
+                                ? "ring-2 ring-foreground ring-offset-2 ring-offset-popover"
+                                : "ring-1 ring-border"
+                            }`}
+                            style={{ backgroundColor: color }}
+                          >
+                            {isActive && (
+                              <Check className="w-4 h-4 text-white drop-shadow" strokeWidth={3} />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground pt-1 border-t border-border">
+                      {THEME_PALETTE_LABELS[currentColor] || currentColor}
+                    </p>
                   </div>
-                )}
-              </div>
+                </PopoverContent>
+              </Popover>
               <button
                 className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
                 onClick={onDelete}
