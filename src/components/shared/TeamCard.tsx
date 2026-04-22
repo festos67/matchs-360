@@ -64,9 +64,6 @@ export const TeamCard = ({
       <p className="font-semibold text-foreground mt-2 group-hover:text-primary transition-colors text-sm">
         {name}
       </p>
-      {season && !hideSeason && (
-        <p className="text-xs text-muted-foreground mt-0.5">{season}</p>
-      )}
       {referentCoachName && (
         <p className="text-xs text-muted-foreground">
           Coach : {referentCoachName}
