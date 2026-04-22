@@ -40,6 +40,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
 import { Crown } from "lucide-react";
+import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 
 // Navigation items by role
 const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string | null) => {
