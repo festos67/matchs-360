@@ -265,6 +265,8 @@ export function SupporterEvaluationForm({
               onNotObservedChange={handleNotObservedChange}
               onCommentChange={handleCommentChange}
               onObjectiveChange={(obj) => handleObjectiveChange(theme.id, obj)}
+              showDefinitionInline
+              showAverageAsLabel
             />
           ))}
         </div>
