@@ -394,18 +394,15 @@ export default function TeamDetail() {
                 {team.name}
               </h1>
               {canManageTeam && !isPlayerViewing && (isAdmin || isClubAdmin || isReferentCoach) && (
-                <button
-                  type="button"
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
                   onClick={() => setShowTeamSettings(true)}
-                  title="Paramètres de l'équipe"
-                  className="group relative flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary hover:border-primary/40 hover:shadow-sm transition-all text-sm font-medium text-foreground"
                 >
-                  <Settings className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span className="flex-1 text-left">Paramètres</span>
-                  <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-blue-500/10">
-                    <Settings className="w-4 h-4 text-blue-500" />
-                  </span>
-                </button>
+                  <Settings className="w-3.5 h-3.5 text-orange-500" />
+                  Paramètres
+                </Button>
               )}
             </div>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">
