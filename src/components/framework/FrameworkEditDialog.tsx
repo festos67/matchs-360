@@ -347,15 +347,15 @@ export const FrameworkEditDialog = ({
 
       {/* Exit confirmation dialog */}
       <AlertDialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
-        <AlertDialogContent className="z-[60]">
+        <AlertDialogContent className="z-[60] max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Modifications non sauvegardées</AlertDialogTitle>
             <AlertDialogDescription>
               Vous avez des modifications en cours. Que souhaitez-vous faire ?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex gap-2 sm:gap-0">
-            <AlertDialogCancel onClick={() => setShowExitConfirm(false)}>
+          <AlertDialogFooter className="flex flex-col-reverse sm:flex-row sm:flex-wrap sm:justify-end gap-2">
+            <AlertDialogCancel className="mt-0" onClick={() => setShowExitConfirm(false)}>
               Continuer l'édition
             </AlertDialogCancel>
             <AlertDialogAction
