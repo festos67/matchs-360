@@ -9,8 +9,5 @@ verify_jwt = false
 [functions.import-framework]
 verify_jwt = false
 
-[functions.cleanup-auth-users]
-verify_jwt = false
-
 [functions.process-email-queue]
 verify_jwt = false
