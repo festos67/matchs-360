@@ -196,115 +196,13 @@ export default function ClubFrameworkEditor() {
     setSaving(true);
 
     try {
-      try {
-        await snapshotFramework(framework.id);
-      } catch (snapError) {
-        console.warn("Snapshot failed, continuing save:", snapError);
-      }
+      // Snapshot in background — don't block the save
+      snapshotFramework(framework.id).catch((snapError) => {
+        console.warn("Snapshot failed (background):", snapError);
+      });
 
-      const { error: fwError } = await supabase
-        .from("competence_frameworks")
-        .update({ name: confirmedName })
-        .eq("id", framework.id);
-
-      if (fwError) throw fwError;
-
-      const allPersistedThemeIds: string[] = [];
-
-      for (const theme of pendingEditThemes) {
-        if (theme.isNew) {
-          const { data: newTheme, error } = await supabase
-            .from("themes")
-            .insert({
-              framework_id: framework.id,
-              name: theme.name,
-              color: theme.color,
-              order_index: theme.order_index,
-            })
-            .select()
-            .single();
-
-          if (error) throw error;
-          allPersistedThemeIds.push(newTheme.id);
-
-          if (theme.skills.length > 0) {
-            const skillsToInsert = theme.skills.map(s => ({
-              theme_id: newTheme.id,
-              name: s.name,
-              definition: s.definition,
-              order_index: s.order_index,
-            }));
-            const { error: skillsError } = await supabase.from("skills").insert(skillsToInsert);
-            if (skillsError) throw skillsError;
-          }
-        } else {
-          allPersistedThemeIds.push(theme.id);
-
-          const { error: themeError } = await supabase
-            .from("themes")
-            .update({
-              name: theme.name,
-              color: theme.color,
-              order_index: theme.order_index,
-            })
-            .eq("id", theme.id);
-
-          if (themeError) throw themeError;
-
-          const persistedSkillIds: string[] = [];
-
-          for (const skill of theme.skills) {
-            if (skill.isNew) {
-              const { data: insertedSkill, error: insertError } = await supabase
-                .from("skills")
-                .insert({
-                  theme_id: theme.id,
-                  name: skill.name,
-                  definition: skill.definition,
-                  order_index: skill.order_index,
-                })
-                .select("id")
-                .single();
-
-              if (insertError) throw insertError;
-              if (insertedSkill?.id) persistedSkillIds.push(insertedSkill.id);
-            } else {
-              const { error: updateError } = await supabase
-                .from("skills")
-                .update({
-                  name: skill.name,
-                  definition: skill.definition,
-                  order_index: skill.order_index,
-                })
-                .eq("id", skill.id);
-
-              if (updateError) throw updateError;
-              persistedSkillIds.push(skill.id);
-            }
-          }
-
-          if (persistedSkillIds.length > 0) {
-            await supabase
-              .from("skills")
-              .delete()
-              .eq("theme_id", theme.id)
-              .not("id", "in", `(${persistedSkillIds.join(",")})`);
-          } else {
-            await supabase
-              .from("skills")
-              .delete()
-              .eq("theme_id", theme.id);
-          }
-        }
-      }
-
-      if (allPersistedThemeIds.length > 0) {
-        await supabase
-          .from("themes")
-          .delete()
-          .eq("framework_id", framework.id)
-          .not("id", "in", `(${allPersistedThemeIds.join(",")})`);
-      }
+      // Optimized parallel + batched save
+      await saveFrameworkChanges(framework.id, confirmedName, pendingEditThemes);
 
       toast.success("Référentiel sauvegardé avec succès");
       setPendingEditThemes(null);
