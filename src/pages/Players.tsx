@@ -426,10 +426,11 @@ const Players = () => {
     return fullName || player.nickname || player.email;
   };
 
-  const renderPlayerRow = (player: PlayerData, showTeams = true) => {
-    // Use first team color for avatar, fallback to primary
-    const teamColor = player.teams[0]?.color || null;
-    
+  const renderPlayerRow = (player: PlayerData, showTeams = true, contextTeamColor: string | null = null) => {
+    // Prefer the color of the team in the rendering context (player can belong to several teams).
+    // Fallback to the player's first team, then to the app primary color.
+    const teamColor = contextTeamColor || player.teams[0]?.color || null;
+
     return (
     <TableRow
       key={player.id}
@@ -661,7 +662,7 @@ const Players = () => {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {team.players.map((player) => renderPlayerRow(player, false))}
+                                {team.players.map((player) => renderPlayerRow(player, false, team.teamColor))}
                               </TableBody>
                             </Table>
                           </div>
