@@ -34,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 
 const passwordSchema = z.object({
   password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
@@ -230,9 +231,7 @@ export default function InviteAccept() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-            <Activity className="w-7 h-7 text-primary-foreground" />
-          </div>
+          <RadarPulseLogo size={48} />
           <div>
             <h1 className="font-display text-2xl font-bold">MATCHS360</h1>
             <p className="text-sm text-muted-foreground">Sports Analytics Platform</p>
