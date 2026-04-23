@@ -27,6 +27,7 @@ interface PlayerHistoryTabProps {
   onToggleComparison: (evalId: string) => void;
   onRefresh: () => void;
   onPrintEvaluation: (evaluation: Evaluation) => void;
+  hideSupporterSection?: boolean;
 }
 
 export function PlayerHistoryTab(props: PlayerHistoryTabProps) {
@@ -44,6 +45,7 @@ export function PlayerHistoryTab(props: PlayerHistoryTabProps) {
       onToggleComparison={props.onToggleComparison}
       onRefresh={props.onRefresh}
       onPrintEvaluation={props.onPrintEvaluation}
+      hideSupporterSection={props.hideSupporterSection}
     />
   );
 }
