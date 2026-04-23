@@ -161,6 +161,21 @@ export default function InviteAccept() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Garde-fou côté client : protège contre tout bypass UI (ex: DevTools
+    // qui réactiverait le bouton). La policy serveur HIBP + min length
+    // s'applique en plus côté Supabase Auth.
+    const pwdValidation = validateUserPassword(password);
+    if (pwdValidation !== null) {
+      setPwdError(pwdValidation);
+      toast.error("Mot de passe non conforme", { description: pwdValidation });
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+
     setLoading(true);
 
     try {
