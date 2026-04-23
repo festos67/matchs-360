@@ -1295,6 +1295,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_users_paginated: {
+        Args: {
+          p_caller: string
+          p_club_filter?: string
+          p_coach_filter?: string
+          p_is_admin: boolean
+          p_page: number
+          p_player_filter?: string
+          p_role_filter?: string
+          p_search?: string
+          p_size: number
+        }
+        Returns: {
+          out_total_count: number
+          out_user_id: string
+        }[]
+      }
       calculate_prorata_amount: {
         Args: { p_full_price_cents?: number; p_start_date: string }
         Returns: number
