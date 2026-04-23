@@ -498,10 +498,10 @@ export function EvaluationHistory({
         )}
       </div>
 
-      <Separator className="my-6" />
+      {!hideSupporterSection && <Separator className="my-6" />}
 
       {/* Section C: Supporter Evaluations */}
-      <div>
+      {!hideSupporterSection && <div>
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-success">
             <Heart className="w-5 h-5" />
@@ -525,7 +525,7 @@ export function EvaluationHistory({
             <p>Aucun débrief supporter {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Comparison tip */}
       {activeCoachEvaluations.length > 1 && (
