@@ -386,7 +386,16 @@ export default function Evaluations() {
               <div
                 key={evaluation.id}
                 className="glass-card p-4 flex items-center gap-4 hover:border-primary/30 transition-colors cursor-pointer group"
-                onClick={() => navigate(`/players/${evaluation.player?.id}`)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Ouvrir le débrief ${evaluation.name} de ${playerName || "joueur"}`}
+                onClick={() => navigate(`/players/${evaluation.player?.id}?eval=${evaluation.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(`/players/${evaluation.player?.id}?eval=${evaluation.id}`);
+                  }
+                }}
               >
                 <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
                   <User className="w-6 h-6 text-primary" />
