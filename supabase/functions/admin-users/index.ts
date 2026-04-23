@@ -94,6 +94,14 @@ function isValidPhotoUrl(value: unknown): value is string {
   return true;
 }
 
+function maskEmail(email: string | null | undefined): string {
+  if (!email) return "***";
+  const [local = "", domain = ""] = email.split("@");
+  if (!domain) return "***";
+  if (local.length <= 2) return `${local[0] || "*"}***@${domain}`;
+  return `${local.slice(0, 2)}***@${domain}`;
+}
+
 Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req);
   if (preflight) return preflight;
@@ -214,43 +222,95 @@ Deno.serve(async (req) => {
       return !!t?.club_id && clubAdminClubIds.includes(t.club_id);
     };
 
-    const url = new URL(req.url);
-    const clubIdFilter = url.searchParams.get("clubId");
+    // GET/POST(list) - List users
+    if (
+      req.method === "GET" ||
+      (req.method === "POST" && ((await req.clone().json().catch(() => ({}))).action === "list"))
+    ) {
+      const listBody = await req.json().catch(() => ({}));
+      const page = Math.max(1, Number.parseInt(String(listBody?.page ?? "1"), 10) || 1);
+      const pageSize = Math.min(100, Math.max(1, Number.parseInt(String(listBody?.pageSize ?? "50"), 10) || 50));
+      const search = typeof listBody?.search === "string" ? listBody.search.trim().slice(0, 100) : null;
+      const roleFilter = typeof listBody?.roleFilter === "string" ? listBody.roleFilter : null;
+      const clubFilter = typeof listBody?.clubFilter === "string" && listBody.clubFilter !== "all" ? listBody.clubFilter : null;
+      const coachFilter = typeof listBody?.coachFilter === "string" && listBody.coachFilter !== "all" ? listBody.coachFilter : null;
+      const playerFilter = typeof listBody?.playerFilter === "string" && listBody.playerFilter !== "all" ? listBody.playerFilter : null;
 
-    // GET - List users
-    if (req.method === "GET") {
-      // Get all users from auth.users
-      const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-      if (usersError) throw usersError;
+      const { data: scopedIds, error: scopedIdsError } = await supabaseAdmin.rpc("admin_list_users_paginated", {
+        p_caller: user.id,
+        p_is_admin: isAdmin,
+        p_page: page,
+        p_size: pageSize,
+        p_search: search,
+        p_role_filter: roleFilter && roleFilter !== "all" ? roleFilter : null,
+        p_club_filter: clubFilter,
+        p_coach_filter: coachFilter,
+        p_player_filter: playerFilter,
+      });
 
-      // Get all profiles
-      const { data: profiles } = await supabaseAdmin
-        .from("profiles")
-        .select("*");
+      if (scopedIdsError) throw scopedIdsError;
 
-      // Get all user roles with club info
-      const { data: userRoles } = await supabaseAdmin
-        .from("user_roles")
-        .select("*, clubs(name)");
+      const userIds = (scopedIds || []).map((row) => row.out_user_id).filter(Boolean);
+      const total = Number((scopedIds || [])[0]?.out_total_count || 0);
 
-      // Get all team memberships with team/club info
-      const { data: teamMembers } = await supabaseAdmin
-        .from("team_members")
-        .select("*, teams(id, name, club_id, clubs(name))");
+      if (userIds.length === 0) {
+        return new Response(JSON.stringify({
+          users: [],
+          pagination: {
+            page,
+            pageSize,
+            total,
+            hasMore: page * pageSize < total,
+          },
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
-      // Get supporter links
-      const { data: supporterLinks } = await supabaseAdmin
-        .from("supporters_link")
-        .select("*, player:profiles!supporters_link_player_id_fkey(id, first_name, last_name, nickname)");
+      const authUsers = await Promise.all(
+        userIds.map(async (targetUserId) => {
+          const { data, error } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
+          if (error) throw error;
+          return data.user;
+        }),
+      );
 
-      // Combine data
-      const combinedUsers = authUsers.users.map((authUser) => {
-        const profile = profiles?.find((p) => p.id === authUser.id);
-        const roles = userRoles?.filter((r) => r.user_id === authUser.id) || [];
-        const memberships = teamMembers?.filter((m) => m.user_id === authUser.id) || [];
-        const supporterLinksList = supporterLinks?.filter((s) => s.supporter_id === authUser.id) || [];
+      const [{ data: profiles }, { data: userRoles }, { data: teamMembers }, { data: supporterLinks }] = await Promise.all([
+        supabaseAdmin.from("profiles").select("*").in("id", userIds),
+        supabaseAdmin.from("user_roles").select("*, clubs(name)").in("user_id", userIds),
+        supabaseAdmin.from("team_members").select("*, teams(id, name, club_id, clubs(name))").in("user_id", userIds),
+        supabaseAdmin.from("supporters_link").select("*, player:profiles!supporters_link_player_id_fkey(id, first_name, last_name, nickname)").in("supporter_id", userIds),
+      ]);
 
-        // Determine status
+      const profileById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+      const rolesByUserId = new Map<string, typeof userRoles>();
+      const membershipsByUserId = new Map<string, typeof teamMembers>();
+      const supporterLinksByUserId = new Map<string, typeof supporterLinks>();
+
+      for (const role of userRoles || []) {
+        const current = rolesByUserId.get(role.user_id) || [];
+        current.push(role);
+        rolesByUserId.set(role.user_id, current);
+      }
+
+      for (const membership of teamMembers || []) {
+        const current = membershipsByUserId.get(membership.user_id) || [];
+        current.push(membership);
+        membershipsByUserId.set(membership.user_id, current);
+      }
+
+      for (const supporterLink of supporterLinks || []) {
+        const current = supporterLinksByUserId.get(supporterLink.supporter_id) || [];
+        current.push(supporterLink);
+        supporterLinksByUserId.set(supporterLink.supporter_id, current);
+      }
+
+      const usersById = new Map(authUsers.map((authUser) => {
+        const profile = profileById.get(authUser.id);
+        const roles = rolesByUserId.get(authUser.id) || [];
+        const memberships = membershipsByUserId.get(authUser.id) || [];
+        const supporterLinksList = supporterLinksByUserId.get(authUser.id) || [];
+
         let status = "Actif";
         if (profile?.deleted_at) {
           status = "Suspendu";
@@ -258,9 +318,11 @@ Deno.serve(async (req) => {
           status = "Invité";
         }
 
-        return {
+        return [authUser.id, {
           id: authUser.id,
           email: authUser.email,
+          last_sign_in_at: authUser.last_sign_in_at,
+          banned_until: authUser.banned_until,
           first_name: profile?.first_name,
           last_name: profile?.last_name,
           nickname: profile?.nickname,
@@ -270,6 +332,7 @@ Deno.serve(async (req) => {
           email_confirmed_at: authUser.email_confirmed_at,
           deleted_at: profile?.deleted_at,
           status,
+          profile: profile || null,
           roles: roles.map((r) => ({
             id: r.id,
             role: r.role,
@@ -290,29 +353,26 @@ Deno.serve(async (req) => {
             player_id: s.player_id,
             player_name: s.player?.nickname || `${s.player?.first_name || ""} ${s.player?.last_name || ""}`.trim(),
           })),
-        };
+        }];
+      }));
+
+      const orderedUsers = userIds.map((id) => usersById.get(id)).filter(Boolean);
+
+      console.log("Admin users page fetched", {
+        caller: user.id,
+        page,
+        pageSize,
+        total,
+        search: search ? "provided" : null,
+        sample_email: orderedUsers[0] ? maskEmail(orderedUsers[0].email) : null,
       });
 
-      // Filter by club if club_admin (not super admin) or explicit clubId filter
-      let filteredUsers = combinedUsers;
-      const effectiveClubFilter = !isAdmin ? clubAdminClubIds : (clubIdFilter ? [clubIdFilter] : null);
-      
-      if (effectiveClubFilter && effectiveClubFilter.length > 0) {
-        filteredUsers = combinedUsers.filter((u) => {
-          // User belongs to club via profile
-          if (u.club_id && effectiveClubFilter.includes(u.club_id)) return true;
-          // User has a role in the club
-          if (u.roles.some((r: { club_id: string | null }) => r.club_id && effectiveClubFilter.includes(r.club_id))) return true;
-          // User is a team member in the club
-          if (u.team_memberships.some((m: { team_id: string }) => {
-            const tm = teamMembers?.find((t) => t.id === m.team_id || t.team_id === m.team_id);
-            return tm?.teams?.club_id && effectiveClubFilter.includes(tm.teams.club_id);
-          })) return true;
-          return false;
-        });
-      }
-
-      return new Response(JSON.stringify({ users: filteredUsers }), {
+      return new Response(JSON.stringify({ users: orderedUsers, pagination: {
+        page,
+        pageSize,
+        total,
+        hasMore: page * pageSize < total,
+      } }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
