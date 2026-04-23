@@ -210,6 +210,21 @@ export default function SupporterEvaluation() {
 
       setFrameworkId(framework.id);
 
+      // Check if this supporter already submitted an evaluation for this player
+      const { data: existingEvals } = await supabase
+        .from("evaluations")
+        .select("id")
+        .eq("player_id", reqData.player_id)
+        .eq("evaluator_id", user.id)
+        .eq("type", "supporter" as any)
+        .is("deleted_at", null)
+        .limit(1);
+
+      if (existingEvals && existingEvals.length > 0) {
+        setAlreadyEvaluated(true);
+        setShowAlreadyEvaluated(true);
+      }
+
       // Fetch themes with skills
       const { data: themesData, error: themesError } = await supabase
         .from("themes")
