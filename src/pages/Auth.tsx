@@ -435,7 +435,7 @@ export default function Auth() {
               onClick={() => setShowHelpDialog(true)}
               className="text-sm text-primary font-medium hover:underline transition-colors inline-flex items-center gap-1.5"
             >
-              <HelpCircle className="w-4 h-4" />
+              <HelpCircle className="w-4 h-4 text-accent" />
               Vous rencontrez un problème de connexion ?
             </button>
           </div>
@@ -544,7 +544,7 @@ export default function Auth() {
             Révéler – Progresser – Valoriser
           </h3>
           <p className="text-lg text-muted-foreground">
-            Révèle en chaque joueur le champion de sa propre vie
+            Révèle en chaque joueur le champion de sa propre vie ! 
           </p>
         </div>
       </div>
