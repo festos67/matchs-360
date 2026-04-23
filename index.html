@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Content-Security-Policy : limite l'exfiltration en cas de XSS et bloque
+      le clickjacking via frame-ancestors. HSTS / X-Frame-Options réels sont
+      servis côté hosting Lovable (Cloudflare). 'unsafe-inline' style requis
+      par Tailwind/shadcn et le <style> runtime de Recharts (chart.tsx).
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://aasihxqsasjpszqjlbid.supabase.co; font-src 'self' data:; connect-src 'self' https://aasihxqsasjpszqjlbid.supabase.co wss://aasihxqsasjpszqjlbid.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    />
     <!-- TODO: Set the document title to the name of your application -->
     <title>Lovable App</title>
     <meta name="description" content="Lovable Generated Project" />
