@@ -127,8 +127,6 @@ const statusColors: Record<string, string> = {
   Suspendu: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
-const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
-
 export default function AdminUsers() {
   const { hasAdminRole: isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
@@ -146,7 +144,10 @@ export default function AdminUsers() {
   const [playerFilter, setPlayerFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+  // SECURITY: l'identité super-admin est strictement définie par le rôle
+  // 'admin' en public.user_roles (résolu côté serveur), plus aucun email
+  // codé en dur côté client.
+  const isSuperAdmin = isAdmin;
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
