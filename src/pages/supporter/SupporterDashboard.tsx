@@ -427,6 +427,29 @@ const SupporterDashboard = () => {
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!requestToDelete} onOpenChange={(o) => !o && setRequestToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la demande de débrief ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes sur le point de supprimer la demande pour{" "}
+              <strong>{requestToDelete?.playerName}</strong>. Le coach{" "}
+              <strong>{requestToDelete?.coachName}</strong> sera notifié de votre refus.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDeleteRequest(); }}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
