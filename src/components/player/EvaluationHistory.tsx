@@ -99,6 +99,7 @@ interface EvaluationHistoryProps {
   onToggleComparison: (evalId: string) => void;
   onRefresh: () => void;
   onPrintEvaluation?: (evaluation: Evaluation) => void;
+  hideSupporterSection?: boolean;
 }
 
 // Predefined colors for comparison
@@ -122,6 +123,7 @@ export function EvaluationHistory({
   onToggleComparison,
   onRefresh,
   onPrintEvaluation,
+  hideSupporterSection = false,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
 
