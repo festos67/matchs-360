@@ -229,9 +229,11 @@ export function SupporterEvaluationForm({
             <p className="text-xs text-muted-foreground">Moyenne</p>
           </div>
         </div>
-        <div className="w-full aspect-square max-h-[600px] min-h-[400px]">
-          <EvaluationRadar data={radarData} primaryColor="#F97316" />
-        </div>
+        <EvaluationRadar
+          data={radarData}
+          primaryColor="#F97316"
+          className="w-full h-[400px] sm:h-[500px] lg:h-[600px] relative"
+        />
       </div>
 
       {/* Evaluation Form */}
