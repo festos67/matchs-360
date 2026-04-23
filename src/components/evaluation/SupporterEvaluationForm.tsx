@@ -290,27 +290,6 @@ export function SupporterEvaluationForm({
           précieuses pour compléter la vision des coachs.
         </p>
 
-        {!hasStarted && (
-          <div className="rounded-lg border-2 border-dashed border-warning/40 bg-warning/5 p-8 text-center mb-6">
-            <Play className="w-10 h-10 mx-auto mb-3 text-warning" />
-            <h3 className="text-lg font-display font-semibold mb-2">
-              Prêt(e) à partager votre perception ?
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-              Cliquez sur le bouton ci-dessous pour démarrer le débrief. Vos
-              réponses ne seront enregistrées qu'après validation finale.
-            </p>
-            <Button
-              size="lg"
-              onClick={handleStart}
-              className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
-            >
-              <Play className="w-4 h-4" />
-              Démarrer le débrief
-            </Button>
-          </div>
-        )}
-
         <div className={`space-y-4 ${!hasStarted ? "opacity-50 pointer-events-none select-none" : ""}`}>
           {themes.map((theme) => (
             <ThemeAccordion
