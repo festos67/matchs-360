@@ -42,6 +42,7 @@ interface PlayerEvaluationTabProps {
   comparisonIds: string[];
   onReturnToCurrent: () => void;
   onToggleComparison: (id: string) => void;
+  hideSupporterLayer?: boolean;
 }
 
 const COMPARISON_COLORS = ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"];
@@ -60,6 +61,7 @@ export function PlayerEvaluationTab({
   comparisonIds,
   onReturnToCurrent,
   onToggleComparison,
+  hideSupporterLayer = false,
 }: PlayerEvaluationTabProps) {
   const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
   const [showSupporterLayer, setShowSupporterLayer] = useState(false);
