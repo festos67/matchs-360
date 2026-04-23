@@ -89,6 +89,7 @@ export default function SupporterEvaluation() {
   const [alreadyEvaluated, setAlreadyEvaluated] = useState(false);
   const [showAlreadyEvaluated, setShowAlreadyEvaluated] = useState(false);
   const startCardRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const handleBack = () => {
     if (hasUnsavedChanges) {
@@ -101,7 +102,7 @@ export default function SupporterEvaluation() {
   const handleStart = () => {
     setHasStarted(true);
     setTimeout(() => {
-      startCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      headerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
 
@@ -298,7 +299,7 @@ export default function SupporterEvaluation() {
       </Button>
 
       {/* Header */}
-      <div className="glass-card p-6 mb-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
+      <div ref={headerRef} className="glass-card p-6 mb-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30 scroll-mt-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg shrink-0">
             {getPlayerName().slice(0, 2).toUpperCase()}
