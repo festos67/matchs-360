@@ -25,6 +25,7 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
@@ -76,6 +77,7 @@ interface CoachData {
 
 const Coaches = () => {
   const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const [coaches, setCoaches] = useState<CoachData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState<CoachData | null>(null);
@@ -103,7 +105,7 @@ const Coaches = () => {
 
   useEffect(() => {
     fetchCoaches();
-  }, [isAdmin, currentRole]);
+  }, [isAdmin, currentRole, myAdminClubIds.join(",")]);
 
   const fetchCoaches = async () => {
     setLoading(true);
@@ -113,8 +115,13 @@ const Coaches = () => {
         .select("user_id, club_id")
         .eq("role", "coach");
 
-      if (!isAdmin && currentRole?.role === "club_admin" && currentRole?.club_id) {
-        coachRolesQuery = coachRolesQuery.eq("club_id", currentRole.club_id);
+      if (!isSuperAdmin && currentRole?.role === "club_admin") {
+        if (myAdminClubIds.length === 0) {
+          setCoaches([]);
+          setLoading(false);
+          return;
+        }
+        coachRolesQuery = coachRolesQuery.in("club_id", myAdminClubIds);
       }
 
       const { data: coachRoles, error: rolesError } = await coachRolesQuery;
@@ -289,7 +296,7 @@ const Coaches = () => {
           <div>
             <h1 className="text-3xl font-display font-bold">Gestion des Coachs</h1>
             <p className="text-muted-foreground mt-1">
-              {isAdmin
+              {isSuperAdmin && currentRole?.role === "admin"
                 ? "Gérez tous les coachs de la plateforme"
                 : "Gérez les coachs de votre club"}
             </p>
