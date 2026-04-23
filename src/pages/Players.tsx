@@ -26,6 +26,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
@@ -82,6 +83,7 @@ const STORAGE_KEY_CLUBS = "players-collapsed-clubs";
 
 const Players = () => {
   const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,9 +114,12 @@ const Players = () => {
   const isClubAdmin = currentRole?.role === "club_admin";
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
   const pageSubtitle = isAdmin
+    && currentRole?.role === "admin"
     ? "Tous les joueurs de la plateforme"
     : isCoach
     ? "Les joueurs de vos équipes"
+    : isClubAdmin
+    ? "Les joueurs de votre club"
     : "Les joueurs de votre périmètre";
 
   // For coaches: derive a default club from their scope.
@@ -169,6 +174,14 @@ const Players = () => {
           .filter((tm) => tm.member_type === "coach" && tm.user_id === user.id)
           .map((tm) => tm.team_id);
         allMembers = allMembers.filter((tm) => coachTeamIds.includes(tm.team_id));
+      }
+
+      // If logged in as club_admin (not super-admin): restrict to teams of administered clubs
+      if (!isSuperAdmin && currentRole?.role === "club_admin") {
+        allMembers = allMembers.filter((tm) => {
+          const clubId = (tm.teams as any)?.club_id;
+          return clubId && myAdminClubIds.includes(clubId);
+        });
       }
       
       const playerMembers = allMembers.filter((tm) => tm.member_type === "player");
