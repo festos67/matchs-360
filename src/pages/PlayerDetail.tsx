@@ -64,13 +64,15 @@ import { PlayerObjectivesTab } from "@/components/player/PlayerObjectivesTab";
 import { usePlayerData, getPlayerName } from "@/hooks/usePlayerData";
 import { calculateRadarData, calculateOverallAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { toast } from "sonner";
 import { loadFrameworkThemes } from "@/lib/framework-loader";
 import type { Evaluation, Theme } from "@/hooks/usePlayerData";
 
 export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, roles } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
 
   const {
@@ -126,6 +128,19 @@ export default function PlayerDetail() {
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
+
+  // Drill-in guard: club_admin viewing a player whose team belongs to a foreign club
+  useEffect(() => {
+    if (!teamMembership) return;
+    if (isSuperAdmin) return;
+    const isClubAdminRole = roles.some((r) => r.role === "club_admin");
+    if (!isClubAdminRole) return;
+    const playerClubId = teamMembership.team?.club_id;
+    if (playerClubId && !myAdminClubIds.includes(playerClubId)) {
+      toast.error("Accès refusé : ressource hors de votre club");
+      navigate("/players");
+    }
+  }, [teamMembership, isSuperAdmin, myAdminClubIds, roles, navigate]);
 
   // Set initial selected evaluation when data loads
   useEffect(() => {

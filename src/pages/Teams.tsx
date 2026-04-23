@@ -28,6 +28,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,6 +92,7 @@ const getCurrentSeason = () => {
 
 const Teams = () => {
   const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [clubFilter, setClubFilter] = useState("all");
@@ -239,6 +241,12 @@ const Teams = () => {
         team.team_members?.some(m => m.member_type === "coach" && m.is_active && m.user_id === user.id)
       );
     }
+    // Club admin (not super admin): restrict to teams of their administered clubs
+    if (!isSuperAdmin && currentRole?.role === "club_admin") {
+      return teams?.filter((team) =>
+        team.clubs?.id ? myAdminClubIds.includes(team.clubs.id) : false
+      );
+    }
     return teams;
   })();
 
@@ -267,7 +275,11 @@ const Teams = () => {
               {showArchived ? "Équipes archivées" : currentRole?.role === "club_admin" ? "Les équipes du club" : "Équipes"}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isAdmin ? "Toutes les équipes" : currentRole?.role === "club_admin" ? "Gérez vos équipes" : "Vos équipes"}
+              {isSuperAdmin && currentRole?.role === "admin"
+                ? "Toutes les équipes"
+                : currentRole?.role === "club_admin"
+                  ? "Gérez les équipes de votre club"
+                  : "Vos équipes"}
             </p>
           </div>
           {(isAdmin || currentRole?.role === "club_admin") && (

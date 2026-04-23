@@ -50,6 +50,7 @@ import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -107,6 +108,7 @@ interface Framework {
 export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
@@ -143,6 +145,18 @@ export default function TeamDetail() {
     },
     enabled: !!user && !!id,
   });
+
+  // Drill-in guard: club_admin (not super-admin) viewing a team outside their scope
+  useEffect(() => {
+    if (!team) return;
+    if (isSuperAdmin) return;
+    const isClubAdminRole = roles.some((r) => r.role === "club_admin");
+    if (!isClubAdminRole) return;
+    if (!myAdminClubIds.includes(team.club_id)) {
+      toast.error("Accès refusé : ressource hors de votre club");
+      navigate("/teams");
+    }
+  }, [team, isSuperAdmin, myAdminClubIds, roles, navigate]);
 
   // Fetch members
   const { data: members = [], isLoading: loadingMembers } = useQuery({

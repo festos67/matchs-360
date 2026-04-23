@@ -27,6 +27,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
@@ -81,6 +82,7 @@ const NO_CLUB_KEY = "__no_club__";
 
 const Supporters = () => {
   const { hasAdminRole: isAdmin, currentRole } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [supporters, setSupporters] = useState<SupporterData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ const Supporters = () => {
 
   useEffect(() => {
     fetchSupporters();
-  }, [isAdmin, currentRole]);
+  }, [isAdmin, currentRole, myAdminClubIds.join(",")]);
 
   const togglePlayer = (playerId: string) => {
     setCollapsedPlayers((prev) => {
@@ -248,13 +250,26 @@ const Supporters = () => {
         };
       });
 
-      supportersData.sort((a, b) => {
+      // Club admin scope: keep only supporters that have at least one linked player in an administered club
+      let scopedSupporters = supportersData;
+      if (!isSuperAdmin && currentRole?.role === "club_admin") {
+        scopedSupporters = supportersData
+          .map((s) => ({
+            ...s,
+            players: s.players.filter(
+              (p) => p.club_id && myAdminClubIds.includes(p.club_id)
+            ),
+          }))
+          .filter((s) => s.players.length > 0);
+      }
+
+      scopedSupporters.sort((a, b) => {
         const nameA = `${a.last_name || ""} ${a.first_name || ""}`.trim().toLowerCase();
         const nameB = `${b.last_name || ""} ${b.first_name || ""}`.trim().toLowerCase();
         return nameA.localeCompare(nameB);
       });
 
-      setSupporters(supportersData);
+      setSupporters(scopedSupporters);
     } catch (error) {
       console.error("Error fetching supporters:", error);
     } finally {
@@ -455,8 +470,10 @@ const Supporters = () => {
           <div>
             <h1 className="text-3xl font-display font-bold">Supporters</h1>
             <p className="text-muted-foreground mt-1">
-              {isAdmin
+              {isSuperAdmin && currentRole?.role === "admin"
                 ? "Tous les supporters de la plateforme"
+                : currentRole?.role === "club_admin"
+                ? "Les supporters de votre club"
                 : "Les supporters de votre périmètre"}
             </p>
           </div>
