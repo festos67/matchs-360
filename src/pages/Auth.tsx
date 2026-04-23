@@ -28,7 +28,7 @@
  */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, Mail, Lock, User, ArrowRight, Shield, Users, Dumbbell, Heart, Eye, EyeOff, HelpCircle, CheckCircle2, KeyRound, UserCheck, MailQuestion, Send } from "lucide-react";
+import { Activity, Mail, Lock, User, ArrowRight, Users, Dumbbell, Heart, Eye, EyeOff, HelpCircle, CheckCircle2, KeyRound, UserCheck, MailQuestion, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
