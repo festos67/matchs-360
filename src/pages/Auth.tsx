@@ -227,7 +227,9 @@ export default function Auth() {
           <div className="flex items-center gap-3 mb-8">
             <RadarPulseLogo size={56} />
             <div>
-              <h1 className="font-display text-3xl font-bold">MATCHS360</h1>
+              <h1 className="font-display text-3xl font-bold">
+                MATCHS<span className="text-accent">360</span>
+              </h1>
               <p className="text-sm text-muted-foreground">Donnez vie à vos actions socio-sportives</p>
             </div>
           </div>
@@ -542,7 +544,7 @@ export default function Auth() {
             Révéler – Progresser – Valoriser
           </h3>
           <p className="text-lg text-muted-foreground">
-            Libérez en chaque joueur le champion de sa propre vie !
+            Révèle en chaque joueur le champion de sa propre vie
           </p>
         </div>
       </div>
