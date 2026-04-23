@@ -20,6 +20,23 @@ function escapeHtml(input: unknown): string {
 }
 
 /**
+ * SECURITY (cycle 4 rate-limit): SHA-256 hex digest of the recipient email
+ * for non-PII deduplication / forensic logging in invitation_send_log.
+ * Uses built-in Web Crypto — no npm dependency.
+ */
+async function sha256Hex(s: string): Promise<string> {
+  const bytes = new TextEncoder().encode(s);
+  const buf = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function maskEmail(e: string): string {
+  return e.replace(/^(.{2}).*(@.*)$/, "$1***$2");
+}
+
+/**
  * SECURITY: whitelist of trusted origins allowed to be used as `redirectTo`
  * in invitation links. Prevents an attacker from forging the Origin header
  * to make the invitation email link to a phishing domain.
