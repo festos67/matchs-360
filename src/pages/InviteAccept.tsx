@@ -283,14 +283,22 @@ export default function InviteAccept() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setPassword(v);
+                    setPwdError(v.length === 0 ? null : validateUserPassword(v));
+                  }}
                   className="pl-10"
                   minLength={USER_MIN_LENGTH}
-                  maxLength={128}
+                  maxLength={MAX_LENGTH}
+                  autoComplete="new-password"
                   required
                 />
               </div>
               <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
+              {pwdError && (
+                <p className="text-xs text-destructive" role="alert">{pwdError}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -304,15 +312,28 @@ export default function InviteAccept() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10"
+                  minLength={USER_MIN_LENGTH}
+                  maxLength={MAX_LENGTH}
+                  autoComplete="new-password"
                   required
                 />
               </div>
+              {confirmPassword.length > 0 && confirmPassword !== password && (
+                <p className="text-xs text-destructive" role="alert">
+                  Les mots de passe ne correspondent pas
+                </p>
+              )}
             </div>
 
             <Button
               type="submit"
               className="w-full h-12 text-base font-medium"
-              disabled={loading}
+              disabled={
+                loading ||
+                pwdError !== null ||
+                validateUserPassword(password) !== null ||
+                password !== confirmPassword
+              }
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
