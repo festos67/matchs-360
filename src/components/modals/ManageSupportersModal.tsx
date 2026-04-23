@@ -138,6 +138,64 @@ export const ManageSupportersModal = ({
     return supporter.first_name || supporter.last_name || "Supporter";
   };
 
+  // Existing supporters of the club (already on the platform) that are not yet linked to this player
+  const linkedIds = supporters.map((s) => s.id);
+  const { data: existingSupporters = [], isLoading: loadingExisting } = useQuery({
+    queryKey: ["existing-supporters", clubId, playerId, linkedIds.join(",")],
+    queryFn: async () => {
+      // Get all supporters of the club via user_roles
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "supporter")
+        .eq("club_id", clubId);
+      if (rolesError) throw rolesError;
+      const ids = (roles || []).map((r) => r.user_id).filter((id) => !linkedIds.includes(id));
+      if (ids.length === 0) return [] as Array<{ id: string; first_name: string | null; last_name: string | null; nickname: string | null; email: string }>;
+      const { data: profs, error: profError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, nickname, email")
+        .in("id", ids)
+        .is("deleted_at", null);
+      if (profError) throw profError;
+      return profs || [];
+    },
+    enabled: open && activeTab === "add" && !!clubId,
+  });
+
+  const filteredExisting = existingSupporters.filter((s) => {
+    const q = existingSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (s.first_name || "").toLowerCase().includes(q) ||
+      (s.last_name || "").toLowerCase().includes(q) ||
+      (s.nickname || "").toLowerCase().includes(q) ||
+      (s.email || "").toLowerCase().includes(q)
+    );
+  });
+
+  const handleLinkExisting = async (supporterId: string) => {
+    setLinkingId(supporterId);
+    try {
+      const { error } = await supabase
+        .from("supporters_link")
+        .insert({ player_id: playerId, supporter_id: supporterId });
+      if (error) throw error;
+      toast.success("Supporter lié au joueur");
+      queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
+      queryClient.invalidateQueries({ queryKey: ["existing-supporters", clubId, playerId] });
+      onSuccess?.();
+      setActiveTab("list");
+    } catch (error: unknown) {
+      console.error("Error linking supporter:", error);
+      toast.error("Erreur lors de l'association", {
+        description: await getEdgeFunctionErrorMessage(error),
+      });
+    } finally {
+      setLinkingId(null);
+    }
+  };
+
   const handleRemoveSupporter = async (supporter: Supporter) => {
     try {
       const { error } = await supabase
