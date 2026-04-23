@@ -36,6 +36,7 @@ interface EvaluationRadarProps {
   primaryColor?: string;
   animated?: boolean;
   showTooltip?: boolean;
+  className?: string;
 }
 
 const useIsDarkMode = () => {
@@ -64,6 +65,7 @@ export const EvaluationRadar = ({
   primaryColor,
   animated = true,
   showTooltip = true,
+  className,
 }: EvaluationRadarProps) => {
   const isDark = useIsDarkMode();
   // Mode clair: bleu primary saturé. Mode sombre: jaune lumineux (max contraste vs fond slate)
@@ -72,7 +74,7 @@ export const EvaluationRadar = ({
     : (primaryColor || "hsl(226, 72%, 48%)");
 
   return (
-    <div className="w-full h-[350px] relative">
+    <div className={className ?? "w-full h-[350px] relative"}>
       <ResponsiveContainer width="100%" height="100%">
         <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid
