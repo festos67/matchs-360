@@ -53,12 +53,17 @@ import { toast } from "sonner";
 
 /**
  * Liste des rôles privilégiés (accès global plateforme).
- * KEEP IN SYNC avec la migration `<timestamp>_role_escalation_defense.sql`
- * (CHECK constraint role_requests_no_privileged_request + trigger
- *  guard_privileged_role_grant sur user_roles).
- * NB : 'club_admin' n'est PAS privilégié (scoped à un club).
+ * KEEP IN SYNC avec les migrations :
+ *   - role_escalation_defense (cycle 2.5)
+ *   - extend_privileged_role_defense (cycle 3 — ajout 'club_admin')
+ * Ces rôles déclenchent :
+ *   - CHECK role_requests_no_privileged_request (impossible à demander)
+ *   - trigger guard_privileged_role_grant sur user_roles
+ *   - badge "Rôle privilégié" + AlertDialog de confirmation côté UI
+ * 'club_admin' a une autorité totale dans son club (RBAC scoped) →
+ * traité comme privilégié pour bloquer toute escalade par auto-demande.
  */
-const PRIVILEGED_ROLES: string[] = ["admin"];
+const PRIVILEGED_ROLES: string[] = ["admin", "club_admin"];
 
 interface RoleRequest {
   id: string;
