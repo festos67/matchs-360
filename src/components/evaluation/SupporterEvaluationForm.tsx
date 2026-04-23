@@ -382,7 +382,6 @@ export function SupporterEvaluationForm({
         </AlertDialogContent>
       </AlertDialog>
 
-      {planLimitDialog}
     </div>
   );
 }
