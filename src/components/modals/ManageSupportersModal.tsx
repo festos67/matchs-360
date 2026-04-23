@@ -75,6 +75,8 @@ export const ManageSupportersModal = ({
 }: ManageSupportersModalProps) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("list");
+  const [existingSearch, setExistingSearch] = useState("");
+  const [linkingId, setLinkingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const {
