@@ -297,6 +297,7 @@ export default function RoleApprovals() {
                 color: "text-gray-500",
               };
               const Icon = config.icon;
+              const isPrivileged = PRIVILEGED_ROLES.includes(request.requested_role);
 
               return (
                 <Card key={request.id}>
@@ -314,6 +315,12 @@ export default function RoleApprovals() {
                             <Icon className={`w-3 h-3 ${config.color}`} />
                             {config.label}
                           </Badge>
+                          {isPrivileged && (
+                            <Badge variant="destructive" className="flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Rôle privilégié
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Mail className="w-3 h-3" />
@@ -339,8 +346,14 @@ export default function RoleApprovals() {
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleApprove(request)}
+                            variant={isPrivileged ? "destructive" : "default"}
+                            onClick={() => requestApprove(request)}
                             disabled={processing}
+                            aria-label={
+                              isPrivileged
+                                ? `Approuver demande privilégiée pour ${request.requested_role}`
+                                : `Approuver demande pour ${request.requested_role}`
+                            }
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
                             Approuver
