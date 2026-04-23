@@ -254,9 +254,6 @@ export default function SupporterEvaluation() {
       {/* Header */}
       <div className="glass-card p-6 mb-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center">
-            <Heart className="w-7 h-7 text-orange-500" />
-          </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-display font-bold text-foreground">
@@ -271,13 +268,16 @@ export default function SupporterEvaluation() {
             </p>
             {request.team && (
               <p className="text-sm text-muted-foreground mt-1">
-                <span 
-                  className="inline-block w-2 h-2 rounded-full mr-2" 
+                <span
+                  className="inline-block w-2 h-2 rounded-full mr-2"
                   style={{ backgroundColor: request.team.club?.primary_color || "#3B82F6" }}
                 />
                 {request.team.name} - {request.team.club?.name}
               </p>
             )}
+          </div>
+          <div className="w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+            <Heart className="w-7 h-7 text-orange-500" />
           </div>
         </div>
       </div>
