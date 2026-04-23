@@ -130,14 +130,6 @@ export function SupporterEvaluationForm({
     return () => window.removeEventListener("beforeunload", handler);
   }, [hasUnsavedChanges]);
 
-  const handleStart = () => {
-    setHasStarted(true);
-    // Scroll au sommet du formulaire après rendu
-    setTimeout(() => {
-      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
-
   // Calculate current data for radar
   const getCurrentData = (): ThemeScores[] => {
     return themes.map((theme) => ({
