@@ -796,10 +796,11 @@ Deno.serve(async (req) => {
           });
         }
 
-        // CRITICAL: Only the super admin (asahand@protonmail.com) can promote to admin
-        const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
-        if (user.email?.toLowerCase() !== SUPER_ADMIN_EMAIL) {
-          return new Response(JSON.stringify({ error: "Action non autorisée. Seul le Super Administrateur peut effectuer cette action." }), {
+        // CRITICAL: only an existing Super Admin (role='admin' in user_roles)
+        // can promote another user to admin. Identity is resolved via RBAC,
+        // never via a hardcoded email.
+        if (!isAdmin) {
+          return new Response(JSON.stringify({ error: "Action non autorisée. Seul un Super Administrateur peut effectuer cette action." }), {
             status: 403,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
