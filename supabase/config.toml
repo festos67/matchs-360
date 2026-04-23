@@ -1,5 +1,28 @@
 project_id = "aasihxqsasjpszqjlbid"
 
+# ============================================================
+# Edge functions registry
+# ============================================================
+# Each [functions.X] block below MUST correspond to a directory
+# supabase/functions/X/ with an index.ts file.
+#
+# verify_jwt = false is reserved for endpoints that intentionally
+# accept anonymous requests AND implement their own auth check
+# inside the function (e.g. webhook signature verification, public
+# invitation acceptance flow). Never declare verify_jwt = false
+# without a corresponding code review and a justification comment
+# immediately above the block.
+#
+# To add a new function:
+#   supabase functions new <name>
+#   # then add the [functions.<name>] block here
+#
+# To remove a function:
+#   supabase functions delete <name>   # remove from remote first
+#   rm -rf supabase/functions/<name>
+#   # then remove the [functions.<name>] block here
+# ============================================================
+
 [functions.admin-users]
 verify_jwt = false
 
@@ -11,6 +34,3 @@ verify_jwt = false
 
 [functions.process-email-queue]
 verify_jwt = true
-
-[functions.reset-admin-password-temp]
-verify_jwt = false
