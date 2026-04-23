@@ -28,7 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useNavigate } from "react-router-dom";
 import { ThemeAccordion } from "./ThemeAccordion";
 import { EvaluationRadar } from "./EvaluationRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores, type SkillScore } from "@/lib/evaluation-utils";
@@ -72,14 +71,12 @@ export function SupporterEvaluationForm({
   onUnsavedChangesChange,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
-  const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
 
   const [hasStarted, setHasStarted] = useState(false);
   const [showConfirmSave, setShowConfirmSave] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const formSectionRef = useRef<HTMLDivElement>(null);
 
@@ -413,28 +410,6 @@ export function SupporterEvaluationForm({
               className="bg-warning hover:bg-warning/90 text-warning-foreground"
             >
               J'ai compris
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Leave confirmation dialog (for in-app navigation) */}
-      <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Arrêter la saisie ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Si vous quittez sans enregistrer, vos réponses seront perdues et
-              le coach n'y aura pas accès. Êtes-vous sûr(e) de vouloir arrêter ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuer à modifier</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => { setShowLeaveConfirm(false); navigate(-1); }}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              Arrêter la saisie
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
