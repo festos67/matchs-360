@@ -12,7 +12,9 @@
  * affiliations club/équipe selon le contenu de l'invitation.
  *
  * @validation
- * Schéma Zod : mot de passe ≥ 8 caractères + confirmation identique.
+ * Schéma Zod centralisé (`userPasswordSchema`) :
+ * mot de passe ≥ USER_MIN_LENGTH caractères + confirmation identique.
+ * Source unique de vérité : `src/lib/password-policy.ts`.
  *
  * @flow
  * 1. Extraction du token depuis le hash URL
@@ -35,7 +37,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
-import { userPasswordSchema, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib/password-policy";
+import {
+  userPasswordSchema,
+  validateUserPassword,
+  USER_MIN_LENGTH,
+  MAX_LENGTH,
+  PASSWORD_HELP_TEXT,
+} from "@/lib/password-policy";
 
 const passwordSchema = z.object({
   password: userPasswordSchema,
@@ -52,6 +60,7 @@ export default function InviteAccept() {
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [pwdError, setPwdError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -152,6 +161,21 @@ export default function InviteAccept() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Garde-fou côté client : protège contre tout bypass UI (ex: DevTools
+    // qui réactiverait le bouton). La policy serveur HIBP + min length
+    // s'applique en plus côté Supabase Auth.
+    const pwdValidation = validateUserPassword(password);
+    if (pwdValidation !== null) {
+      setPwdError(pwdValidation);
+      toast.error("Mot de passe non conforme", { description: pwdValidation });
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -259,14 +283,22 @@ export default function InviteAccept() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setPassword(v);
+                    setPwdError(v.length === 0 ? null : validateUserPassword(v));
+                  }}
                   className="pl-10"
                   minLength={USER_MIN_LENGTH}
-                  maxLength={128}
+                  maxLength={MAX_LENGTH}
+                  autoComplete="new-password"
                   required
                 />
               </div>
               <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
+              {pwdError && (
+                <p className="text-xs text-destructive" role="alert">{pwdError}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -280,15 +312,28 @@ export default function InviteAccept() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10"
+                  minLength={USER_MIN_LENGTH}
+                  maxLength={MAX_LENGTH}
+                  autoComplete="new-password"
                   required
                 />
               </div>
+              {confirmPassword.length > 0 && confirmPassword !== password && (
+                <p className="text-xs text-destructive" role="alert">
+                  Les mots de passe ne correspondent pas
+                </p>
+              )}
             </div>
 
             <Button
               type="submit"
               className="w-full h-12 text-base font-medium"
-              disabled={loading}
+              disabled={
+                loading ||
+                pwdError !== null ||
+                validateUserPassword(password) !== null ||
+                password !== confirmPassword
+              }
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
