@@ -380,6 +380,7 @@ export default function PlayerDetail() {
             comparisonIds={comparisonIds}
             onReturnToCurrent={handleReturnToCurrent}
             onToggleComparison={toggleComparison}
+            hideSupporterLayer={isPlayerViewingOwnProfile}
           />
         </TabsContent>
 
