@@ -418,8 +418,28 @@ Deno.serve(async (req) => {
       if (action === "add-role") {
         const { userId, role, clubId, teamId, playerId, coachRole } = body;
 
+        // C5-4: prevent self-grant (defense in depth, aligns with
+        // remove-role and promote-admin handlers)
+        if (userId === user.id) {
+          return forbidden("You cannot grant a role to yourself");
+        }
+
         // Block privilege escalation: only super admin may grant 'admin'
         if (role === "admin") return forbidden("Only Super Admin can grant admin role");
+
+        // C5-4: club_admin grant requires super admin OR existing
+        // club_admin of the SAME club (explicit, not just generic scope)
+        if (role === "club_admin") {
+          if (!clubId) {
+            return forbidden("club_admin grant requires clubId");
+          }
+          const isCallerClubAdminOfClub = clubAdminClubIds.includes(clubId);
+          if (!isAdmin && !isCallerClubAdminOfClub) {
+            return forbidden(
+              "Only super admin or existing club admin of the same club can grant club_admin",
+            );
+          }
+        }
 
         // Target user must be within caller's scope
         if (!(await userInClubAdminScope(userId))) return forbidden();
@@ -447,6 +467,26 @@ Deno.serve(async (req) => {
             .insert({ user_id: userId, role, club_id: clubId });
 
           if (roleError) throw roleError;
+
+          // C5-4: explicit audit entry for traceability of role grants
+          // performed via this endpoint. Distinct from the generic
+          // fn_audit_trigger INSERT row by the `via` marker in after_data.
+          await supabaseAdmin.from("audit_log").insert({
+            actor_id: user.id,
+            actor_role: "authenticated",
+            action: "INSERT",
+            table_name: "user_roles",
+            record_id: userId,
+            before_data: null,
+            after_data: {
+              granted_role: role,
+              target_user_id: userId,
+              club_id: clubId ?? null,
+              team_id: teamId ?? null,
+              coach_role: coachRole ?? null,
+              via: "admin-users.add-role",
+            },
+          });
         }
 
         // If coach or player, also add to team_members
