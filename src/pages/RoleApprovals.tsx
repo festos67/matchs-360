@@ -53,12 +53,17 @@ import { toast } from "sonner";
 
 /**
  * Liste des rôles privilégiés (accès global plateforme).
- * KEEP IN SYNC avec la migration `<timestamp>_role_escalation_defense.sql`
- * (CHECK constraint role_requests_no_privileged_request + trigger
- *  guard_privileged_role_grant sur user_roles).
- * NB : 'club_admin' n'est PAS privilégié (scoped à un club).
+ * KEEP IN SYNC avec les migrations :
+ *   - role_escalation_defense (cycle 2.5)
+ *   - extend_privileged_role_defense (cycle 3 — ajout 'club_admin')
+ * Ces rôles déclenchent :
+ *   - CHECK role_requests_no_privileged_request (impossible à demander)
+ *   - trigger guard_privileged_role_grant sur user_roles
+ *   - badge "Rôle privilégié" + AlertDialog de confirmation côté UI
+ * 'club_admin' a une autorité totale dans son club (RBAC scoped) →
+ * traité comme privilégié pour bloquer toute escalade par auto-demande.
  */
-const PRIVILEGED_ROLES: string[] = ["admin"];
+const PRIVILEGED_ROLES: string[] = ["admin", "club_admin"];
 
 interface RoleRequest {
   id: string;
@@ -144,7 +149,19 @@ export default function RoleApprovals() {
 
   const handleApprove = async (request: RoleRequest) => {
     setProcessing(true);
-    
+
+    // Cycle 3 — défense en profondeur :
+    // role_requests ne porte pas de club_id. Un grant 'club_admin' sans club
+    // serait rejeté par la CHECK user_roles_club_admin_requires_club.
+    // On bloque avant le round-trip pour un message UX clair.
+    if (request.requested_role === "club_admin") {
+      toast.error(
+        "Les demandes club_admin doivent passer par une invitation depuis la console admin (un club doit être associé). Refusez cette demande et invitez l'utilisateur via la gestion du club concerné."
+      );
+      setProcessing(false);
+      return;
+    }
+
     // Update request status
     const { error: updateError } = await supabase
       .from("role_requests")
@@ -170,9 +187,13 @@ export default function RoleApprovals() {
 
     if (roleError) {
       console.error("Error creating role:", roleError);
+      const code = (roleError as { code?: string }).code;
       // Couche 2 (trigger guard_privileged_role_grant) bloque code 42501
-      if ((roleError as { code?: string }).code === "42501") {
+      // Couche 4 (CHECK club_admin requires club) bloque code 23514
+      if (code === "42501") {
         toast.error("Action refusée par le serveur : permissions insuffisantes.");
+      } else if (code === "23514") {
+        toast.error("Action refusée par le serveur : contrainte d'intégrité (rôle/club incohérent).");
       } else {
         toast.error("Erreur lors de la création du rôle");
       }
