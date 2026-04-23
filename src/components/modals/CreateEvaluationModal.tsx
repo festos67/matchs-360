@@ -77,7 +77,15 @@ export const CreateEvaluationModal = ({
   onSuccess,
   preselectedTeamId,
 }: CreateEvaluationModalProps) => {
-  const { user, hasAdminRole: isAdmin } = useAuth();
+  const { user, hasAdminRole: isAdmin, roles } = useAuth();
+  // Clubs where the user is club_admin (full scope on those clubs)
+  const clubAdminClubIds = useMemo(
+    () =>
+      roles
+        .filter((r) => r.role === "club_admin" && r.club_id)
+        .map((r) => r.club_id as string),
+    [roles]
+  );
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
@@ -142,14 +150,22 @@ export const CreateEvaluationModal = ({
     const playerMembers = teamMembers.filter((tm) => tm.member_type === "player");
     const coachMembers = teamMembers.filter((tm) => tm.member_type === "coach");
 
-    // If not admin, only show players from coach's teams
-    const coachTeamIds = isAdmin
-      ? null
-      : coachMembers.filter((cm) => cm.user_id === user?.id).map((cm) => cm.team_id);
-
-    const relevantPlayerMembers = coachTeamIds
-      ? playerMembers.filter((pm) => coachTeamIds.includes(pm.team_id))
-      : playerMembers;
+    // Scope filtering:
+    // - super admin: all data (no filter)
+    // - club_admin: all teams of their club(s)
+    // - coach: only teams where they are coach
+    let relevantPlayerMembers = playerMembers;
+    if (!isAdmin) {
+      const coachTeamIds = new Set(
+        coachMembers.filter((cm) => cm.user_id === user?.id).map((cm) => cm.team_id)
+      );
+      relevantPlayerMembers = playerMembers.filter((pm) => {
+        const team = pm.teams as any;
+        const teamClubId = team?.club_id;
+        if (teamClubId && clubAdminClubIds.includes(teamClubId)) return true;
+        return coachTeamIds.has(pm.team_id);
+      });
+    }
 
     const userIds = [...new Set(relevantPlayerMembers.map((tm) => tm.user_id))];
     if (userIds.length === 0) { setAllPlayers([]); return; }
