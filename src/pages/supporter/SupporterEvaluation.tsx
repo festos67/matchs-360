@@ -334,6 +334,32 @@ export default function SupporterEvaluation() {
         </div>
       </div>
 
+      {/* Start card – between header and form */}
+      {!hasStarted && (
+        <div
+          ref={startCardRef}
+          className="glass-card p-8 mb-8 text-center border-2 border-dashed border-warning/40 bg-warning/5 scroll-mt-4"
+        >
+          <Play className="w-10 h-10 mx-auto mb-3 text-warning" />
+          <h3 className="text-lg font-display font-semibold mb-2">
+            Prêt(e) à partager votre perception ?
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+            Cliquez sur le bouton ci-dessous pour démarrer le débrief. Vos
+            réponses ne seront enregistrées qu'après validation finale.
+          </p>
+          <Button
+            size="lg"
+            onClick={handleStart}
+            disabled={alreadyEvaluated}
+            className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
+          >
+            <Play className="w-4 h-4" />
+            Démarrer le débrief
+          </Button>
+        </div>
+      )}
+
       {/* Evaluation Form */}
       <SupporterEvaluationForm
         playerId={request.player_id}
@@ -342,9 +368,9 @@ export default function SupporterEvaluation() {
         frameworkId={frameworkId}
         themes={themes}
         requestId={requestId}
+        hasStarted={hasStarted}
         onUnsavedChangesChange={setHasUnsavedChanges}
         onSaved={() => {
-          toast.success("Merci pour votre contribution !");
           navigate("/supporter/dashboard");
         }}
       />
@@ -365,6 +391,67 @@ export default function SupporterEvaluation() {
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Arrêter la saisie
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* In-app navigation guard (sidebar / link clicks) */}
+      <AlertDialog
+        open={blocker.state === "blocked"}
+        onOpenChange={(open) => {
+          if (!open && blocker.state === "blocked") blocker.reset?.();
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Quitter le débrief ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si vous quittez sans enregistrer, vos réponses seront perdues et
+              le coach n'y aura pas accès. Souhaitez-vous continuer la saisie
+              ou abandonner le formulaire ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => blocker.reset?.()}>
+              Continuer la saisie
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => blocker.proceed?.()}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Abandonner
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Already-evaluated warning (Pro upgrade required) */}
+      <AlertDialog open={showAlreadyEvaluated} onOpenChange={setShowAlreadyEvaluated}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Avis déjà donné
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Attention : vous avez déjà donné votre avis une fois pour ce
+              joueur. Pour pouvoir le donner à nouveau, le club doit passer
+              en formule Pro.
+              <br /><br />
+              <span className="text-xs">
+                Cette décision revient au club, pas au supporter.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setShowAlreadyEvaluated(false);
+                navigate("/supporter/dashboard");
+              }}
+            >
+              J'ai compris
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
