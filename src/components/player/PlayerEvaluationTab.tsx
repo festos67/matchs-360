@@ -195,7 +195,7 @@ export function PlayerEvaluationTab({
                     </Label>
                   </div>
                 )}
-                {!!latestSupporterEvaluation && (
+                {!!latestSupporterEvaluation && !hideSupporterLayer && (
                   <div className="flex items-center gap-2 shrink-0">
                     <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
                     <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
