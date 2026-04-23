@@ -678,6 +678,21 @@ const handler = async (req: Request): Promise<Response> => {
       console.warn(notificationEmailError);
     }
 
+    // Forensic log: invitation acceptée (cycle 4 rate-limit)
+    try {
+      await supabaseAdmin.from("invitation_send_log").insert({
+        invited_by: user.id,
+        caller_role: callerEffectiveRole,
+        club_id: clubId,
+        intended_role: intendedRole,
+        recipient_email_hash: recipientEmailHash,
+        status: "accepted",
+      });
+    } catch (logErr) {
+      // never fail the user-facing response on a logging error
+      console.warn("invitation_send_log accepted insert failed", { err: (logErr as Error)?.message });
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
