@@ -22,7 +22,7 @@
  */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, User, Mail, Shield, Dumbbell, Users, Heart } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, Mail, Shield, Dumbbell, Users, Heart, AlertTriangle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,9 +37,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+
+/**
+ * Liste des rôles privilégiés (accès global plateforme).
+ * KEEP IN SYNC avec la migration `<timestamp>_role_escalation_defense.sql`
+ * (CHECK constraint role_requests_no_privileged_request + trigger
+ *  guard_privileged_role_grant sur user_roles).
+ * NB : 'club_admin' n'est PAS privilégié (scoped à un club).
+ */
+const PRIVILEGED_ROLES: string[] = ["admin"];
 
 interface RoleRequest {
   id: string;
