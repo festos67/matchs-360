@@ -56,6 +56,7 @@ interface SupporterEvaluationFormProps {
   frameworkId: string;
   themes: Theme[];
   requestId?: string;
+  hasStarted: boolean;
   onSaved: () => void;
   onUnsavedChangesChange?: (hasUnsaved: boolean) => void;
 }
@@ -67,14 +68,13 @@ export function SupporterEvaluationForm({
   frameworkId,
   themes,
   requestId,
+  hasStarted,
   onSaved,
   onUnsavedChangesChange,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
-  const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
 
-  const [hasStarted, setHasStarted] = useState(false);
   const [showConfirmSave, setShowConfirmSave] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -129,14 +129,6 @@ export function SupporterEvaluationForm({
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [hasUnsavedChanges]);
-
-  const handleStart = () => {
-    setHasStarted(true);
-    // Scroll au sommet du formulaire après rendu
-    setTimeout(() => {
-      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  };
 
   // Calculate current data for radar
   const getCurrentData = (): ThemeScores[] => {
@@ -246,10 +238,6 @@ export function SupporterEvaluationForm({
       setShowSuccess(true);
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
-      if (planLimitHandle(error, "supporter_evals")) {
-        setIsSaving(false);
-        return;
-      }
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setIsSaving(false);
@@ -301,27 +289,6 @@ export function SupporterEvaluationForm({
           Partagez votre perception des compétences du joueur. Vos observations sont
           précieuses pour compléter la vision des coachs.
         </p>
-
-        {!hasStarted && (
-          <div className="rounded-lg border-2 border-dashed border-warning/40 bg-warning/5 p-8 text-center mb-6">
-            <Play className="w-10 h-10 mx-auto mb-3 text-warning" />
-            <h3 className="text-lg font-display font-semibold mb-2">
-              Prêt(e) à partager votre perception ?
-            </h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-              Cliquez sur le bouton ci-dessous pour démarrer le débrief. Vos
-              réponses ne seront enregistrées qu'après validation finale.
-            </p>
-            <Button
-              size="lg"
-              onClick={handleStart}
-              className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
-            >
-              <Play className="w-4 h-4" />
-              Démarrer le débrief
-            </Button>
-          </div>
-        )}
 
         <div className={`space-y-4 ${!hasStarted ? "opacity-50 pointer-events-none select-none" : ""}`}>
           {themes.map((theme) => (
@@ -415,7 +382,6 @@ export function SupporterEvaluationForm({
         </AlertDialogContent>
       </AlertDialog>
 
-      {planLimitDialog}
     </div>
   );
 }
