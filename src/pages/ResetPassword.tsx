@@ -40,41 +40,56 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for the PASSWORD_RECOVERY event from Supabase
+    let cancelled = false;
+    let pollId: ReturnType<typeof setInterval> | null = null;
+
+    const markReady = () => {
+      if (cancelled) return;
+      setSessionReady(true);
+      if (pollId) clearInterval(pollId);
+      // Nettoyage du hash pour empêcher tout rejeu du token
+      if (window.location.hash) {
+        window.history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
+      }
+    };
+
+    // 1. Listener temps réel (déclenché quand Supabase parse le hash)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-          setSessionReady(true);
+          markReady();
         }
-      }
+      },
     );
 
-    // Check if hash contains recovery token (Supabase puts tokens in the URL hash)
-    const hash = window.location.hash;
-    if (hash && (hash.includes("type=recovery") || hash.includes("access_token"))) {
-      // Supabase JS client will automatically pick up the tokens from the hash
-      // and trigger onAuthStateChange - give it a moment
-      const timeout = setTimeout(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            setSessionReady(true);
-          }
-        });
-      }, 1500);
-      return () => {
-        clearTimeout(timeout);
-        subscription.unsubscribe();
-      };
-    }
-
-    // Also check for existing session
+    // 2. Vérification immédiate (cas où la session est déjà établie)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true);
-      }
+      if (session) markReady();
     });
 
-    return () => subscription.unsubscribe();
+    // 3. Polling de secours pendant 10s (le parsing du hash peut être lent
+    //    selon l'ordre d'exécution Vite/StrictMode)
+    let attempts = 0;
+    pollId = setInterval(async () => {
+      attempts += 1;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        markReady();
+      } else if (attempts >= 20) {
+        // 20 * 500ms = 10s -> abandon
+        if (pollId) clearInterval(pollId);
+      }
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      if (pollId) clearInterval(pollId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
