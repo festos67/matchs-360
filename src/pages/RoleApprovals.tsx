@@ -22,7 +22,7 @@
  */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Clock, User, Mail, Shield, Dumbbell, Users, Heart } from "lucide-react";
+import { CheckCircle, XCircle, Clock, User, Mail, Shield, Dumbbell, Users, Heart, AlertTriangle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,9 +37,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+
+/**
+ * Liste des rôles privilégiés (accès global plateforme).
+ * KEEP IN SYNC avec la migration `<timestamp>_role_escalation_defense.sql`
+ * (CHECK constraint role_requests_no_privileged_request + trigger
+ *  guard_privileged_role_grant sur user_roles).
+ * NB : 'club_admin' n'est PAS privilégié (scoped à un club).
+ */
+const PRIVILEGED_ROLES: string[] = ["admin"];
 
 interface RoleRequest {
   id: string;
@@ -71,6 +90,9 @@ export default function RoleApprovals() {
   const [selectedRequest, setSelectedRequest] = useState<RoleRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [privilegedDialogOpen, setPrivilegedDialogOpen] = useState(false);
+  const [privilegedRequest, setPrivilegedRequest] = useState<RoleRequest | null>(null);
+  const [privilegedConfirmText, setPrivilegedConfirmText] = useState("");
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -148,7 +170,12 @@ export default function RoleApprovals() {
 
     if (roleError) {
       console.error("Error creating role:", roleError);
-      toast.error("Erreur lors de la création du rôle");
+      // Couche 2 (trigger guard_privileged_role_grant) bloque code 42501
+      if ((roleError as { code?: string }).code === "42501") {
+        toast.error("Action refusée par le serveur : permissions insuffisantes.");
+      } else {
+        toast.error("Erreur lors de la création du rôle");
+      }
       setProcessing(false);
       return;
     }
@@ -156,6 +183,24 @@ export default function RoleApprovals() {
     toast.success(`Demande approuvée pour ${request.profile?.first_name || "l'utilisateur"}`);
     fetchRequests();
     setProcessing(false);
+  };
+
+  const requestApprove = (request: RoleRequest) => {
+    if (PRIVILEGED_ROLES.includes(request.requested_role)) {
+      setPrivilegedRequest(request);
+      setPrivilegedConfirmText("");
+      setPrivilegedDialogOpen(true);
+      return;
+    }
+    handleApprove(request);
+  };
+
+  const confirmPrivilegedApprove = async () => {
+    if (!privilegedRequest) return;
+    setPrivilegedDialogOpen(false);
+    await handleApprove(privilegedRequest);
+    setPrivilegedRequest(null);
+    setPrivilegedConfirmText("");
   };
 
   const openRejectDialog = (request: RoleRequest) => {
@@ -252,6 +297,7 @@ export default function RoleApprovals() {
                 color: "text-gray-500",
               };
               const Icon = config.icon;
+              const isPrivileged = PRIVILEGED_ROLES.includes(request.requested_role);
 
               return (
                 <Card key={request.id}>
@@ -269,6 +315,12 @@ export default function RoleApprovals() {
                             <Icon className={`w-3 h-3 ${config.color}`} />
                             {config.label}
                           </Badge>
+                          {isPrivileged && (
+                            <Badge variant="destructive" className="flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Rôle privilégié
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Mail className="w-3 h-3" />
@@ -294,8 +346,14 @@ export default function RoleApprovals() {
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleApprove(request)}
+                            variant={isPrivileged ? "destructive" : "default"}
+                            onClick={() => requestApprove(request)}
                             disabled={processing}
+                            aria-label={
+                              isPrivileged
+                                ? `Approuver demande privilégiée pour ${request.requested_role}`
+                                : `Approuver demande pour ${request.requested_role}`
+                            }
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
                             Approuver
@@ -341,6 +399,44 @@ export default function RoleApprovals() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Privileged role approval confirmation (Couche 3) */}
+      <AlertDialog open={privilegedDialogOpen} onOpenChange={setPrivilegedDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Confirmation d'attribution privilégiée
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes sur le point d'accorder le rôle{" "}
+              <strong>{privilegedRequest?.requested_role}</strong> à{" "}
+              <strong>{privilegedRequest?.profile?.email}</strong>. Ce rôle donne
+              un accès complet à l'ensemble de la plateforme. Pour confirmer,
+              tapez littéralement <code className="px-1 rounded bg-muted">{privilegedRequest?.requested_role}</code> ci-dessous.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            value={privilegedConfirmText}
+            onChange={(e) => setPrivilegedConfirmText(e.target.value)}
+            placeholder={privilegedRequest?.requested_role ?? ""}
+            autoFocus
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPrivilegedApprove}
+              disabled={
+                processing ||
+                privilegedConfirmText !== (privilegedRequest?.requested_role ?? "")
+              }
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmer l'attribution
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
