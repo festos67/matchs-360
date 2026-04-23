@@ -694,13 +694,6 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Error in send-invitation function:", error);
-    // Best-effort forensic log (cycle 4) — never fail the response on this
-    try {
-      const body = (req as any)._cachedBody;
-      // We don't have access to parsed body here on all paths; rely on closure
-      // captured below via a no-op. The accepted/error logs live in the main
-      // try block; this catch is for unexpected throws after auth.
-    } catch (_ignore) { /* noop */ }
     return new Response(
       JSON.stringify({ error: error.message }),
       {
