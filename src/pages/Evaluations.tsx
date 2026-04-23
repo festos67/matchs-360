@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
+import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 
 interface Evaluation {
   id: string;
@@ -55,6 +56,7 @@ interface Evaluation {
 
 export default function Evaluations() {
   const { user, loading: authLoading, roles } = useAuth();
+  const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -88,7 +90,7 @@ export default function Evaluations() {
     if (user) {
       fetchEvaluations();
     }
-  }, [user, teamId]);
+  }, [user, teamId, myAdminClubIds.join(",")]);
 
   useEffect(() => {
     if (teamId) {
@@ -103,11 +105,16 @@ export default function Evaluations() {
   }, [user]);
 
   const fetchTeams = async () => {
-    const { data } = await supabase
+    let q = supabase
       .from("teams")
-      .select("id, name")
+      .select("id, name, club_id")
       .is("deleted_at", null)
       .order("name");
+    const { data } = await q;
+    if (!isSuperAdmin && myAdminClubIds.length > 0) {
+      setTeams((data || []).filter((t: any) => myAdminClubIds.includes(t.club_id)));
+      return;
+    }
     if (data) setTeams(data);
   };
 
@@ -123,6 +130,34 @@ export default function Evaluations() {
   const fetchEvaluations = async () => {
     setLoading(true);
 
+    // Build allowed player IDs for club_admin scope (not super-admin)
+    let scopedPlayerIds: string[] | null = null;
+    if (!isSuperAdmin && myAdminClubIds.length > 0) {
+      const { data: scopedTeams } = await supabase
+        .from("teams")
+        .select("id")
+        .in("club_id", myAdminClubIds)
+        .is("deleted_at", null);
+      const teamIds = (scopedTeams || []).map((t: any) => t.id);
+      if (teamIds.length === 0) {
+        setEvaluations([]);
+        setLoading(false);
+        return;
+      }
+      const { data: pm } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .in("team_id", teamIds)
+        .eq("member_type", "player")
+        .eq("is_active", true);
+      scopedPlayerIds = [...new Set((pm || []).map((m: any) => m.user_id))];
+      if (scopedPlayerIds.length === 0) {
+        setEvaluations([]);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (teamId) {
       // Get player IDs in this team first
       const { data: memberData } = await supabase
@@ -132,7 +167,10 @@ export default function Evaluations() {
         .eq("member_type", "player")
         .eq("is_active", true);
 
-      const playerIds = memberData?.map(m => m.user_id) || [];
+      let playerIds = memberData?.map(m => m.user_id) || [];
+      if (scopedPlayerIds) {
+        playerIds = playerIds.filter((pid) => scopedPlayerIds!.includes(pid));
+      }
 
       if (playerIds.length === 0) {
         setEvaluations([]);
@@ -158,7 +196,7 @@ export default function Evaluations() {
         setEvaluations(data as unknown as Evaluation[]);
       }
     } else {
-      const { data, error } = await supabase
+      let query = supabase
         .from("evaluations")
         .select(`
           id,
@@ -170,6 +208,10 @@ export default function Evaluations() {
         .is("deleted_at", null)
         .order("date", { ascending: false })
         .limit(50);
+      if (scopedPlayerIds) {
+        query = query.in("player_id", scopedPlayerIds);
+      }
+      const { data, error } = await query;
 
       if (!error && data) {
         setEvaluations(data as unknown as Evaluation[]);
