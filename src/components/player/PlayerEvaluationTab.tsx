@@ -42,6 +42,7 @@ interface PlayerEvaluationTabProps {
   comparisonIds: string[];
   onReturnToCurrent: () => void;
   onToggleComparison: (id: string) => void;
+  hideSupporterLayer?: boolean;
 }
 
 const COMPARISON_COLORS = ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"];
@@ -60,6 +61,7 @@ export function PlayerEvaluationTab({
   comparisonIds,
   onReturnToCurrent,
   onToggleComparison,
+  hideSupporterLayer = false,
 }: PlayerEvaluationTabProps) {
   const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
   const [showSupporterLayer, setShowSupporterLayer] = useState(false);
@@ -128,7 +130,7 @@ export function PlayerEvaluationTab({
       pushDataset(latestSelfEvaluation, { label: "Auto-débrief", color: "#F59E0B" });
     }
 
-    if (showSupporterLayer) {
+    if (showSupporterLayer && !hideSupporterLayer) {
       pushDataset(latestSupporterEvaluation, { label: "Débrief Supporter", color: "#F97316" });
     }
 
@@ -193,7 +195,7 @@ export function PlayerEvaluationTab({
                     </Label>
                   </div>
                 )}
-                {!!latestSupporterEvaluation && (
+                {!!latestSupporterEvaluation && !hideSupporterLayer && (
                   <div className="flex items-center gap-2 shrink-0">
                     <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
                     <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">

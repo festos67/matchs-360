@@ -380,6 +380,7 @@ export default function PlayerDetail() {
             comparisonIds={comparisonIds}
             onReturnToCurrent={handleReturnToCurrent}
             onToggleComparison={toggleComparison}
+            hideSupporterLayer={isPlayerViewingOwnProfile}
           />
         </TabsContent>
 
@@ -480,6 +481,7 @@ export default function PlayerDetail() {
             onToggleComparison={toggleComparison}
             onRefresh={refetchAll}
             onPrintEvaluation={handlePrintEvaluationFromHistory}
+            hideSupporterSection={isPlayerViewingOwnProfile}
           />
         </TabsContent>
 

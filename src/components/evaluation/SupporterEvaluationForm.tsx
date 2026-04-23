@@ -14,10 +14,20 @@
  *  - Type consultatif exclu stats : mem://logic/assessment-data-isolation-rules
  *  - Identité Heart rose (mem://style/role-branding-standard)
  */
-import { useState } from "react";
-import { Save } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Save, Play, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ThemeAccordion } from "./ThemeAccordion";
 import { EvaluationRadar } from "./EvaluationRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores, type SkillScore } from "@/lib/evaluation-utils";
@@ -47,6 +57,7 @@ interface SupporterEvaluationFormProps {
   themes: Theme[];
   requestId?: string;
   onSaved: () => void;
+  onUnsavedChangesChange?: (hasUnsaved: boolean) => void;
 }
 
 export function SupporterEvaluationForm({
@@ -57,10 +68,17 @@ export function SupporterEvaluationForm({
   themes,
   requestId,
   onSaved,
+  onUnsavedChangesChange,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
+
+  const [hasStarted, setHasStarted] = useState(false);
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const formSectionRef = useRef<HTMLDivElement>(null);
 
   // State for scores and comments
   const [scores, setScores] = useState<Record<string, number | null>>({});
@@ -94,6 +112,32 @@ export function SupporterEvaluationForm({
     setObjectives((prev) => ({ ...prev, [themeId]: objective }));
   };
 
+  const hasUnsavedChanges = hasStarted && !isSaved;
+
+  // Notify parent so it can intercept Back button / navigation
+  useEffect(() => {
+    onUnsavedChangesChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onUnsavedChangesChange]);
+
+  // Warn on tab close / refresh while a draft is in progress
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedChanges]);
+
+  const handleStart = () => {
+    setHasStarted(true);
+    // Scroll au sommet du formulaire après rendu
+    setTimeout(() => {
+      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
   // Calculate current data for radar
   const getCurrentData = (): ThemeScores[] => {
     return themes.map((theme) => ({
@@ -124,7 +168,7 @@ export function SupporterEvaluationForm({
   const overallAverage = calculateOverallAverage(getCurrentData());
 
   // Save evaluation
-  const handleSave = async () => {
+  const performSave = async () => {
     if (!user) return;
 
     setIsSaving(true);
@@ -197,8 +241,9 @@ export function SupporterEvaluationForm({
         if (reqError) throw reqError;
       }
 
-      toast.success("Débrief enregistré avec succès !");
-      onSaved();
+      setIsSaved(true);
+      setShowConfirmSave(false);
+      setShowSuccess(true);
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
       if (planLimitHandle(error, "supporter_evals")) {
@@ -212,7 +257,7 @@ export function SupporterEvaluationForm({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-24">
       {/* Real-time Radar Preview */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
@@ -237,7 +282,7 @@ export function SupporterEvaluationForm({
       </div>
 
       {/* Evaluation Form */}
-      <div className="glass-card p-6">
+      <div ref={formSectionRef} className="glass-card p-6 scroll-mt-4 relative">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
@@ -257,7 +302,28 @@ export function SupporterEvaluationForm({
           précieuses pour compléter la vision des coachs.
         </p>
 
-        <div className="space-y-4">
+        {!hasStarted && (
+          <div className="rounded-lg border-2 border-dashed border-warning/40 bg-warning/5 p-8 text-center mb-6">
+            <Play className="w-10 h-10 mx-auto mb-3 text-warning" />
+            <h3 className="text-lg font-display font-semibold mb-2">
+              Prêt(e) à partager votre perception ?
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+              Cliquez sur le bouton ci-dessous pour démarrer le débrief. Vos
+              réponses ne seront enregistrées qu'après validation finale.
+            </p>
+            <Button
+              size="lg"
+              onClick={handleStart}
+              className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
+            >
+              <Play className="w-4 h-4" />
+              Démarrer le débrief
+            </Button>
+          </div>
+        )}
+
+        <div className={`space-y-4 ${!hasStarted ? "opacity-50 pointer-events-none select-none" : ""}`}>
           {themes.map((theme) => (
             <ThemeAccordion
               key={theme.id}
@@ -266,7 +332,7 @@ export function SupporterEvaluationForm({
               skills={theme.skills}
               scores={getThemeScores(theme)}
               objective={objectives[theme.id] || null}
-              disabled={false}
+              disabled={!hasStarted}
               onScoreChange={handleScoreChange}
               onNotObservedChange={handleNotObservedChange}
               onCommentChange={handleCommentChange}
@@ -278,18 +344,77 @@ export function SupporterEvaluationForm({
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end gap-4">
-        <Button
-          size="lg"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
-        >
-          <Save className="w-4 h-4" />
-          {isSaving ? "Enregistrement..." : "Enregistrer ma perception"}
-        </Button>
-      </div>
+      {/* Sticky Save Bar - visible only after start */}
+      {hasStarted && !isSaved && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-lg">
+          <div className="container mx-auto flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
+            <p className="text-sm text-muted-foreground hidden sm:block">
+              <Lock className="inline w-3.5 h-3.5 mr-1 -mt-0.5" />
+              Vos réponses sont privées : seul le coach pourra les consulter.
+            </p>
+            <Button
+              size="lg"
+              onClick={() => setShowConfirmSave(true)}
+              disabled={isSaving}
+              className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground ml-auto"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? "Enregistrement..." : "Enregistrer ma perception"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm save dialog */}
+      <AlertDialog open={showConfirmSave} onOpenChange={(o) => !isSaving && setShowConfirmSave(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer l'enregistrement</AlertDialogTitle>
+            <AlertDialogDescription>
+              Souhaitez-vous enregistrer votre débrief sur <strong>{playerName}</strong> ?
+              Une fois enregistré, vos réponses seront transmises au coach et vous
+              ne pourrez plus les modifier.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Continuer la saisie</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); performSave(); }}
+              disabled={isSaving}
+              className="bg-warning hover:bg-warning/90 text-warning-foreground"
+            >
+              {isSaving ? "Enregistrement..." : "Oui, enregistrer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Success dialog */}
+      <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-success" />
+              Débrief enregistré
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Merci pour votre contribution ! Vos réponses ont bien été transmises.
+              <br /><br />
+              <strong>Confidentialité :</strong> seul le coach du joueur pourra
+              consulter vos réponses. Le joueur lui-même n'y aura pas accès.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => { setShowSuccess(false); onSaved(); }}
+              className="bg-warning hover:bg-warning/90 text-warning-foreground"
+            >
+              J'ai compris
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {planLimitDialog}
     </div>
   );

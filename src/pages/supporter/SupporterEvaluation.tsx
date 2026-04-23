@@ -26,6 +26,16 @@ import { ArrowLeft, ClipboardList, Heart, AlertTriangle } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SupporterEvaluationForm } from "@/components/evaluation/SupporterEvaluationForm";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +83,16 @@ export default function SupporterEvaluation() {
   const [frameworkId, setFrameworkId] = useState<string | null>(null);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  const handleBack = () => {
+    if (hasUnsavedChanges) {
+      setShowLeaveConfirm(true);
+    } else {
+      navigate(-1);
+    }
+  };
 
   // Redirect if not supporter
   useEffect(() => {
@@ -246,7 +266,7 @@ export default function SupporterEvaluation() {
   return (
     <AppLayout>
       {/* Back Button */}
-      <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
+      <Button variant="ghost" className="mb-6 -ml-2" onClick={handleBack}>
         <ArrowLeft className="w-4 h-4 mr-2" />
         Retour
       </Button>
@@ -293,11 +313,33 @@ export default function SupporterEvaluation() {
         frameworkId={frameworkId}
         themes={themes}
         requestId={requestId}
+        onUnsavedChangesChange={setHasUnsavedChanges}
         onSaved={() => {
           toast.success("Merci pour votre contribution !");
           navigate("/supporter/dashboard");
         }}
       />
+
+      <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Arrêter la saisie ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si vous quittez sans enregistrer, vos réponses seront perdues et
+              le coach n'y aura pas accès. Êtes-vous sûr(e) de vouloir arrêter ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuer à modifier</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => { setShowLeaveConfirm(false); navigate(-1); }}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              Arrêter la saisie
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
