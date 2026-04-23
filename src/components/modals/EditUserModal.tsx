@@ -7,7 +7,8 @@
  * @features
  *  - Édition profil complet (prénom, nom, surnom, email, photo)
  *  - Gestion multi-rôles via Badges (admin / club_admin / coach / player / supporter)
- *  - Action "Promouvoir Super Admin" restreinte à asahand@protonmail.com
+ *  - Action "Promouvoir Super Admin" réservée aux comptes ayant déjà
+ *    role='admin' dans public.user_roles (RBAC, plus d'email hardcodé).
  *  - Reset password en mode test (Edge Function admin-users)
  *  - Soft delete via deleted_at avec confirmation
  * @maintenance

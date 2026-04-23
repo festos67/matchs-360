@@ -16,7 +16,8 @@
  *    (vérification serveur uniquement via has_role / RLS)
  *  - Soft delete : mem://technical/soft-delete-strategy
  *  - Bascule de rôle : mem://auth/role-switching-logic
- *  - Super Admin restreint : mem://auth/super-admin (asahand@protonmail.com)
+ *  - Super Admin défini par role='admin' en public.user_roles
+ *    (RBAC, plus d'email codé en dur côté code applicatif).
  *  - Anti-récursion RLS via SECURITY DEFINER : mem://technical/rls-recursion-prevention
  */
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
