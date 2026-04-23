@@ -238,10 +238,6 @@ export function SupporterEvaluationForm({
       setShowSuccess(true);
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
-      if (planLimitHandle(error, "supporter_evals")) {
-        setIsSaving(false);
-        return;
-      }
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setIsSaving(false);
