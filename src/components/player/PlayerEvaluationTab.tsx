@@ -130,7 +130,7 @@ export function PlayerEvaluationTab({
       pushDataset(latestSelfEvaluation, { label: "Auto-débrief", color: "#F59E0B" });
     }
 
-    if (showSupporterLayer) {
+    if (showSupporterLayer && !hideSupporterLayer) {
       pushDataset(latestSupporterEvaluation, { label: "Débrief Supporter", color: "#F97316" });
     }
 
