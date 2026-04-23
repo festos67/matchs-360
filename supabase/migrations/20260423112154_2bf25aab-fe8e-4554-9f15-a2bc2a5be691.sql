@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.admin_list_users_paginated(uuid, boolean, integer, integer, text, text, uuid, uuid, uuid);
