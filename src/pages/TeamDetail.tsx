@@ -664,7 +664,12 @@ export default function TeamDetail() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Supprimer le référentiel ?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Le référentiel sera archivé et pourra être restauré depuis l'historique des versions.
+                                  Le référentiel <strong>{framework.name}</strong> et ses{" "}
+                                  <strong>{framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""}</strong>{" "}
+                                  /{" "}
+                                  <strong>{totalSkills} compétence{totalSkills > 1 ? "s" : ""}</strong>{" "}
+                                  seront archivés. Les évaluations existantes restent consultables.
+                                  Cette action est réversible depuis l'historique des versions.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

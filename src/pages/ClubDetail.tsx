@@ -683,7 +683,14 @@ export default function ClubDetail() {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Le référentiel actuel sera archivé et pourra être restauré depuis l'historique des versions.
+              Le référentiel <strong>{clubFramework?.name ?? "du club"}</strong> et ses{" "}
+              <strong>{frameworkThemes.length} thématique{frameworkThemes.length > 1 ? "s" : ""}</strong>{" "}
+              /{" "}
+              <strong>
+                {frameworkThemes.reduce((acc, t) => acc + (t.skills?.length ?? 0), 0)} compétence
+                {frameworkThemes.reduce((acc, t) => acc + (t.skills?.length ?? 0), 0) > 1 ? "s" : ""}
+              </strong>{" "}
+              seront archivés. Cette action est réversible depuis l'historique des versions.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
