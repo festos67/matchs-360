@@ -21,7 +21,7 @@
  * - Compté dans `max_supporter_evals_per_player` du plan
  */
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams, useBlocker } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Heart, AlertTriangle, Play, Lock } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -89,9 +89,6 @@ export default function SupporterEvaluation() {
   const [alreadyEvaluated, setAlreadyEvaluated] = useState(false);
   const [showAlreadyEvaluated, setShowAlreadyEvaluated] = useState(false);
   const startCardRef = useRef<HTMLDivElement>(null);
-
-  // Block in-app navigation when there are unsaved changes
-  const blocker = useBlocker(hasUnsavedChanges);
 
   const handleBack = () => {
     if (hasUnsavedChanges) {
