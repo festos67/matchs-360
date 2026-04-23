@@ -20,9 +20,9 @@
  * - `evaluation_type = "supporter"` et `evaluator_id = supporter.id`
  * - Compté dans `max_supporter_evals_per_player` du plan
  */
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ClipboardList, Heart, AlertTriangle } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useParams, useBlocker } from "react-router-dom";
+import { ArrowLeft, ClipboardList, Heart, AlertTriangle, Play, Lock } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
