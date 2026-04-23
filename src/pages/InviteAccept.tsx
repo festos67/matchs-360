@@ -35,7 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
-import { userPasswordSchema, USER_MIN_LENGTH } from "@/lib/password-policy";
+import { userPasswordSchema, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib/password-policy";
 
 const passwordSchema = z.object({
   password: userPasswordSchema,
@@ -261,11 +261,12 @@ export default function InviteAccept() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
-                  minLength={8}
+                  minLength={USER_MIN_LENGTH}
+                  maxLength={128}
                   required
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
+              <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
             </div>
 
             <div className="space-y-2">

@@ -3,6 +3,25 @@ import { Resend } from "npm:resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 /**
+ * Politique mot de passe — miroir de src/lib/password-policy.ts.
+ * (Les edge functions ne peuvent pas importer depuis src/.)
+ * Garder ces constantes synchronisées avec USER_MIN_LENGTH/ADMIN_MIN_LENGTH.
+ */
+const ADMIN_MIN_PASSWORD_LENGTH = 14;
+const MAX_PASSWORD_LENGTH = 128;
+
+function validateAdminPasswordSrv(pwd: unknown): string | null {
+  if (typeof pwd !== "string") return "Password must be a string";
+  if (pwd.length < ADMIN_MIN_PASSWORD_LENGTH) {
+    return `Password must be at least ${ADMIN_MIN_PASSWORD_LENGTH} characters`;
+  }
+  if (pwd.length > MAX_PASSWORD_LENGTH) {
+    return `Password must be at most ${MAX_PASSWORD_LENGTH} characters`;
+  }
+  return null;
+}
+
+/**
  * SECURITY: HTML entity escape to prevent XSS / phishing injection
  * via user-controlled fields (clubs.name, role labels) interpolated
  * into outbound email HTML. Covers the OWASP minimum set.
@@ -567,12 +586,15 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Admin reset: enforce 14 chars minimum (CNIL/OWASP for privileged actions)
-        if (typeof newPassword !== "string" || newPassword.length < 14 || newPassword.length > 128) {
-          return new Response(JSON.stringify({ error: "Password must be between 14 and 128 characters" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+        // Admin reset: enforce ADMIN_MIN_PASSWORD_LENGTH (CNIL/OWASP for privileged actions)
+        {
+          const pwdErr = validateAdminPasswordSrv(newPassword);
+          if (pwdErr) {
+            return new Response(JSON.stringify({ error: pwdErr }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
 
         // CRITICAL: only Super Admin may change another user's password
@@ -600,11 +622,14 @@ Deno.serve(async (req) => {
           });
         }
 
-        if (typeof newPassword !== "string" || newPassword.length < 14 || newPassword.length > 128) {
-          return new Response(JSON.stringify({ error: "Password must be between 14 and 128 characters" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+        {
+          const pwdErr = validateAdminPasswordSrv(newPassword);
+          if (pwdErr) {
+            return new Response(JSON.stringify({ error: pwdErr }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
 
         const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
