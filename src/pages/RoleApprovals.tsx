@@ -149,7 +149,19 @@ export default function RoleApprovals() {
 
   const handleApprove = async (request: RoleRequest) => {
     setProcessing(true);
-    
+
+    // Cycle 3 — défense en profondeur :
+    // role_requests ne porte pas de club_id. Un grant 'club_admin' sans club
+    // serait rejeté par la CHECK user_roles_club_admin_requires_club.
+    // On bloque avant le round-trip pour un message UX clair.
+    if (request.requested_role === "club_admin") {
+      toast.error(
+        "Les demandes club_admin doivent passer par une invitation depuis la console admin (un club doit être associé). Refusez cette demande et invitez l'utilisateur via la gestion du club concerné."
+      );
+      setProcessing(false);
+      return;
+    }
+
     // Update request status
     const { error: updateError } = await supabase
       .from("role_requests")
@@ -175,9 +187,13 @@ export default function RoleApprovals() {
 
     if (roleError) {
       console.error("Error creating role:", roleError);
+      const code = (roleError as { code?: string }).code;
       // Couche 2 (trigger guard_privileged_role_grant) bloque code 42501
-      if ((roleError as { code?: string }).code === "42501") {
+      // Couche 4 (CHECK club_admin requires club) bloque code 23514
+      if (code === "42501") {
         toast.error("Action refusée par le serveur : permissions insuffisantes.");
+      } else if (code === "23514") {
+        toast.error("Action refusée par le serveur : contrainte d'intégrité (rôle/club incohérent).");
       } else {
         toast.error("Erreur lors de la création du rôle");
       }
