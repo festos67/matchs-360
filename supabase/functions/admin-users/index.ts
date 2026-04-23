@@ -383,7 +383,7 @@ Deno.serve(async (req) => {
       const action = body.action;
 
       // Restrict certain actions to super admin only
-      const adminOnlyActions = ["promote-admin", "test-update-password"];
+      const adminOnlyActions = ["promote-admin"];
       if (!isAdmin && adminOnlyActions.includes(action)) {
         return new Response(JSON.stringify({ error: "Forbidden: Super Admin access required" }), {
           status: 403,
@@ -658,52 +658,6 @@ Deno.serve(async (req) => {
         if (!isAdmin) return forbidden("Only Super Admin can change passwords");
 
         const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-          password: newPassword,
-        });
-
-        if (error) throw error;
-
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      // Test update password by email (admin only)
-      if (action === "test-update-password") {
-        const { email, newPassword } = body;
-
-        if (!email || !newPassword) {
-          return new Response(JSON.stringify({ error: "email and newPassword required" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        {
-          const pwdErr = validateAdminPasswordSrv(newPassword);
-          if (pwdErr) {
-            return new Response(JSON.stringify({ error: pwdErr }), {
-              status: 400,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-        }
-
-        const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
-        if (usersError) throw usersError;
-
-        const targetUser = authUsers.users.find(
-          (u) => u.email?.toLowerCase() === email.toLowerCase()
-        );
-
-        if (!targetUser) {
-          return new Response(JSON.stringify({ error: "User not found" }), {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-
-        const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUser.id, {
           password: newPassword,
         });
 
