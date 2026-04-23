@@ -408,6 +408,42 @@ export type Database = {
         }
         Relationships: []
       }
+      invitation_send_log: {
+        Row: {
+          caller_role: string
+          club_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          intended_role: string
+          invited_by: string
+          recipient_email_hash: string
+          status: string
+        }
+        Insert: {
+          caller_role: string
+          club_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          intended_role: string
+          invited_by: string
+          recipient_email_hash: string
+          status: string
+        }
+        Update: {
+          caller_role?: string
+          club_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          intended_role?: string
+          invited_by?: string
+          recipient_email_hash?: string
+          status?: string
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -1284,6 +1320,14 @@ export type Database = {
           season_start: string
         }[]
       }
+      get_invitation_quota_remaining: {
+        Args: { p_caller: string }
+        Returns: {
+          limit_per_hour: number
+          reset_at: string
+          used: number
+        }[]
+      }
       get_player_club_id: { Args: { _player_id: string }; Returns: string }
       get_referent_coach_team_ids: {
         Args: { _user_id: string }
@@ -1354,6 +1398,7 @@ export type Database = {
       purge_old_audit_log: { Args: never; Returns: undefined }
       purge_old_evaluations: { Args: never; Returns: undefined }
       purge_old_frameworks: { Args: never; Returns: undefined }
+      purge_old_invitation_send_log: { Args: never; Returns: undefined }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
