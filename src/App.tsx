@@ -19,9 +19,10 @@ import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { queryClient } from "@/lib/query-client";
 import { ProtectedRoute } from "@/components/routing/ProtectedRoute";
 import { Loader2 } from "lucide-react";
 
@@ -66,7 +67,7 @@ const Supporters = lazy(() => import("./pages/Supporters"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const LogoDemo = lazy(() => import("./pages/LogoDemo"));
 
-export const queryClient = new QueryClient();
+export { queryClient };
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
