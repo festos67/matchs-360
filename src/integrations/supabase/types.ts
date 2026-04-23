@@ -1295,6 +1295,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _admin_list_users_check_caller: {
+        Args: { p_caller: string; p_club_filter: string; p_is_admin: boolean }
+        Returns: string[]
+      }
       admin_list_users_paginated: {
         Args: {
           p_caller: string
