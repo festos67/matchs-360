@@ -481,6 +481,7 @@ export default function PlayerDetail() {
             onToggleComparison={toggleComparison}
             onRefresh={refetchAll}
             onPrintEvaluation={handlePrintEvaluationFromHistory}
+            hideSupporterSection={isPlayerViewingOwnProfile}
           />
         </TabsContent>
 
