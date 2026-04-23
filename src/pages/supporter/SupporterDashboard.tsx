@@ -14,16 +14,27 @@
  * @maintenance
  * Les supporters ne voient PAS les auto-débriefs des joueurs (privacy).
  */
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { Heart, ClipboardList, Clock, Star, CheckCircle } from "lucide-react";
+import { Heart, ClipboardList, Clock, Star, CheckCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -55,6 +66,29 @@ interface EvaluationRequest {
 const SupporterDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, currentRole, profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [requestToDelete, setRequestToDelete] = useState<EvaluationRequest | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteRequest = async () => {
+    if (!requestToDelete) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("supporter_evaluation_requests")
+        .delete()
+        .eq("id", requestToDelete.id);
+      if (error) throw error;
+      toast.success("Demande supprimée. Le coach a été notifié.");
+      queryClient.invalidateQueries({ queryKey: ["supporter-pending-requests-enriched", user?.id] });
+      setRequestToDelete(null);
+    } catch (e: any) {
+      console.error("Error deleting request", e);
+      toast.error("Erreur lors de la suppression");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && (!user || currentRole?.role !== "supporter")) {
@@ -307,12 +341,23 @@ const SupporterDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
-                    <Link to={`/supporter/evaluate/${request.id}`}>
-                      <ClipboardList className="w-4 h-4" />
-                      Débriefer
-                    </Link>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
+                      <Link to={`/supporter/evaluate/${request.id}`}>
+                        <ClipboardList className="w-4 h-4" />
+                        Débriefer
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setRequestToDelete(request)}
+                      title="Supprimer la demande"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -382,6 +427,29 @@ const SupporterDashboard = () => {
           )}
         </div>
       </div>
+
+      <AlertDialog open={!!requestToDelete} onOpenChange={(o) => !o && setRequestToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la demande de débrief ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes sur le point de supprimer la demande pour{" "}
+              <strong>{requestToDelete?.playerName}</strong>. Le coach{" "}
+              <strong>{requestToDelete?.coachName}</strong> sera notifié de votre refus.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDeleteRequest(); }}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
