@@ -66,6 +66,29 @@ interface EvaluationRequest {
 const SupporterDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, currentRole, profile } = useAuth();
+  const queryClient = useQueryClient();
+  const [requestToDelete, setRequestToDelete] = useState<EvaluationRequest | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteRequest = async () => {
+    if (!requestToDelete) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("supporter_evaluation_requests")
+        .delete()
+        .eq("id", requestToDelete.id);
+      if (error) throw error;
+      toast.success("Demande supprimée. Le coach a été notifié.");
+      queryClient.invalidateQueries({ queryKey: ["supporter-pending-requests-enriched", user?.id] });
+      setRequestToDelete(null);
+    } catch (e: any) {
+      console.error("Error deleting request", e);
+      toast.error("Erreur lors de la suppression");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && (!user || currentRole?.role !== "supporter")) {
