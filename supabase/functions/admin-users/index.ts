@@ -586,12 +586,15 @@ Deno.serve(async (req) => {
           });
         }
 
-        // Admin reset: enforce 14 chars minimum (CNIL/OWASP for privileged actions)
-        if (typeof newPassword !== "string" || newPassword.length < 14 || newPassword.length > 128) {
-          return new Response(JSON.stringify({ error: "Password must be between 14 and 128 characters" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+        // Admin reset: enforce ADMIN_MIN_PASSWORD_LENGTH (CNIL/OWASP for privileged actions)
+        {
+          const pwdErr = validateAdminPasswordSrv(newPassword);
+          if (pwdErr) {
+            return new Response(JSON.stringify({ error: pwdErr }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
 
         // CRITICAL: only Super Admin may change another user's password
@@ -619,11 +622,14 @@ Deno.serve(async (req) => {
           });
         }
 
-        if (typeof newPassword !== "string" || newPassword.length < 14 || newPassword.length > 128) {
-          return new Response(JSON.stringify({ error: "Password must be between 14 and 128 characters" }), {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+        {
+          const pwdErr = validateAdminPasswordSrv(newPassword);
+          if (pwdErr) {
+            return new Response(JSON.stringify({ error: pwdErr }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
         }
 
         const { data: authUsers, error: usersError } = await supabaseAdmin.auth.admin.listUsers();
