@@ -48,15 +48,18 @@ const authSchema = z.object({
 const signUpSchema = authSchema.extend({
   firstName: z.string().min(1, "Prénom requis"),
   lastName: z.string().min(1, "Nom requis"),
-  requestedRole: z.enum(["club_admin", "coach", "player", "supporter"], {
+  // 'club_admin' retiré du signup public (cycle 3 — escalade privileged role).
+  // Un club_admin ne peut être créé que via invitation par un admin existant
+  // ou via le flow d'onboarding club (service_role).
+  // KEEP IN SYNC avec migration extend_privileged_role_defense + RoleApprovals PRIVILEGED_ROLES.
+  requestedRole: z.enum(["coach", "player", "supporter"], {
     required_error: "Veuillez choisir un rôle",
   }),
 });
 
-type RequestedRole = "club_admin" | "coach" | "player" | "supporter";
+type RequestedRole = "coach" | "player" | "supporter";
 
 const roleOptions: { value: RequestedRole; label: string; description: string; icon: React.ElementType }[] = [
-  { value: "club_admin", label: "Admin Club", description: "Gérer un club et ses équipes", icon: Shield },
   { value: "coach", label: "Coach", description: "Évaluer et suivre les joueurs", icon: Dumbbell },
   { value: "player", label: "Joueur", description: "Consulter mes évaluations", icon: Users },
   { value: "supporter", label: "Supporter", description: "Suivre un joueur (parent, etc.)", icon: Heart },
