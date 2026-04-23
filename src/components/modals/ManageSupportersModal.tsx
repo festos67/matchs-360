@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Heart, Plus, Trash2, UserPlus, Mail } from "lucide-react";
+import { Heart, Plus, Trash2, UserPlus, Mail, Search, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
+import { cn } from "@/lib/utils";
 
 const supporterSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
