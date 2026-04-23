@@ -341,12 +341,23 @@ const SupporterDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
-                    <Link to={`/supporter/evaluate/${request.id}`}>
-                      <ClipboardList className="w-4 h-4" />
-                      Débriefer
-                    </Link>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
+                      <Link to={`/supporter/evaluate/${request.id}`}>
+                        <ClipboardList className="w-4 h-4" />
+                        Débriefer
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setRequestToDelete(request)}
+                      title="Supprimer la demande"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
