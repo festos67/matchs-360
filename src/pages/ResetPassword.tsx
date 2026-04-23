@@ -170,34 +170,21 @@ export default function ResetPassword() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="new-password">Nouveau mot de passe</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="new-password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+          <PasswordInput
+            id="new-password"
+            label="Nouveau mot de passe"
+            value={password}
+            onChange={setPassword}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                id="confirm-password"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          <div className="space-y-1">
+            <PasswordInput
+              id="confirm-password"
+              label="Confirmer le mot de passe"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              showHelpText={false}
+            />
             {confirmPassword && password !== confirmPassword && (
               <p className="text-sm text-destructive">Les mots de passe ne correspondent pas</p>
             )}
@@ -206,7 +193,11 @@ export default function ResetPassword() {
           <Button
             type="submit"
             className="w-full h-12 text-base font-medium"
-            disabled={loading || password !== confirmPassword || password.length < 6}
+            disabled={
+              loading ||
+              password !== confirmPassword ||
+              password.length < USER_MIN_LENGTH
+            }
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />

@@ -261,11 +261,12 @@ export default function InviteAccept() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
-                  minLength={8}
+                  minLength={USER_MIN_LENGTH}
+                  maxLength={128}
                   required
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
+              <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
             </div>
 
             <div className="space-y-2">
