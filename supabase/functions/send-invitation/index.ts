@@ -228,6 +228,96 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // ============================================================
+    // RATE-LIMIT applicatif (cycle 4 finding TRIPLE TRIANGULÉ)
+    //   - bypass: super admin (callerIsAdmin) — peut batch grands clubs
+    //   - bypass: service_role (le client est créé avec serviceRoleKey ci-dessus,
+    //     mais on évalue ici le caller authentifié JWT, donc OK : un cron
+    //     service_role pur n'a pas de claims.sub utilisateur et serait
+    //     stoppé en amont par Unauthorized; rien à faire de plus).
+    //   - quota: admin=500/h, club_admin=100/h, coach=30/h, autres=10/h
+    //   - fail-CLOSED si la RPC quota échoue (refus 503, jamais bypass)
+    //   - log de toute tentative (accepted | rate_limited | error)
+    // ============================================================
+    const callerEffectiveRole = callerIsAdmin
+      ? "admin"
+      : callerIsClubAdminOfTarget
+      ? "club_admin"
+      : callerIsRefCoachOfClub
+      ? "coach"
+      : "other";
+    const recipientEmailHash = await sha256Hex(email.toLowerCase().trim());
+
+    if (!callerIsAdmin) {
+      const { data: quota, error: quotaErr } = await supabaseAdmin
+        .rpc("get_invitation_quota_remaining", { p_caller: user.id })
+        .single();
+
+      if (quotaErr || !quota) {
+        try {
+          await supabaseAdmin.from("invitation_send_log").insert({
+            invited_by: user.id,
+            caller_role: callerEffectiveRole,
+            club_id: clubId,
+            intended_role: intendedRole,
+            recipient_email_hash: recipientEmailHash,
+            status: "error",
+            error_message: ((quotaErr?.message ?? "quota check failed") as string).slice(0, 500),
+          });
+        } catch (_ignore) { /* never fail the response on log insert */ }
+        console.warn("Invitation quota check failed (fail-closed)", {
+          caller_id: user.id,
+          masked_email: maskEmail(email),
+          err: quotaErr?.message,
+        });
+        return new Response(
+          JSON.stringify({ error: "Rate limit check failed" }),
+          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } },
+        );
+      }
+
+      // deno-lint-ignore no-explicit-any
+      const q = quota as any;
+      if (q.used >= q.limit_per_hour) {
+        const retryAfterSec = Math.max(
+          1,
+          Math.ceil((new Date(q.reset_at).getTime() - Date.now()) / 1000),
+        );
+        try {
+          await supabaseAdmin.from("invitation_send_log").insert({
+            invited_by: user.id,
+            caller_role: callerEffectiveRole,
+            club_id: clubId,
+            intended_role: intendedRole,
+            recipient_email_hash: recipientEmailHash,
+            status: "rate_limited",
+          });
+        } catch (_ignore) { /* never fail the response on log insert */ }
+        console.warn("Invitation rate-limited", {
+          caller_id: user.id,
+          masked_email: maskEmail(email),
+          used: q.used,
+          limit: q.limit_per_hour,
+        });
+        return new Response(
+          JSON.stringify({
+            error: "Rate limit exceeded",
+            retry_after_seconds: retryAfterSec,
+            quota_used: q.used,
+            quota_limit: q.limit_per_hour,
+          }),
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+              "Retry-After": String(retryAfterSec),
+              ...corsHeaders,
+            },
+          },
+        );
+      }
+    }
+
     // Verify teamId belongs to clubId
     if (teamId) {
       const { data: tgtTeam } = await supabaseAdmin
