@@ -56,6 +56,7 @@ interface SupporterEvaluationFormProps {
   frameworkId: string;
   themes: Theme[];
   requestId?: string;
+  hasStarted: boolean;
   onSaved: () => void;
   onUnsavedChangesChange?: (hasUnsaved: boolean) => void;
 }
@@ -67,14 +68,13 @@ export function SupporterEvaluationForm({
   frameworkId,
   themes,
   requestId,
+  hasStarted,
   onSaved,
   onUnsavedChangesChange,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
-  const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
 
-  const [hasStarted, setHasStarted] = useState(false);
   const [showConfirmSave, setShowConfirmSave] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
