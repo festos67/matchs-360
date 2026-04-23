@@ -27,7 +27,7 @@
  * côté serveur l'identité du Super Admin (jamais côté client uniquement).
  */
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -99,6 +99,8 @@ interface SupporterLink {
 interface AdminUser {
   id: string;
   email: string;
+  last_sign_in_at?: string | null;
+  banned_until?: string | null;
   first_name: string | null;
   last_name: string | null;
   nickname: string | null;
@@ -111,6 +113,16 @@ interface AdminUser {
   roles: UserRole[];
   team_memberships: TeamMembership[];
   supporter_links: SupporterLink[];
+}
+
+interface AdminUsersResponse {
+  users: AdminUser[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 const roleColors: Record<string, string> = {
@@ -130,8 +142,8 @@ const statusColors: Record<string, string> = {
 export default function AdminUsers() {
   const { hasAdminRole: isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<AdminUser | null>(null);
   const [promoteConfirm, setPromoteConfirm] = useState<AdminUser | null>(null);
@@ -143,6 +155,8 @@ export default function AdminUsers() {
   const [coachFilter, setCoachFilter] = useState("all");
   const [playerFilter, setPlayerFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState("50");
 
   // SECURITY: l'identité super-admin est strictement définie par le rôle
   // 'admin' en public.user_roles (résolu côté serveur), plus aucun email
@@ -156,31 +170,45 @@ export default function AdminUsers() {
     }
   }, [isAdmin, authLoading, navigate]);
 
-  const { data: users = [], isLoading: loading, isFetching, refetch } = useQuery({
-    queryKey: ["admin-users"],
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
+
+    return () => window.clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [clubFilter, coachFilter, playerFilter, roleFilter, pageSize]);
+
+  const { data, isLoading: loading, isFetching, refetch } = useQuery({
+    queryKey: ["admin-users", page, pageSize, debouncedSearch, clubFilter, coachFilter, playerFilter, roleFilter],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: {
+          action: "list",
+          page,
+          pageSize: Number(pageSize),
+          search: debouncedSearch || undefined,
+          clubFilter: clubFilter === "all" ? undefined : clubFilter,
+          coachFilter: coachFilter === "all" ? undefined : coachFilter,
+          playerFilter: playerFilter === "all" ? undefined : playerFilter,
+          roleFilter: roleFilter === "all" ? undefined : roleFilter,
+        },
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to fetch users");
-      }
-
-      const data = await response.json();
-      return data.users as AdminUser[];
+      if (error) throw error;
+      return data as AdminUsersResponse;
     },
     enabled: !!isAdmin,
+    placeholderData: (previousData) => previousData,
+    staleTime: 30_000,
   });
+
+  const users = data?.users ?? [];
+  const pagination = data?.pagination ?? { page: 1, pageSize: Number(pageSize), total: 0, hasMore: false };
 
   const fetchUsers = () => {
     refetch();
@@ -325,32 +353,7 @@ export default function AdminUsers() {
     .filter(u => u.team_memberships.some(m => m.member_type === "player" && m.is_active))
     .map(u => ({ id: u.id, name: getUserDisplayName(u) }));
 
-  const filteredUsers = users.filter((user) => {
-    const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = !searchLower || 
-      user.email.toLowerCase().includes(searchLower) ||
-      user.first_name?.toLowerCase().includes(searchLower) ||
-      user.last_name?.toLowerCase().includes(searchLower) ||
-      user.nickname?.toLowerCase().includes(searchLower);
-
-    const matchesClub = clubFilter === "all" || 
-      user.roles.some(r => r.club_id === clubFilter) ||
-      user.team_memberships.some(m => m.is_active && users.find(u => 
-        u.roles.some(r => r.club_id === clubFilter) && 
-        u.team_memberships.some(tm => tm.team_id === m.team_id && tm.is_active)
-      ));
-
-    const matchesCoach = coachFilter === "all" || user.id === coachFilter;
-    const matchesPlayer = playerFilter === "all" || user.id === playerFilter;
-
-    const matchesRole = roleFilter === "all" || 
-      user.roles.some(r => r.role === roleFilter) ||
-      (roleFilter === "coach" && user.team_memberships.some(m => m.member_type === "coach" && m.is_active)) ||
-      (roleFilter === "player" && user.team_memberships.some(m => m.member_type === "player" && m.is_active)) ||
-      (roleFilter === "supporter" && user.supporter_links.length > 0);
-
-    return matchesSearch && matchesClub && matchesCoach && matchesPlayer && matchesRole;
-  });
+  const totalPages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize || 1));
 
   if (authLoading || loading) {
     return (
@@ -402,8 +405,8 @@ export default function AdminUsers() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Rechercher un utilisateur..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -457,7 +460,7 @@ export default function AdminUsers() {
 
         {/* Stats */}
         <div className="flex gap-4 text-sm text-muted-foreground">
-          <span>{users.length} utilisateurs au total</span>
+          <span>{pagination.total} utilisateurs au total</span>
           <span>•</span>
           <span>{users.filter((u) => u.status === "Actif").length} actifs</span>
           <span>•</span>
@@ -479,7 +482,7 @@ export default function AdminUsers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div
@@ -638,7 +641,7 @@ export default function AdminUsers() {
                   </TableCell>
                 </TableRow>
               ))}
-              {filteredUsers.length === 0 && (
+              {users.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">
                     <p className="text-muted-foreground">Aucun utilisateur trouvé</p>
@@ -647,6 +650,43 @@ export default function AdminUsers() {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-muted-foreground">
+            Page {pagination.page} / {totalPages}
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Select value={pageSize} onValueChange={setPageSize}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="50 / page" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 / page</SelectItem>
+                <SelectItem value="25">25 / page</SelectItem>
+                <SelectItem value="50">50 / page</SelectItem>
+                <SelectItem value="100">100 / page</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                disabled={pagination.page <= 1 || isFetching}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((currentPage) => currentPage + 1)}
+                disabled={!pagination.hasMore || isFetching}
+              >
+                Suivant
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
