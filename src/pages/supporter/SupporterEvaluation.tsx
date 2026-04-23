@@ -254,6 +254,9 @@ export default function SupporterEvaluation() {
       {/* Header */}
       <div className="glass-card p-6 mb-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
         <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg shrink-0">
+            {getPlayerName().slice(0, 2).toUpperCase()}
+          </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-2xl font-display font-bold text-foreground">
