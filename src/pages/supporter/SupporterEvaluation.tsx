@@ -393,36 +393,6 @@ export default function SupporterEvaluation() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* In-app navigation guard (sidebar / link clicks) */}
-      <AlertDialog
-        open={blocker.state === "blocked"}
-        onOpenChange={(open) => {
-          if (!open && blocker.state === "blocked") blocker.reset?.();
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Quitter le débrief ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Si vous quittez sans enregistrer, vos réponses seront perdues et
-              le coach n'y aura pas accès. Souhaitez-vous continuer la saisie
-              ou abandonner le formulaire ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => blocker.reset?.()}>
-              Continuer la saisie
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => blocker.proceed?.()}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              Abandonner
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Already-evaluated warning (Pro upgrade required) */}
       <AlertDialog open={showAlreadyEvaluated} onOpenChange={setShowAlreadyEvaluated}>
         <AlertDialogContent>
