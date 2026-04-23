@@ -21,7 +21,7 @@
  * - Compté dans `max_supporter_evals_per_player` du plan
  */
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams, useBlocker } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ClipboardList, Heart, AlertTriangle, Play, Lock } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -89,9 +89,6 @@ export default function SupporterEvaluation() {
   const [alreadyEvaluated, setAlreadyEvaluated] = useState(false);
   const [showAlreadyEvaluated, setShowAlreadyEvaluated] = useState(false);
   const startCardRef = useRef<HTMLDivElement>(null);
-
-  // Block in-app navigation when there are unsaved changes
-  const blocker = useBlocker(hasUnsavedChanges);
 
   const handleBack = () => {
     if (hasUnsavedChanges) {
@@ -391,36 +388,6 @@ export default function SupporterEvaluation() {
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Arrêter la saisie
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* In-app navigation guard (sidebar / link clicks) */}
-      <AlertDialog
-        open={blocker.state === "blocked"}
-        onOpenChange={(open) => {
-          if (!open && blocker.state === "blocked") blocker.reset?.();
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Quitter le débrief ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Si vous quittez sans enregistrer, vos réponses seront perdues et
-              le coach n'y aura pas accès. Souhaitez-vous continuer la saisie
-              ou abandonner le formulaire ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => blocker.reset?.()}>
-              Continuer la saisie
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => blocker.proceed?.()}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            >
-              Abandonner
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
