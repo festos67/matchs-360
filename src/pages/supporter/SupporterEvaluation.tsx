@@ -85,6 +85,13 @@ export default function SupporterEvaluation() {
   const [loading, setLoading] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [alreadyEvaluated, setAlreadyEvaluated] = useState(false);
+  const [showAlreadyEvaluated, setShowAlreadyEvaluated] = useState(false);
+  const startCardRef = useRef<HTMLDivElement>(null);
+
+  // Block in-app navigation when there are unsaved changes
+  const blocker = useBlocker(hasUnsavedChanges);
 
   const handleBack = () => {
     if (hasUnsavedChanges) {
@@ -92,6 +99,13 @@ export default function SupporterEvaluation() {
     } else {
       navigate(-1);
     }
+  };
+
+  const handleStart = () => {
+    setHasStarted(true);
+    setTimeout(() => {
+      startCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   // Redirect if not supporter
