@@ -222,8 +222,11 @@ Deno.serve(async (req) => {
       return !!t?.club_id && clubAdminClubIds.includes(t.club_id);
     };
 
-    // GET - List users
-    if (req.method === "GET") {
+    // GET/POST(list) - List users
+    if (
+      req.method === "GET" ||
+      (req.method === "POST" && ((await req.clone().json().catch(() => ({}))).action === "list"))
+    ) {
       const listBody = await req.json().catch(() => ({}));
       const page = Math.max(1, Number.parseInt(String(listBody?.page ?? "1"), 10) || 1);
       const pageSize = Math.min(100, Math.max(1, Number.parseInt(String(listBody?.pageSize ?? "50"), 10) || 50));
