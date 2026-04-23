@@ -322,6 +322,74 @@ export const ManageSupportersModal = ({
           </TabsContent>
 
           <TabsContent value="add" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+            {/* Section : sélection d'un supporter déjà inscrit */}
+            <div className="space-y-3 pb-4 mb-4 border-b border-border">
+              <div>
+                <Label>Lier un supporter existant</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sélectionnez une personne déjà inscrite sur la plateforme.
+                </p>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={existingSearch}
+                  onChange={(e) => setExistingSearch(e.target.value)}
+                  placeholder="Rechercher par nom ou email..."
+                  className="pl-9"
+                />
+              </div>
+              <ScrollArea className="h-40 rounded-md border border-border">
+                {loadingExisting ? (
+                  <div className="py-6 text-center text-sm text-muted-foreground">Chargement...</div>
+                ) : filteredExisting.length > 0 ? (
+                  <div className="p-1">
+                    {filteredExisting.map((s) => {
+                      const name = s.nickname || [s.first_name, s.last_name].filter(Boolean).join(" ") || s.email;
+                      const isLinking = linkingId === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          disabled={isLinking}
+                          onClick={() => handleLinkExisting(s.id)}
+                          className={cn(
+                            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors",
+                            "hover:bg-muted disabled:opacity-50"
+                          )}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <Heart className="w-4 h-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{s.email}</p>
+                          </div>
+                          {isLinking ? (
+                            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                          ) : (
+                            <Check className="w-4 h-4 text-muted-foreground" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-sm text-muted-foreground">
+                    {existingSupporters.length === 0
+                      ? "Aucun supporter inscrit disponible"
+                      : "Aucun résultat"}
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+
+            <div className="mb-3">
+              <Label>Ou inviter un nouveau supporter</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                Une invitation par email sera envoyée pour qu'il crée son compte.
+              </p>
+            </div>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
