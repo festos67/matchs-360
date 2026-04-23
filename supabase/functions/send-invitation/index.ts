@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "npm:resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { getFromEmail } from "../_shared/email-config.ts";
 
 /**
  * SECURITY: HTML entity escape to prevent XSS / phishing injection
@@ -339,7 +340,7 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const emailResult = await resend.emails.send({
-        from: "MATCHS360 <noreply@notify.match360.com>",
+        from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
         html: `
@@ -533,7 +534,7 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const notificationResult = await resend.emails.send({
-        from: "MATCHS360 <noreply@notify.match360.com>",
+        from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
         html: `
