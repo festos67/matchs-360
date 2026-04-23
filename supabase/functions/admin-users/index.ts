@@ -159,7 +159,8 @@ Deno.serve(async (req) => {
     // ============================================================
     // Multi-tenant scope helpers
     // ============================================================
-    const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
+    // SECURITY: l'identité super-admin est désormais résolue via
+    // public.user_roles (role='admin'), plus aucun email codé en dur.
     const forbidden = (msg = "Forbidden: outside your club scope") =>
       new Response(JSON.stringify({ error: msg }), {
         status: 403,
@@ -171,7 +172,8 @@ Deno.serve(async (req) => {
       if (isAdmin) return true;
       if (!targetUserId || clubAdminClubIds.length === 0) return false;
 
-      // Never allow operating on a Super Admin
+      // Never allow operating on a Super Admin (role='admin' in user_roles
+      // is the unique source of truth — no email comparison anymore).
       const { data: targetAdminRole } = await supabaseAdmin
         .from("user_roles")
         .select("id")
@@ -179,12 +181,6 @@ Deno.serve(async (req) => {
         .eq("role", "admin")
         .maybeSingle();
       if (targetAdminRole) return false;
-
-      // Check via auth email (Super Admin email is always off-limits)
-      try {
-        const { data: targetAuth } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
-        if (targetAuth?.user?.email?.toLowerCase() === SUPER_ADMIN_EMAIL) return false;
-      } catch (_e) { /* ignore */ }
 
       const { data: prof } = await supabaseAdmin
         .from("profiles").select("club_id").eq("id", targetUserId).maybeSingle();
@@ -800,10 +796,11 @@ Deno.serve(async (req) => {
           });
         }
 
-        // CRITICAL: Only the super admin (asahand@protonmail.com) can promote to admin
-        const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
-        if (user.email?.toLowerCase() !== SUPER_ADMIN_EMAIL) {
-          return new Response(JSON.stringify({ error: "Action non autorisée. Seul le Super Administrateur peut effectuer cette action." }), {
+        // CRITICAL: only an existing Super Admin (role='admin' in user_roles)
+        // can promote another user to admin. Identity is resolved via RBAC,
+        // never via a hardcoded email.
+        if (!isAdmin) {
+          return new Response(JSON.stringify({ error: "Action non autorisée. Seul un Super Administrateur peut effectuer cette action." }), {
             status: 403,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });

@@ -13,8 +13,9 @@
  * @features
  * - Filtres : rôle, statut (actif/archivé/en attente), recherche full-text
  * - Refresh manuel pour synchroniser avec auth.users
- * - Promotion Super Admin (mem://auth/super-admin) — strictement réservée
- *   à `asahand@protonmail.com`
+ * - Promotion Super Admin (mem://auth/super-admin) — réservée aux comptes
+ *   ayant déjà role='admin' dans public.user_roles (RBAC, plus aucun email
+ *   en dur côté client ni serveur).
  * - Restauration de comptes soft-deleted
  * - Reset password en mode test (mem://security/admin-actions-guard)
  *
@@ -126,8 +127,6 @@ const statusColors: Record<string, string> = {
   Suspendu: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
-const SUPER_ADMIN_EMAIL = "asahand@protonmail.com";
-
 export default function AdminUsers() {
   const { hasAdminRole: isAdmin, loading: authLoading, user: currentUser } = useAuth();
   const navigate = useNavigate();
@@ -145,7 +144,10 @@ export default function AdminUsers() {
   const [playerFilter, setPlayerFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  const isSuperAdmin = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+  // SECURITY: l'identité super-admin est strictement définie par le rôle
+  // 'admin' en public.user_roles (résolu côté serveur), plus aucun email
+  // codé en dur côté client.
+  const isSuperAdmin = isAdmin;
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
