@@ -1320,6 +1320,10 @@ export type Database = {
         Args: { p_full_price_cents?: number; p_start_date: string }
         Returns: number
       }
+      can_write_objective_attachment: {
+        Args: { _path: string; _user_id: string }
+        Returns: boolean
+      }
       create_trial_notifications: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
