@@ -13,8 +13,9 @@
  * @features
  * - Filtres : rôle, statut (actif/archivé/en attente), recherche full-text
  * - Refresh manuel pour synchroniser avec auth.users
- * - Promotion Super Admin (mem://auth/super-admin) — strictement réservée
- *   à `asahand@protonmail.com`
+ * - Promotion Super Admin (mem://auth/super-admin) — réservée aux comptes
+ *   ayant déjà role='admin' dans public.user_roles (RBAC, plus aucun email
+ *   en dur côté client ni serveur).
  * - Restauration de comptes soft-deleted
  * - Reset password en mode test (mem://security/admin-actions-guard)
  *
