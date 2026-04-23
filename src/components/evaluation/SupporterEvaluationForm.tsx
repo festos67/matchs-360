@@ -15,7 +15,7 @@
  *  - Identité Heart rose (mem://style/role-branding-standard)
  */
 import { useState } from "react";
-import { Star, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeAccordion } from "./ThemeAccordion";
@@ -217,7 +217,7 @@ export function SupporterEvaluationForm({
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-display font-semibold">Aperçu en temps réel</h3>
+            <h3 className="text-xl font-display font-semibold">Aperçu en temps réel</h3>
             <p className="text-sm text-muted-foreground">
               Le graphique se met à jour au fur et à mesure de votre saisie
             </p>
@@ -229,14 +229,18 @@ export function SupporterEvaluationForm({
             <p className="text-xs text-muted-foreground">Moyenne</p>
           </div>
         </div>
-        <EvaluationRadar data={radarData} primaryColor="#F97316" />
+        <div className="w-full aspect-square max-h-[600px] min-h-[400px]">
+          <EvaluationRadar data={radarData} primaryColor="#F97316" />
+        </div>
       </div>
 
       {/* Evaluation Form */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Star className="w-5 h-5 text-warning" />
+            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+              {playerName.slice(0, 2).toUpperCase()}
+            </div>
             <h2 className="text-xl font-display font-semibold">
               Débrief de {playerName}
             </h2>
