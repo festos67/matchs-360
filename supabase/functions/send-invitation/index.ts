@@ -534,7 +534,7 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       const notificationResult = await resend.emails.send({
-        from: "MATCHS360 <noreply@notify.match360.com>",
+        from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
         html: `
