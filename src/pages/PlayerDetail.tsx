@@ -71,9 +71,8 @@ import type { Evaluation, Theme } from "@/hooks/usePlayerData";
 
 export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, roles } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
-  const { roles } = useAuth();
   const navigate = useNavigate();
 
   const {
