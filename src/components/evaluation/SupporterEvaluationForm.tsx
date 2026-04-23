@@ -58,6 +58,7 @@ interface SupporterEvaluationFormProps {
   themes: Theme[];
   requestId?: string;
   onSaved: () => void;
+  onUnsavedChangesChange?: (hasUnsaved: boolean) => void;
 }
 
 export function SupporterEvaluationForm({
@@ -68,6 +69,7 @@ export function SupporterEvaluationForm({
   themes,
   requestId,
   onSaved,
+  onUnsavedChangesChange,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -114,6 +116,11 @@ export function SupporterEvaluationForm({
   };
 
   const hasUnsavedChanges = hasStarted && !isSaved;
+
+  // Notify parent so it can intercept Back button / navigation
+  useEffect(() => {
+    onUnsavedChangesChange?.(hasUnsavedChanges);
+  }, [hasUnsavedChanges, onUnsavedChangesChange]);
 
   // Warn on tab close / refresh while a draft is in progress
   useEffect(() => {
