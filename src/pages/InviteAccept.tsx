@@ -12,7 +12,9 @@
  * affiliations club/équipe selon le contenu de l'invitation.
  *
  * @validation
- * Schéma Zod : mot de passe ≥ 8 caractères + confirmation identique.
+ * Schéma Zod centralisé (`userPasswordSchema`) :
+ * mot de passe ≥ USER_MIN_LENGTH caractères + confirmation identique.
+ * Source unique de vérité : `src/lib/password-policy.ts`.
  *
  * @flow
  * 1. Extraction du token depuis le hash URL
@@ -35,7 +37,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
-import { userPasswordSchema, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib/password-policy";
+import {
+  userPasswordSchema,
+  validateUserPassword,
+  USER_MIN_LENGTH,
+  MAX_LENGTH,
+  PASSWORD_HELP_TEXT,
+} from "@/lib/password-policy";
 
 const passwordSchema = z.object({
   password: userPasswordSchema,
@@ -52,6 +60,7 @@ export default function InviteAccept() {
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [pwdError, setPwdError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
