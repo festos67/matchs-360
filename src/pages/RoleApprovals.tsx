@@ -90,6 +90,9 @@ export default function RoleApprovals() {
   const [selectedRequest, setSelectedRequest] = useState<RoleRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [privilegedDialogOpen, setPrivilegedDialogOpen] = useState(false);
+  const [privilegedRequest, setPrivilegedRequest] = useState<RoleRequest | null>(null);
+  const [privilegedConfirmText, setPrivilegedConfirmText] = useState("");
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -167,7 +170,12 @@ export default function RoleApprovals() {
 
     if (roleError) {
       console.error("Error creating role:", roleError);
-      toast.error("Erreur lors de la création du rôle");
+      // Couche 2 (trigger guard_privileged_role_grant) bloque code 42501
+      if ((roleError as { code?: string }).code === "42501") {
+        toast.error("Action refusée par le serveur : permissions insuffisantes.");
+      } else {
+        toast.error("Erreur lors de la création du rôle");
+      }
       setProcessing(false);
       return;
     }
@@ -175,6 +183,24 @@ export default function RoleApprovals() {
     toast.success(`Demande approuvée pour ${request.profile?.first_name || "l'utilisateur"}`);
     fetchRequests();
     setProcessing(false);
+  };
+
+  const requestApprove = (request: RoleRequest) => {
+    if (PRIVILEGED_ROLES.includes(request.requested_role)) {
+      setPrivilegedRequest(request);
+      setPrivilegedConfirmText("");
+      setPrivilegedDialogOpen(true);
+      return;
+    }
+    handleApprove(request);
+  };
+
+  const confirmPrivilegedApprove = async () => {
+    if (!privilegedRequest) return;
+    setPrivilegedDialogOpen(false);
+    await handleApprove(privilegedRequest);
+    setPrivilegedRequest(null);
+    setPrivilegedConfirmText("");
   };
 
   const openRejectDialog = (request: RoleRequest) => {
