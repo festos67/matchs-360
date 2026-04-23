@@ -399,6 +399,44 @@ export default function RoleApprovals() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Privileged role approval confirmation (Couche 3) */}
+      <AlertDialog open={privilegedDialogOpen} onOpenChange={setPrivilegedDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Confirmation d'attribution privilégiée
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes sur le point d'accorder le rôle{" "}
+              <strong>{privilegedRequest?.requested_role}</strong> à{" "}
+              <strong>{privilegedRequest?.profile?.email}</strong>. Ce rôle donne
+              un accès complet à l'ensemble de la plateforme. Pour confirmer,
+              tapez littéralement <code className="px-1 rounded bg-muted">{privilegedRequest?.requested_role}</code> ci-dessous.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            value={privilegedConfirmText}
+            onChange={(e) => setPrivilegedConfirmText(e.target.value)}
+            placeholder={privilegedRequest?.requested_role ?? ""}
+            autoFocus
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPrivilegedApprove}
+              disabled={
+                processing ||
+                privilegedConfirmText !== (privilegedRequest?.requested_role ?? "")
+              }
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Confirmer l'attribution
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
