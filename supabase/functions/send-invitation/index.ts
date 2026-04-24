@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 
