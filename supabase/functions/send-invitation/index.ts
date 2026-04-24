@@ -613,34 +613,30 @@ const handler = async (req: Request): Promise<Response> => {
       const maskedEmail = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
       console.log("Invitation email sent", { recipient: maskedEmail, messageId: emailResult.data?.id });
 
-      // Wait for trigger to create profile
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const { data: existingProfile } = await supabaseAdmin
+      // Atomic upsert on primary key `id` to avoid race condition with the
+      // handle_new_user trigger (it may create the profile before or after
+      // we get here). ON CONFLICT (id) DO UPDATE keeps the operation
+      // deterministic regardless of trigger timing.
+      const { error: profileUpsertError } = await supabaseAdmin
         .from("profiles")
-        .select("id")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (existingProfile) {
-        await supabaseAdmin
-          .from("profiles")
-          .update({
-            first_name: firstName,
-            last_name: lastName,
-            club_id: clubId,
-          })
-          .eq("id", userId);
-      } else {
-        await supabaseAdmin
-          .from("profiles")
-          .insert({
+        .upsert(
+          {
             id: userId,
             email: email.toLowerCase(),
             first_name: firstName,
             last_name: lastName,
             club_id: clubId,
-          });
+          },
+          { onConflict: "id" },
+        );
+
+      if (profileUpsertError) {
+        console.error("Profile upsert error:", profileUpsertError);
+        throw new InvitationDomainError({
+          message: "La création du profil a échoué.",
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
       }
     }
 
