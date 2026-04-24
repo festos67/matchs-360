@@ -260,6 +260,24 @@ const handler = async (req: Request): Promise<Response> => {
     const body: InvitationRequest = await req.json();
     const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds } = body;
 
+    // ============================================================
+    // F-601 — Strict whitelist of intendedRole.
+    // The edge function runs with service_role and bypasses the
+    // `guard_privileged_role_grant` trigger on user_roles. We must
+    // therefore explicitly forbid promotion to `admin` (super admin)
+    // and any value outside the allowed set, regardless of the
+    // declared TypeScript type (which is not enforced at runtime).
+    // ============================================================
+    const ALLOWED_INTENDED_ROLES = ["club_admin", "coach", "player", "supporter"] as const;
+    if (!ALLOWED_INTENDED_ROLES.includes(intendedRole as typeof ALLOWED_INTENDED_ROLES[number])) {
+      throw new InvitationDomainError({
+        message:
+          "Rôle d'invitation invalide. Les rôles autorisés sont : Admin Club, Coach, Joueur, Supporter.",
+        code: "INPUT_INVALID_ROLE",
+        status: 400,
+      });
+    }
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       throw new InvitationDomainError({
