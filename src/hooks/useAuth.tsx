@@ -23,7 +23,7 @@
  *    (RBAC, plus d'email codé en dur côté code applicatif).
  *  - Anti-récursion RLS via SECURITY DEFINER : mem://technical/rls-recursion-prevention
  */
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, createContext, useContext, ReactNode, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { queryClient } from "@/lib/query-client";
@@ -72,25 +72,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [currentRole, setCurrentRoleState] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  // F-307: anti race condition. Chaque changement d'utilisateur (login, refresh,
+  // switch d'identité) incrémente ce ticket. Les fetchs en vol comparent leur
+  // ticket à la valeur courante au moment du setState : si désynchronisé, on
+  // ignore le résultat (évite qu'un fetch lent de l'utilisateur A écrase le
+  // state de l'utilisateur B).
+  const authTicketRef = useRef(0);
+  // Garde l'identifiant de l'utilisateur actuellement chargé en state, pour
+  // détecter une transition A → B et purger profile/roles immédiatement.
+  const loadedUserIdRef = useRef<string | null>(null);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, ticket: number) => {
     const { data } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .maybeSingle();
-    
+
+    // F-307: ignorer si la session a changé entre-temps
+    if (ticket !== authTicketRef.current) return;
     if (data) {
       setProfile(data as Profile);
     }
   };
 
-  const fetchRoles = async (userId: string) => {
+  const fetchRoles = async (userId: string, ticket: number) => {
     const { data, error } = await supabase
       .from("user_roles")
       .select("id, role, club_id")
       .eq("user_id", userId);
-    
+
+    // F-307: ignorer si la session a changé entre-temps
+    if (ticket !== authTicketRef.current) return;
+
     if (error) {
       console.error("Error fetching user roles:", error);
       return;
@@ -131,40 +145,76 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // F-307: charge profile + roles de manière atomique (vis-à-vis du ticket) et
+  // ne lève le flag loading qu'à la fin. Purge immédiate de l'ancien user pour
+  // éviter tout leak transitoire.
+  const loadUserContext = async (userId: string) => {
+    authTicketRef.current += 1;
+    const ticket = authTicketRef.current;
+
+    // Si l'utilisateur change (A → B), purger l'ancien state AVANT de charger
+    // le nouveau, pour qu'aucun composant ne voie roles_A + user_B.
+    if (loadedUserIdRef.current && loadedUserIdRef.current !== userId) {
+      setProfile(null);
+      setRoles([]);
+      setCurrentRoleState(null);
+      // Purger le cache TanStack Query (données scopées à l'ancien user)
+      queryClient.clear();
+    }
+    loadedUserIdRef.current = userId;
+
+    setLoading(true);
+    await Promise.all([
+      fetchProfile(userId, ticket),
+      fetchRoles(userId, ticket),
+    ]);
+    if (ticket === authTicketRef.current) {
+      setLoading(false);
+    }
+  };
+
+  const clearUserContext = () => {
+    authTicketRef.current += 1;
+    loadedUserIdRef.current = null;
+    setProfile(null);
+    setRoles([]);
+    setCurrentRoleState(null);
+    queryClient.clear();
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
+          // setTimeout(0) pour éviter un deadlock dans le callback auth
           setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchRoles(session.user.id);
+            loadUserContext(session.user.id);
           }, 0);
         } else {
           // Logout via auth event : nettoyer la clé scopée de l'user qui se déconnecte
-          if (user) {
-            localStorage.removeItem(buildCurrentRoleKey(user.id));
+          const previousUserId = loadedUserIdRef.current;
+          if (previousUserId) {
+            localStorage.removeItem(buildCurrentRoleKey(previousUserId));
           }
           localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
-          setProfile(null);
-          setRoles([]);
-          setCurrentRoleState(null);
+          clearUserContext();
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchRoles(session.user.id);
+        loadUserContext(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -172,7 +222,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await fetchProfile(user.id, authTicketRef.current);
     }
   };
 
