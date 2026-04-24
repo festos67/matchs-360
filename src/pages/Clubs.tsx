@@ -84,16 +84,24 @@ export default function Clubs() {
     try {
       const { data, error } = await supabase
         .from("clubs")
-        .select("*, teams:teams(count)")
+        .select("*")
         .is("deleted_at", null)
         .order("name");
 
       if (error) throw error;
 
-      const clubsWithCount = (data || []).map((club: any) => ({
-        ...club,
-        teams_count: club.teams?.[0]?.count || 0,
-      }));
+      // Compter uniquement les équipes actives (deleted_at IS NULL) pour
+      // s'aligner avec AdminDashboard et ClubDetail.
+      const clubsWithCount = await Promise.all(
+        (data || []).map(async (club: any) => {
+          const { count } = await supabase
+            .from("teams")
+            .select("*", { count: "exact", head: true })
+            .eq("club_id", club.id)
+            .is("deleted_at", null);
+          return { ...club, teams_count: count || 0 };
+        })
+      );
 
       setClubs(clubsWithCount);
     } catch (error: any) {
