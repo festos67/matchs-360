@@ -57,6 +57,7 @@ const CoachDetail = lazy(() => import("./pages/CoachDetail"));
 const FrameworksList = lazy(() => import("./pages/FrameworksList"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const RoleApprovals = lazy(() => import("./pages/RoleApprovals"));
+const InvitationsAdmin = lazy(() => import("./pages/InvitationsAdmin"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Stats = lazy(() => import("./pages/Stats"));
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/evaluations/:id" element={<ProtectedRoute><EvaluationDetail /></ProtectedRoute>} />
               <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
               <Route path="/role-approvals" element={<ProtectedRoute><RoleApprovals /></ProtectedRoute>} />
+              <Route path="/invitations" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><InvitationsAdmin /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
