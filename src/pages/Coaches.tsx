@@ -309,14 +309,9 @@ const Coaches = () => {
             <AddEntityButton
               type="coach"
               label="Ajouter un coach"
-              onClick={() => {
-                if (clubFilter === "all") {
-                  toast.info("Sélectionnez un club avant d'ajouter un coach");
-                  return;
-                }
-                setCreateModalOpen(true);
-              }}
-              className={clubFilter === "all" ? "opacity-50" : ""}
+              onClick={() => setCreateModalOpen(true)}
+              disabled={clubFilter === "all"}
+              disabledReason="Sélectionnez un club spécifique dans le filtre pour ajouter un coach."
             />
           )}
         </div>

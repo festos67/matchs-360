@@ -538,7 +538,8 @@ const Players = () => {
               type="player"
               label="Ajouter un joueur"
               onClick={() => setShowCreatePlayer(true)}
-              className={clubFilter === "all" ? "opacity-50 pointer-events-none" : ""}
+              disabled={clubFilter === "all"}
+              disabledReason="Sélectionnez un club spécifique dans le filtre pour ajouter un joueur."
             />
           )}
           {isCoach && (
@@ -546,7 +547,8 @@ const Players = () => {
               type="player"
               label="Ajouter un joueur"
               onClick={() => setShowCreatePlayer(true)}
-              className={!coachClubId ? "opacity-50 pointer-events-none" : ""}
+              disabled={!coachClubId}
+              disabledReason="Vous devez être rattaché à un club pour ajouter un joueur."
             />
           )}
         </div>
