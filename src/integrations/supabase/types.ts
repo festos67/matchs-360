@@ -1302,6 +1302,17 @@ export type Database = {
         Args: { p_caller: string; p_club_filter: string; p_is_admin: boolean }
         Returns: string[]
       }
+      admin_get_auth_users_bulk: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          banned_until: string
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          id: string
+          last_sign_in_at: string
+        }[]
+      }
       admin_get_user_by_email: {
         Args: { p_email: string }
         Returns: {

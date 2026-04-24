@@ -267,13 +267,20 @@ Deno.serve(async (req) => {
         });
       }
 
-      const authUsers = await Promise.all(
-        userIds.map(async (targetUserId: string) => {
-          const { data, error } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
-          if (error) throw error;
-          return data.user;
-        }),
-      );
+      // F-407: bulk fetch via single SQL RPC instead of N parallel
+      // GoTrue calls (auth.admin.getUserById). Avoids self-inflicted DoS
+      // on the Auth service when listing up to pageSize=100 users.
+      const { data: bulkAuthUsers, error: bulkAuthErr } = await supabaseAdmin
+        .rpc("admin_get_auth_users_bulk", { p_user_ids: userIds });
+      if (bulkAuthErr) throw bulkAuthErr;
+      const authUsers = (bulkAuthUsers || []) as Array<{
+        id: string;
+        email: string | null;
+        last_sign_in_at: string | null;
+        banned_until: string | null;
+        created_at: string;
+        email_confirmed_at: string | null;
+      }>;
 
       const [{ data: profiles }, { data: userRoles }, { data: teamMembers }, { data: supporterLinks }] = await Promise.all([
         supabaseAdmin.from("profiles").select("*").in("id", userIds),
