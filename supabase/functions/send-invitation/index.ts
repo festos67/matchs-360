@@ -466,9 +466,24 @@ const handler = async (req: Request): Promise<Response> => {
     // via forged headers in the generated invitation link.
     const origin = getSafeOrigin(req);
 
-    // Check if user already exists
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers.users.find(u => u.email === email.toLowerCase());
+    // F-402: targeted lookup via SECURITY DEFINER RPC instead of listUsers()
+    // (which defaulted to the first 50 users and silently misclassified existing
+    // accounts as new on tenants > 50 users — risk of unintended role grants and
+    // invitation-link reissue against an existing account).
+    const normalizedEmail = email.toLowerCase();
+    const { data: existingByEmail, error: lookupError } = await supabaseAdmin
+      .rpc("admin_get_user_by_email", { p_email: normalizedEmail })
+      .maybeSingle();
+    if (lookupError) {
+      throw new InvitationDomainError({
+        message: "Erreur lors de la vérification de l'utilisateur.",
+        code: "USER_LOOKUP_FAILED",
+        status: 500,
+      });
+    }
+    const existingUser = existingByEmail
+      ? { id: (existingByEmail as { id: string }).id, email: normalizedEmail }
+      : null;
 
     let userId: string;
     let isNewUser = false;
