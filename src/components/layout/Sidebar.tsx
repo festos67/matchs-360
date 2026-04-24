@@ -34,7 +34,8 @@ import {
   UserCog,
   UserCircle,
   Heart,
-  Plus
+  Plus,
+  Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
       { icon: UserCircle, label: "Joueurs", path: "/players" },
       { icon: Heart, label: "Supporters", path: "/supporters" },
       { icon: BookOpen, label: "Référentiels", path: "/frameworks" },
+      { icon: Mail, label: "Invitations", path: "/invitations" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
   }
@@ -71,6 +73,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: Heart, label: "Supporters", path: "/supporters" },
         { icon: Trophy, label: "Débriefs", path: "/evaluations" },
         { icon: Shield, label: "Utilisateurs", path: "/club/users" },
+        { icon: Mail, label: "Invitations", path: "/invitations" },
       ];
     case "coach":
       return [

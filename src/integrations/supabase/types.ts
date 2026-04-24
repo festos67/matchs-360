@@ -1324,6 +1324,7 @@ export type Database = {
         Args: { _path: string; _user_id: string }
         Returns: boolean
       }
+      cancel_invitation: { Args: { _invitation_id: string }; Returns: Json }
       create_club_with_referent: {
         Args: {
           _name: string
@@ -1345,6 +1346,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      expire_overdue_invitations: { Args: never; Returns: number }
       get_club_plan: {
         Args: { p_club_id: string }
         Returns: Database["public"]["Enums"]["subscription_plan"]
@@ -1436,6 +1438,7 @@ export type Database = {
       purge_old_evaluations: { Args: never; Returns: undefined }
       purge_old_frameworks: { Args: never; Returns: undefined }
       purge_old_invitation_send_log: { Args: never; Returns: undefined }
+      purge_old_invitations: { Args: never; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -1443,6 +1446,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      resend_invitation: {
+        Args: { _invitation_id: string; _new_expires_days?: number }
+        Returns: Json
       }
       soft_delete_club: { Args: { _club_id: string }; Returns: undefined }
       validate_storage_url: {
