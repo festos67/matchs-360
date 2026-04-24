@@ -74,6 +74,8 @@ export function SupporterEvaluationForm({
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  // Synchronous guard to block rapid double-submits before React re-renders
+  const savingRef = useRef(false);
 
   const [showConfirmSave, setShowConfirmSave] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -163,6 +165,8 @@ export function SupporterEvaluationForm({
   const performSave = async () => {
     if (!user) return;
 
+    if (savingRef.current) return;
+    savingRef.current = true;
     setIsSaving(true);
     try {
       const supporterName = profile?.nickname ||
@@ -241,6 +245,7 @@ export function SupporterEvaluationForm({
       toast.error("Erreur lors de l'enregistrement");
     } finally {
       setIsSaving(false);
+      savingRef.current = false;
     }
   };
 
