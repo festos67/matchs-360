@@ -37,7 +37,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           isFree={isFree}
           trialDaysLeft={trialDaysLeft}
         />
-        <main className="flex-1 p-3 md:p-6 overflow-y-scroll overflow-x-hidden custom-scrollbar">
+        <main className="flex-1 p-3 md:p-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
