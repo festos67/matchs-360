@@ -484,7 +484,6 @@ export default function PlayerDetail() {
               key={isCreatingNew ? `new-${newEvalKey}` : (selectedEvaluation?.id || "empty")}
               playerId={player.id}
               playerName={playerName}
-              teamId={teamMembership?.team_id || ""}
               frameworkId={frameworkId}
               themes={themes}
               existingEvaluation={isCreatingNew ? null : selectedEvaluation}
