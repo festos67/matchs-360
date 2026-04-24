@@ -263,8 +263,30 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
   };
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      toast.error("Le nom de l'équipe est requis");
+    const trimmed = name.trim();
+    if (!trimmed || trimmed.length < 2) {
+      toast.error("Le nom de l'équipe doit contenir au moins 2 caractères");
+      return;
+    }
+    const PLACEHOLDERS = [
+      "nom de l'equipe",
+      "nom de l'équipe",
+      "nom de lequipe",
+      "nom équipe",
+      "nom equipe",
+      "team name",
+      "nouvelle equipe",
+      "nouvelle équipe",
+      "u15 a, seniors b",
+      "u15 a seniors b",
+    ];
+    const normalized = trimmed
+      .toLowerCase()
+      .replace(/[.\u2026]+$/u, "")
+      .trim()
+      .replace(/\s+/g, " ");
+    if (PLACEHOLDERS.includes(normalized)) {
+      toast.error("Veuillez saisir un vrai nom d'équipe (pas le texte indicatif)");
       return;
     }
     setSaving(true);
@@ -272,7 +294,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
       const { error } = await supabase
         .from("teams")
         .update({
-          name: name.trim(),
+          name: trimmed,
           short_name: shortName.trim().toUpperCase() || null,
           color,
           season,
