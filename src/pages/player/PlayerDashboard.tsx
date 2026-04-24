@@ -130,7 +130,7 @@ const PlayerDashboard = () => {
         .eq("player_id", playerId)
         .eq("type", "coach")
         .is("deleted_at", null)
-        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
       return data || [];
