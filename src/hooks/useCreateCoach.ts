@@ -80,10 +80,13 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       fetchExistingUsers();
     }
     if (!open) {
+      form.reset({ firstName: "", lastName: "", email: "" });
       setMode("new");
       setSelectedExistingUser(null);
       setPhotoFile(null);
       setPhotoPreview(null);
+      setTeamAssignments([]);
+      setExistingUsers([]);
     }
   }, [open, clubId]);
 
