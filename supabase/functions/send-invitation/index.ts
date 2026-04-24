@@ -104,10 +104,76 @@ type EmailProviderError = {
   name?: string;
 };
 
-type InvitationError = Error & {
-  statusCode?: number;
-  code?: string;
+type ErrorCode =
+  // Auth caller
+  | "AUTH_MISSING"
+  | "AUTH_INVALID"
+  | "AUTH_NO_RIGHT_ON_CLUB"
+  | "AUTH_CANNOT_GRANT_ROLE"
+  | "AUTH_TEAM_OUT_OF_SCOPE"
+  // Validation
+  | "INPUT_INVALID_EMAIL"
+  | "INPUT_MISSING_CLUB"
+  | "INPUT_TEAM_NOT_IN_CLUB"
+  | "INPUT_PLAYERS_OUT_OF_CLUB"
+  // Business
+  | "USER_ALREADY_HAS_ROLE_IN_CLUB"
+  | "PLAYER_ALREADY_IN_TEAM"
+  | "TEAM_ALREADY_HAS_REFERENT"
+  // Rate limit (applicatif)
+  | "RATE_LIMIT_CHECK_FAILED"
+  | "RATE_LIMIT_EXCEEDED"
+  // Email infra
+  | "EMAIL_PROVIDER_NOT_CONFIGURED"
+  | "EMAIL_SENDER_FORBIDDEN"
+  | "EMAIL_RATE_LIMITED"
+  | "EMAIL_PROVIDER_ERROR"
+  // Generic
+  | "INTERNAL_ERROR";
+
+type ErrorBody = {
+  error: string;
+  code: ErrorCode;
+  hint?: string;
+  // Optional extra fields (e.g. retry_after_seconds for rate limits)
+  [k: string]: unknown;
 };
+
+class InvitationDomainError extends Error {
+  code: ErrorCode;
+  status: number;
+  hint?: string;
+  extra?: Record<string, unknown>;
+  constructor(opts: {
+    message: string;
+    code: ErrorCode;
+    status: number;
+    hint?: string;
+    extra?: Record<string, unknown>;
+  }) {
+    super(opts.message);
+    this.code = opts.code;
+    this.status = opts.status;
+    this.hint = opts.hint;
+    this.extra = opts.extra;
+  }
+}
+
+function respondError(
+  body: ErrorBody,
+  status: number,
+  corsHeaders: Record<string, string>,
+  extraHeaders?: Record<string, string>,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders,
+      ...(extraHeaders ?? {}),
+    },
+  });
+}
 
 const getProviderStatusCode = (providerError: EmailProviderError): number => {
   const rawStatus = providerError.statusCode ?? providerError.status;
@@ -119,26 +185,31 @@ const throwEmailDeliveryError = (providerError: EmailProviderError): never => {
   const statusCode = getProviderStatusCode(providerError);
   const providerMessage = providerError.message || "Erreur inconnue du fournisseur email";
 
-  const error = new Error(providerMessage) as InvitationError;
-
   if (statusCode === 429) {
-    error.message = "Limite d'envoi atteinte (429). Veuillez réessayer plus tard.";
-    error.code = "EMAIL_RATE_LIMITED";
-    error.statusCode = 429;
-    throw error;
+    throw new InvitationDomainError({
+      message: "Limite d'envoi email atteinte. Patientez quelques minutes avant de réessayer.",
+      code: "EMAIL_RATE_LIMITED",
+      status: 429,
+      hint: "Le quota du fournisseur email est temporairement saturé. Réessayez dans 5 à 10 minutes.",
+    });
   }
 
   if (statusCode === 403) {
-    error.message = "Envoi refusé (403) : domaine expéditeur non autorisé. Configurez un domaine email vérifié pour envoyer à des destinataires externes.";
-    error.code = "EMAIL_SENDER_FORBIDDEN";
-    error.statusCode = 403;
-    throw error;
+    throw new InvitationDomainError({
+      message:
+        "L'envoi d'email a été refusé par le fournisseur (403). Le domaine expéditeur n'est pas autorisé à envoyer à ce destinataire.",
+      code: "EMAIL_SENDER_FORBIDDEN",
+      status: 422,
+      hint:
+        "Vérifiez que le domaine d'envoi est validé chez le fournisseur email et que les enregistrements DNS (SPF/DKIM) sont en place.",
+    });
   }
 
-  error.message = `Erreur d'envoi email (${statusCode}) : ${providerMessage}`;
-  error.code = "EMAIL_PROVIDER_ERROR";
-  error.statusCode = statusCode;
-  throw error;
+  throw new InvitationDomainError({
+    message: `Erreur d'envoi email (${statusCode}) : ${providerMessage}`,
+    code: "EMAIL_PROVIDER_ERROR",
+    status: 502,
+  });
 };
 
 const handler = async (req: Request): Promise<Response> => {
