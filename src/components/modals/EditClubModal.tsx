@@ -16,6 +16,7 @@ import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ interface EditClubModalProps {
     id: string;
     name: string;
     short_name?: string | null;
+    description?: string | null;
     primary_color: string;
     secondary_color: string | null;
     logo_url: string | null;
@@ -41,6 +43,7 @@ interface EditClubModalProps {
 export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubModalProps) {
   const [name, setName] = useState(club.name);
   const [shortName, setShortName] = useState(club.short_name || "");
+  const [description, setDescription] = useState(club.description || "");
   const [primaryColor, setPrimaryColor] = useState(club.primary_color);
   const [referentName, setReferentName] = useState(club.referent_name || "");
   const [referentEmail, setReferentEmail] = useState(club.referent_email || "");
@@ -54,6 +57,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
     if (open) {
       setName(club.name);
       setShortName(club.short_name || "");
+      setDescription(club.description || "");
       setPrimaryColor(club.primary_color);
       setReferentName(club.referent_name || "");
       setReferentEmail(club.referent_email || "");
@@ -108,6 +112,10 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
       toast.error("Le nom du club est requis");
       return;
     }
+    if (description.length > 1000) {
+      toast.error("La description ne doit pas dépasser 1000 caractères");
+      return;
+    }
     setSaving(true);
     try {
       let finalLogoUrl = logoUrl.trim() || null;
@@ -122,6 +130,7 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
         .update({
           name: name.trim(),
           short_name: shortName.trim().toUpperCase() || null,
+          description: description.trim() || null,
           primary_color: primaryColor,
           referent_name: referentName.trim() || null,
           referent_email: referentEmail.trim() || null,
@@ -217,6 +226,20 @@ export function EditClubModal({ open, onOpenChange, club, onSuccess }: EditClubM
           <div className="space-y-2">
             <Label>Couleur principale</Label>
             <ColorPickerButton value={primaryColor} onChange={setPrimaryColor} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="club-description">Description (optionnel)</Label>
+            <Textarea
+              id="club-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+              placeholder="Mission, contexte sportif, public visé..."
+              rows={3}
+              maxLength={1000}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {description.length} / 1000
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="club-referent">Nom du référent</Label>
