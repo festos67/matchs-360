@@ -546,7 +546,7 @@ const AdminDashboard = () => {
                       <div
                         key={evaluation.id}
                         className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group"
-                        onClick={() => navigate(`/players/${evaluation.player?.id}`)}
+                        onClick={() => evaluation.player?.id && navigate(`/players/${evaluation.player.id}?evaluation=${evaluation.id}`)}
                       >
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           <User className="w-5 h-5 text-primary" />

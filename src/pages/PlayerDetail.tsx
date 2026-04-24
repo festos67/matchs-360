@@ -39,7 +39,7 @@
  * - Calculs de progression : voir mem://features/progression-percentage-logic
  */
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star, ArrowLeft, Pencil, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
@@ -74,6 +74,8 @@ export default function PlayerDetail() {
   const { user, loading: authLoading, roles } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedEvalId = searchParams.get("evaluation");
 
   const {
     player, teamMembership, referentCoach,
@@ -144,13 +146,35 @@ export default function PlayerDetail() {
     }
   }, [teamMembership, isSuperAdmin, myAdminClubIds, roles, navigate]);
 
-  // Set initial selected evaluation when data loads
+  // Pré-sélection de l'évaluation :
+  //   1) ?evaluation=<id> si présent ET valide pour ce joueur
+  //   2) sinon, dernière éval coach non-deletée sur le framework courant
+  //   3) sinon, première éval non-deletée
   useEffect(() => {
-    if (evaluations.length > 0 && !selectedEvaluation) {
-      const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
-      setSelectedEvaluation(latestCoach || evaluations.filter(e => !e.deleted_at)[0] || null);
+    if (evaluations.length === 0 || selectedEvaluation) return;
+
+    if (requestedEvalId) {
+      const requested = evaluations.find(e => e.id === requestedEvalId && !e.deleted_at);
+      if (requested) {
+        setSelectedEvaluation(requested);
+        const latestCoachOnCurrentFw = evaluations.find(
+          e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
+        );
+        setIsViewingHistory(requested.id !== latestCoachOnCurrentFw?.id);
+        if (requested.framework_id && requested.framework_id !== frameworkId) {
+          loadFrameworkThemes(requested.framework_id).then(({ themes: loaded }) => {
+            setSelectedEvalThemes(loaded);
+          });
+        }
+        return;
+      }
+      // Param invalide → cleanup silencieux et fallback
+      setSearchParams((sp) => { sp.delete("evaluation"); return sp; }, { replace: true });
     }
-  }, [evaluations, selectedEvaluation, frameworkId]);
+
+    const latestCoach = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
+    setSelectedEvaluation(latestCoach || evaluations.filter(e => !e.deleted_at)[0] || null);
+  }, [evaluations, selectedEvaluation, frameworkId, requestedEvalId, setSearchParams]);
 
   // Sync selectedEvalThemes with themes
   useEffect(() => {
@@ -208,6 +232,7 @@ export default function PlayerDetail() {
       setSelectedEvalThemes(themes);
     }
     setActiveTab("radar");
+    setSearchParams((sp) => { sp.set("evaluation", evaluation.id); return sp; }, { replace: true });
   };
 
   const handleReturnToCurrent = () => {
@@ -216,6 +241,7 @@ export default function PlayerDetail() {
       setIsViewingHistory(false);
       setComparisonIds([]);
       setSelectedEvalThemes(themes);
+      setSearchParams((sp) => { sp.delete("evaluation"); return sp; }, { replace: true });
     }
   };
 

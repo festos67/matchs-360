@@ -389,11 +389,13 @@ export default function Evaluations() {
                 role="button"
                 tabIndex={0}
                 aria-label={`Ouvrir le débrief ${evaluation.name} de ${playerName || "joueur"}`}
-                onClick={() => navigate(`/players/${evaluation.player?.id}?eval=${evaluation.id}`)}
+                onClick={() => evaluation.player?.id && navigate(`/players/${evaluation.player.id}?evaluation=${evaluation.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    navigate(`/players/${evaluation.player?.id}?eval=${evaluation.id}`);
+                    if (evaluation.player?.id) {
+                      navigate(`/players/${evaluation.player.id}?evaluation=${evaluation.id}`);
+                    }
                   }
                 }}
               >
