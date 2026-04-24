@@ -235,6 +235,16 @@ export function PlayerSidebar({
         </div>
       )}
 
+      {/* Bloc joueur : impression de son propre résultat */}
+      {isPlayerViewingOwnProfile && hasSelectedEvaluation && (
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Mon débrief</p>
+          <div className="flex flex-col gap-1.5">
+            <PrintResultButton onPrint={onPrint} />
+          </div>
+        </div>
+      )}
+
       {/* Gestion joueur */}
       {!isPlayerViewingOwnProfile && (canMutate || isAdmin) && (
         <div className="bg-card border border-border rounded-xl p-3 mb-3">
