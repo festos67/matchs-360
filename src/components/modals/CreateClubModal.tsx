@@ -198,20 +198,25 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
   const onSubmit = async (data: ClubFormData) => {
     setLoading(true);
     try {
-      const { data: club, error: clubError } = await supabase
-        .from("clubs")
-        .insert({
-          name: data.name,
-          short_name: data.shortName?.toUpperCase() || null,
-          primary_color: data.primaryColor,
-          secondary_color: data.secondaryColor,
-          referent_name: `${data.referentFirstName} ${data.referentLastName}`,
-          referent_email: data.referentEmail,
-        })
-        .select()
-        .single();
+      // F5 — Création atomique via RPC SECURITY DEFINER (super-admin only).
+      // Si la création échoue, PostgreSQL rollback tout — aucun club orphelin possible.
+      const { data: rpcResult, error: rpcError } = await supabase.rpc(
+        "create_club_with_referent",
+        {
+          _name: data.name,
+          _short_name: data.shortName || "",
+          _primary_color: data.primaryColor,
+          _secondary_color: data.secondaryColor,
+          _referent_first_name: data.referentFirstName,
+          _referent_last_name: data.referentLastName,
+          _referent_email: data.referentEmail,
+        }
+      );
 
-      if (clubError) throw clubError;
+      if (rpcError) throw rpcError;
+      const clubId = (rpcResult as { club_id: string } | null)?.club_id;
+      if (!clubId) throw new Error("Création du club échouée : identifiant manquant");
+      const club = { id: clubId };
 
       if (logoFile) {
         try {
@@ -224,6 +229,8 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
         }
       }
 
+      // F5 — Best-effort post-commit. Si l'envoi échoue, le club reste créé
+      // et l'admin peut relancer l'invitation depuis la fiche du club.
       const { data: inviteResult, error: inviteError } = await supabase.functions.invoke("send-invitation", {
         body: {
           email: data.referentEmail,
@@ -235,15 +242,16 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       });
 
       if (inviteError || inviteResult?.error) {
-        await supabase.from("clubs").delete().eq("id", club.id);
         const inviteErrorMessage = inviteResult?.error || await getEdgeFunctionErrorMessage(inviteError);
-        throw new Error(inviteErrorMessage);
+        toast.warning(`Club "${data.name}" créé`, {
+          description: `L'invitation à ${data.referentEmail} n'a pas pu être envoyée (${inviteErrorMessage}). Vous pourrez la relancer depuis la fiche du club.`,
+        });
+      } else {
+        toast.success(`Club "${data.name}" créé avec succès !`, {
+          description: `Une invitation a été envoyée à ${data.referentEmail}`,
+        });
       }
 
-      toast.success(`Club "${data.name}" créé avec succès !`, {
-        description: `Une invitation a été envoyée à ${data.referentEmail}`,
-      });
-      
       clearDraft();
       reset(defaultValues);
       removeLogo();
