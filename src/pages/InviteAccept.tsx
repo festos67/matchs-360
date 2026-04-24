@@ -81,8 +81,43 @@ export default function InviteAccept() {
           return;
         }
 
-        // If hash contains tokens, let Supabase client process them
-        if (hash && hash.includes("access_token")) {
+        // F-303 — Account Takeover protection.
+        // Require an invite token in the URL hash. We MUST NOT fall back to
+        // a pre-existing session: an attacker already logged in could
+        // otherwise hit /invite-accept and inherit the role/club granted
+        // by the trigger to the "current" user.
+        if (!hash || !hash.includes("access_token")) {
+          if (mounted) {
+            setError(
+              "Lien d'invitation invalide ou expiré. Veuillez ouvrir le lien reçu par email.",
+            );
+            setChecking(false);
+          }
+          return;
+        }
+
+        // Verify token type is exactly `invite` (reject recovery / magiclink / signup)
+        const tokenType = hashParams.get("type");
+        if (tokenType !== "invite") {
+          if (mounted) {
+            setError(
+              "Ce lien n'est pas une invitation. Si vous souhaitez réinitialiser votre mot de passe, utilisez la page dédiée.",
+            );
+            setChecking(false);
+          }
+          return;
+        }
+
+        // Sign out any pre-existing session BEFORE consuming the invite token.
+        // This prevents an attacker from injecting their session and having
+        // the invitation processed against the wrong account.
+        try {
+          await supabase.auth.signOut({ scope: "local" });
+        } catch {
+          // ignore — we just want to make sure no stale session lingers
+        }
+
+        {
           // The Supabase client auto-processes hash tokens via onAuthStateChange
           // We listen for it and also use a fallback
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -125,24 +160,6 @@ export default function InviteAccept() {
             subscription.unsubscribe();
           };
         }
-
-        // No hash tokens - check for existing session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          if (mounted) {
-            setError("Lien d'invitation invalide ou expiré. Veuillez demander une nouvelle invitation.");
-            setChecking(false);
-          }
-          return;
-        }
-
-        if (session.user?.user_metadata?.password_set) {
-          navigate("/dashboard");
-          return;
-        }
-
-        if (mounted) setChecking(false);
       } catch (err) {
         console.error("Error checking invite session:", err);
         if (mounted) {
