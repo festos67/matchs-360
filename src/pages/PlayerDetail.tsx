@@ -422,6 +422,31 @@ export default function PlayerDetail() {
               </Button>
             </div>
           )}
+          {!isCreatingNew && selectedEvaluation && isViewingHistory && canEvaluate && selectedEvaluation.type === "coach" && (
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-sm text-amber-700 dark:text-amber-400">
+                📜 {isEditingHistory ? "Modification du débrief historique" : "Consultation du débrief historique"} :{" "}
+                <strong>{selectedEvaluation.name}</strong>{" "}
+                <span className="text-muted-foreground">
+                  ({new Date(selectedEvaluation.date).toLocaleDateString("fr-FR")})
+                </span>
+              </span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={handleReturnToCurrent}>
+                  <ArrowLeft className="w-4 h-4 mr-1" />Revenir au débrief actuel
+                </Button>
+                {!isEditingHistory ? (
+                  <Button size="sm" variant="outline" onClick={() => setShowEditHistoryConfirm(true)}>
+                    <Pencil className="w-4 h-4 mr-1" />Modifier ce débrief
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="ghost" onClick={() => setIsEditingHistory(false)}>
+                    <X className="w-4 h-4 mr-1" />Annuler la modification
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
           {frameworkId && themes.length > 0 ? (
             <EvaluationForm
               ref={evaluationFormRef}
