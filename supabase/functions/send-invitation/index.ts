@@ -370,10 +370,11 @@ const handler = async (req: Request): Promise<Response> => {
           masked_email: maskEmail(email),
           err: quotaErr?.message,
         });
-        return new Response(
-          JSON.stringify({ error: "Rate limit check failed" }),
-          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        throw new InvitationDomainError({
+          message: "Vérification du quota d'invitations indisponible. Réessayez plus tard.",
+          code: "RATE_LIMIT_CHECK_FAILED",
+          status: 503,
+        });
       }
 
       // deno-lint-ignore no-explicit-any
@@ -399,22 +400,16 @@ const handler = async (req: Request): Promise<Response> => {
           used: q.used,
           limit: q.limit_per_hour,
         });
-        return new Response(
-          JSON.stringify({
-            error: "Rate limit exceeded",
+        throw new InvitationDomainError({
+          message: `Quota d'invitations dépassé : ${q.used}/${q.limit_per_hour} pour cette heure. Réessayez dans ${retryAfterSec} secondes.`,
+          code: "RATE_LIMIT_EXCEEDED",
+          status: 429,
+          extra: {
             retry_after_seconds: retryAfterSec,
             quota_used: q.used,
             quota_limit: q.limit_per_hour,
-          }),
-          {
-            status: 429,
-            headers: {
-              "Content-Type": "application/json",
-              "Retry-After": String(retryAfterSec),
-              ...corsHeaders,
-            },
           },
-        );
+        });
       }
     }
 
@@ -423,8 +418,10 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: tgtTeam } = await supabaseAdmin
         .from("teams").select("club_id").eq("id", teamId).maybeSingle();
       if (!tgtTeam || tgtTeam.club_id !== clubId) {
-        return new Response(JSON.stringify({ error: "Team does not belong to club" }), {
-          status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+        throw new InvitationDomainError({
+          message: "L'équipe sélectionnée n'appartient pas au club cible.",
+          code: "INPUT_TEAM_NOT_IN_CLUB",
+          status: 400,
         });
       }
       // Referent coach can only invite within their own teams
@@ -438,8 +435,10 @@ const handler = async (req: Request): Promise<Response> => {
           .eq("coach_role", "referent").eq("is_active", true).is("deleted_at", null);
         const tids = (refTeamIds?.map(r => r.team_id) ?? []) as string[];
         if (!tids.includes(teamId)) {
-          return new Response(JSON.stringify({ error: "Team outside your scope" }), {
-            status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+          throw new InvitationDomainError({
+            message: "Cette équipe n'est pas dans votre périmètre de coach référent.",
+            code: "AUTH_TEAM_OUT_OF_SCOPE",
+            status: 403,
           });
         }
       }
@@ -455,8 +454,10 @@ const handler = async (req: Request): Promise<Response> => {
       // deno-lint-ignore no-explicit-any
       const allValid = playerIds.every((pid) => (playerTms ?? []).some((m: any) => m.user_id === pid && m.teams?.club_id === clubId));
       if (!allValid) {
-        return new Response(JSON.stringify({ error: "One or more players are outside the target club" }), {
-          status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+        throw new InvitationDomainError({
+          message: "Un ou plusieurs joueurs sélectionnés n'appartiennent pas au club cible.",
+          code: "INPUT_PLAYERS_OUT_OF_CLUB",
+          status: 400,
         });
       }
     }
