@@ -1,11 +1,46 @@
 import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { getFromEmail } from '../_shared/email-config.ts'
 
 const MAX_RETRIES = 5
 const DEFAULT_BATCH_SIZE = 10
 const DEFAULT_SEND_DELAY_MS = 200
 const DEFAULT_AUTH_TTL_MINUTES = 15
 const DEFAULT_TRANSACTIONAL_TTL_MINUTES = 60
+
+// F-401: payload validation helpers — defense against header injection and
+// spoofing via malicious queue payloads (e.g. compromised authenticated
+// session with a faulty enqueue_* RPC). The dispatcher MUST NOT trust the
+// payload's `from`/`sender_domain` and MUST validate `to`/`subject`/`html`
+// before forwarding to the upstream email API.
+const MAX_HEADER_LENGTH = 1000
+const MAX_EMAIL_LENGTH = 320
+const MAX_HTML_LENGTH = 200_000
+const MAX_TEXT_LENGTH = 200_000
+
+function isHeaderSafe(s: unknown): s is string {
+  return typeof s === 'string' && s.length > 0 && s.length < MAX_HEADER_LENGTH && !/[\r\n]/.test(s)
+}
+function isEmailValid(s: unknown): s is string {
+  return (
+    typeof s === 'string' &&
+    s.length > 0 &&
+    s.length < MAX_EMAIL_LENGTH &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) &&
+    !/[\r\n]/.test(s)
+  )
+}
+function validateEmailPayload(payload: any): string | null {
+  if (!isEmailValid(payload?.to)) return 'invalid recipient address'
+  if (!isHeaderSafe(payload?.subject)) return 'invalid subject (empty, too long, or header injection)'
+  if (typeof payload?.html !== 'string' || payload.html.length === 0 || payload.html.length > MAX_HTML_LENGTH) {
+    return 'invalid html body (empty or exceeds size limit)'
+  }
+  if (payload?.text != null && (typeof payload.text !== 'string' || payload.text.length > MAX_TEXT_LENGTH)) {
+    return 'invalid text body'
+  }
+  return null
+}
 
 // Check if an error is a rate-limit (429) response.
 // Uses EmailAPIError.status when available (email-js >=0.x with structured errors),
@@ -55,6 +90,19 @@ Deno.serve(async (req) => {
   // with the service_role JWT stored in Vault (email_queue_service_role_key).
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  // F-401: resolve the canonical sender ONCE per invocation. Any payload-supplied
+  // `from` / `sender_domain` is ignored to prevent spoofing from a verified domain.
+  let forcedFrom: string
+  try {
+    forcedFrom = getFromEmail()
+  } catch (e) {
+    console.error('Invalid sender configuration', { error: e instanceof Error ? e.message : String(e) })
+    return new Response(
+      JSON.stringify({ error: 'Server configuration error' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
 
   // 1. Check rate-limit cooldown and read queue config
   const { data: state } = await supabase
@@ -178,12 +226,42 @@ Deno.serve(async (req) => {
       }
 
       try {
+        // F-401: validate payload before forwarding to upstream API.
+        // Reject malformed/abusive payloads to DLQ instead of attempting send.
+        const validationError = validateEmailPayload(payload)
+        if (validationError) {
+          console.error('Payload validation failed', {
+            queue,
+            msg_id: msg.msg_id,
+            reason: validationError,
+            recipient: maskEmail(payload?.to),
+          })
+          await supabase.from('email_send_log').insert({
+            message_id: payload?.message_id ?? null,
+            template_name: payload?.label || queue,
+            recipient_email: typeof payload?.to === 'string' ? payload.to.slice(0, MAX_EMAIL_LENGTH) : null,
+            status: 'failed',
+            error_message: `payload validation failed: ${validationError}`,
+          })
+          const { error: valDlqError } = await supabase.rpc('move_to_dlq', {
+            source_queue: queue,
+            dlq_name: dlq,
+            message_id: msg.msg_id,
+            payload,
+          })
+          if (valDlqError) {
+            console.error('Failed to move invalid payload to DLQ', { queue, msg_id: msg.msg_id, error: valDlqError })
+          }
+          continue
+        }
+
         await sendLovableEmail(
           {
             run_id: payload.run_id,
             to: payload.to,
-            from: payload.from,
-            sender_domain: payload.sender_domain,
+            // F-401: force canonical sender; ignore any payload-supplied from/sender_domain
+            from: forcedFrom,
+            sender_domain: undefined,
             subject: payload.subject,
             html: payload.html,
             text: payload.text,
