@@ -1302,6 +1302,12 @@ export type Database = {
         Args: { p_caller: string; p_club_filter: string; p_is_admin: boolean }
         Returns: string[]
       }
+      admin_get_user_by_email: {
+        Args: { p_email: string }
+        Returns: {
+          id: string
+        }[]
+      }
       admin_list_users_paginated: {
         Args: {
           p_caller: string
