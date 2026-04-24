@@ -167,7 +167,7 @@ const AdminDashboard = () => {
             .eq("player_id", p.user_id)
             .eq("type", "coach")
             .is("deleted_at", null)
-            .order("date", { ascending: false })
+            .order("created_at", { ascending: false })
             .limit(2);
           if (!evals || evals.length < 2) return;
           const [latest, previous] = evals;
@@ -239,7 +239,7 @@ const AdminDashboard = () => {
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
         `)
         .is("deleted_at", null)
-        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(50);
       return (data || []) as any[];
     },

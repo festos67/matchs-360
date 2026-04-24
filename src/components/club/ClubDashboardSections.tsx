@@ -194,7 +194,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             .eq("player_id", pid)
             .eq("type", "coach")
             .is("deleted_at", null)
-            .order("date", { ascending: false })
+            .order("created_at", { ascending: false })
             .limit(2);
           if (!evals || evals.length < 2) return;
           const [latest, previous] = evals;
