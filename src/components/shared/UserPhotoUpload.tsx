@@ -43,9 +43,9 @@ export function UserPhotoUpload({
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Format non supporté. Utilisez JPEG, PNG ou GIF");
+      toast.error("Format non supporté. Utilisez JPEG, PNG ou WEBP");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -91,7 +91,7 @@ export function UserPhotoUpload({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/gif"
+        accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={handlePhotoChange}
       />
