@@ -442,6 +442,20 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Votre mot de passe actuel"
+                autoComplete="current-password"
+              />
+              <p className="text-xs text-muted-foreground">
+                Requis pour confirmer votre identité avant tout changement.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="newPassword">Nouveau mot de passe</Label>
               <Input
                 id="newPassword"
@@ -449,6 +463,7 @@ export default function Profile() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={`Minimum ${USER_MIN_LENGTH} caractères`}
+                autoComplete="new-password"
               />
               <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
             </div>
@@ -462,11 +477,17 @@ export default function Profile() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirmez votre mot de passe"
+                autoComplete="new-password"
               />
             </div>
             <Button
               onClick={handleChangePassword}
-              disabled={changingPassword || !newPassword || !confirmPassword}
+              disabled={
+                changingPassword ||
+                !currentPassword ||
+                !newPassword ||
+                !confirmPassword
+              }
               variant="outline"
             >
               <KeyRound className="w-4 h-4 mr-2" />
