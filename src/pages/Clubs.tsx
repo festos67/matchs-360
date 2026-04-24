@@ -150,7 +150,7 @@ export default function Clubs() {
           {filteredClubs.map((club, index) => (
             <div
               key={club.id}
-              className="animate-fade-in-up opacity-0"
+              className="animate-fade-in-up opacity-0 relative group"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CircleAvatar
@@ -162,6 +162,42 @@ export default function Clubs() {
                 size="lg"
                 onClick={() => navigate(`/clubs/${club.id}`)}
               />
+              {isAdmin && (
+                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border border-border"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenuItem onClick={() => navigate(`/clubs/${club.id}`)}>
+                        Voir la fiche
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEditClub(club)}>
+                        <Pencil className="mr-2 h-4 w-4 text-blue-500" />
+                        Modifier
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setDeleteClub(club)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Archiver
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -184,6 +220,23 @@ export default function Clubs() {
       )}
 
       <CreateClubModal open={showCreateModal} onOpenChange={setShowCreateModal} onSuccess={fetchClubs} />
+      {editClub && (
+        <EditClubModal
+          open={!!editClub}
+          onOpenChange={(v) => !v && setEditClub(null)}
+          club={editClub}
+          onSuccess={() => {
+            setEditClub(null);
+            fetchClubs();
+          }}
+        />
+      )}
+      <DeleteClubDialog
+        open={!!deleteClub}
+        onOpenChange={(v) => !v && setDeleteClub(null)}
+        club={deleteClub}
+        onSuccess={fetchClubs}
+      />
     </AppLayout>
   );
 }
