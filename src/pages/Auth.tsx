@@ -117,20 +117,26 @@ export default function Auth() {
 
     setLoading(true);
     try {
-      // Envoi d'un email de réinitialisation
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // F-302: Anti-énumération — on déclenche la demande mais on n'expose
+      // jamais le résultat (existence du compte, rate-limit Supabase, etc.).
+      // La réponse utilisateur est toujours identique, qu'un compte existe ou non.
+      await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-
-      toast.success("Un email de réinitialisation a été envoyé !", { duration: 5000 });
+      // Message volontairement générique — ne confirme pas l'existence du compte.
+      toast.success(
+        "Si un compte est associé à cet email, un lien de réinitialisation vient d'être envoyé.",
+        { duration: 6000 }
+      );
       setIsForgotPassword(false);
-    } catch (err) {
-      toast.error("Une erreur est survenue");
+    } catch {
+      // Même message en cas d'erreur réseau pour ne pas créer d'oracle.
+      toast.success(
+        "Si un compte est associé à cet email, un lien de réinitialisation vient d'être envoyé.",
+        { duration: 6000 }
+      );
+      setIsForgotPassword(false);
     } finally {
       setLoading(false);
     }
