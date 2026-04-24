@@ -24,6 +24,7 @@
  * les invitations pour empêcher la divergence (mem://logic/coach-role-integrity).
  */
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { supabase } from "@/integrations/supabase/client";
@@ -274,6 +275,8 @@ const Coaches = () => {
 
   useEffect(() => { setTeamFilter("all"); }, [clubFilter]);
 
+  const navigate = useNavigate();
+
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
     const last = lastName?.charAt(0) || "";
@@ -390,7 +393,7 @@ const Coaches = () => {
                         <TableRow
                           key={coach.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleEdit(coach)}
+                          onClick={() => navigate(`/coaches/${coach.id}`)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3">

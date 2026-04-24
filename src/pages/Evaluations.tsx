@@ -27,7 +27,7 @@
  */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Trophy, Search, Calendar, User, ChevronRight, Plus, X, ArrowLeft } from "lucide-react";
+import { Trophy, Search, Calendar, User, ChevronRight, Plus, X, ArrowLeft, ExternalLink } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -413,6 +413,17 @@ export default function Evaluations() {
                 <div className="hidden md:block text-sm text-muted-foreground">
                   par {coachName || "Coach"}
                 </div>
+                <button
+                  type="button"
+                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Ouvrir le débrief en plein écran"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/evaluations/${evaluation.id}`);
+                  }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </button>
                 <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
             );

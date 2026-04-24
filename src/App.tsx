@@ -52,6 +52,8 @@ const PlayerDetail = lazy(() => import("./pages/PlayerDetail"));
 const FrameworkEditor = lazy(() => import("./pages/FrameworkEditor"));
 const ClubFrameworkEditor = lazy(() => import("./pages/ClubFrameworkEditor"));
 const Evaluations = lazy(() => import("./pages/Evaluations"));
+const EvaluationDetail = lazy(() => import("./pages/EvaluationDetail"));
+const CoachDetail = lazy(() => import("./pages/CoachDetail"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const RoleApprovals = lazy(() => import("./pages/RoleApprovals"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
@@ -120,10 +122,12 @@ const App = () => (
               <Route path="/teams/:id" element={<ProtectedRoute><TeamDetail /></ProtectedRoute>} />
               <Route path="/teams/:teamId/framework" element={<ProtectedRoute><FrameworkEditor /></ProtectedRoute>} />
               <Route path="/coaches" element={<ProtectedRoute><Coaches /></ProtectedRoute>} />
+              <Route path="/coaches/:id" element={<ProtectedRoute><CoachDetail /></ProtectedRoute>} />
               <Route path="/players" element={<ProtectedRoute><Players /></ProtectedRoute>} />
               <Route path="/supporters" element={<ProtectedRoute><Supporters /></ProtectedRoute>} />
               <Route path="/players/:id" element={<ProtectedRoute><PlayerDetail /></ProtectedRoute>} />
               <Route path="/evaluations" element={<ProtectedRoute><Evaluations /></ProtectedRoute>} />
+              <Route path="/evaluations/:id" element={<ProtectedRoute><EvaluationDetail /></ProtectedRoute>} />
               <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
               <Route path="/role-approvals" element={<ProtectedRoute><RoleApprovals /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
