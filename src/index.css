@@ -288,4 +288,5 @@
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+  scrollbar-gutter: stable;
 }
