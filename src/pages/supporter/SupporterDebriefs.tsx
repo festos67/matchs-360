@@ -91,7 +91,7 @@ const SupporterDebriefs = () => {
         .in("player_id", playerIds)
         .in("type", ["coach", "supporter"] as any)
         .is("deleted_at", null)
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (!evals || evals.length === 0) return {};
 
