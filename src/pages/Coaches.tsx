@@ -24,6 +24,7 @@
  * les invitations pour empêcher la divergence (mem://logic/coach-role-integrity).
  */
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { supabase } from "@/integrations/supabase/client";
@@ -273,6 +274,8 @@ const Coaches = () => {
   const showClubLevel = groupedCoaches.length > 1;
 
   useEffect(() => { setTeamFilter("all"); }, [clubFilter]);
+
+  const navigate = useNavigate();
 
   const getInitials = (firstName: string | null, lastName: string | null) => {
     const first = firstName?.charAt(0) || "";
