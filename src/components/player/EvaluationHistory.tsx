@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { calculateOverallAverage, formatAverage, type ThemeScores } from "@/lib/evaluation-utils";
+import { formatAverage } from "@/lib/evaluation-utils";
 
 interface Evaluation {
   id: string;
@@ -144,23 +144,17 @@ export function EvaluationHistory({
 
   const activeCoachEvaluations = coachEvaluations.filter(e => !e.deleted_at);
 
+  // Compute the displayed overall score directly from the evaluation's own
+  // scores (skill-level), independent of the current framework themes. This
+  // ensures historical evaluations made under a previous framework still show
+  // a meaningful average instead of "-" once the team framework is updated.
   const getEvaluationScore = (evaluation: Evaluation) => {
-    const themeScores: ThemeScores[] = themes.map(theme => ({
-      theme_id: theme.id,
-      theme_name: theme.name,
-      theme_color: theme.color,
-      skills: theme.skills.map(skill => {
-        const score = evaluation.scores.find(s => s.skill_id === skill.id);
-        return {
-          skill_id: skill.id,
-          score: score?.score ?? null,
-          is_not_observed: score?.is_not_observed ?? false,
-          comment: null as string | null,
-        };
-      }),
-      objective: null as string | null,
-    }));
-    return formatAverage(calculateOverallAverage(themeScores));
+    const valid = evaluation.scores.filter(
+      s => !s.is_not_observed && s.score !== null && (s.score ?? 0) > 0
+    );
+    if (valid.length === 0) return formatAverage(null);
+    const avg = valid.reduce((acc, s) => acc + (s.score ?? 0), 0) / valid.length;
+    return formatAverage(avg);
   };
 
   const handleDeleteEvaluation = async (evaluationId: string) => {
