@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
 
       if (scopedIdsError) throw scopedIdsError;
 
-      const userIds = (scopedIds || []).map((row) => row.out_user_id).filter(Boolean);
+      const userIds = (scopedIds || []).map((row: { out_user_id: string }) => row.out_user_id).filter(Boolean);
       const total = Number((scopedIds || [])[0]?.out_total_count || 0);
 
       if (userIds.length === 0) {
@@ -268,7 +268,7 @@ Deno.serve(async (req) => {
       }
 
       const authUsers = await Promise.all(
-        userIds.map(async (targetUserId) => {
+        userIds.map(async (targetUserId: string) => {
           const { data, error } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
           if (error) throw error;
           return data.user;
@@ -356,7 +356,7 @@ Deno.serve(async (req) => {
         }];
       }));
 
-      const orderedUsers = userIds.map((id) => usersById.get(id)).filter(Boolean);
+      const orderedUsers = userIds.map((id: string) => usersById.get(id)).filter(Boolean);
 
       console.log("Admin users page fetched", {
         caller: user.id,
