@@ -33,6 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
 import { cn } from "@/lib/utils";
@@ -238,9 +239,7 @@ export const ManageSupportersModal = ({
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error inviting supporter:", error);
-      toast.error("Erreur lors de l'invitation", {
-        description: await getEdgeFunctionErrorMessage(error),
-      });
+      await toastInvitationError(error);
     } finally {
       setLoading(false);
     }

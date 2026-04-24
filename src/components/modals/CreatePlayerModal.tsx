@@ -64,7 +64,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
+import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
@@ -279,8 +280,9 @@ export const CreatePlayerModal = ({
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error inviting player:", error);
-      const errorMessage = await getEdgeFunctionErrorMessage(error);
-      
+      const errorInfo = await getEdgeFunctionErrorInfo(error);
+      const errorMessage = errorInfo.message;
+
       // Plan limit raised by check_member_limit / check_team_limit triggers
       if (errorMessage.includes("PLAN_LIMIT_PLAYERS")) {
         if (handlePlanLimit({ message: errorMessage }, "players_per_team")) { setLoading(false); return; }
@@ -290,16 +292,19 @@ export const CreatePlayerModal = ({
       }
 
       // Handle mutation case
-      if (errorMessage.includes("déjà dans une équipe") && !force) {
+      if (
+        (errorInfo.code === "PLAYER_ALREADY_IN_TEAM" ||
+          errorMessage.includes("déjà dans une équipe") ||
+          errorMessage.includes("déjà rattaché")) &&
+        !force
+      ) {
         setPendingSubmit(data);
         setShowMutationAlert(true);
         setLoading(false);
         return;
       }
 
-      toast.error("Erreur lors de l'invitation", {
-        description: errorMessage,
-      });
+      await toastInvitationError(error);
     } finally {
       setLoading(false);
     }
