@@ -40,7 +40,7 @@ const roleLabels: Record<string, string> = {
 
 export default function PendingApproval() {
   const navigate = useNavigate();
-  const { user, signOut, roles } = useAuth();
+  const { user, signOut, roles, loading: authLoading } = useAuth();
   const [roleRequest, setRoleRequest] = useState<{
     status: string;
     requested_role: string;
@@ -51,6 +51,9 @@ export default function PendingApproval() {
   const [resending, setResending] = useState(false);
 
   useEffect(() => {
+    // Attendre que l'auth ait fini de charger pour éviter un faux "aucune demande"
+    if (authLoading) return;
+
     if (!user) {
       navigate("/auth");
       return;
@@ -58,12 +61,12 @@ export default function PendingApproval() {
 
     // If user already has roles, redirect to dashboard
     if (roles.length > 0) {
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
       return;
     }
 
     fetchRoleRequest();
-  }, [user, roles, navigate]);
+  }, [user, roles, navigate, authLoading]);
 
   const fetchRoleRequest = async () => {
     if (!user) return;
@@ -113,7 +116,7 @@ export default function PendingApproval() {
     navigate("/auth");
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
