@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Save, RotateCcw, FileText, Calendar, Loader2 } from "lucide-react";
+import { Save, RotateCcw, FileText, Calendar, Loader2, AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,6 +113,8 @@ interface EvaluationFormProps {
   readOnly?: boolean;
   coachName?: string;
   evaluationNumber?: number;
+  /** Affiche un bandeau d'avertissement quand on édite un débrief historique. */
+  historyEditWarning?: boolean;
 }
 
 export interface EvaluationFormHandle {
@@ -133,6 +135,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   readOnly = false,
   coachName,
   evaluationNumber,
+  historyEditWarning = false,
 }, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
