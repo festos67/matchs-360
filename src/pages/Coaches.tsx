@@ -45,6 +45,7 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import {
   Collapsible,
   CollapsibleContent,
@@ -308,8 +309,14 @@ const Coaches = () => {
             <AddEntityButton
               type="coach"
               label="Ajouter un coach"
-              onClick={() => setCreateModalOpen(true)}
-              className={clubFilter === "all" ? "opacity-50 pointer-events-none" : ""}
+              onClick={() => {
+                if (clubFilter === "all") {
+                  toast.info("Sélectionnez un club avant d'ajouter un coach");
+                  return;
+                }
+                setCreateModalOpen(true);
+              }}
+              className={clubFilter === "all" ? "opacity-50" : ""}
             />
           )}
         </div>
@@ -511,8 +518,12 @@ const Coaches = () => {
 
       {selectedCoach && (
         <EditCoachModal
+          key={selectedCoach.id}
           open={editModalOpen}
-          onOpenChange={setEditModalOpen}
+          onOpenChange={(o) => {
+            setEditModalOpen(o);
+            if (!o) setSelectedCoach(null);
+          }}
           coach={selectedCoach}
           onSuccess={handleEditSuccess}
         />
@@ -520,6 +531,7 @@ const Coaches = () => {
 
       {currentRole?.role === "club_admin" && currentRole?.club_id && (
         <CreateCoachModal
+          key={`create-${currentRole.club_id}`}
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
           clubId={currentRole.club_id}
@@ -528,6 +540,7 @@ const Coaches = () => {
       )}
       {isAdmin && clubFilter !== "all" && (
         <CreateCoachModal
+          key={`create-${clubFilter}`}
           open={createModalOpen}
           onOpenChange={setCreateModalOpen}
           clubId={clubFilter}

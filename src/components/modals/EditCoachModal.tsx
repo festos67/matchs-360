@@ -99,6 +99,8 @@ export const EditCoachModal = ({
       setPhotoPreview(coach.photo_url || null);
       setPhotoFile(null);
       setRemovePhoto(false);
+      setTeamAssignments([]);
+      setActiveTab("profile");
       fetchTeams();
     }
   }, [open, coach]);
