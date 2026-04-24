@@ -222,8 +222,19 @@ export default function Profile() {
   };
 
   const handleChangePassword = async () => {
+    // F-305: réauth obligatoire avant tout changement de mot de passe.
+    // Empêche un attaquant ayant détourné une session (XSS, poste partagé)
+    // de prendre durablement le compte sans connaître le mot de passe actuel.
+    if (!currentPassword) {
+      toast.error("Veuillez saisir votre mot de passe actuel");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      toast.error("Le nouveau mot de passe doit être différent de l'actuel");
       return;
     }
     const pwdError = validateUserPassword(newPassword);
@@ -231,8 +242,28 @@ export default function Profile() {
       toast.error(pwdError);
       return;
     }
+    const userEmail = profile?.email ?? user?.email;
+    if (!userEmail) {
+      toast.error("Email utilisateur introuvable, reconnectez-vous");
+      return;
+    }
     try {
       setChangingPassword(true);
+
+      // Étape 1 — Réauthentification : signInWithPassword avec l'email courant
+      // et le mot de passe saisi. En cas d'échec → abort sans toucher au mot
+      // de passe. (Note: les comptes OAuth pur sans mot de passe échoueront
+      // ici avec un message d'erreur explicite, comportement attendu.)
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: currentPassword,
+      });
+      if (reauthError) {
+        toast.error("Mot de passe actuel incorrect");
+        return;
+      }
+
+      // Étape 2 — Mise à jour effective.
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -411,6 +442,20 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Votre mot de passe actuel"
+                autoComplete="current-password"
+              />
+              <p className="text-xs text-muted-foreground">
+                Requis pour confirmer votre identité avant tout changement.
+              </p>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="newPassword">Nouveau mot de passe</Label>
               <Input
                 id="newPassword"
@@ -418,6 +463,7 @@ export default function Profile() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder={`Minimum ${USER_MIN_LENGTH} caractères`}
+                autoComplete="new-password"
               />
               <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
             </div>
@@ -431,11 +477,17 @@ export default function Profile() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirmez votre mot de passe"
+                autoComplete="new-password"
               />
             </div>
             <Button
               onClick={handleChangePassword}
-              disabled={changingPassword || !newPassword || !confirmPassword}
+              disabled={
+                changingPassword ||
+                !currentPassword ||
+                !newPassword ||
+                !confirmPassword
+              }
               variant="outline"
             >
               <KeyRound className="w-4 h-4 mr-2" />
