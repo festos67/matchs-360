@@ -15,7 +15,7 @@
  *  - Restitution détaillée : mem://features/player-result-tab/detailed-view
  *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
  */
-import { useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, getScoreLabel, type ThemeScores } from "@/lib/evaluation-utils";
 import { cn } from "@/lib/utils";
 import { getThemePaletteColor } from "@/lib/theme-palette";
+import { loadFrameworkThemes } from "@/lib/framework-loader";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
 
 interface PlayerEvaluationTabProps {
