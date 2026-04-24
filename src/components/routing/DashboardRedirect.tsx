@@ -21,7 +21,7 @@
  *  - Ordre menu cible : mem://navigation/role-based-sidebar-order
  */
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -55,8 +55,11 @@ const getDashboardPath = (role: string) => {
 export const DashboardRedirect = () => {
   const { user, currentRole, loading, roles, setCurrentRole } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [clubNames, setClubNames] = useState<Record<string, string>>({});
   const [showRoleSelector, setShowRoleSelector] = useState(false);
+
+  const wantsSwitch = searchParams.get("switch") === "1";
 
   // Fetch club names for display
   useEffect(() => {
@@ -93,9 +96,16 @@ export const DashboardRedirect = () => {
       return;
     }
 
-    // Multiple roles: show role selector
+    // Multi-rôles + currentRole déjà choisi (restauré depuis localStorage)
+    // + pas de demande explicite de switch → redirection directe
+    if (currentRole && !wantsSwitch) {
+      navigate(getDashboardPath(currentRole.role), { replace: true });
+      return;
+    }
+
+    // Multi-rôles + (1ère connexion OU switch explicite) → afficher chooser
     setShowRoleSelector(true);
-  }, [user, loading, roles, navigate, setCurrentRole]);
+  }, [user, loading, roles, currentRole, wantsSwitch, navigate, setCurrentRole]);
 
   const handleRoleSelect = (role: UserRole) => {
     setCurrentRole(role);
@@ -129,9 +139,13 @@ export const DashboardRedirect = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-display font-bold">Choisir mon profil</h2>
+          <h2 className="text-3xl font-display font-bold">
+            {wantsSwitch ? "Changer de profil" : "Choisir mon profil"}
+          </h2>
           <p className="text-muted-foreground mt-2">
-            Sur quel profil souhaitez-vous vous connecter ?
+            {wantsSwitch
+              ? "Sélectionnez le profil sur lequel basculer."
+              : "Sur quel profil souhaitez-vous vous connecter ?"}
           </p>
         </div>
 

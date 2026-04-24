@@ -12,8 +12,11 @@
  *  - Méthodes : signIn, signOut, switchRole, refreshProfile
  *  - Déduplication appels via état loading
  * @maintenance
- *  - Sécurité : ne JAMAIS stocker le rôle dans localStorage côté client
- *    (vérification serveur uniquement via has_role / RLS)
+ *  - Le rôle ACTIF (currentRole) est persisté localStorage uniquement comme
+ *    préférence UI (clé `matchs360_current_role:<user_id>`). Toute vérification
+ *    d'autorisation reste serveur via RLS / has_role(). Le contenu localStorage
+ *    n'octroie aucun privilège — modifié par un attaquant, l'unique conséquence
+ *    serait l'affichage d'un menu inadapté ; les RLS bloquent tout accès non autorisé.
  *  - Soft delete : mem://technical/soft-delete-strategy
  *  - Bascule de rôle : mem://auth/role-switching-logic
  *  - Super Admin défini par role='admin' en public.user_roles
@@ -59,7 +62,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const CURRENT_ROLE_KEY = "matchs360_current_role";
+const LEGACY_CURRENT_ROLE_KEY = "matchs360_current_role";
+const buildCurrentRoleKey = (userId: string) => `matchs360_current_role:${userId}`;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -94,22 +98,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     const userRoles = (data || []) as UserRole[];
     setRoles(userRoles);
-    
-    // Restore saved role or use first role
-    const savedRoleId = localStorage.getItem(CURRENT_ROLE_KEY);
+
+    // Migration douce : ancienne clé globale → clé scopée par user
+    const scopedKey = buildCurrentRoleKey(userId);
+    const legacyValue = localStorage.getItem(LEGACY_CURRENT_ROLE_KEY);
+    if (legacyValue && !localStorage.getItem(scopedKey)) {
+      localStorage.setItem(scopedKey, legacyValue);
+    }
+    // Toujours nettoyer la legacy key (qu'elle ait été migrée ou pas pour cet user)
+    if (legacyValue) localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
+
+    const savedRoleId = localStorage.getItem(scopedKey);
     const savedRole = userRoles.find(r => r.id === savedRoleId);
     if (savedRole) {
       setCurrentRoleState(savedRole);
-    } else if (userRoles.length > 0) {
+    } else if (userRoles.length === 1) {
+      // Mono-rôle : auto-select et persiste
       setCurrentRoleState(userRoles[0]);
+      localStorage.setItem(scopedKey, userRoles[0].id);
     } else {
+      // Multi-rôles sans choix précédent → null, le chooser DashboardRedirect s'affichera
       setCurrentRoleState(null);
+      // Nettoyer une clé scopée qui pointerait vers un rôle qui n'existe plus
+      if (savedRoleId) localStorage.removeItem(scopedKey);
     }
   };
 
   const setCurrentRole = (role: UserRole) => {
     setCurrentRoleState(role);
-    localStorage.setItem(CURRENT_ROLE_KEY, role.id);
+    if (user) {
+      localStorage.setItem(buildCurrentRoleKey(user.id), role.id);
+    }
   };
 
   useEffect(() => {
@@ -124,10 +143,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             fetchRoles(session.user.id);
           }, 0);
         } else {
+          // Logout via auth event : nettoyer la clé scopée de l'user qui se déconnecte
+          if (user) {
+            localStorage.removeItem(buildCurrentRoleKey(user.id));
+          }
+          localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
           setProfile(null);
           setRoles([]);
           setCurrentRoleState(null);
-          localStorage.removeItem(CURRENT_ROLE_KEY);
         }
         setLoading(false);
       }
@@ -154,13 +177,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    const previousUserId = user?.id;
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
     setRoles([]);
     setCurrentRoleState(null);
-    localStorage.removeItem(CURRENT_ROLE_KEY);
+    if (previousUserId) {
+      localStorage.removeItem(buildCurrentRoleKey(previousUserId));
+    }
+    localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
     // Clear cached queries to prevent cross-user data leakage on the same tab
     queryClient.clear();
   };
