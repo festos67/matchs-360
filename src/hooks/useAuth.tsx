@@ -164,12 +164,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadedUserIdRef.current = userId;
 
     setLoading(true);
-    await Promise.all([
-      fetchProfile(userId, ticket),
-      fetchRoles(userId, ticket),
-    ]);
-    if (ticket === authTicketRef.current) {
-      setLoading(false);
+    try {
+      await Promise.all([
+        fetchProfile(userId, ticket),
+        fetchRoles(userId, ticket),
+      ]);
+    } catch (e) {
+      // F-307: si l'un des fetch échoue (RLS, réseau), ne pas laisser un state
+      // partiellement chargé. On purge pour forcer une déconnexion logique côté
+      // ProtectedRoute (profile/roles vides → redirect auth).
+      if (ticket === authTicketRef.current) {
+        console.error("loadUserContext failed:", e);
+        setProfile(null);
+        setRoles([]);
+        setCurrentRoleState(null);
+      }
+    } finally {
+      if (ticket === authTicketRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -183,15 +196,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    // F-307: tracker le timer pour pouvoir l'annuler si un nouvel event auth
+    // survient avant que loadUserContext ne soit déclenché.
+    let pendingLoadTimer: ReturnType<typeof setTimeout> | null = null;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Annule un load différé qui ne correspondrait plus à la session courante
+        if (pendingLoadTimer !== null) {
+          clearTimeout(pendingLoadTimer);
+          pendingLoadTimer = null;
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          const userId = session.user.id;
           // setTimeout(0) pour éviter un deadlock dans le callback auth
-          setTimeout(() => {
-            loadUserContext(session.user.id);
+          pendingLoadTimer = setTimeout(() => {
+            pendingLoadTimer = null;
+            loadUserContext(userId);
           }, 0);
         } else {
           // Logout via auth event : nettoyer la clé scopée de l'user qui se déconnecte
@@ -217,7 +242,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (pendingLoadTimer !== null) {
+        clearTimeout(pendingLoadTimer);
+      }
+      subscription.unsubscribe();
+    };
   }, []);
 
   const refreshProfile = async () => {
