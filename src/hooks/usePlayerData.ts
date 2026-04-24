@@ -161,7 +161,7 @@ export function usePlayerData(playerId: string | undefined) {
       const clubId = teamMembership.team?.club_id;
       const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === clubId);
       const canEvaluate = isAdmin || isClubAdmin || !!coachMembership;
-      const canMutate = isAdmin || isClubAdmin;
+      const canMutate = isAdmin || isClubAdmin || !!coachMembership;
 
       return { canEvaluate, canMutate };
     },
