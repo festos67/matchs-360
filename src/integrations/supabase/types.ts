@@ -1472,10 +1472,12 @@ export type Database = {
         Returns: Json
       }
       soft_delete_club: { Args: { _club_id: string }; Returns: undefined }
-      validate_storage_url: {
-        Args: { _bucket: string; _url: string }
-        Returns: boolean
-      }
+      validate_storage_url:
+        | { Args: { _bucket: string; _url: string }; Returns: boolean }
+        | {
+            Args: { _bucket: string; _owner_segment?: string; _url: string }
+            Returns: boolean
+          }
     }
     Enums: {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
