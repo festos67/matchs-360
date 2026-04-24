@@ -78,7 +78,6 @@ interface Skill {
 interface EvaluationFormProps {
   playerId: string;
   playerName: string;
-  teamId: string;
   frameworkId: string;
   themes: Theme[];
   existingEvaluation?: {
@@ -125,7 +124,6 @@ export interface EvaluationFormHandle {
 export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormProps>(({
   playerId,
   playerName,
-  teamId,
   frameworkId,
   themes,
   existingEvaluation,
