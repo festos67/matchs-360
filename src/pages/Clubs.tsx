@@ -27,12 +27,21 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Building2 } from "lucide-react";
+import { Plus, Search, Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
+import { EditClubModal } from "@/components/modals/EditClubModal";
+import { DeleteClubDialog } from "@/components/modals/DeleteClubDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,7 +49,9 @@ import { toast } from "sonner";
 interface Club {
   id: string;
   name: string;
+  short_name: string | null;
   primary_color: string;
+  secondary_color: string | null;
   logo_url: string | null;
   referent_name: string | null;
   referent_email: string | null;
@@ -54,6 +65,8 @@ export default function Clubs() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editClub, setEditClub] = useState<Club | null>(null);
+  const [deleteClub, setDeleteClub] = useState<Club | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -72,6 +85,7 @@ export default function Clubs() {
       const { data, error } = await supabase
         .from("clubs")
         .select("*, teams:teams(count)")
+        .is("deleted_at", null)
         .order("name");
 
       if (error) throw error;
@@ -136,7 +150,7 @@ export default function Clubs() {
           {filteredClubs.map((club, index) => (
             <div
               key={club.id}
-              className="animate-fade-in-up opacity-0"
+              className="animate-fade-in-up opacity-0 relative group"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CircleAvatar
@@ -148,6 +162,42 @@ export default function Clubs() {
                 size="lg"
                 onClick={() => navigate(`/clubs/${club.id}`)}
               />
+              {isAdmin && (
+                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm border border-border"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <DropdownMenuItem onClick={() => navigate(`/clubs/${club.id}`)}>
+                        Voir la fiche
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEditClub(club)}>
+                        <Pencil className="mr-2 h-4 w-4 text-blue-500" />
+                        Modifier
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setDeleteClub(club)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Archiver
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -170,6 +220,23 @@ export default function Clubs() {
       )}
 
       <CreateClubModal open={showCreateModal} onOpenChange={setShowCreateModal} onSuccess={fetchClubs} />
+      {editClub && (
+        <EditClubModal
+          open={!!editClub}
+          onOpenChange={(v) => !v && setEditClub(null)}
+          club={editClub}
+          onSuccess={() => {
+            setEditClub(null);
+            fetchClubs();
+          }}
+        />
+      )}
+      <DeleteClubDialog
+        open={!!deleteClub}
+        onOpenChange={(v) => !v && setDeleteClub(null)}
+        club={deleteClub}
+        onSuccess={fetchClubs}
+      />
     </AppLayout>
   );
 }
