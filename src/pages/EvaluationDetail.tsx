@@ -269,7 +269,6 @@ export default function EvaluationDetail() {
             key={`${evaluation.id}-${isEditing ? "edit" : "view"}`}
             playerId={player.id}
             playerName={playerName}
-            teamId={team.id}
             frameworkId={evaluation.framework_id}
             themes={themes as any}
             existingEvaluation={{
