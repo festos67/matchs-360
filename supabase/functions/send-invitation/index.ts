@@ -304,16 +304,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Only admin / club_admin / referent coach (of that club) may invite
     if (!callerIsAdmin && !callerIsClubAdminOfTarget && !callerIsRefCoachOfClub) {
-      return new Response(JSON.stringify({ error: "Forbidden: you cannot invite into this club" }), {
-        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      throw new InvitationDomainError({
+        message:
+          "Vous n'avez pas le droit d'inviter dans ce club. Seuls un administrateur, un admin de club ou un coach référent du club peuvent inviter.",
+        code: "AUTH_NO_RIGHT_ON_CLUB",
+        status: 403,
+        hint:
+          callerClubAdminIds.length > 0
+            ? `Vous êtes admin de club pour : ${callerClubAdminIds.join(", ")}. Le club cible n'en fait pas partie.`
+            : undefined,
       });
     }
 
     // Only admin / club_admin may grant club_admin or coach roles
     if ((intendedRole === "club_admin" || intendedRole === "coach") &&
         !callerIsAdmin && !callerIsClubAdminOfTarget) {
-      return new Response(JSON.stringify({ error: "Forbidden: only club admins can grant this role" }), {
-        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      throw new InvitationDomainError({
+        message: `Vous ne pouvez pas attribuer le rôle « ${
+          intendedRole === "club_admin" ? "Admin Club" : "Coach"
+        } ». Cette action est réservée aux administrateurs et admins de club.`,
+        code: "AUTH_CANNOT_GRANT_ROLE",
+        status: 403,
       });
     }
 
