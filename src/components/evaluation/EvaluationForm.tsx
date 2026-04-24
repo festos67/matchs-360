@@ -324,7 +324,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           .from("evaluations")
           .update({
             name: evaluationName,
-            date: new Date().toISOString(),
+            // Store calendar date only (YYYY-MM-DD), no timezone
+            date: new Date().toISOString().slice(0, 10),
           })
           .eq("id", evaluationId);
 
