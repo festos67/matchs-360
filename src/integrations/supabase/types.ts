@@ -1324,6 +1324,18 @@ export type Database = {
         Args: { _path: string; _user_id: string }
         Returns: boolean
       }
+      create_club_with_referent: {
+        Args: {
+          _name: string
+          _primary_color: string
+          _referent_email: string
+          _referent_first_name: string
+          _referent_last_name: string
+          _secondary_color: string
+          _short_name: string
+        }
+        Returns: Json
+      }
       create_trial_notifications: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
