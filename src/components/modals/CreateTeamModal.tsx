@@ -66,8 +66,38 @@ const getCurrentSeason = () => {
   return `${year}-${year + 1}`;
 };
 
+// Placeholders interdits (UI hints qui ne doivent pas devenir des noms réels)
+const TEAM_NAME_PLACEHOLDERS = [
+  "nom de l'equipe",
+  "nom de l'équipe",
+  "nom de lequipe",
+  "nom équipe",
+  "nom equipe",
+  "team name",
+  "nouvelle equipe",
+  "nouvelle équipe",
+  "u15 a, seniors b",
+  "u15 a seniors b",
+];
+
+const normalizeTeamName = (s: string) =>
+  s
+    .trim()
+    .toLowerCase()
+    .replace(/[.\u2026]+$/u, "")
+    .trim()
+    .replace(/\s+/g, " ");
+
 const teamSchema = z.object({
-  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Le nom doit contenir au moins 2 caractères")
+    .max(100)
+    .refine(
+      (v) => !TEAM_NAME_PLACEHOLDERS.includes(normalizeTeamName(v)),
+      "Veuillez saisir un vrai nom d'équipe (pas le texte indicatif)"
+    ),
   shortName: z.string().max(3, "3 caractères maximum").optional().or(z.literal("")),
   season: z.string().min(4, "Saison requise").max(20),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide"),
