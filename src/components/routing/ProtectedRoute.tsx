@@ -18,7 +18,7 @@
  *  - Liste des rôles : enum app_role dans types.ts
  *  - Pour route publique : NE PAS encapsuler dans ProtectedRoute
  */
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -28,7 +28,18 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, roles, loading } = useAuth();
+  const { user, roles, currentRole, loading, setCurrentRole } = useAuth();
+
+  // Auto-align currentRole avec la route si désync détectée :
+  // user navigue à /admin/* en étant currentRole=coach → bascule sur le rôle admin
+  // pour que la sidebar et l'UI s'alignent automatiquement.
+  useEffect(() => {
+    if (!allowedRoles || allowedRoles.length === 0) return;
+    if (!currentRole) return;
+    if (allowedRoles.includes(currentRole.role)) return;
+    const compatible = roles.find((r) => allowedRoles.includes(r.role));
+    if (compatible) setCurrentRole(compatible);
+  }, [allowedRoles, currentRole, roles, setCurrentRole]);
 
   if (loading) {
     return (
