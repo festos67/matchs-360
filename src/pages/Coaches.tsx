@@ -390,7 +390,7 @@ const Coaches = () => {
                         <TableRow
                           key={coach.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => handleEdit(coach)}
+                          onClick={() => navigate(`/coaches/${coach.id}`)}
                         >
                           <TableCell>
                             <div className="flex items-center gap-3">
