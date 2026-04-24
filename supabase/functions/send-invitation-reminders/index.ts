@@ -22,6 +22,27 @@ function escapeHtml(input: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Constant-time string comparison to neutralize timing-attack oracles
+ * on secret comparisons (F-404). Avoids early-exit on first byte
+ * difference and length-based short-circuits.
+ */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const abuf = enc.encode(a);
+  const bbuf = enc.encode(b);
+  // Always run the loop on a fixed-length window to avoid leaking
+  // the secret length when inputs differ in size.
+  const len = Math.max(abuf.byteLength, bbuf.byteLength);
+  let diff = abuf.byteLength ^ bbuf.byteLength;
+  for (let i = 0; i < len; i++) {
+    const av = i < abuf.byteLength ? abuf[i] : 0;
+    const bv = i < bbuf.byteLength ? bbuf[i] : 0;
+    diff |= av ^ bv;
+  }
+  return diff === 0;
+}
+
 const FALLBACK_ORIGIN = "https://matchs360.lovable.app";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -55,7 +76,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Authorization: only allow service-role callers (pg_cron / admin).
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    if (!token || token !== serviceRoleKey) {
+    if (!token || !timingSafeEqualStr(token, serviceRoleKey)) {
       return new Response(
         JSON.stringify({ error: "forbidden" }),
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } },
