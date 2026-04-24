@@ -40,7 +40,7 @@
  */
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star } from "lucide-react";
+import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star, ArrowLeft, Pencil, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -96,6 +96,8 @@ export default function PlayerDetail() {
   const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
   const [historyPrintEvaluation, setHistoryPrintEvaluation] = useState<Evaluation | null>(null);
   const [historyPrintThemes, setHistoryPrintThemes] = useState<Theme[]>([]);
+  const [isEditingHistory, setIsEditingHistory] = useState(false);
+  const [showEditHistoryConfirm, setShowEditHistoryConfirm] = useState(false);
 
   // Modals
   const [showMutationModal, setShowMutationModal] = useState(false);
@@ -154,6 +156,11 @@ export default function PlayerDetail() {
   useEffect(() => {
     if (themes.length > 0) setSelectedEvalThemes(themes);
   }, [themes]);
+
+  // Sortie automatique du mode édition historique quand on change d'éval ou qu'on quitte l'historique
+  useEffect(() => {
+    setIsEditingHistory(false);
+  }, [selectedEvaluation?.id, isViewingHistory]);
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });
@@ -415,6 +422,31 @@ export default function PlayerDetail() {
               </Button>
             </div>
           )}
+          {!isCreatingNew && selectedEvaluation && isViewingHistory && canEvaluate && selectedEvaluation.type === "coach" && (
+            <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-sm text-amber-700 dark:text-amber-400">
+                📜 {isEditingHistory ? "Modification du débrief historique" : "Consultation du débrief historique"} :{" "}
+                <strong>{selectedEvaluation.name}</strong>{" "}
+                <span className="text-muted-foreground">
+                  ({new Date(selectedEvaluation.date).toLocaleDateString("fr-FR")})
+                </span>
+              </span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={handleReturnToCurrent}>
+                  <ArrowLeft className="w-4 h-4 mr-1" />Revenir au débrief actuel
+                </Button>
+                {!isEditingHistory ? (
+                  <Button size="sm" variant="outline" onClick={() => setShowEditHistoryConfirm(true)}>
+                    <Pencil className="w-4 h-4 mr-1" />Modifier ce débrief
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="ghost" onClick={() => setIsEditingHistory(false)}>
+                    <X className="w-4 h-4 mr-1" />Annuler la modification
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
           {frameworkId && themes.length > 0 ? (
             <EvaluationForm
               ref={evaluationFormRef}
@@ -441,6 +473,7 @@ export default function PlayerDetail() {
               onSaved={async (savedEvaluationId) => {
                 setComparisonIds([]);
                 setIsViewingHistory(false);
+                setIsEditingHistory(false);
                 setActiveTab("radar");
 
                 const { data: refreshedEvaluations } = await refetchEvaluations();
@@ -456,7 +489,8 @@ export default function PlayerDetail() {
                   document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
                 }, 300);
               }}
-              readOnly={!canEvaluate || isViewingHistory}
+              readOnly={!canEvaluate || (isViewingHistory && !isEditingHistory)}
+              historyEditWarning={isViewingHistory && isEditingHistory}
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
                 const coachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -597,6 +631,52 @@ export default function PlayerDetail() {
           <ChevronUp className="w-5 h-5" />
         </Button>
       )}
+
+      {/* AlertDialog : confirmation édition d'un débrief historique */}
+      <AlertDialog open={showEditHistoryConfirm} onOpenChange={setShowEditHistoryConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Modifier ce débrief historique ?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  Vous êtes sur le point de modifier <strong className="text-foreground">{selectedEvaluation?.name}</strong>
+                  {selectedEvaluation && <> du <strong className="text-foreground">{new Date(selectedEvaluation.date).toLocaleDateString("fr-FR")}</strong></>}.
+                </p>
+                <p>
+                  Cette modification sera tracée dans l'audit log avec votre identité et l'horodatage.
+                </p>
+                <p>
+                  Préférez-vous créer un <strong className="text-foreground">nouveau débrief</strong> à la place ? Cela conserve l'historique intact.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-wrap gap-2">
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditHistoryConfirm(false);
+                setIsEditingHistory(false);
+                setIsCreatingNew(true);
+                setNewEvalKey(k => k + 1);
+                setActiveTab("evaluation");
+              }}
+            >
+              <Plus className="w-4 h-4 mr-1" />Créer un nouveau débrief
+            </Button>
+            <AlertDialogAction
+              onClick={() => {
+                setShowEditHistoryConfirm(false);
+                setIsEditingHistory(true);
+              }}
+            >
+              <Pencil className="w-4 h-4 mr-1" />Modifier quand même
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
         </div>
       </div>
     </AppLayout>

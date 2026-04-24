@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Save, RotateCcw, FileText, Calendar, Loader2 } from "lucide-react";
+import { Save, RotateCcw, FileText, Calendar, Loader2, AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,6 +113,8 @@ interface EvaluationFormProps {
   readOnly?: boolean;
   coachName?: string;
   evaluationNumber?: number;
+  /** Affiche un bandeau d'avertissement quand on édite un débrief historique. */
+  historyEditWarning?: boolean;
 }
 
 export interface EvaluationFormHandle {
@@ -133,6 +135,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   readOnly = false,
   coachName,
   evaluationNumber,
+  historyEditWarning = false,
 }, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
@@ -417,6 +420,22 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 
   return (
     <div className="space-y-6 pb-20">
+      {/* Bandeau persistant : édition d'un débrief historique */}
+      {historyEditWarning && !readOnly && (
+        <div className="p-3 bg-amber-500/15 border-l-4 border-amber-500 rounded-r flex items-start gap-2">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-amber-700 dark:text-amber-400">
+              Modification d'un débrief historique
+            </p>
+            <p className="text-muted-foreground mt-1">
+              Vos changements remplaceront les valeurs actuelles. L'opération est tracée
+              dans l'audit log (visible côté super-admin).
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header with radar and summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Radar Chart */}
