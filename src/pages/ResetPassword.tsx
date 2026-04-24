@@ -36,17 +36,16 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionReady, setSessionReady] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
-    let pollId: ReturnType<typeof setInterval> | null = null;
 
     const markReady = () => {
       if (cancelled) return;
       setSessionReady(true);
-      if (pollId) clearInterval(pollId);
       // Nettoyage du hash pour empêcher tout rejeu du token
       if (window.location.hash) {
         window.history.replaceState(
@@ -57,37 +56,57 @@ export default function ResetPassword() {
       }
     };
 
-    // 1. Listener temps réel (déclenché quand Supabase parse le hash)
+    // P0-3 / F-304: ne JAMAIS faire confiance à une session pré-existante.
+    // Exiger explicitement un token recovery dans le hash URL et n'accepter
+    // QUE l'event PASSWORD_RECOVERY émis pendant cette session.
+    const hash = window.location.hash || "";
+    const hashParams = new URLSearchParams(
+      hash.startsWith("#") ? hash.slice(1) : hash,
+    );
+    const hasAccessToken = hashParams.has("access_token");
+    const tokenType = hashParams.get("type");
+
+    if (!hasAccessToken || tokenType !== "recovery") {
+      // Pas de token recovery valide => refuser, même si l'utilisateur
+      // est par ailleurs authentifié.
+      setTokenError(
+        "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
+      );
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Purger toute session pré-existante avant que Supabase ne consomme
+    // le token recovery du hash, pour éviter qu'un attaquant authentifié
+    // sur un autre compte ne réutilise sa session courante.
+    void supabase.auth.signOut({ scope: "local" }).catch(() => {
+      /* ignore */
+    });
+
+    // Attendre EXCLUSIVEMENT l'event PASSWORD_RECOVERY déclenché par le
+    // parsing du token dans le hash. Aucun fallback sur getSession().
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+      (event) => {
+        if (event === "PASSWORD_RECOVERY") {
           markReady();
         }
       },
     );
 
-    // 2. Vérification immédiate (cas où la session est déjà établie)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) markReady();
-    });
-
-    // 3. Polling de secours pendant 10s (le parsing du hash peut être lent
-    //    selon l'ordre d'exécution Vite/StrictMode)
-    let attempts = 0;
-    pollId = setInterval(async () => {
-      attempts += 1;
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        markReady();
-      } else if (attempts >= 20) {
-        // 20 * 500ms = 10s -> abandon
-        if (pollId) clearInterval(pollId);
+    // Garde-fou : si après 10s l'event n'est jamais arrivé, le token est
+    // probablement invalide/expiré.
+    const timeoutId = setTimeout(() => {
+      if (!cancelled && !sessionReady) {
+        setTokenError(
+          "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
+        );
       }
-    }, 500);
+    }, 10000);
 
     return () => {
       cancelled = true;
-      if (pollId) clearInterval(pollId);
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
@@ -141,6 +160,20 @@ export default function ResetPassword() {
           <p className="text-muted-foreground">
             Redirection vers la page de connexion...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (tokenError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-8">
+        <div className="w-full max-w-md text-center space-y-6">
+          <h2 className="text-2xl font-display font-bold">Lien invalide</h2>
+          <p className="text-muted-foreground">{tokenError}</p>
+          <Button onClick={() => navigate("/auth")} className="w-full">
+            Retour à la connexion
+          </Button>
         </div>
       </div>
     );
