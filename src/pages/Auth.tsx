@@ -187,11 +187,22 @@ export default function Auth() {
         });
 
         if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("Cet email est déjà utilisé");
-          } else {
-            toast.error(error.message);
+          // F-302 (résidu signup) : ne pas révéler si l'email existe déjà.
+          // Supabase renvoie "User already registered" → vecteur d'énumération.
+          // On affiche un message neutre et on simule la même UX qu'un signup réussi.
+          if (
+            error.message.toLowerCase().includes("already registered") ||
+            error.message.toLowerCase().includes("already been registered") ||
+            error.message.toLowerCase().includes("user already")
+          ) {
+            toast.success(
+              "Compte créé ! Si l'email est valide, vous recevrez une confirmation. Votre demande de rôle est en attente de validation.",
+              { duration: 6000 }
+            );
+            navigate("/pending-approval");
+            return;
           }
+          toast.error("Une erreur est survenue lors de la création du compte");
           return;
         }
 
