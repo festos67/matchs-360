@@ -682,6 +682,14 @@ export default function ClubDetail() {
       <CreateSupporterModal open={showSupporterModal} onOpenChange={setShowSupporterModal} clubId={club.id} onSuccess={fetchClubData} />
       <CreateClubFrameworkModal open={showFrameworkModal} onOpenChange={setShowFrameworkModal} clubId={club.id} onSuccess={fetchClubData} />
       {club && <EditClubModal open={showClubSettings} onOpenChange={setShowClubSettings} club={club} onSuccess={fetchClubData} />}
+      {club && (
+        <DeleteClubDialog
+          open={showDeleteClub}
+          onOpenChange={setShowDeleteClub}
+          club={{ id: club.id, name: club.name }}
+          redirectTo="/clubs"
+        />
+      )}
 
       <FrameworkHistorySheet
         open={showFrameworkHistory}
