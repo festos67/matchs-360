@@ -189,7 +189,7 @@ export default function Evaluations() {
         `)
         .is("deleted_at", null)
         .in("player_id", playerIds)
-        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(50);
 
       if (!error && data) {
@@ -206,7 +206,7 @@ export default function Evaluations() {
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name)
         `)
         .is("deleted_at", null)
-        .order("date", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(50);
       if (scopedPlayerIds) {
         query = query.in("player_id", scopedPlayerIds);
