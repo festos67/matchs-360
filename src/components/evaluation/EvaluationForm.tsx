@@ -139,6 +139,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 }, ref) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  // Synchronous guard to block rapid double-submits before React re-renders
+  const savingRef = useRef(false);
   const [hasBeenModified, setHasBeenModified] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
@@ -314,6 +316,9 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       return;
     }
 
+    // Block rapid double-clicks: ref check is synchronous, setSaving is not
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       let evaluationId = existingEvaluation?.id;
@@ -416,6 +421,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
+      savingRef.current = false;
     }
   };
 
