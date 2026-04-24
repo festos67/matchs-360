@@ -141,50 +141,56 @@ export const ManageSupportersModal = ({
 
   // Existing supporters of the club (already on the platform) that are not yet linked to this player
   const linkedIds = supporters.map((s) => s.id);
+  const trimmedSearch = existingSearch.trim();
   const { data: existingSupporters = [], isLoading: loadingExisting } = useQuery({
-    queryKey: ["existing-supporters", clubId, playerId, linkedIds.join(",")],
+    queryKey: ["platform-users-search", trimmedSearch, playerId, linkedIds.join(",")],
     queryFn: async () => {
-      // Get all supporters of the club via user_roles
-      const { data: roles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "supporter")
-        .eq("club_id", clubId);
-      if (rolesError) throw rolesError;
-      const ids = (roles || []).map((r) => r.user_id).filter((id) => !linkedIds.includes(id));
-      if (ids.length === 0) return [] as Array<{ id: string; first_name: string | null; last_name: string | null; nickname: string | null; email: string }>;
+      const q = trimmedSearch;
+      if (q.length < 2) return [] as Array<{ id: string; first_name: string | null; last_name: string | null; nickname: string | null; email: string }>;
+      // Search across the whole platform (RLS-scoped) by name / nickname / email
+      const like = `%${q}%`;
       const { data: profs, error: profError } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, nickname, email")
-        .in("id", ids)
-        .is("deleted_at", null);
+        .is("deleted_at", null)
+        .or(`first_name.ilike.${like},last_name.ilike.${like},nickname.ilike.${like},email.ilike.${like}`)
+        .limit(20);
       if (profError) throw profError;
-      return profs || [];
+      return (profs || []).filter((p) => !linkedIds.includes(p.id) && p.id !== playerId);
     },
-    enabled: open && activeTab === "add" && !!clubId,
+    enabled: open && activeTab === "add" && trimmedSearch.length >= 2,
   });
 
-  const filteredExisting = existingSupporters.filter((s) => {
-    const q = existingSearch.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      (s.first_name || "").toLowerCase().includes(q) ||
-      (s.last_name || "").toLowerCase().includes(q) ||
-      (s.nickname || "").toLowerCase().includes(q) ||
-      (s.email || "").toLowerCase().includes(q)
-    );
-  });
+  const filteredExisting = existingSupporters;
 
   const handleLinkExisting = async (supporterId: string) => {
     setLinkingId(supporterId);
     try {
+      // Ensure the user has the 'supporter' role for this club (idempotent)
+      const { data: existingRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", supporterId)
+        .eq("role", "supporter")
+        .eq("club_id", clubId)
+        .maybeSingle();
+      if (!existingRole) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: supporterId, role: "supporter", club_id: clubId });
+        // Ignore unique-violation errors (role already exists), surface others
+        if (roleError && !String(roleError.message).toLowerCase().includes("duplicate")) {
+          throw roleError;
+        }
+      }
+
       const { error } = await supabase
         .from("supporters_link")
         .insert({ player_id: playerId, supporter_id: supporterId });
       if (error) throw error;
       toast.success("Supporter lié au joueur");
       queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
-      queryClient.invalidateQueries({ queryKey: ["existing-supporters", clubId, playerId] });
+      queryClient.invalidateQueries({ queryKey: ["platform-users-search"] });
       onSuccess?.();
       setActiveTab("list");
     } catch (error: unknown) {
