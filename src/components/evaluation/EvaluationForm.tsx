@@ -274,38 +274,43 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
     );
   };
 
-  const generateUniqueName = async (baseName: string): Promise<string> => {
-    // Check if an evaluation with this name already exists for this player
-    const { data: existingEvaluations } = await supabase
-      .from("evaluations")
-      .select("name")
-      .eq("player_id", playerId)
-      .is("deleted_at", null)
-      .ilike("name", `${baseName}%`);
-
-    if (!existingEvaluations || existingEvaluations.length === 0) {
-      return baseName;
-    }
-
-    // Check if the exact name exists
-    const exactMatch = existingEvaluations.some(e => e.name === baseName);
-    if (!exactMatch) {
-      return baseName;
-    }
-
-    // Generate unique name with number, date and time (for same-day evaluations)
+  // Build a disambiguated name (date + time + counter) — used on UNIQUE conflict (23505)
+  const buildDisambiguatedName = (baseName: string, attempt: number): string => {
     const now = new Date();
     const today = now.toLocaleDateString("fr-FR");
     const time = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-    let counter = 2;
-    let uniqueName = `${baseName} #${counter} - ${today} ${time}`;
+    return `${baseName} #${attempt} - ${today} ${time}`;
+  };
 
-    while (existingEvaluations.some(e => e.name === uniqueName)) {
-      counter++;
-      uniqueName = `${baseName} #${counter} - ${today} ${time}`;
+  // Insert evaluation with retry on UNIQUE name conflict (23505 on evaluations_unique_name_per_player_idx).
+  // No pre-flight ilike() query: relies on DB constraint to avoid race conditions.
+  const insertEvaluationWithUniqueName = async (
+    baseName: string,
+  ): Promise<{ id: string }> => {
+    const MAX_ATTEMPTS = 8;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const candidateName = attempt === 1 ? baseName : buildDisambiguatedName(baseName, attempt);
+      const { data, error } = await supabase
+        .from("evaluations")
+        .insert({
+          player_id: playerId,
+          evaluator_id: user!.id,
+          framework_id: frameworkId,
+          name: candidateName,
+          type: "coach",
+        })
+        .select("id")
+        .single();
+      if (!error && data) return { id: data.id };
+      // 23505 on the name index → retry with disambiguated name
+      // 23505 on the per-day index → bubble up (handled by caller)
+      const isNameConflict =
+        error?.code === "23505" &&
+        typeof error.message === "string" &&
+        error.message.includes("evaluations_unique_name_per_player_idx");
+      if (!isNameConflict) throw error;
     }
-
-    return uniqueName;
+    throw new Error("Impossible de générer un nom unique pour ce débrief");
   };
 
   const handleSave = async () => {
@@ -334,23 +339,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 
         if (updateErr) throw updateErr;
       } else {
-        // Generate unique name if needed
-        const uniqueName = await generateUniqueName(evaluationName);
-
-        // Create new evaluation
-        const { data: newEval, error } = await supabase
-          .from("evaluations")
-          .insert({
-            player_id: playerId,
-            evaluator_id: user.id,
-            framework_id: frameworkId,
-            name: uniqueName,
-            type: "coach",
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
+        // Insert with DB-enforced unique name (retry on conflict)
+        const newEval = await insertEvaluationWithUniqueName(evaluationName);
         evaluationId = newEval.id;
       }
 
