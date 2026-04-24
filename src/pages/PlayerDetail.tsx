@@ -229,10 +229,15 @@ export default function PlayerDetail() {
 
   // Progression calculation
   const getProgressionData = () => {
-    const activeCoachEvals = evaluations.filter(e => !e.deleted_at && e.type === "coach");
+    // Restrict progression to coach debriefs of the CURRENT framework so that
+    // skill_ids align with `themes`. Mixing frameworks would yield null scores
+    // (skills missing) and produce a misleading "no progression" state.
+    const activeCoachEvals = evaluations.filter(
+      e => !e.deleted_at && e.type === "coach" && (!frameworkId || e.framework_id === frameworkId)
+    );
     if (activeCoachEvals.length < 2) return { percent: null };
-    const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0]));
-    const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1]));
+    const currentAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[0], themes));
+    const previousAvg = calculateOverallAverage(getRadarDataFromEvaluation(activeCoachEvals[1], themes));
     if (currentAvg === null || previousAvg === null || previousAvg === 0) return { percent: null };
     return { percent: Math.round(((currentAvg - previousAvg) / previousAvg) * 100) };
   };
