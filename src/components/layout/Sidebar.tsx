@@ -249,17 +249,17 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
       {/* Bottom Actions */}
       <div className="p-4 border-t border-sidebar-border space-y-1">
         <Link
-          to="/settings"
+          to="/profile"
           onClick={handleLinkClick}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
-            location.pathname === "/settings"
+            location.pathname === "/profile"
               ? "bg-sidebar-accent text-sidebar-accent-foreground font-bold [&_svg]:text-sidebar-accent-foreground"
               : "text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           )}
         >
           <Settings className="w-4 h-4" />
-          <span>Paramètres</span>
+          <span>Mon profil</span>
         </Link>
         <button
           onClick={handleLogout}
