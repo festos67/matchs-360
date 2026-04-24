@@ -16,7 +16,7 @@
  *    Player (UserCircle vert) / Supporter (Heart rose)
  */
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
+import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart, LayoutGrid } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -136,6 +136,11 @@ export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherP
             </DropdownMenuItem>
           );
         })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/dashboard?switch=1")}>
+          <LayoutGrid className="w-4 h-4 mr-2 text-muted-foreground" />
+          <span className="text-sm">Voir tous mes profils</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
