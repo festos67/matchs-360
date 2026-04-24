@@ -222,8 +222,19 @@ export default function Profile() {
   };
 
   const handleChangePassword = async () => {
+    // F-305: réauth obligatoire avant tout changement de mot de passe.
+    // Empêche un attaquant ayant détourné une session (XSS, poste partagé)
+    // de prendre durablement le compte sans connaître le mot de passe actuel.
+    if (!currentPassword) {
+      toast.error("Veuillez saisir votre mot de passe actuel");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      toast.error("Le nouveau mot de passe doit être différent de l'actuel");
       return;
     }
     const pwdError = validateUserPassword(newPassword);
@@ -231,8 +242,28 @@ export default function Profile() {
       toast.error(pwdError);
       return;
     }
+    const userEmail = profile?.email ?? user?.email;
+    if (!userEmail) {
+      toast.error("Email utilisateur introuvable, reconnectez-vous");
+      return;
+    }
     try {
       setChangingPassword(true);
+
+      // Étape 1 — Réauthentification : signInWithPassword avec l'email courant
+      // et le mot de passe saisi. En cas d'échec → abort sans toucher au mot
+      // de passe. (Note: les comptes OAuth pur sans mot de passe échoueront
+      // ici avec un message d'erreur explicite, comportement attendu.)
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: currentPassword,
+      });
+      if (reauthError) {
+        toast.error("Mot de passe actuel incorrect");
+        return;
+      }
+
+      // Étape 2 — Mise à jour effective.
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
