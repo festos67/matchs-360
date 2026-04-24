@@ -1444,6 +1444,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      soft_delete_club: { Args: { _club_id: string }; Returns: undefined }
       validate_storage_url: {
         Args: { _bucket: string; _url: string }
         Returns: boolean

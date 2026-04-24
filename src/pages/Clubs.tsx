@@ -27,12 +27,21 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Building2 } from "lucide-react";
+import { Plus, Search, Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
+import { EditClubModal } from "@/components/modals/EditClubModal";
+import { DeleteClubDialog } from "@/components/modals/DeleteClubDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -40,7 +49,9 @@ import { toast } from "sonner";
 interface Club {
   id: string;
   name: string;
+  short_name: string | null;
   primary_color: string;
+  secondary_color: string | null;
   logo_url: string | null;
   referent_name: string | null;
   referent_email: string | null;
@@ -54,6 +65,8 @@ export default function Clubs() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editClub, setEditClub] = useState<Club | null>(null);
+  const [deleteClub, setDeleteClub] = useState<Club | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -72,6 +85,7 @@ export default function Clubs() {
       const { data, error } = await supabase
         .from("clubs")
         .select("*, teams:teams(count)")
+        .is("deleted_at", null)
         .order("name");
 
       if (error) throw error;
