@@ -246,7 +246,7 @@ export function PlayerSidebar({
       )}
 
       {/* Gestion joueur */}
-      {!isPlayerViewingOwnProfile && (canMutate || isAdmin) && (
+      {!isPlayerViewingOwnProfile && (canMutate || canEvaluate || isAdmin) && (
         <div className="bg-card border border-border rounded-xl p-3 mb-3">
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
           <div className="flex flex-col gap-1.5">
