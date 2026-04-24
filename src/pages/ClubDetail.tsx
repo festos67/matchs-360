@@ -51,6 +51,7 @@ import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { CreateSupporterModal } from "@/components/modals/CreateSupporterModal";
 import { CreateClubFrameworkModal } from "@/components/modals/CreateClubFrameworkModal";
 import { EditClubModal } from "@/components/modals/EditClubModal";
+import { DeleteClubDialog } from "@/components/modals/DeleteClubDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -128,6 +129,7 @@ export default function ClubDetail() {
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [showSupporterModal, setShowSupporterModal] = useState(false);
   const [showClubSettings, setShowClubSettings] = useState(false);
+  const [showDeleteClub, setShowDeleteClub] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -425,15 +427,28 @@ export default function ClubDetail() {
 
         {/* Bouton Paramètres en haut à droite, aligné avec le logo */}
         {canManageClub && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 flex-shrink-0 ml-auto self-start"
-            onClick={() => setShowClubSettings(true)}
-          >
-            <Settings className="w-3.5 h-3.5 text-orange-500" />
-            Paramètres
-          </Button>
+          <div className="flex flex-shrink-0 ml-auto self-start gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowClubSettings(true)}
+            >
+              <Settings className="w-3.5 h-3.5 text-orange-500" />
+              Paramètres
+            </Button>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setShowDeleteClub(true)}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Archiver
+              </Button>
+            )}
+          </div>
         )}
       </Card>
 
