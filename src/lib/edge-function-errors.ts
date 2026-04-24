@@ -1,18 +1,11 @@
 /**
  * @module edge-function-errors
- * @description Helper de normalisation des erreurs remontées par les Edge Functions
+ * @description Helpers de normalisation des erreurs remontées par les Edge Functions
  *              Supabase (FunctionsHttpError, FunctionsRelayError, FunctionsFetchError).
- *              Extrait un message lisible en français pour l'affichage utilisateur.
  * @exports
- *  - getEdgeFunctionErrorMessage(error) : Promise<string>
- * @features
- *  - Gestion FunctionsHttpError : tente de parser le body JSON pour extraire .error
- *  - Gestion FunctionsRelayError / FunctionsFetchError : message générique réseau
- *  - Fallback "Une erreur est survenue" pour erreurs inconnues
- * @maintenance
- *  - Edge Functions concernées : admin-users, send-invitation, import-framework, etc.
- *  - À utiliser systématiquement dans les catch d'invocations supabase.functions.invoke
- *  - Cohérence des messages utilisateur français
+ *  - getEdgeFunctionErrorInfo(error) : Promise<EdgeFunctionErrorInfo> — format structuré
+ *    { message, code?, hint? } pour edge functions retournant un body JSON typé.
+ *  - getEdgeFunctionErrorMessage(error) : Promise<string> — rétrocompat (concatène hint).
  */
 import {
   FunctionsFetchError,
@@ -22,39 +15,70 @@ import {
 
 const FALLBACK_ERROR_MESSAGE = "Une erreur est survenue";
 
-export const getEdgeFunctionErrorMessage = async (error: unknown): Promise<string> => {
+export type EdgeFunctionErrorInfo = {
+  message: string;
+  code?: string;
+  hint?: string;
+};
+
+/**
+ * Lit l'erreur structurée d'une edge function (format { error, code, hint }).
+ * Rétrocompatible : si la fonction retourne juste une string, code/hint
+ * sont undefined.
+ */
+export const getEdgeFunctionErrorInfo = async (
+  error: unknown,
+): Promise<EdgeFunctionErrorInfo> => {
   if (error instanceof FunctionsHttpError) {
     try {
       const payload = await error.context.json();
       if (payload && typeof payload === "object") {
-        const responseError = (payload as { error?: unknown }).error;
-        if (typeof responseError === "string" && responseError.trim()) {
-          return responseError;
-        }
+        const p = payload as { error?: unknown; code?: unknown; hint?: unknown };
+        const msg =
+          typeof p.error === "string" && p.error.trim() ? p.error : "Erreur serveur";
+        const code = typeof p.code === "string" ? p.code : undefined;
+        const hint = typeof p.hint === "string" ? p.hint : undefined;
+        return { message: msg, code, hint };
       }
     } catch {
       try {
         const text = await error.context.text();
-        if (text.trim()) return text;
+        if (text.trim()) return { message: text };
       } catch {
-        // Ignore secondary parsing errors and continue with fallback below
+        /* ignore secondary parsing errors */
       }
     }
-
-    return "Le serveur a renvoyé une erreur pendant l'envoi de l'invitation";
+    return { message: "Le serveur a renvoyé une erreur" };
   }
 
   if (error instanceof FunctionsRelayError) {
-    return "Le relais d'exécution backend est momentanément indisponible";
+    return {
+      message:
+        "Le service backend est momentanément indisponible. Réessayez dans quelques instants.",
+    };
   }
 
   if (error instanceof FunctionsFetchError) {
-    return "Impossible de contacter le backend d'invitation";
+    return {
+      message:
+        "Impossible de contacter le service d'invitation. Vérifiez votre connexion.",
+    };
   }
 
   if (error instanceof Error && error.message.trim()) {
-    return error.message;
+    return { message: error.message };
   }
 
-  return FALLBACK_ERROR_MESSAGE;
+  return { message: FALLBACK_ERROR_MESSAGE };
+};
+
+/**
+ * Rétrocompat : ancien helper qui ne retourne que la string. Concatène le
+ * hint s'il existe pour ne pas perdre d'information.
+ */
+export const getEdgeFunctionErrorMessage = async (
+  error: unknown,
+): Promise<string> => {
+  const info = await getEdgeFunctionErrorInfo(error);
+  return info.hint ? `${info.message}\n\nIndice : ${info.hint}` : info.message;
 };
