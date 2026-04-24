@@ -418,7 +418,14 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         setSaving(false);
         return;
       }
-      toast.error("Erreur lors de la sauvegarde");
+      // 23505 = unique_violation (evaluations_unique_per_day_idx)
+      if (error?.code === "23505") {
+        toast.error("Un débrief existe déjà pour ce joueur aujourd'hui", {
+          description: "Ouvrez le débrief existant pour le modifier.",
+        });
+      } else {
+        toast.error("Erreur lors de la sauvegarde");
+      }
     } finally {
       setSaving(false);
       savingRef.current = false;
