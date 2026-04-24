@@ -55,6 +55,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
       { icon: UserCog, label: "Coachs", path: "/coaches" },
       { icon: UserCircle, label: "Joueurs", path: "/players" },
       { icon: Heart, label: "Supporters", path: "/supporters" },
+      { icon: BookOpen, label: "Référentiels", path: "/frameworks" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
   }
@@ -63,7 +64,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
     case "club_admin":
       return [
         { icon: Building2, label: "Mon Club", path: clubId ? `/clubs/${clubId}` : "/clubs" },
-        { icon: BookOpen, label: "Référentiel du club", path: clubId ? `/clubs/${clubId}/framework` : "/clubs" },
+        { icon: BookOpen, label: "Référentiels", path: "/frameworks" },
         { icon: Users, label: "Équipes", path: "/teams" },
         { icon: UserCog, label: "Coachs", path: "/coaches" },
         { icon: UserCircle, label: "Joueurs", path: "/players" },
