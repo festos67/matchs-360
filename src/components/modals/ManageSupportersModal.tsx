@@ -330,9 +330,9 @@ export const ManageSupportersModal = ({
             {/* Section : sélection d'un supporter déjà inscrit */}
             <div className="space-y-3 pb-4 mb-4 border-b border-border">
               <div>
-                <Label>Lier un supporter existant</Label>
+                <Label>Lier une personne déjà inscrite</Label>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Sélectionnez une personne déjà inscrite sur la plateforme.
+                  Recherchez par nom, surnom ou email parmi les utilisateurs de la plateforme.
                 </p>
               </div>
               <div className="relative">
@@ -381,8 +381,8 @@ export const ManageSupportersModal = ({
                   </div>
                 ) : (
                   <div className="py-6 text-center text-sm text-muted-foreground">
-                    {existingSupporters.length === 0
-                      ? "Aucun supporter inscrit disponible"
+                    {trimmedSearch.length < 2
+                      ? "Saisissez au moins 2 caractères pour rechercher"
                       : "Aucun résultat"}
                   </div>
                 )}
