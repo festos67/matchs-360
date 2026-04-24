@@ -37,7 +37,7 @@ export function useTeamProgression(teamId: string | undefined, playerIds: string
             .eq("player_id", playerId)
             .eq("type", "coach")
             .is("deleted_at", null)
-            .order("date", { ascending: false })
+            .order("created_at", { ascending: false })
             .limit(2);
 
           if (error || !evals || evals.length < 2) return;
