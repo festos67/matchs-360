@@ -6,7 +6,7 @@
  * @access Coachs, Responsables Club, Super Admin (actions). Joueur (vue identité).
  * @features
  *  - Avatar, nom, surnom, équipe et club
- *  - Bouton "Nouveau débrief" (Star) — selon permissions
+ *  - Bouton "Nouveau débrief" (Plus) — selon permissions
  *  - Bouton "Auto-débrief" (Star) pour le joueur uniquement
  *  - Modale ManageSupporters (Heart)
  *  - Modale RequestSupporterEvaluation (Heart orange)
@@ -24,7 +24,7 @@
  */
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Lock, Plus, Printer, Star, Trash2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, Edit, Heart, Lock, Plus, Printer, Star, Trash2, Users } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -175,11 +175,8 @@ export function PlayerSidebar({
                     variant="outline"
                     className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-orange-500/50 hover:bg-secondary hover:border-orange-500"
                   >
-                    <Plus className="w-4 h-4 text-orange-500 shrink-0" />
+                    <Plus className="w-4 h-4 text-orange-500 shrink-0" aria-hidden="true" />
                     <span className="flex-1 text-left truncate">Nouveau débrief</span>
-                    <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15">
-                      <ClipboardList className="w-4 h-4 text-accent" />
-                    </span>
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
