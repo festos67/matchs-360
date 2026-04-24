@@ -15,7 +15,7 @@
  *  - Restrictions UI joueur : mem://features/player/interface-restrictions
  *  - Disponibilité : nécessite team_membership (mem://logic/player-debrief-availability)
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Save, RotateCcw, FileText, Calendar, Loader2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,6 +83,8 @@ export const SelfEvaluationForm = ({
 }: SelfEvaluationFormProps) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  // Synchronous guard to block rapid double-submits before React re-renders
+  const savingRef = useRef(false);
   const { handle: planLimitHandle, dialog: planLimitDialog } = usePlanLimitHandler();
   const [evaluationName, setEvaluationName] = useState(
     existingEvaluation?.name || `AUTO-${playerName}-${new Date().toLocaleDateString("fr-FR")}`
@@ -229,6 +231,8 @@ export const SelfEvaluationForm = ({
       return;
     }
 
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       let evaluationId = existingEvaluation?.id;
@@ -330,6 +334,7 @@ export const SelfEvaluationForm = ({
       toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
+      savingRef.current = false;
     }
   };
 
