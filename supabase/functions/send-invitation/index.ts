@@ -483,7 +483,11 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (existingRole) {
-        throw new Error("Cet utilisateur a déjà ce rôle dans ce club");
+        throw new InvitationDomainError({
+          message: "Cet utilisateur a déjà ce rôle dans ce club.",
+          code: "USER_ALREADY_HAS_ROLE_IN_CLUB",
+          status: 409,
+        });
       }
 
       userId = existingUser.id;
@@ -514,7 +518,11 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (inviteError) {
         console.error("Generate link error:", inviteError);
-        throw new Error(`Erreur lors de la génération du lien: ${inviteError.message}`);
+        throw new InvitationDomainError({
+          message: `Génération du lien d'invitation échouée : ${inviteError.message}`,
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
       }
 
       userId = inviteData.user.id;
@@ -528,9 +536,12 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Send invitation email via Resend
       if (!resend) {
-        throw Object.assign(new Error("Configuration email manquante : RESEND_API_KEY non configurée"), {
-          statusCode: 500,
+        throw new InvitationDomainError({
+          message: "Le service email n'est pas configuré sur ce serveur.",
           code: "EMAIL_PROVIDER_NOT_CONFIGURED",
+          status: 503,
+          hint:
+            "La variable d'environnement RESEND_API_KEY n'est pas définie côté serveur. Contactez l'administrateur de la plateforme.",
         });
       }
 
@@ -644,7 +655,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (roleError) {
       console.error("Role insert error:", roleError);
-      throw new Error("Erreur lors de l'attribution du rôle");
+      throw new InvitationDomainError({
+        message: "L'attribution du rôle a échoué côté base de données.",
+        code: "INTERNAL_ERROR",
+        status: 500,
+      });
     }
 
     // If coach with teamId, add to team_members
@@ -660,7 +675,12 @@ const handler = async (req: Request): Promise<Response> => {
           .maybeSingle();
 
         if (existingReferent) {
-          throw new Error("Cette équipe a déjà un coach référent");
+          throw new InvitationDomainError({
+            message:
+              "Cette équipe a déjà un coach référent. Un seul référent par équipe est autorisé.",
+            code: "TEAM_ALREADY_HAS_REFERENT",
+            status: 409,
+          });
         }
       }
 
@@ -685,7 +705,11 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (existingTeam) {
-        throw new Error(`Ce joueur est déjà dans une équipe`);
+        throw new InvitationDomainError({
+          message: "Ce joueur est déjà rattaché à une équipe active.",
+          code: "PLAYER_ALREADY_IN_TEAM",
+          status: 409,
+        });
       }
 
       await supabaseAdmin
