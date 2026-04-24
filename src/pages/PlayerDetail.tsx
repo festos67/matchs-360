@@ -631,6 +631,52 @@ export default function PlayerDetail() {
           <ChevronUp className="w-5 h-5" />
         </Button>
       )}
+
+      {/* AlertDialog : confirmation édition d'un débrief historique */}
+      <AlertDialog open={showEditHistoryConfirm} onOpenChange={setShowEditHistoryConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Modifier ce débrief historique ?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  Vous êtes sur le point de modifier <strong className="text-foreground">{selectedEvaluation?.name}</strong>
+                  {selectedEvaluation && <> du <strong className="text-foreground">{new Date(selectedEvaluation.date).toLocaleDateString("fr-FR")}</strong></>}.
+                </p>
+                <p>
+                  Cette modification sera tracée dans l'audit log avec votre identité et l'horodatage.
+                </p>
+                <p>
+                  Préférez-vous créer un <strong className="text-foreground">nouveau débrief</strong> à la place ? Cela conserve l'historique intact.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-wrap gap-2">
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditHistoryConfirm(false);
+                setIsEditingHistory(false);
+                setIsCreatingNew(true);
+                setNewEvalKey(k => k + 1);
+                setActiveTab("evaluation");
+              }}
+            >
+              <Plus className="w-4 h-4 mr-1" />Créer un nouveau débrief
+            </Button>
+            <AlertDialogAction
+              onClick={() => {
+                setShowEditHistoryConfirm(false);
+                setIsEditingHistory(true);
+              }}
+            >
+              <Pencil className="w-4 h-4 mr-1" />Modifier quand même
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
         </div>
       </div>
     </AppLayout>
