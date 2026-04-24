@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 
@@ -113,6 +113,7 @@ type ErrorCode =
   | "AUTH_TEAM_OUT_OF_SCOPE"
   // Validation
   | "INPUT_INVALID_EMAIL"
+  | "INPUT_INVALID_ROLE"
   | "INPUT_MISSING_CLUB"
   | "INPUT_TEAM_NOT_IN_CLUB"
   | "INPUT_PLAYERS_OUT_OF_CLUB"
@@ -120,6 +121,7 @@ type ErrorCode =
   | "USER_ALREADY_HAS_ROLE_IN_CLUB"
   | "PLAYER_ALREADY_IN_TEAM"
   | "TEAM_ALREADY_HAS_REFERENT"
+  | "USER_LOOKUP_FAILED"
   // Rate limit (applicatif)
   | "RATE_LIMIT_CHECK_FAILED"
   | "RATE_LIMIT_EXCEEDED"
