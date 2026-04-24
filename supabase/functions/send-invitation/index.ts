@@ -104,10 +104,76 @@ type EmailProviderError = {
   name?: string;
 };
 
-type InvitationError = Error & {
-  statusCode?: number;
-  code?: string;
+type ErrorCode =
+  // Auth caller
+  | "AUTH_MISSING"
+  | "AUTH_INVALID"
+  | "AUTH_NO_RIGHT_ON_CLUB"
+  | "AUTH_CANNOT_GRANT_ROLE"
+  | "AUTH_TEAM_OUT_OF_SCOPE"
+  // Validation
+  | "INPUT_INVALID_EMAIL"
+  | "INPUT_MISSING_CLUB"
+  | "INPUT_TEAM_NOT_IN_CLUB"
+  | "INPUT_PLAYERS_OUT_OF_CLUB"
+  // Business
+  | "USER_ALREADY_HAS_ROLE_IN_CLUB"
+  | "PLAYER_ALREADY_IN_TEAM"
+  | "TEAM_ALREADY_HAS_REFERENT"
+  // Rate limit (applicatif)
+  | "RATE_LIMIT_CHECK_FAILED"
+  | "RATE_LIMIT_EXCEEDED"
+  // Email infra
+  | "EMAIL_PROVIDER_NOT_CONFIGURED"
+  | "EMAIL_SENDER_FORBIDDEN"
+  | "EMAIL_RATE_LIMITED"
+  | "EMAIL_PROVIDER_ERROR"
+  // Generic
+  | "INTERNAL_ERROR";
+
+type ErrorBody = {
+  error: string;
+  code: ErrorCode;
+  hint?: string;
+  // Optional extra fields (e.g. retry_after_seconds for rate limits)
+  [k: string]: unknown;
 };
+
+class InvitationDomainError extends Error {
+  code: ErrorCode;
+  status: number;
+  hint?: string;
+  extra?: Record<string, unknown>;
+  constructor(opts: {
+    message: string;
+    code: ErrorCode;
+    status: number;
+    hint?: string;
+    extra?: Record<string, unknown>;
+  }) {
+    super(opts.message);
+    this.code = opts.code;
+    this.status = opts.status;
+    this.hint = opts.hint;
+    this.extra = opts.extra;
+  }
+}
+
+function respondError(
+  body: ErrorBody,
+  status: number,
+  corsHeaders: Record<string, string>,
+  extraHeaders?: Record<string, string>,
+): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders,
+      ...(extraHeaders ?? {}),
+    },
+  });
+}
 
 const getProviderStatusCode = (providerError: EmailProviderError): number => {
   const rawStatus = providerError.statusCode ?? providerError.status;
@@ -119,26 +185,31 @@ const throwEmailDeliveryError = (providerError: EmailProviderError): never => {
   const statusCode = getProviderStatusCode(providerError);
   const providerMessage = providerError.message || "Erreur inconnue du fournisseur email";
 
-  const error = new Error(providerMessage) as InvitationError;
-
   if (statusCode === 429) {
-    error.message = "Limite d'envoi atteinte (429). Veuillez réessayer plus tard.";
-    error.code = "EMAIL_RATE_LIMITED";
-    error.statusCode = 429;
-    throw error;
+    throw new InvitationDomainError({
+      message: "Limite d'envoi email atteinte. Patientez quelques minutes avant de réessayer.",
+      code: "EMAIL_RATE_LIMITED",
+      status: 429,
+      hint: "Le quota du fournisseur email est temporairement saturé. Réessayez dans 5 à 10 minutes.",
+    });
   }
 
   if (statusCode === 403) {
-    error.message = "Envoi refusé (403) : domaine expéditeur non autorisé. Configurez un domaine email vérifié pour envoyer à des destinataires externes.";
-    error.code = "EMAIL_SENDER_FORBIDDEN";
-    error.statusCode = 403;
-    throw error;
+    throw new InvitationDomainError({
+      message:
+        "L'envoi d'email a été refusé par le fournisseur (403). Le domaine expéditeur n'est pas autorisé à envoyer à ce destinataire.",
+      code: "EMAIL_SENDER_FORBIDDEN",
+      status: 422,
+      hint:
+        "Vérifiez que le domaine d'envoi est validé chez le fournisseur email et que les enregistrements DNS (SPF/DKIM) sont en place.",
+    });
   }
 
-  error.message = `Erreur d'envoi email (${statusCode}) : ${providerMessage}`;
-  error.code = "EMAIL_PROVIDER_ERROR";
-  error.statusCode = statusCode;
-  throw error;
+  throw new InvitationDomainError({
+    message: `Erreur d'envoi email (${statusCode}) : ${providerMessage}`,
+    code: "EMAIL_PROVIDER_ERROR",
+    status: 502,
+  });
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -163,7 +234,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Authenticate the caller
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      throw new Error("No authorization header");
+      throw new InvitationDomainError({
+        message: "Authentification manquante. Reconnectez-vous.",
+        code: "AUTH_MISSING",
+        status: 401,
+      });
     }
 
     const supabaseClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -174,7 +249,11 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       console.error("Auth error:", claimsError);
-      throw new Error("Unauthorized");
+      throw new InvitationDomainError({
+        message: "Session invalide ou expirée. Reconnectez-vous.",
+        code: "AUTH_INVALID",
+        status: 401,
+      });
     }
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
@@ -183,13 +262,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
-      throw new Error("Invalid email address");
+      throw new InvitationDomainError({
+        message: "Adresse email invalide.",
+        code: "INPUT_INVALID_EMAIL",
+        status: 400,
+      });
     }
 
     // ============================================================
     // AUTHORIZATION — caller must have rights over the target clubId
     // ============================================================
-    if (!clubId) throw new Error("clubId is required");
+    if (!clubId) {
+      throw new InvitationDomainError({
+        message: "Le club cible est requis.",
+        code: "INPUT_MISSING_CLUB",
+        status: 400,
+      });
+    }
 
     const { data: callerAdmin } = await supabaseAdmin
       .from("user_roles").select("id").eq("user_id", user.id).eq("role", "admin").maybeSingle();
@@ -215,16 +304,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Only admin / club_admin / referent coach (of that club) may invite
     if (!callerIsAdmin && !callerIsClubAdminOfTarget && !callerIsRefCoachOfClub) {
-      return new Response(JSON.stringify({ error: "Forbidden: you cannot invite into this club" }), {
-        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      throw new InvitationDomainError({
+        message:
+          "Vous n'avez pas le droit d'inviter dans ce club. Seuls un administrateur, un admin de club ou un coach référent du club peuvent inviter.",
+        code: "AUTH_NO_RIGHT_ON_CLUB",
+        status: 403,
+        hint:
+          callerClubAdminIds.length > 0
+            ? `Vous êtes admin de club pour : ${callerClubAdminIds.join(", ")}. Le club cible n'en fait pas partie.`
+            : undefined,
       });
     }
 
     // Only admin / club_admin may grant club_admin or coach roles
     if ((intendedRole === "club_admin" || intendedRole === "coach") &&
         !callerIsAdmin && !callerIsClubAdminOfTarget) {
-      return new Response(JSON.stringify({ error: "Forbidden: only club admins can grant this role" }), {
-        status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+      throw new InvitationDomainError({
+        message: `Vous ne pouvez pas attribuer le rôle « ${
+          intendedRole === "club_admin" ? "Admin Club" : "Coach"
+        } ». Cette action est réservée aux administrateurs et admins de club.`,
+        code: "AUTH_CANNOT_GRANT_ROLE",
+        status: 403,
       });
     }
 
@@ -270,10 +370,11 @@ const handler = async (req: Request): Promise<Response> => {
           masked_email: maskEmail(email),
           err: quotaErr?.message,
         });
-        return new Response(
-          JSON.stringify({ error: "Rate limit check failed" }),
-          { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } },
-        );
+        throw new InvitationDomainError({
+          message: "Vérification du quota d'invitations indisponible. Réessayez plus tard.",
+          code: "RATE_LIMIT_CHECK_FAILED",
+          status: 503,
+        });
       }
 
       // deno-lint-ignore no-explicit-any
@@ -299,22 +400,16 @@ const handler = async (req: Request): Promise<Response> => {
           used: q.used,
           limit: q.limit_per_hour,
         });
-        return new Response(
-          JSON.stringify({
-            error: "Rate limit exceeded",
+        throw new InvitationDomainError({
+          message: `Quota d'invitations dépassé : ${q.used}/${q.limit_per_hour} pour cette heure. Réessayez dans ${retryAfterSec} secondes.`,
+          code: "RATE_LIMIT_EXCEEDED",
+          status: 429,
+          extra: {
             retry_after_seconds: retryAfterSec,
             quota_used: q.used,
             quota_limit: q.limit_per_hour,
-          }),
-          {
-            status: 429,
-            headers: {
-              "Content-Type": "application/json",
-              "Retry-After": String(retryAfterSec),
-              ...corsHeaders,
-            },
           },
-        );
+        });
       }
     }
 
@@ -323,8 +418,10 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: tgtTeam } = await supabaseAdmin
         .from("teams").select("club_id").eq("id", teamId).maybeSingle();
       if (!tgtTeam || tgtTeam.club_id !== clubId) {
-        return new Response(JSON.stringify({ error: "Team does not belong to club" }), {
-          status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+        throw new InvitationDomainError({
+          message: "L'équipe sélectionnée n'appartient pas au club cible.",
+          code: "INPUT_TEAM_NOT_IN_CLUB",
+          status: 400,
         });
       }
       // Referent coach can only invite within their own teams
@@ -338,8 +435,10 @@ const handler = async (req: Request): Promise<Response> => {
           .eq("coach_role", "referent").eq("is_active", true).is("deleted_at", null);
         const tids = (refTeamIds?.map(r => r.team_id) ?? []) as string[];
         if (!tids.includes(teamId)) {
-          return new Response(JSON.stringify({ error: "Team outside your scope" }), {
-            status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+          throw new InvitationDomainError({
+            message: "Cette équipe n'est pas dans votre périmètre de coach référent.",
+            code: "AUTH_TEAM_OUT_OF_SCOPE",
+            status: 403,
           });
         }
       }
@@ -355,8 +454,10 @@ const handler = async (req: Request): Promise<Response> => {
       // deno-lint-ignore no-explicit-any
       const allValid = playerIds.every((pid) => (playerTms ?? []).some((m: any) => m.user_id === pid && m.teams?.club_id === clubId));
       if (!allValid) {
-        return new Response(JSON.stringify({ error: "One or more players are outside the target club" }), {
-          status: 403, headers: { "Content-Type": "application/json", ...corsHeaders },
+        throw new InvitationDomainError({
+          message: "Un ou plusieurs joueurs sélectionnés n'appartiennent pas au club cible.",
+          code: "INPUT_PLAYERS_OUT_OF_CLUB",
+          status: 400,
         });
       }
     }
@@ -382,7 +483,11 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (existingRole) {
-        throw new Error("Cet utilisateur a déjà ce rôle dans ce club");
+        throw new InvitationDomainError({
+          message: "Cet utilisateur a déjà ce rôle dans ce club.",
+          code: "USER_ALREADY_HAS_ROLE_IN_CLUB",
+          status: 409,
+        });
       }
 
       userId = existingUser.id;
@@ -413,7 +518,11 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (inviteError) {
         console.error("Generate link error:", inviteError);
-        throw new Error(`Erreur lors de la génération du lien: ${inviteError.message}`);
+        throw new InvitationDomainError({
+          message: `Génération du lien d'invitation échouée : ${inviteError.message}`,
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
       }
 
       userId = inviteData.user.id;
@@ -427,9 +536,12 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Send invitation email via Resend
       if (!resend) {
-        throw Object.assign(new Error("Configuration email manquante : RESEND_API_KEY non configurée"), {
-          statusCode: 500,
+        throw new InvitationDomainError({
+          message: "Le service email n'est pas configuré sur ce serveur.",
           code: "EMAIL_PROVIDER_NOT_CONFIGURED",
+          status: 503,
+          hint:
+            "La variable d'environnement RESEND_API_KEY n'est pas définie côté serveur. Contactez l'administrateur de la plateforme.",
         });
       }
 
@@ -543,7 +655,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (roleError) {
       console.error("Role insert error:", roleError);
-      throw new Error("Erreur lors de l'attribution du rôle");
+      throw new InvitationDomainError({
+        message: "L'attribution du rôle a échoué côté base de données.",
+        code: "INTERNAL_ERROR",
+        status: 500,
+      });
     }
 
     // If coach with teamId, add to team_members
@@ -559,7 +675,12 @@ const handler = async (req: Request): Promise<Response> => {
           .maybeSingle();
 
         if (existingReferent) {
-          throw new Error("Cette équipe a déjà un coach référent");
+          throw new InvitationDomainError({
+            message:
+              "Cette équipe a déjà un coach référent. Un seul référent par équipe est autorisé.",
+            code: "TEAM_ALREADY_HAS_REFERENT",
+            status: 409,
+          });
         }
       }
 
@@ -584,7 +705,11 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (existingTeam) {
-        throw new Error(`Ce joueur est déjà dans une équipe`);
+        throw new InvitationDomainError({
+          message: "Ce joueur est déjà rattaché à une équipe active.",
+          code: "PLAYER_ALREADY_IN_TEAM",
+          status: 409,
+        });
       }
 
       await supabaseAdmin
@@ -707,14 +832,32 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-invitation function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+
+    if (error instanceof InvitationDomainError) {
+      const body: ErrorBody = {
+        error: error.message,
+        code: error.code,
+        ...(error.hint ? { hint: error.hint } : {}),
+        ...(error.extra ?? {}),
+      };
+      const extraHeaders =
+        error.code === "RATE_LIMIT_EXCEEDED" &&
+        typeof (error.extra?.retry_after_seconds as unknown) === "number"
+          ? { "Retry-After": String(error.extra!.retry_after_seconds) }
+          : undefined;
+      return respondError(body, error.status, corsHeaders, extraHeaders);
+    }
+
+    const safeMsg =
+      error instanceof Error
+        ? `Erreur interne : ${error.message}`
+        : "Erreur interne inconnue";
+    return respondError(
+      { error: safeMsg, code: "INTERNAL_ERROR" },
+      500,
+      corsHeaders,
     );
   }
 };

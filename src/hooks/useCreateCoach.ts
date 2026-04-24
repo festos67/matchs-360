@@ -29,7 +29,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
+import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import type { TeamAssignmentItem } from "@/components/modals/shared/TeamAssignmentMatrix";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
@@ -280,11 +281,13 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       resetAndClose();
     } catch (error: unknown) {
       console.error("Error inviting coach:", error);
-      const errorMessage = await getEdgeFunctionErrorMessage(error);
-      if (errorMessage.includes("déjà ce rôle")) {
-        toast.error("Coach déjà existant", { description: "Cet utilisateur est déjà coach dans ce club." });
+      const errorInfo = await getEdgeFunctionErrorInfo(error);
+      if (errorInfo.code === "USER_ALREADY_HAS_ROLE_IN_CLUB") {
+        toast.error("Coach déjà existant", {
+          description: "Cet utilisateur est déjà coach dans ce club.",
+        });
       } else {
-        toast.error("Erreur lors de l'invitation", { description: errorMessage });
+        await toastInvitationError(error);
       }
     } finally {
       setLoading(false);

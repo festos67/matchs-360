@@ -39,7 +39,8 @@ import { Label } from "@/components/ui/label";
 import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
+import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
@@ -189,13 +190,12 @@ export const CreateSupporterModal = ({
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error inviting supporter:", error);
-      const errorMessage = await getEdgeFunctionErrorMessage(error);
+      const errorInfo = await getEdgeFunctionErrorInfo(error);
+      const errorMessage = errorInfo.message;
       if (errorMessage.includes("PLAN_LIMIT_SUPPORTERS")) {
         if (handlePlanLimit({ message: errorMessage }, "supporters_per_team")) { setLoading(false); return; }
       }
-      toast.error("Erreur lors de l'invitation", {
-        description: errorMessage,
-      });
+      await toastInvitationError(error);
     } finally {
       setLoading(false);
     }

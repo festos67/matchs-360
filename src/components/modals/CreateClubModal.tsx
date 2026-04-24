@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
+import { getEdgeFunctionErrorMessage, getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const DRAFT_KEY = "create-club-draft";
@@ -242,7 +242,12 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
       });
 
       if (inviteError || inviteResult?.error) {
-        const inviteErrorMessage = inviteResult?.error || await getEdgeFunctionErrorMessage(inviteError);
+        const inviteInfo = await getEdgeFunctionErrorInfo(inviteError);
+        const inviteErrorMessage =
+          inviteResult?.error ||
+          (inviteInfo.hint
+            ? `${inviteInfo.message} — ${inviteInfo.hint}`
+            : inviteInfo.message);
         toast.warning(`Club "${data.name}" créé`, {
           description: `L'invitation à ${data.referentEmail} n'a pas pu être envoyée (${inviteErrorMessage}). Vous pourrez la relancer depuis la fiche du club.`,
         });
