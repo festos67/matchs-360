@@ -15,7 +15,7 @@
  *  - Restitution détaillée : mem://features/player-result-tab/detailed-view
  *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
  */
-import { useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, getScoreLabel, type ThemeScores } from "@/lib/evaluation-utils";
 import { cn } from "@/lib/utils";
 import { getThemePaletteColor } from "@/lib/theme-palette";
+import { loadFrameworkThemes } from "@/lib/framework-loader";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
 
 interface PlayerEvaluationTabProps {
@@ -68,8 +69,68 @@ export function PlayerEvaluationTab({
 
   const teamColor = teamMembership?.team?.club?.primary_color || "#3B82F6";
 
+  // Cache of themes per framework_id, lazily filled when a comparison
+  // evaluation references a framework that is neither the current one nor
+  // the selected one. Without this, evaluations from older frameworks were
+  // rendered against mismatching skill_ids and produced an empty (score=0)
+  // overlay — making them invisible on the radar.
+  const [frameworkThemesCache, setFrameworkThemesCache] = useState<Record<string, Theme[]>>({});
+
+  // Build the list of framework_ids referenced by selected + comparison evals.
+  const referencedFrameworkIds = useMemo(() => {
+    const ids = new Set<string>();
+    comparisonIds.forEach((id) => {
+      const ev = evaluations.find((e) => e.id === id);
+      if (ev?.framework_id) ids.add(ev.framework_id);
+    });
+    return Array.from(ids);
+  }, [comparisonIds, evaluations]);
+
+  // Lazily load missing framework themes so cross-framework comparisons render.
+  useEffect(() => {
+    const missing = referencedFrameworkIds.filter(
+      (fid) => fid !== frameworkId && !frameworkThemesCache[fid],
+    );
+    if (missing.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        missing.map(async (fid) => {
+          try {
+            const { themes: loaded } = await loadFrameworkThemes(fid);
+            return [fid, loaded] as const;
+          } catch {
+            return [fid, [] as Theme[]] as const;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setFrameworkThemesCache((prev) => {
+        const next = { ...prev };
+        entries.forEach(([fid, loaded]) => {
+          next[fid] = loaded;
+        });
+        return next;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [referencedFrameworkIds, frameworkId, frameworkThemesCache]);
+
+  // Resolve the right themes for a given evaluation:
+  // 1. current framework → use `themes` (always loaded);
+  // 2. selected eval's own framework → use `selectedEvalThemes`;
+  // 3. otherwise → use cached themes for that framework_id (loaded above).
+  const themesForEvaluation = useCallback((evaluation: Evaluation | null): Theme[] => {
+    if (!evaluation) return selectedEvalThemes;
+    if (evaluation.framework_id === frameworkId) return themes;
+    if (selectedEvaluation && evaluation.framework_id === selectedEvaluation.framework_id) {
+      return selectedEvalThemes;
+    }
+    return frameworkThemesCache[evaluation.framework_id] || [];
+  }, [themes, frameworkId, selectedEvalThemes, selectedEvaluation, frameworkThemesCache]);
+
   const getRadarDataFromEvaluation = useCallback((evaluation: Evaluation | null, useThemes?: Theme[]): ThemeScores[] => {
-    const t = useThemes || selectedEvalThemes;
+    const t = useThemes || themesForEvaluation(evaluation);
     if (!evaluation || t.length === 0) return [];
     return t.map(theme => ({
       theme_id: theme.id,
@@ -86,7 +147,7 @@ export function PlayerEvaluationTab({
       }),
       objective: evaluation.objectives.find(o => o.theme_id === theme.id)?.content ?? null,
     }));
-  }, [selectedEvalThemes]);
+  }, [themesForEvaluation]);
 
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
 
