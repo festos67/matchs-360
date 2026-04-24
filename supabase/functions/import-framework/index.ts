@@ -142,10 +142,24 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error("Error in import-framework function:", error);
+    const rawMessage = error instanceof Error ? error.message : "";
+    const isSafe =
+      rawMessage.startsWith("Forbidden:") ||
+      rawMessage.startsWith("forbidden:") ||
+      rawMessage.startsWith("PLAN_LIMIT_") ||
+      rawMessage === "Unauthorized" ||
+      rawMessage === "Missing authorization header" ||
+      rawMessage === "Source framework not found" ||
+      rawMessage === "Exactly one of target_team_id or target_club_id must be provided" ||
+      rawMessage === "framework_name is required" ||
+      rawMessage === "source_framework_id is required";
+    const safeMessage = isSafe
+      ? rawMessage
+      : "Une erreur interne est survenue. Réessayez plus tard.";
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: safeMessage, code: "INTERNAL_ERROR" }),
       {
-        status: 400,
+        status: isSafe ? 400 : 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );

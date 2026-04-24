@@ -907,9 +907,19 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
-    console.error("Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: message }), {
+    // Log full error server-side; return generic message to client
+    // to avoid leaking SQL signatures, RPC names, constraint details, etc.
+    console.error("admin-users error:", error);
+    const rawMessage = error instanceof Error ? error.message : "";
+    // Allow-list: explicit business-rule messages safe to surface
+    const isSafe =
+      rawMessage.startsWith("Forbidden:") ||
+      rawMessage.startsWith("PLAN_LIMIT_") ||
+      rawMessage.startsWith("INVITATION_");
+    const safeMessage = isSafe
+      ? rawMessage
+      : "Une erreur interne est survenue. Réessayez plus tard.";
+    return new Response(JSON.stringify({ error: safeMessage, code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
