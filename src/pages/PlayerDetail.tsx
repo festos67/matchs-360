@@ -473,6 +473,7 @@ export default function PlayerDetail() {
               onSaved={async (savedEvaluationId) => {
                 setComparisonIds([]);
                 setIsViewingHistory(false);
+                setIsEditingHistory(false);
                 setActiveTab("radar");
 
                 const { data: refreshedEvaluations } = await refetchEvaluations();
@@ -488,7 +489,8 @@ export default function PlayerDetail() {
                   document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
                 }, 300);
               }}
-              readOnly={!canEvaluate || isViewingHistory}
+              readOnly={!canEvaluate || (isViewingHistory && !isEditingHistory)}
+              historyEditWarning={isViewingHistory && isEditingHistory}
               coachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : undefined}
               evaluationNumber={(() => {
                 const coachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
