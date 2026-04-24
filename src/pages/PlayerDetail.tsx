@@ -96,6 +96,8 @@ export default function PlayerDetail() {
   const [hasDraftEvaluation, setHasDraftEvaluation] = useState(false);
   const [historyPrintEvaluation, setHistoryPrintEvaluation] = useState<Evaluation | null>(null);
   const [historyPrintThemes, setHistoryPrintThemes] = useState<Theme[]>([]);
+  const [isEditingHistory, setIsEditingHistory] = useState(false);
+  const [showEditHistoryConfirm, setShowEditHistoryConfirm] = useState(false);
 
   // Modals
   const [showMutationModal, setShowMutationModal] = useState(false);
@@ -154,6 +156,11 @@ export default function PlayerDetail() {
   useEffect(() => {
     if (themes.length > 0) setSelectedEvalThemes(themes);
   }, [themes]);
+
+  // Sortie automatique du mode édition historique quand on change d'éval ou qu'on quitte l'historique
+  useEffect(() => {
+    setIsEditingHistory(false);
+  }, [selectedEvaluation?.id, isViewingHistory]);
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });
