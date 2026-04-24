@@ -45,7 +45,6 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
 import {
   Collapsible,
   CollapsibleContent,
@@ -309,14 +308,9 @@ const Coaches = () => {
             <AddEntityButton
               type="coach"
               label="Ajouter un coach"
-              onClick={() => {
-                if (clubFilter === "all") {
-                  toast.info("Sélectionnez un club avant d'ajouter un coach");
-                  return;
-                }
-                setCreateModalOpen(true);
-              }}
-              className={clubFilter === "all" ? "opacity-50" : ""}
+              onClick={() => setCreateModalOpen(true)}
+              disabled={clubFilter === "all"}
+              disabledReason="Sélectionnez un club spécifique dans le filtre pour ajouter un coach."
             />
           )}
         </div>
