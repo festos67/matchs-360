@@ -34,3 +34,10 @@ verify_jwt = false
 
 [functions.process-email-queue]
 verify_jwt = true
+
+# Cron-triggered (pg_cron). Caller must present the project SERVICE_ROLE
+# JWT in the Authorization header; an additional in-code constant-time
+# comparison hardens the check (see F-404). verify_jwt = true keeps the
+# Supabase gateway's JWT validation as defense-in-depth.
+[functions.send-invitation-reminders]
+verify_jwt = true
