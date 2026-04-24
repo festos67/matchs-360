@@ -204,7 +204,7 @@ export function EvaluationHistory({
     return (
       <div
         key={evaluation.id}
-        className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
+        className={`flex flex-wrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg transition-colors ${
           isArchived
             ? "bg-destructive/5 border border-destructive/20 opacity-70"
             : isOldFramework
@@ -237,11 +237,11 @@ export function EvaluationHistory({
         )}
 
         <div
-          className="flex-1 min-w-0 flex items-center gap-4 cursor-pointer"
+          className="flex-1 min-w-0 basis-[12rem] flex items-center gap-3 sm:gap-4 cursor-pointer"
           onClick={() => onViewEvaluation(evaluation)}
         >
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center"
             style={{
               backgroundColor: isCompared
                 ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length] + "20"
@@ -265,7 +265,7 @@ export function EvaluationHistory({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-               <p className={`font-medium break-words min-w-0 ${isArchived ? "line-through text-muted-foreground" : ""}`}>
+               <p className={`font-medium break-words min-w-0 text-sm sm:text-base ${isArchived ? "line-through text-muted-foreground" : ""}`}>
                  {evaluation.name}
                </p>
                {isArchived && (
@@ -287,13 +287,13 @@ export function EvaluationHistory({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end ml-auto">
+          <div className="text-right shrink-0">
             <p className="font-display font-bold text-lg">{getEvaluationScore(evaluation)}</p>
             <p className="text-xs text-muted-foreground">/5</p>
           </div>
           {canEvaluate && !isArchived && isCoachType && !isOldFramework && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
               <Button
                 size="sm"
                 variant="outline"
