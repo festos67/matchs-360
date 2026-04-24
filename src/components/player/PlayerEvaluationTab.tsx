@@ -223,6 +223,10 @@ export function PlayerEvaluationTab({
                   if (showSupporterLayer && latestSupporterEvaluation) sources.push("Supporter");
                   return sources.length > 0 ? `Comparaison: ${sources.join(" + ")}` : "Sélectionnez au moins une source";
                 })() : selectedEvaluation ? (() => {
+                  // F17: prioriser le titre personnalisé saisi par le coach
+                  const storedName = selectedEvaluation.name?.trim();
+                  if (storedName) return storedName;
+
                   const coachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                   const evalIndex = coachEvals.findIndex(e => e.id === selectedEvaluation.id);
                   const evalNumber = evalIndex >= 0 ? evalIndex + 1 : "–";
