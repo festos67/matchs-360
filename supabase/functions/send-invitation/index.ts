@@ -234,7 +234,11 @@ const handler = async (req: Request): Promise<Response> => {
     // Authenticate the caller
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      throw new Error("No authorization header");
+      throw new InvitationDomainError({
+        message: "Authentification manquante. Reconnectez-vous.",
+        code: "AUTH_MISSING",
+        status: 401,
+      });
     }
 
     const supabaseClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -245,7 +249,11 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
       console.error("Auth error:", claimsError);
-      throw new Error("Unauthorized");
+      throw new InvitationDomainError({
+        message: "Session invalide ou expirée. Reconnectez-vous.",
+        code: "AUTH_INVALID",
+        status: 401,
+      });
     }
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
@@ -254,13 +262,23 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
-      throw new Error("Invalid email address");
+      throw new InvitationDomainError({
+        message: "Adresse email invalide.",
+        code: "INPUT_INVALID_EMAIL",
+        status: 400,
+      });
     }
 
     // ============================================================
     // AUTHORIZATION — caller must have rights over the target clubId
     // ============================================================
-    if (!clubId) throw new Error("clubId is required");
+    if (!clubId) {
+      throw new InvitationDomainError({
+        message: "Le club cible est requis.",
+        code: "INPUT_MISSING_CLUB",
+        status: 400,
+      });
+    }
 
     const { data: callerAdmin } = await supabaseAdmin
       .from("user_roles").select("id").eq("user_id", user.id).eq("role", "admin").maybeSingle();
