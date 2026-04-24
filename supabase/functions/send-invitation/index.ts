@@ -832,14 +832,32 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in send-invitation function:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+
+    if (error instanceof InvitationDomainError) {
+      const body: ErrorBody = {
+        error: error.message,
+        code: error.code,
+        ...(error.hint ? { hint: error.hint } : {}),
+        ...(error.extra ?? {}),
+      };
+      const extraHeaders =
+        error.code === "RATE_LIMIT_EXCEEDED" &&
+        typeof (error.extra?.retry_after_seconds as unknown) === "number"
+          ? { "Retry-After": String(error.extra!.retry_after_seconds) }
+          : undefined;
+      return respondError(body, error.status, corsHeaders, extraHeaders);
+    }
+
+    const safeMsg =
+      error instanceof Error
+        ? `Erreur interne : ${error.message}`
+        : "Erreur interne inconnue";
+    return respondError(
+      { error: safeMsg, code: "INTERNAL_ERROR" },
+      500,
+      corsHeaders,
     );
   }
 };
