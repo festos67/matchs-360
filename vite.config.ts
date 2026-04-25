@@ -15,4 +15,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  esbuild: {
+    // F-707: strip console.* and debugger statements from production bundle
+    // to avoid leaking Supabase error objects, stack traces, UUIDs and PII
+    // via DevTools. Dev mode keeps everything for DX.
+    drop: mode === "production" ? ["console", "debugger"] : [],
+  },
 }));
