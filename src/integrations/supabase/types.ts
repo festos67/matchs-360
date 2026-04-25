@@ -1302,6 +1302,15 @@ export type Database = {
         Args: { p_caller: string; p_club_filter: string; p_is_admin: boolean }
         Returns: string[]
       }
+      _log_plan_limit_bypass: {
+        Args: {
+          p_club_id: string
+          p_limit_kind: string
+          p_record_id: string
+          p_table: string
+        }
+        Returns: undefined
+      }
       admin_get_auth_users_bulk: {
         Args: { p_user_ids: string[] }
         Returns: {
@@ -1433,6 +1442,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      is_plan_bypass_active: { Args: never; Returns: boolean }
       is_player_in_team: {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean

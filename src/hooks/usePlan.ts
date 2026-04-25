@@ -26,8 +26,12 @@ export function usePlan() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Recettage : les super admins sont toujours considérés Pro côté UI
-    // (le bypass DB est géré par get_club_plan()).
+    // UI uniquement : les super admins sont affichés en Pro côté interface
+    // (masque le TrialBanner, débloque les fonctionnalités premium dans l'UI).
+    // ⚠️ Depuis F-206 (2026-04-25), get_club_plan() retourne TOUJOURS le plan
+    // réel du club côté DB — les triggers de limites s'appliquent normalement
+    // même aux super admins. Pour bypasser un quota côté backend, il faut
+    // une transaction service_role avec SET LOCAL app.bypass_plan_limits='true'.
     if (hasAdminRole) {
       (async () => {
         const { data: limits } = await supabase
