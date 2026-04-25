@@ -393,59 +393,75 @@ export type Database = {
       framework_snapshots: {
         Row: {
           created_at: string
-          framework_id: string
+          framework_id: string | null
           id: string
           snapshot: Json
         }
         Insert: {
           created_at?: string
-          framework_id: string
+          framework_id?: string | null
           id?: string
           snapshot: Json
         }
         Update: {
           created_at?: string
-          framework_id?: string
+          framework_id?: string | null
           id?: string
           snapshot?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "framework_snapshots_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: true
+            referencedRelation: "competence_frameworks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitation_send_log: {
         Row: {
           caller_role: string
-          club_id: string
+          club_id: string | null
           created_at: string
           error_message: string | null
           id: string
           intended_role: string
-          invited_by: string
+          invited_by: string | null
           recipient_email_hash: string
           status: string
         }
         Insert: {
           caller_role: string
-          club_id: string
+          club_id?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
           intended_role: string
-          invited_by: string
+          invited_by?: string | null
           recipient_email_hash: string
           status: string
         }
         Update: {
           caller_role?: string
-          club_id?: string
+          club_id?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
           intended_role?: string
-          invited_by?: string
+          invited_by?: string | null
           recipient_email_hash?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invitation_send_log_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
