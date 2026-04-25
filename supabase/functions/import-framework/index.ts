@@ -92,6 +92,8 @@ const handler = async (req: Request): Promise<Response> => {
         srcSourceClubId = srcTeam?.club_id ?? null;
       }
       const canReadSource =
+        // Global templates (no club, no team, marked as template) are readable by any authenticated user
+        (srcFw.is_template && !srcFw.club_id && !srcFw.team_id) ||
         (srcSourceClubId && myClubIds.includes(srcSourceClubId)) ||
         (srcFw.team_id && myRefTeamIds.includes(srcFw.team_id));
       if (!canReadSource) return forbidden("Source framework outside your scope");
