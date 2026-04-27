@@ -27,7 +27,7 @@
  * Le hash est consommé puis nettoyé pour éviter le rejeu.
  * Si l'invitation est expirée (`expires_at < now()`), affiche une erreur claire.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Lock, Check, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,117 +62,149 @@ export default function InviteAccept() {
   const [success, setSuccess] = useState(false);
   const [pwdError, setPwdError] = useState<string | null>(null);
   const navigate = useNavigate();
+  // R3 (2026-04-27): garde-fou anti double-consommation. React StrictMode
+  // exécute les useEffect deux fois en dev → setSession serait appelé
+  // deux fois avec les mêmes tokens et lèverait une erreur.
+  const consumedRef = useRef(false);
 
   useEffect(() => {
-    let mounted = true;
+    // R3 (2026-04-27) — Refactor déterministe (élimine régression listener
+    // partiellement permissif). Flow synchrone basé sur extraction du hash
+    // + setSession explicite. Voir docs/auth-flows.md.
+    if (consumedRef.current) return;
+    consumedRef.current = true;
 
-    const handleInviteSession = async () => {
+    let cancelled = false;
+
+    (async () => {
       try {
-        const hash = window.location.hash;
+        // ÉTAPE 1 — Extraire et valider le hash AVANT toute opération auth.
+        const hash = window.location.hash || "";
+        const hashParams = new URLSearchParams(
+          hash.startsWith("#") ? hash.slice(1) : hash,
+        );
 
-        // Check for error in hash first
-        const hashParams = new URLSearchParams(hash.substring(1));
         const errorDescription = hashParams.get("error_description");
         if (errorDescription) {
-          if (mounted) {
+          if (!cancelled) {
             setError(errorDescription);
             setChecking(false);
           }
           return;
         }
 
-        // F-303 — Account Takeover protection.
-        // Require an invite token in the URL hash. We MUST NOT fall back to
-        // a pre-existing session: an attacker already logged in could
-        // otherwise hit /invite-accept and inherit the role/club granted
-        // by the trigger to the "current" user.
-        if (!hash || !hash.includes("access_token")) {
-          if (mounted) {
-            setError(
-              "Lien d'invitation invalide ou expiré. Veuillez ouvrir le lien reçu par email.",
-            );
-            setChecking(false);
-          }
-          return;
-        }
-
-        // Verify token type is exactly `invite` (reject recovery / magiclink / signup)
         const tokenType = hashParams.get("type");
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+
         if (tokenType !== "invite") {
-          if (mounted) {
+          if (!cancelled) {
             setError(
-              "Ce lien n'est pas une invitation. Si vous souhaitez réinitialiser votre mot de passe, utilisez la page dédiée.",
+              "Ce lien n'est pas une invitation valide. Veuillez ouvrir le lien reçu par email.",
             );
             setChecking(false);
           }
           return;
         }
 
-        // Sign out any pre-existing session BEFORE consuming the invite token.
-        // This prevents an attacker from injecting their session and having
-        // the invitation processed against the wrong account.
-        try {
-          await supabase.auth.signOut({ scope: "local" });
-        } catch {
-          // ignore — we just want to make sure no stale session lingers
+        if (!accessToken || !refreshToken) {
+          if (!cancelled) {
+            setError(
+              "Lien d'invitation incomplet. Veuillez demander une nouvelle invitation.",
+            );
+            setChecking(false);
+          }
+          return;
         }
 
-        {
-          // The Supabase client auto-processes hash tokens via onAuthStateChange
-          // We listen for it and also use a fallback
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-              if (!mounted) return;
-              if (session && (event === "SIGNED_IN" || event === "PASSWORD_RECOVERY" || event === "TOKEN_REFRESHED")) {
-                subscription.unsubscribe();
-                // Clear hash for security
-                window.history.replaceState(null, "", window.location.pathname);
-                
-                if (session.user?.user_metadata?.password_set) {
-                  navigate("/dashboard");
-                  return;
-                }
-                setChecking(false);
-              }
-            }
-          );
+        // ÉTAPE 2 — Purger TOUTE session pré-existante (scope global pour
+        // révoquer les refresh tokens sur tous les devices). Empêche un
+        // attaquant déjà connecté d'hériter de l'invitation d'autrui.
+        await supabase.auth.signOut({ scope: "global" }).catch(() => {
+          /* pas de session active = OK */
+        });
 
-          // Fallback: if onAuthStateChange doesn't fire within 3s, try getSession
-          const timeout = setTimeout(async () => {
-            if (!mounted) return;
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-              subscription.unsubscribe();
-              window.history.replaceState(null, "", window.location.pathname);
-              if (session.user?.user_metadata?.password_set) {
-                navigate("/dashboard");
-                return;
-              }
-              if (mounted) setChecking(false);
-            } else if (mounted) {
-              setError("Lien d'invitation invalide ou expiré. Veuillez demander une nouvelle invitation.");
-              setChecking(false);
-            }
-          }, 3000);
+        // ÉTAPE 3 — Nettoyer le hash AVANT setSession pour empêcher le SDK
+        // Supabase d'auto-détecter le hash et de fire un SIGNED_IN parasite
+        // intercepté par le listener global du useAuth.
+        window.history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
 
-          return () => {
-            clearTimeout(timeout);
-            subscription.unsubscribe();
-          };
+        // ÉTAPE 4 — Établir explicitement la session invite.
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+        if (sessionError || !sessionData?.session) {
+          if (!cancelled) {
+            setError(
+              "Impossible d'établir la session d'invitation. Le lien est peut-être expiré.",
+            );
+            setChecking(false);
+          }
+          return;
         }
+
+        // ÉTAPE 5 — Validation côté serveur : vérifier qu'une invitation
+        // pending existe pour l'email de la session établie.
+        const sessionEmail = sessionData.session.user.email
+          ?.toLowerCase()
+          .trim();
+        if (!sessionEmail) {
+          await supabase.auth.signOut({ scope: "global" }).catch(() => {});
+          if (!cancelled) {
+            setError("Session d'invitation sans email. Lien malformé.");
+            setChecking(false);
+          }
+          return;
+        }
+
+        const { data: invitations, error: invError } = await supabase
+          .from("invitations")
+          .select("id, email, status, expires_at")
+          .eq("status", "pending")
+          .ilike("email", sessionEmail)
+          .limit(1);
+
+        if (invError) {
+          // Lookup non bloquant (RLS peut filtrer pour utilisateur fraîchement
+          // créé), on log et on continue avec la session Supabase valide.
+          console.warn("Invite lookup failed (non-blocking):", invError);
+        } else if (!invitations || invitations.length === 0) {
+          await supabase.auth.signOut({ scope: "global" }).catch(() => {});
+          if (!cancelled) {
+            setError(
+              "Aucune invitation active pour cet email. Veuillez demander une nouvelle invitation.",
+            );
+            setChecking(false);
+          }
+          return;
+        }
+
+        // Si l'utilisateur a déjà défini son mot de passe (ré-acceptation),
+        // rediriger directement vers le dashboard.
+        if (sessionData.session.user?.user_metadata?.password_set) {
+          navigate("/dashboard");
+          return;
+        }
+
+        if (!cancelled) setChecking(false);
       } catch (err) {
-        console.error("Error checking invite session:", err);
-        if (mounted) {
-          setError("Une erreur est survenue");
+        console.error("InviteAccept fatal:", err);
+        if (!cancelled) {
+          setError("Une erreur inattendue est survenue. Veuillez réessayer.");
           setChecking(false);
         }
       }
-    };
-
-    handleInviteSession();
+    })();
 
     return () => {
-      mounted = false;
+      cancelled = true;
     };
   }, [navigate]);
 
