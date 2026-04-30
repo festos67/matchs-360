@@ -507,6 +507,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     let userId: string;
     let isNewUser = false;
+    let inviteEmailError: EmailProviderError | null = null;
 
     if (existingUser) {
       const { data: existingRole } = await supabaseAdmin
