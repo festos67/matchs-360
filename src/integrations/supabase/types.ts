@@ -1497,6 +1497,10 @@ export type Database = {
         Args: { _invitation_id: string; _new_expires_days?: number }
         Returns: Json
       }
+      save_framework_atomic: {
+        Args: { p_framework_id: string; p_name: string; p_themes: Json }
+        Returns: undefined
+      }
       soft_delete_club: { Args: { _club_id: string }; Returns: undefined }
       validate_storage_url:
         | { Args: { _bucket: string; _url: string }; Returns: boolean }
