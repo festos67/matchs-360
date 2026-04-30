@@ -123,7 +123,7 @@ const App = () => (
               <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
               <Route path="/teams/:id" element={<ProtectedRoute><TeamDetail /></ProtectedRoute>} />
               <Route path="/teams/:teamId/framework" element={<ProtectedRoute><FrameworkEditor /></ProtectedRoute>} />
-              <Route path="/frameworks" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><FrameworksList /></ProtectedRoute>} />
+              <Route path="/frameworks" element={<ProtectedRoute allowedRoles={['admin']}><FrameworksList /></ProtectedRoute>} />
               <Route path="/coaches" element={<ProtectedRoute><Coaches /></ProtectedRoute>} />
               <Route path="/coaches/:id" element={<ProtectedRoute><CoachDetail /></ProtectedRoute>} />
               <Route path="/players" element={<ProtectedRoute><Players /></ProtectedRoute>} />
