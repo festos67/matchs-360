@@ -679,7 +679,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Stocke l'erreur pour la remonter en warning après écriture du rôle
-      (globalThis as any).__lastInviteEmailError = emailDeliveryError;
+      inviteEmailError = emailDeliveryError;
     }
 
     // Add the role
