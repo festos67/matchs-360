@@ -35,6 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
+import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
 
 const features = [
   {
@@ -158,14 +159,11 @@ export default function Index() {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-display font-bold leading-tight mb-6 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-              Évaluez. Analysez.{" "}
-              <span className="text-gradient">Progressez.</span>
+              {BRAND_TAGLINE}
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 animate-fade-in-up opacity-0" style={{ animationDelay: "0.2s" }}>
-              La plateforme complète pour suivre le développement des compétences
-              sportives, mentales et sociales de vos joueurs avec des graphiques radar
-              et conseils personnalisés.
+              {BRAND_SUBTITLE}
             </p>
             
             <div className="flex items-center justify-center gap-4 animate-fade-in-up opacity-0" style={{ animationDelay: "0.3s" }}>
