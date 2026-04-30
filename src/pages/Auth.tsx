@@ -39,6 +39,7 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
+import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
