@@ -559,10 +559,10 @@ export default function Auth() {
             </div>
           </div>
           <h3 className="text-3xl font-display font-bold mb-4 whitespace-nowrap">
-            Révéler – Progresser – Valoriser
+            {BRAND_TAGLINE}
           </h3>
           <p className="text-lg text-muted-foreground">
-            Révèle en chaque joueur le champion de sa propre vie ! 
+            {BRAND_SUBTITLE}
           </p>
         </div>
       </div>
