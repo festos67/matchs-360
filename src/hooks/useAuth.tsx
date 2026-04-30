@@ -154,16 +154,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Si l'utilisateur change (A → B), purger l'ancien state AVANT de charger
     // le nouveau, pour qu'aucun composant ne voie roles_A + user_B.
-    if (loadedUserIdRef.current && loadedUserIdRef.current !== userId) {
+    const isUserSwitch =
+      loadedUserIdRef.current !== null && loadedUserIdRef.current !== userId;
+    if (isUserSwitch) {
       setProfile(null);
       setRoles([]);
       setCurrentRoleState(null);
       // Purger le cache TanStack Query (données scopées à l'ancien user)
       queryClient.clear();
     }
+    const isInitialLoad = loadedUserIdRef.current === null;
     loadedUserIdRef.current = userId;
 
-    setLoading(true);
+    // F-XXX: ne lever le flag `loading` que pour le chargement initial ou un
+    // changement d'utilisateur. Sinon (TOKEN_REFRESHED, USER_UPDATED, SIGNED_IN
+    // sur la session courante), on rafraîchit profile/roles silencieusement —
+    // sans démonter l'arbre via ProtectedRoute, ce qui détruirait l'état des
+    // composants ouverts (modales avec saisie en cours, dialogues, formulaires).
+    const shouldShowLoading = isInitialLoad || isUserSwitch;
+    if (shouldShowLoading) setLoading(true);
     try {
       await Promise.all([
         fetchProfile(userId, ticket),
@@ -180,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setCurrentRoleState(null);
       }
     } finally {
-      if (ticket === authTicketRef.current) {
+      if (ticket === authTicketRef.current && shouldShowLoading) {
         setLoading(false);
       }
     }
