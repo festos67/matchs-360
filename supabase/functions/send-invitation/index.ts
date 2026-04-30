@@ -507,6 +507,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     let userId: string;
     let isNewUser = false;
+    let inviteEmailError: EmailProviderError | null = null;
 
     if (existingUser) {
       const { data: existingRole } = await supabaseAdmin
@@ -569,22 +570,48 @@ const handler = async (req: Request): Promise<Response> => {
       // token_hash which can be used to hijack the invitation. Log only metadata.
       console.log("Invite link generated", { userId, hasLink: !!inviteLink });
 
-      // Send invitation email via Resend
-      if (!resend) {
-        throw new InvitationDomainError({
-          message: "Le service email n'est pas configuré sur ce serveur.",
-          code: "EMAIL_PROVIDER_NOT_CONFIGURED",
-          status: 503,
-          hint:
-            "La variable d'environnement RESEND_API_KEY n'est pas définie côté serveur. Contactez l'administrateur de la plateforme.",
-        });
-      }
-
+      // ⚠️ ORDRE CRITIQUE : on persiste profil + rôle AVANT d'envoyer l'email.
+      // Sinon, si Resend rate-limit/bounce/échoue, l'utilisateur est créé dans
+      // auth.users sans profil/role, le club reste sans responsable utilisable
+      // et il devient impossible de relancer (USER_ALREADY_HAS_ROLE_IN_CLUB
+      // sur un rôle qui n'existe pas / conflit auth.users sur réinvitation).
+      // L'email est best-effort et son échec est remonté en warning à l'appelant.
       const { data: club } = await supabaseAdmin
         .from("clubs")
         .select("name")
         .eq("id", clubId)
         .single();
+
+      // Atomic upsert on primary key `id` to avoid race condition with the
+      // handle_new_user trigger (it may create the profile before or after
+      // we get here). ON CONFLICT (id) DO UPDATE keeps the operation
+      // deterministic regardless of trigger timing.
+      const { error: profileUpsertError } = await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          {
+            id: userId,
+            email: email.toLowerCase(),
+            first_name: firstName,
+            last_name: lastName,
+            club_id: clubId,
+          },
+          { onConflict: "id" },
+        );
+
+      if (profileUpsertError) {
+        console.error("Profile upsert error:", profileUpsertError);
+        throw new InvitationDomainError({
+          message: "La création du profil a échoué.",
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
+      }
+
+      // Send invitation email via Resend (best-effort — see comment above)
+      if (!resend) {
+        console.warn("RESEND non configuré — invitation enregistrée sans email envoyé.");
+      }
 
       const roleLabels: Record<string, string> = {
         club_admin: "Administrateur de club",
@@ -593,7 +620,8 @@ const handler = async (req: Request): Promise<Response> => {
         supporter: "Supporter",
       };
 
-      const emailResult = await resend.emails.send({
+      let emailDeliveryError: EmailProviderError | null = null;
+      const emailResult = resend ? await resend.emails.send({
         from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
@@ -637,42 +665,21 @@ const handler = async (req: Request): Promise<Response> => {
           </body>
           </html>
         `,
-      });
+      }) : null;
 
-      if (emailResult.error) {
+      if (emailResult?.error) {
+        // Best-effort : on log mais on n'interrompt pas — le rôle/profil sont
+        // déjà persistés, l'admin pourra relancer l'invitation depuis la fiche.
         console.error("Email provider error while sending invitation:", emailResult.error);
-        throwEmailDeliveryError(emailResult.error as EmailProviderError);
+        emailDeliveryError = emailResult.error as EmailProviderError;
+      } else if (emailResult) {
+        // SECURITY: avoid logging full email (PII). Mask local part.
+        const maskedEmail = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
+        console.log("Invitation email sent", { recipient: maskedEmail, messageId: emailResult.data?.id });
       }
 
-      // SECURITY: avoid logging full email (PII). Mask local part.
-      const maskedEmail = email.replace(/^(.{2}).*(@.*)$/, "$1***$2");
-      console.log("Invitation email sent", { recipient: maskedEmail, messageId: emailResult.data?.id });
-
-      // Atomic upsert on primary key `id` to avoid race condition with the
-      // handle_new_user trigger (it may create the profile before or after
-      // we get here). ON CONFLICT (id) DO UPDATE keeps the operation
-      // deterministic regardless of trigger timing.
-      const { error: profileUpsertError } = await supabaseAdmin
-        .from("profiles")
-        .upsert(
-          {
-            id: userId,
-            email: email.toLowerCase(),
-            first_name: firstName,
-            last_name: lastName,
-            club_id: clubId,
-          },
-          { onConflict: "id" },
-        );
-
-      if (profileUpsertError) {
-        console.error("Profile upsert error:", profileUpsertError);
-        throw new InvitationDomainError({
-          message: "La création du profil a échoué.",
-          code: "INTERNAL_ERROR",
-          status: 500,
-        });
-      }
+      // Stocke l'erreur pour la remonter en warning après écriture du rôle
+      inviteEmailError = emailDeliveryError;
     }
 
     // Add the role
@@ -856,7 +863,15 @@ const handler = async (req: Request): Promise<Response> => {
           ? "Invitation envoyée avec succès"
           : "Rôle ajouté avec succès",
         userId,
-        emailSent: !!resend,
+        emailSent: !!resend && !inviteEmailError,
+        ...(inviteEmailError
+          ? {
+              warning:
+                `Le rôle a été créé mais l'email n'a pas pu être envoyé (${
+                  inviteEmailError.message || "erreur inconnue"
+                }). Vous pouvez relancer l'invitation depuis la fiche du club.`,
+            }
+          : {}),
       }),
       {
         status: 200,
