@@ -196,12 +196,7 @@ export default function ClubFrameworkEditor() {
     setSaving(true);
 
     try {
-      // Snapshot in background — don't block the save
-      snapshotFramework(framework.id).catch((snapError) => {
-        console.warn("Snapshot failed (background):", snapError);
-      });
-
-      // Optimized parallel + batched save
+      // The RPC archives the current framework and creates a fresh active version.
       await saveFrameworkChanges(framework.id, confirmedName, pendingEditThemes);
 
       toast.success("Référentiel sauvegardé avec succès");
