@@ -38,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Pencil, BookOpen } from "lucide-react";
+import { Loader2, Pencil, BookOpen, Eye } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -143,10 +143,17 @@ export default function FrameworksList() {
     );
   }
   if (!user) return <Navigate to="/auth" replace />;
-  if (!isAdmin && !isClubAdmin) return <Navigate to="/dashboard" replace />;
+  // Cette page est réservée à l'admin global. Les club_admin sont redirigés
+  // vers leur référentiel club dédié (sidebar « Référentiel club »).
+  if (!isAdmin && isClubAdmin && currentRole?.club_id) {
+    return <Navigate to={`/clubs/${currentRole.club_id}/framework`} replace />;
+  }
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
-  const getEditPath = (f: FrameworkRow): string | null => {
-    if (f.is_template) return null;
+  // Tout référentiel doit être ouvrable. Les templates club et les référentiels
+  // club ouvrent la vue club (lecture seule par défaut). Les référentiels
+  // équipe ouvrent l'éditeur équipe.
+  const getOpenPath = (f: FrameworkRow): string | null => {
     if (f.team_id) return `/teams/${f.team_id}/framework`;
     if (f.club_id) return `/clubs/${f.club_id}/framework`;
     return null;
@@ -255,8 +262,8 @@ export default function FrameworksList() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((f) => {
-                    const editPath = getEditPath(f);
+                {filtered.map((f) => {
+                    const openPath = getOpenPath(f);
                     return (
                       <TableRow key={f.id}>
                         <TableCell className="font-medium">{f.name}</TableCell>
@@ -275,21 +282,21 @@ export default function FrameworksList() {
                           })}
                         </TableCell>
                         <TableCell className="text-right">
-                          {editPath ? (
+                          {openPath ? (
                             <Button
                               asChild
                               size="sm"
                               variant="outline"
                               className="text-blue-500 hover:text-blue-600"
                             >
-                              <Link to={editPath}>
-                                <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                                Éditer
+                              <Link to={openPath}>
+                                <Eye className="w-3.5 h-3.5 mr-1.5" />
+                                Ouvrir
                               </Link>
                             </Button>
                           ) : (
                             <span className="text-xs text-muted-foreground italic">
-                              Modèle (non éditable ici)
+                              Indisponible
                             </span>
                           )}
                         </TableCell>
