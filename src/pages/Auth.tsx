@@ -39,6 +39,7 @@ import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
+import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -558,10 +559,10 @@ export default function Auth() {
             </div>
           </div>
           <h3 className="text-3xl font-display font-bold mb-4 whitespace-nowrap">
-            Révéler – Progresser – Valoriser
+            {BRAND_TAGLINE}
           </h3>
           <p className="text-lg text-muted-foreground">
-            Révèle en chaque joueur le champion de sa propre vie ! 
+            {BRAND_SUBTITLE}
           </p>
         </div>
       </div>
