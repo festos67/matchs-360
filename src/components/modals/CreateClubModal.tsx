@@ -275,7 +275,22 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto" onInteractOutside={(e) => { if (hasFormData()) { e.preventDefault(); setShowConfirm(true); } }}>
+        <DialogContent
+          className="sm:max-w-lg max-h-[85vh] overflow-y-auto"
+          onInteractOutside={(e) => {
+            // Toujours empêcher la fermeture sur clic extérieur.
+            // Si l'utilisateur a saisi des données, proposer la sauvegarde du brouillon ;
+            // sinon, ignorer simplement (la modale reste ouverte).
+            e.preventDefault();
+            if (hasFormData()) setShowConfirm(true);
+          }}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onFocusOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+            if (hasFormData()) setShowConfirm(true);
+          }}
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
