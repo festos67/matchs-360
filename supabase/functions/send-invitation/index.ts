@@ -863,7 +863,15 @@ const handler = async (req: Request): Promise<Response> => {
           ? "Invitation envoyée avec succès"
           : "Rôle ajouté avec succès",
         userId,
-        emailSent: !!resend,
+        emailSent: !!resend && !inviteEmailError,
+        ...(inviteEmailError
+          ? {
+              warning:
+                `Le rôle a été créé mais l'email n'a pas pu être envoyé (${
+                  inviteEmailError.message || "erreur inconnue"
+                }). Vous pouvez relancer l'invitation depuis la fiche du club.`,
+            }
+          : {}),
       }),
       {
         status: 200,
