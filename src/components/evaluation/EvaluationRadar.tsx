@@ -121,14 +121,14 @@ export const EvaluationRadar = ({
   };
 
   return (
-    <div className={className ?? "w-full h-[350px] relative"}>
+    <div className={className ?? "w-full h-[420px] sm:h-[480px] lg:h-[540px] relative"}>
       <ResponsiveContainer width="100%" height="100%">
         <RechartsRadarChart
           cx="50%"
           cy="50%"
-          outerRadius="60%"
+          outerRadius="78%"
           data={data}
-          margin={{ top: 20, right: 70, bottom: 20, left: 70 }}
+          margin={{ top: 24, right: 80, bottom: 24, left: 80 }}
         >
           <PolarGrid
             stroke={isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))"}
