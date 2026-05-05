@@ -673,7 +673,10 @@ export default function PlayerDetail() {
       </Tabs>
 
       {/* Tab change interception dialog */}
-      <AlertDialog open={!!pendingTabChange} onOpenChange={(open) => { if (!open) setPendingTabChange(null); }}>
+      <AlertDialog
+        open={!!pendingTabChange || !!pendingNavigation}
+        onOpenChange={(open) => { if (!open) { setPendingTabChange(null); setPendingNavigation(null); } }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Débrief en cours</AlertDialogTitle>
@@ -682,13 +685,19 @@ export default function PlayerDetail() {
           <div className="flex flex-col gap-2 pt-2">
             <Button onClick={async () => {
               try { await evaluationFormRef.current?.save(); setHasDraftEvaluation(true); toast.success("Débrief sauvegardé en brouillon"); scrollToTop(); } catch { toast.error("Erreur lors de la sauvegarde"); }
-              const tab = pendingTabChange; setPendingTabChange(null); if (tab) setActiveTab(tab);
+              const tab = pendingTabChange; const nav = pendingNavigation;
+              setPendingTabChange(null); setPendingNavigation(null);
+              if (tab) setActiveTab(tab);
+              if (nav) navigate(nav);
             }} className="w-full justify-start gap-2">
               <Save className="w-4 h-4" />Sauvegarder et reprendre plus tard
             </Button>
             <Button variant="secondary" onClick={async () => {
               try { await evaluationFormRef.current?.save(); setIsCreatingNew(false); setHasDraftEvaluation(false); refetchAll(); toast.success("Débrief finalisé avec succès"); scrollToTop(); } catch { toast.error("Erreur lors de la sauvegarde"); }
-              const tab = pendingTabChange; setPendingTabChange(null); if (tab) setActiveTab(tab);
+              const tab = pendingTabChange; const nav = pendingNavigation;
+              setPendingTabChange(null); setPendingNavigation(null);
+              if (tab) setActiveTab(tab);
+              if (nav) navigate(nav);
             }} className="w-full justify-start gap-2">
               <ClipboardList className="w-4 h-4" />Finaliser le débrief
             </Button>
@@ -697,7 +706,7 @@ export default function PlayerDetail() {
             </Button>
           </div>
           <div className="flex justify-end pt-2">
-            <Button variant="ghost" size="sm" onClick={() => setPendingTabChange(null)}>Retour au débrief</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setPendingTabChange(null); setPendingNavigation(null); }}>Retour au débrief</Button>
           </div>
         </AlertDialogContent>
       </AlertDialog>
@@ -713,7 +722,10 @@ export default function PlayerDetail() {
             <AlertDialogCancel>Non, revenir</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               setShowCancelConfirm(false); setIsCreatingNew(false); setHasDraftEvaluation(false);
-              const tab = pendingTabChange; setPendingTabChange(null); if (tab) setActiveTab(tab);
+              const tab = pendingTabChange; const nav = pendingNavigation;
+              setPendingTabChange(null); setPendingNavigation(null);
+              if (tab) setActiveTab(tab);
+              if (nav) navigate(nav);
             }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Oui, annuler le débrief
             </AlertDialogAction>
