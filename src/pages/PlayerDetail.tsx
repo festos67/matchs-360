@@ -124,15 +124,58 @@ export default function PlayerDetail() {
     return () => main.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Protection anti-perte : avertit l'utilisateur s'il tente de quitter la page
+  // (fermeture d'onglet, refresh, navigation externe) avec un débrief en cours.
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (evaluationFormRef.current?.hasChanges()) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
+  // Intercepte les clics sur des liens internes (sidebar, menus, etc.) lorsque
+  // un débrief est en cours d'édition. Affiche le dialog "Débrief en cours".
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!evaluationFormRef.current?.hasChanges()) return;
+      const target = (e.target as HTMLElement | null)?.closest("a");
+      if (!target) return;
+      const href = target.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) return;
+      // Même page : pas d'interception
+      if (href === window.location.pathname) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setPendingNavigation(href);
+    };
+    document.addEventListener("click", handler, true);
+    return () => document.removeEventListener("click", handler, true);
+  }, []);
+
   const scrollToTop = useCallback(() => document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }), []);
   const scrollToRadar = useCallback(() => {
     setTimeout(() => radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
   }, []);
   const scrollToSkillsSection = useCallback(() => {
-    setTimeout(() => {
+    // Retry pattern: l'élément peut ne pas être encore monté (transition d'onglet,
+    // navigation depuis un autre écran, hydratation des thèmes). On ré-essaye
+    // pendant ~3s avant d'abandonner.
+    let tries = 0;
+    const tick = () => {
       const el = document.getElementById("skills-section");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 350);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      if (++tries < 30) setTimeout(tick, 100);
+    };
+    setTimeout(tick, 100);
   }, []);
 
   // Redirect if not authed
@@ -630,7 +673,10 @@ export default function PlayerDetail() {
       </Tabs>
 
       {/* Tab change interception dialog */}
-      <AlertDialog open={!!pendingTabChange} onOpenChange={(open) => { if (!open) setPendingTabChange(null); }}>
+      <AlertDialog
+        open={!!pendingTabChange || !!pendingNavigation}
+        onOpenChange={(open) => { if (!open) { setPendingTabChange(null); setPendingNavigation(null); } }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Débrief en cours</AlertDialogTitle>
@@ -639,13 +685,19 @@ export default function PlayerDetail() {
           <div className="flex flex-col gap-2 pt-2">
             <Button onClick={async () => {
               try { await evaluationFormRef.current?.save(); setHasDraftEvaluation(true); toast.success("Débrief sauvegardé en brouillon"); scrollToTop(); } catch { toast.error("Erreur lors de la sauvegarde"); }
-              const tab = pendingTabChange; setPendingTabChange(null); if (tab) setActiveTab(tab);
+              const tab = pendingTabChange; const nav = pendingNavigation;
+              setPendingTabChange(null); setPendingNavigation(null);
+              if (tab) setActiveTab(tab);
+              if (nav) navigate(nav);
             }} className="w-full justify-start gap-2">
               <Save className="w-4 h-4" />Sauvegarder et reprendre plus tard
             </Button>
             <Button variant="secondary" onClick={async () => {
               try { await evaluationFormRef.current?.save(); setIsCreatingNew(false); setHasDraftEvaluation(false); refetchAll(); toast.success("Débrief finalisé avec succès"); scrollToTop(); } catch { toast.error("Erreur lors de la sauvegarde"); }
-              const tab = pendingTabChange; setPendingTabChange(null); if (tab) setActiveTab(tab);
+              const tab = pendingTabChange; const nav = pendingNavigation;
+              setPendingTabChange(null); setPendingNavigation(null);
+              if (tab) setActiveTab(tab);
+              if (nav) navigate(nav);
             }} className="w-full justify-start gap-2">
               <ClipboardList className="w-4 h-4" />Finaliser le débrief
             </Button>
@@ -654,7 +706,7 @@ export default function PlayerDetail() {
             </Button>
           </div>
           <div className="flex justify-end pt-2">
-            <Button variant="ghost" size="sm" onClick={() => setPendingTabChange(null)}>Retour au débrief</Button>
+            <Button variant="ghost" size="sm" onClick={() => { setPendingTabChange(null); setPendingNavigation(null); }}>Retour au débrief</Button>
           </div>
         </AlertDialogContent>
       </AlertDialog>
@@ -670,7 +722,10 @@ export default function PlayerDetail() {
             <AlertDialogCancel>Non, revenir</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               setShowCancelConfirm(false); setIsCreatingNew(false); setHasDraftEvaluation(false);
-              const tab = pendingTabChange; setPendingTabChange(null); if (tab) setActiveTab(tab);
+              const tab = pendingTabChange; const nav = pendingNavigation;
+              setPendingTabChange(null); setPendingNavigation(null);
+              if (tab) setActiveTab(tab);
+              if (nav) navigate(nav);
             }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Oui, annuler le débrief
             </AlertDialogAction>
