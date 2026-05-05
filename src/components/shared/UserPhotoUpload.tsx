@@ -18,10 +18,11 @@
  *  - Workflow média complet : mem://technical/media-processing-workflow
  *  - Sync invitation : mem://technical/user-invitation-photo-sync
  */
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, X } from "lucide-react";
 import { toast } from "sonner";
+import { PhotoCropModal } from "@/components/shared/PhotoCropModal";
 
 interface UserPhotoUploadProps {
   photoPreview: string | null;
@@ -39,6 +40,8 @@ export function UserPhotoUpload({
   label = "Cliquez pour ajouter une photo",
 }: UserPhotoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,9 +57,23 @@ export function UserPhotoUpload({
     }
     const reader = new FileReader();
     reader.onload = (ev) => {
-      onFileSelected(file, ev.target?.result as string);
+      setPendingFile(file);
+      setCropSrc(ev.target?.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (blob: Blob) => {
+    if (!pendingFile) return;
+    const cropped = new File([blob], pendingFile.name, { type: "image/jpeg" });
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      onFileSelected(cropped, ev.target?.result as string);
+      setCropSrc(null);
+      setPendingFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+    reader.readAsDataURL(cropped);
   };
 
   return (
@@ -96,6 +113,18 @@ export function UserPhotoUpload({
         onChange={handlePhotoChange}
       />
       <p className="text-xs text-muted-foreground">{label}</p>
+      {cropSrc && (
+        <PhotoCropModal
+          open={!!cropSrc}
+          imageSrc={cropSrc}
+          onClose={() => {
+            setCropSrc(null);
+            setPendingFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+          }}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 }
