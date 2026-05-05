@@ -209,6 +209,28 @@ export function PlayerEvaluationTab({
         </div>
       )}
 
+      {!isViewingHistory && comparisonIds.length > 0 && (
+        <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between gap-4">
+          <span className="text-sm text-warning">
+            📜 Vous comparez avec {comparisonIds.length} ancien{comparisonIds.length > 1 ? "s" : ""} débrief{comparisonIds.length > 1 ? "s" : ""}:{" "}
+            <strong>
+              {comparisonIds
+                .map((id) => evaluations.find((e) => e.id === id)?.name)
+                .filter(Boolean)
+                .join(", ")}
+            </strong>
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => comparisonIds.forEach((id) => onToggleComparison(id))}
+            className="gap-2 shrink-0"
+          >
+            <RotateCcw className="w-4 h-4" />Retour à la version actuelle
+          </Button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 2xl:grid-cols-3 gap-6">
         {/* Radar */}
         <div className="2xl:col-span-2 glass-card p-6">
