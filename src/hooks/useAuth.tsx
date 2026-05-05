@@ -189,7 +189,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setCurrentRoleState(null);
       }
     } finally {
-      if (ticket === authTicketRef.current && shouldShowLoading) {
+      // Même lors d'un second chargement silencieux du même utilisateur
+      // (cas getSession + SIGNED_IN quasi simultanés), le dernier ticket doit
+      // toujours pouvoir libérer l'écran de chargement. Sinon le premier load
+      // devient obsolète et le second ne remet jamais loading=false.
+      if (ticket === authTicketRef.current) {
         setLoading(false);
       }
     }
@@ -222,6 +226,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           const userId = session.user.id;
+          const isInitialOrUserSwitch =
+            loadedUserIdRef.current === null || loadedUserIdRef.current !== userId;
+          if (isInitialOrUserSwitch) setLoading(true);
           // setTimeout(0) pour éviter un deadlock dans le callback auth
           pendingLoadTimer = setTimeout(() => {
             pendingLoadTimer = null;
