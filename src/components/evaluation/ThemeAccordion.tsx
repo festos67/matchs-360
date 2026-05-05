@@ -69,9 +69,9 @@ export const SkillRow = ({
           : "bg-muted/40 hover:bg-muted/60"
       )}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-4">
         {/* Skill name with info tooltip */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-[140px]">
           <div className="flex items-center gap-2">
             <span className={cn(
               "font-medium",
