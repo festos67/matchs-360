@@ -73,15 +73,62 @@ export const EvaluationRadar = ({
     ? "#FACC15" // Yellow-400 — très distinct du fond bleu/slate
     : (primaryColor || "hsl(226, 72%, 48%)");
 
+  // Renderer custom : wrap intelligent du label sur plusieurs lignes pour éviter
+  // la troncature des noms de thématiques longs (ex: "Soft-skills Cognitives").
+  // Coupure par mots, max ~14 caractères par ligne, max 3 lignes.
+  const renderAngleTick = (props: any) => {
+    const { x, y, payload, textAnchor } = props;
+    const value: string = payload?.value ?? "";
+    const maxCharsPerLine = 14;
+    const words = value.split(" ");
+    const lines: string[] = [];
+    let current = "";
+    for (const w of words) {
+      const next = current ? `${current} ${w}` : w;
+      if (next.length > maxCharsPerLine && current) {
+        lines.push(current);
+        current = w;
+      } else {
+        current = next;
+      }
+    }
+    if (current) lines.push(current);
+    // Garde-fou : pas plus de 3 lignes (très rare)
+    const safeLines = lines.slice(0, 3);
+    if (lines.length > 3) safeLines[2] = `${safeLines[2].slice(0, 12)}…`;
+
+    const fontSize = isDark ? 11 : 10.5;
+    const lineHeight = fontSize + 2;
+    // Centre le bloc verticalement autour du point d'ancrage
+    const offsetY = -((safeLines.length - 1) * lineHeight) / 2;
+
+    return (
+      <text
+        x={x}
+        y={y}
+        textAnchor={textAnchor}
+        fill={isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))"}
+        fontSize={fontSize}
+        fontWeight={isDark ? 700 : 500}
+      >
+        {safeLines.map((line, i) => (
+          <tspan key={i} x={x} dy={i === 0 ? offsetY : lineHeight}>
+            {line}
+          </tspan>
+        ))}
+      </text>
+    );
+  };
+
   return (
     <div className={className ?? "w-full h-[350px] relative"}>
       <ResponsiveContainer width="100%" height="100%">
         <RechartsRadarChart
           cx="50%"
           cy="50%"
-          outerRadius="62%"
+          outerRadius="60%"
           data={data}
-          margin={{ top: 10, right: 60, bottom: 10, left: 60 }}
+          margin={{ top: 20, right: 70, bottom: 20, left: 70 }}
         >
           <PolarGrid
             stroke={isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))"}
@@ -89,14 +136,7 @@ export const EvaluationRadar = ({
           />
           <PolarAngleAxis
             dataKey="theme"
-            tickFormatter={(value: string) =>
-              typeof value === "string" && value.length > 18 ? `${value.slice(0, 17)}…` : value
-            }
-            tick={{
-              fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-              fontSize: isDark ? 11 : 10,
-              fontWeight: isDark ? 700 : 500,
-            }}
+            tick={renderAngleTick}
             tickLine={{ stroke: isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))" }}
           />
           <PolarRadiusAxis
