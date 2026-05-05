@@ -76,16 +76,25 @@ export const EvaluationRadar = ({
   return (
     <div className={className ?? "w-full h-[350px] relative"}>
       <ResponsiveContainer width="100%" height="100%">
-        <RechartsRadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+        <RechartsRadarChart
+          cx="50%"
+          cy="50%"
+          outerRadius="62%"
+          data={data}
+          margin={{ top: 10, right: 60, bottom: 10, left: 60 }}
+        >
           <PolarGrid
             stroke={isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))"}
             gridType="polygon"
           />
           <PolarAngleAxis
             dataKey="theme"
+            tickFormatter={(value: string) =>
+              typeof value === "string" && value.length > 18 ? `${value.slice(0, 17)}…` : value
+            }
             tick={{
               fill: isDark ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
-              fontSize: isDark ? 12 : 11,
+              fontSize: isDark ? 11 : 10,
               fontWeight: isDark ? 700 : 500,
             }}
             tickLine={{ stroke: isDark ? "hsl(var(--muted-foreground) / 0.5)" : "hsl(var(--border))" }}

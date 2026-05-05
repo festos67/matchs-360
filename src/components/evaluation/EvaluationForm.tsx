@@ -440,7 +440,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       )}
 
       {/* Header with radar and summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Radar Chart */}
         <div className="glass-card p-6">
           <div className="flex items-center justify-between mb-4">
