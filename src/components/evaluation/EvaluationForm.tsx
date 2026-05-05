@@ -516,7 +516,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 
       {/* Theme accordions */}
       <div className="space-y-4">
-        <h3 className="font-display font-semibold text-lg">Débrief des compétences</h3>
+        <h3 id="skills-section" className="font-display font-semibold text-lg scroll-mt-20">Débrief des compétences</h3>
         
         {themeScores.map((themeScore) => {
           const theme = themes.find((t) => t.id === themeScore.theme_id);
