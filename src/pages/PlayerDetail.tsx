@@ -129,10 +129,19 @@ export default function PlayerDetail() {
     setTimeout(() => radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
   }, []);
   const scrollToSkillsSection = useCallback(() => {
-    setTimeout(() => {
+    // Retry pattern: l'élément peut ne pas être encore monté (transition d'onglet,
+    // navigation depuis un autre écran, hydratation des thèmes). On ré-essaye
+    // pendant ~3s avant d'abandonner.
+    let tries = 0;
+    const tick = () => {
       const el = document.getElementById("skills-section");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 350);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      if (++tries < 30) setTimeout(tick, 100);
+    };
+    setTimeout(tick, 100);
   }, []);
 
   // Redirect if not authed
