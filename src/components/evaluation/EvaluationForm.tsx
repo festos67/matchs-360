@@ -398,8 +398,9 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
       if (!evaluationId) throw new Error("Débrief introuvable après sauvegarde");
       await onSaved?.(evaluationId);
       toast.success("Débrief enregistré avec succès");
-      // Scroll the main content container to top (not window, which doesn't scroll)
+      // Scroll back to top after save (radar view)
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: any) {
       console.error("Error saving evaluation:", error);
       if (planLimitHandle(error, "coach_evals")) {
@@ -516,7 +517,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 
       {/* Theme accordions */}
       <div className="space-y-4">
-        <h3 className="font-display font-semibold text-lg">Débrief des compétences</h3>
+        <h3 id="skills-section" className="font-display font-semibold text-lg scroll-mt-20">Débrief des compétences</h3>
         
         {themeScores.map((themeScore) => {
           const theme = themes.find((t) => t.id === themeScore.theme_id);
