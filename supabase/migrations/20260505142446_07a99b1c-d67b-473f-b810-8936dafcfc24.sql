@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.evaluations_unique_per_day_idx;
