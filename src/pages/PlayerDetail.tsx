@@ -124,6 +124,40 @@ export default function PlayerDetail() {
     return () => main.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Protection anti-perte : avertit l'utilisateur s'il tente de quitter la page
+  // (fermeture d'onglet, refresh, navigation externe) avec un débrief en cours.
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (evaluationFormRef.current?.hasChanges()) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
+
+  // Intercepte les clics sur des liens internes (sidebar, menus, etc.) lorsque
+  // un débrief est en cours d'édition. Affiche le dialog "Débrief en cours".
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (!evaluationFormRef.current?.hasChanges()) return;
+      const target = (e.target as HTMLElement | null)?.closest("a");
+      if (!target) return;
+      const href = target.getAttribute("href");
+      if (!href || href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("#")) return;
+      // Même page : pas d'interception
+      if (href === window.location.pathname) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setPendingNavigation(href);
+    };
+    document.addEventListener("click", handler, true);
+    return () => document.removeEventListener("click", handler, true);
+  }, []);
+
   const scrollToTop = useCallback(() => document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }), []);
   const scrollToRadar = useCallback(() => {
     setTimeout(() => radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
