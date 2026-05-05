@@ -213,6 +213,7 @@ interface ThemeAccordionProps {
   scores: SkillScore[];
   previousScores?: Record<string, number | null>;
   objective: string | null;
+  previousObjective?: string | null;
   onScoreChange: (skillId: string, score: number) => void;
   onNotObservedChange: (skillId: string, isNotObserved: boolean) => void;
   onCommentChange: (skillId: string, comment: string) => void;
@@ -230,6 +231,7 @@ export const ThemeAccordion = ({
   scores,
   previousScores,
   objective,
+  previousObjective,
   onScoreChange,
   onNotObservedChange,
   onCommentChange,
@@ -320,9 +322,31 @@ export const ThemeAccordion = ({
 
             {/* Objectives section */}
             <div className="mt-6 pt-4 border-t border-border">
-              <label className="text-sm font-medium mb-2 block">
-                🎯 Objectifs pour cette thématique
-              </label>
+              <div className="flex items-center justify-between mb-2 gap-2">
+                <label className="text-sm font-medium block">
+                  🎯 Objectifs pour cette thématique
+                </label>
+                {previousObjective && previousObjective.trim() !== "" && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-muted-foreground"
+                        onClick={() => onObjectiveChange(previousObjective)}
+                        disabled={disabled}
+                      >
+                        <History className="w-4 h-4 mr-1" />
+                        Dernier objectif
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs whitespace-pre-wrap">
+                      {previousObjective}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
               <Textarea
                 value={objective || ""}
                 onChange={(e) => onObjectiveChange(e.target.value)}

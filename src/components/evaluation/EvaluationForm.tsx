@@ -181,7 +181,10 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           comment: prevComment?.comment ?? null,
         };
       }),
-      objective: (existingEvaluation || previousEvaluation)?.objectives.find(
+      // For new evaluations: leave objective empty so the coach can write fresh
+      // ones. The previous objective is still surfaced via a History icon
+      // (same UX as previousScore on each skill).
+      objective: existingEvaluation?.objectives.find(
         (o) => o.theme_id === theme.id
       )?.content ?? null,
     }));
@@ -532,6 +535,10 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
             });
           }
 
+          const previousObjective = !existingEvaluation
+            ? previousEvaluation?.objectives.find((o) => o.theme_id === theme.id)?.content ?? null
+            : null;
+
           return (
             <ThemeAccordion
               key={theme.id}
@@ -541,6 +548,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
               scores={themeScore.skills}
               previousScores={previousScores ? themePreviousScores : undefined}
               objective={themeScore.objective}
+              previousObjective={previousObjective}
               onScoreChange={(skillId, score) =>
                 handleScoreChange(theme.id, skillId, score)
               }
