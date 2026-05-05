@@ -265,10 +265,10 @@ export const ComparisonRadar = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Custom legend for better visibility — reserved space to prevent chart resize */}
-      <div className="flex flex-wrap content-start justify-center gap-x-4 gap-y-2 mt-4 pt-4 border-t border-border min-h-[3.75rem]">
-        {datasets.length > 1 &&
-          datasets.map((dataset) => (
+      {/* Custom legend — only rendered when there are multiple datasets to compare */}
+      {datasets.length > 1 && (
+        <div className="flex flex-wrap content-start justify-center gap-x-4 gap-y-2 mt-4 pt-4 border-t border-border">
+          {datasets.map((dataset) => (
             <div key={dataset.id} className="flex items-center gap-2">
               <div
                 className="w-4 h-1 rounded-full"
@@ -289,7 +289,8 @@ export const ComparisonRadar = ({
               </span>
             </div>
           ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
