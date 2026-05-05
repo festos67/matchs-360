@@ -41,7 +41,15 @@ const CoachMyClub = () => {
   const { user, loading, currentRole, profile } = useAuth();
 
   useEffect(() => {
-    if (!loading && (!user || currentRole?.role !== "coach")) {
+    if (loading) return;
+    if (!user) {
+      navigate("/auth", { replace: true });
+      return;
+    }
+    // Ne rediriger que si un rôle est explicitement actif et n'est pas autorisé.
+    // Pendant la transition post-login, currentRole peut être null un instant ;
+    // ProtectedRoute aligne déjà le rôle automatiquement.
+    if (currentRole && !["coach", "admin", "club_admin"].includes(currentRole.role)) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, currentRole, navigate]);
