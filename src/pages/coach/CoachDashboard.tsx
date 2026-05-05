@@ -40,9 +40,14 @@ const CoachDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, currentRole, profile } = useAuth();
 
-  // Redirect if not coach
+  // Redirect if not coach (don't bounce while currentRole is still resolving)
   useEffect(() => {
-    if (!loading && (!user || currentRole?.role !== "coach")) {
+    if (loading) return;
+    if (!user) {
+      navigate("/auth", { replace: true });
+      return;
+    }
+    if (currentRole && !["coach", "admin", "club_admin"].includes(currentRole.role)) {
       navigate("/dashboard", { replace: true });
     }
   }, [user, loading, currentRole, navigate]);
