@@ -127,6 +127,12 @@ export default function PlayerDetail() {
   const scrollToRadar = useCallback(() => {
     setTimeout(() => radarSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
   }, []);
+  const scrollToSkillsSection = useCallback(() => {
+    setTimeout(() => {
+      const el = document.getElementById("skills-section");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 350);
+  }, []);
 
   // Redirect if not authed
   useEffect(() => {
@@ -348,13 +354,13 @@ export default function PlayerDetail() {
               setIsCreatingNew(false);
               setHasDraftEvaluation(false);
               setActiveTab("evaluation");
-              scrollToRadar();
+              scrollToSkillsSection();
             } else {
               setIsCreatingNew(true);
               setNewEvalKey(k => k + 1);
               setHasDraftEvaluation(false);
               setActiveTab("evaluation");
-              scrollToRadar();
+              scrollToSkillsSection();
             }
           }}
           onRequestSelfEval={() => toast.success("Demande d'auto-débrief envoyée au joueur")}
