@@ -76,6 +76,7 @@ export default function PlayerDetail() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedEvalId = searchParams.get("evaluation");
+  const requestedNew = searchParams.get("new") === "1";
 
   const {
     player, teamMembership, referentCoach,
@@ -191,6 +192,21 @@ export default function PlayerDetail() {
   useEffect(() => {
     setIsEditingHistory(false);
   }, [selectedEvaluation?.id, isViewingHistory]);
+
+  // Auto-trigger "Nouveau débrief" flow when arriving with ?new=1
+  useEffect(() => {
+    if (!requestedNew) return;
+    if (!canEvaluate) {
+      setSearchParams((sp) => { sp.delete("new"); return sp; }, { replace: true });
+      return;
+    }
+    setIsCreatingNew(true);
+    setNewEvalKey(k => k + 1);
+    setHasDraftEvaluation(false);
+    setActiveTab("evaluation");
+    scrollToSkillsSection();
+    setSearchParams((sp) => { sp.delete("new"); return sp; }, { replace: true });
+  }, [requestedNew, canEvaluate, scrollToSkillsSection, setSearchParams]);
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });

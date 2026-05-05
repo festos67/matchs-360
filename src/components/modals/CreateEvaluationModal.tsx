@@ -44,7 +44,6 @@ import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
 
 const evaluationSchema = z.object({
-  name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   playerId: z.string().min(1, "Joueur requis"),
 });
 
@@ -116,9 +115,7 @@ export const CreateEvaluationModal = ({
     formState: { errors },
   } = useForm<EvaluationFormData>({
     resolver: typedZodResolver<EvaluationFormData>(evaluationSchema),
-    defaultValues: {
-      name: `Débrief ${new Date().toLocaleDateString("fr-FR")}`,
-    },
+    defaultValues: {},
   });
 
   const selectedPlayerId = watch("playerId");
@@ -313,64 +310,11 @@ export const CreateEvaluationModal = ({
 
   const onSubmit = async (data: EvaluationFormData) => {
     if (!user) return;
-
-    setLoading(true);
-    try {
-      // Find the player's team to get the framework
-      const playerEntry = allPlayers.find((p) => p.id === data.playerId);
-      const playerTeamId = teamFilter !== "all" ? teamFilter : playerEntry?.team_id;
-
-      if (!playerTeamId) {
-        toast.error("Impossible de déterminer l'équipe du joueur");
-        setLoading(false);
-        return;
-      }
-
-      const { data: framework } = await supabase
-        .from("competence_frameworks")
-        .select("id")
-        .eq("team_id", playerTeamId)
-        .eq("is_archived", false)
-        .maybeSingle();
-
-      if (!framework) {
-        toast.error("Aucun référentiel de compétences trouvé pour cette équipe");
-        setLoading(false);
-        return;
-      }
-
-      const uniqueName = await generateUniqueName(data.name, data.playerId);
-
-      const { data: evaluation, error } = await supabase
-        .from("evaluations")
-        .insert({
-          name: uniqueName,
-          player_id: data.playerId,
-          evaluator_id: user.id,
-          framework_id: framework.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success("Débrief créé !");
-      reset();
-      onOpenChange(false);
-      onSuccess?.();
-      navigate(`/players/${data.playerId}?evaluation=${evaluation.id}`);
-    } catch (error: any) {
-      console.error("Error creating evaluation:", error);
-      if (handlePlanLimit(error, "coach_evals")) {
-        setLoading(false);
-        return;
-      }
-      toast.error("Erreur lors de la création", {
-        description: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Pas de création en base : on délègue au formulaire complet
+    // (sauvegarde uniquement quand l'utilisateur clique sur "Sauvegarder").
+    reset();
+    onOpenChange(false);
+    navigate(`/players/${data.playerId}?new=1`);
   };
 
   return (
@@ -387,18 +331,6 @@ export const CreateEvaluationModal = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom du débrief</Label>
-            <Input
-              id="name"
-              placeholder="Débrief mi-saison"
-              {...register("name")}
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            )}
-          </div>
-
           {/* Filters */}
           <div className="space-y-2">
             <Label>Rechercher un joueur</Label>
