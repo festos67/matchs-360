@@ -185,7 +185,6 @@ export const CreateSupporterModal = ({
     const eligible = roles.filter(
       (r: any) =>
         r.role !== "supporter" &&
-        r.role !== "player" &&
         !supporterIds.has(r.user_id),
     );
 
