@@ -202,6 +202,11 @@ export default function PlayerDetail() {
   //   3) sinon, première éval non-deletée
   useEffect(() => {
     if (evaluations.length === 0 || selectedEvaluation) return;
+    // Tant que le framework courant n'est pas chargé, on ne peut pas
+    // déterminer le "dernier débrief coach" — on attend pour éviter de
+    // sélectionner par défaut un débrief consultatif (supporter / self) qui
+    // serait simplement le plus récent en date.
+    if (!frameworkId) return;
 
     if (requestedEvalId) {
       const requested = evaluations.find(e => e.id === requestedEvalId && !e.deleted_at);
