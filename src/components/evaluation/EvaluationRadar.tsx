@@ -162,6 +162,7 @@ export const EvaluationRadar = ({
               r: 3.75,
               fill: effectivePrimaryColor,
               strokeWidth: 0,
+              fillOpacity: 0.8,
             }}
             activeDot={{
               r: 7.5,
