@@ -258,21 +258,26 @@ export function PlayerEvaluationTab({
         </div>
       )}
 
-      {!isViewingHistory && comparisonIds.length > 0 && (
+      {!isViewingHistory && (comparisonIds.length > 0 || showSelfEvalLayer || showSupporterLayer) && (
         <div className="p-3 bg-warning/10 border border-warning/30 rounded-lg flex items-center justify-between gap-4">
           <span className="text-sm text-warning">
-            📜 Vous comparez avec {comparisonIds.length} ancien{comparisonIds.length > 1 ? "s" : ""} débrief{comparisonIds.length > 1 ? "s" : ""}:{" "}
+            📜 Vous comparez avec :{" "}
             <strong>
-              {comparisonIds
-                .map((id) => evaluations.find((e) => e.id === id)?.name)
-                .filter(Boolean)
-                .join(", ")}
+              {[
+                ...comparisonIds.map((id) => evaluations.find((e) => e.id === id)?.name).filter(Boolean),
+                showSelfEvalLayer && latestSelfEvaluation ? "Auto-éval" : null,
+                showSupporterLayer && latestSupporterEvaluation ? "Supporter" : null,
+              ].filter(Boolean).join(", ")}
             </strong>
           </span>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => comparisonIds.forEach((id) => onToggleComparison(id))}
+            onClick={() => {
+              comparisonIds.forEach((id) => onToggleComparison(id));
+              setShowSelfEvalLayer(false);
+              setShowSupporterLayer(false);
+            }}
             className="gap-2 shrink-0"
           >
             <RotateCcw className="w-4 h-4" />Retour à la version actuelle
