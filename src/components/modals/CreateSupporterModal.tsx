@@ -171,24 +171,32 @@ export const CreateSupporterModal = ({
   };
 
   const fetchClubMembers = async () => {
-    // Fetch all profiles of users with a role in this club, who are NOT already supporters
+  const fetchClubMembers = async () => {
+    // Fetch all profiles attached to this club (covers players, coaches, club admins).
+    // RLS on user_roles hides 'player' rows from coaches, so we cannot rely on user_roles to list members.
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, nickname, email")
+      .eq("club_id", clubId)
+      .is("deleted_at", null);
+
+    if (!profiles || profiles.length === 0) {
+      setClubMembers([]);
+      return;
+    }
+
+    const userIds = profiles.map((p: any) => p.id);
     const { data: roles } = await supabase
       .from("user_roles")
-      .select("user_id, role")
-      .eq("club_id", clubId);
-
-    if (!roles) return;
+      .select("user_id, role, club_id")
+      .in("user_id", userIds);
 
     const supporterIds = new Set(
-      roles.filter((r: any) => r.role === "supporter").map((r: any) => r.user_id),
-    );
-    const eligible = roles.filter(
-      (r: any) =>
-        r.role !== "supporter" &&
-        !supporterIds.has(r.user_id),
+      (roles || [])
+        .filter((r: any) => r.role === "supporter" && r.club_id === clubId)
+        .map((r: any) => r.user_id),
     );
 
-    // Deduplicate by user_id, keep highest-priority role for label
     const labelMap: Record<string, string> = {
       admin: "Super Admin",
       club_admin: "Responsable Club",
@@ -199,33 +207,24 @@ export const CreateSupporterModal = ({
       admin: 0, club_admin: 1, coach: 2, player: 3,
     };
     const byUser = new Map<string, string>();
-    for (const r of eligible as any[]) {
+    for (const r of (roles || []) as any[]) {
+      if (r.role === "supporter") continue;
       const cur = byUser.get(r.user_id);
       if (!cur || (priority[r.role] ?? 99) < (priority[cur] ?? 99)) {
         byUser.set(r.user_id, r.role);
       }
     }
 
-    const userIds = Array.from(byUser.keys());
-    if (userIds.length === 0) {
-      setClubMembers([]);
-      return;
-    }
-
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, nickname, email")
-      .in("id", userIds)
-      .is("deleted_at", null);
-
-    const members: ClubMember[] = (profiles || []).map((p: any) => ({
-      id: p.id,
-      first_name: p.first_name,
-      last_name: p.last_name,
-      nickname: p.nickname,
-      email: p.email,
-      role_label: labelMap[byUser.get(p.id) || ""] || "Membre",
-    }));
+    const members: ClubMember[] = profiles
+      .filter((p: any) => !supporterIds.has(p.id))
+      .map((p: any) => ({
+        id: p.id,
+        first_name: p.first_name,
+        last_name: p.last_name,
+        nickname: p.nickname,
+        email: p.email,
+        role_label: labelMap[byUser.get(p.id) || ""] || "Membre",
+      }));
 
     members.sort((a, b) => {
       const an = `${a.first_name || ""} ${a.last_name || ""}`.trim().toLowerCase();
