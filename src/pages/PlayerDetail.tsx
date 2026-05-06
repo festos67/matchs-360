@@ -205,7 +205,11 @@ export default function PlayerDetail() {
 
     if (requestedEvalId) {
       const requested = evaluations.find(e => e.id === requestedEvalId && !e.deleted_at);
-      if (requested) {
+      // La vue par défaut "Résultat" doit toujours afficher le dernier débrief
+      // coach. On n'autorise donc une présélection via ?evaluation=<id> que
+      // pour les débriefs de type "coach". Les liens vers un débrief
+      // consultatif (self/supporter) tombent en fallback sur le dernier coach.
+      if (requested && requested.type === "coach") {
         setSelectedEvaluation(requested);
         const latestCoachOnCurrentFw = evaluations.find(
           e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId
