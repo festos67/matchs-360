@@ -183,7 +183,10 @@ export const CreateSupporterModal = ({
       roles.filter((r: any) => r.role === "supporter").map((r: any) => r.user_id),
     );
     const eligible = roles.filter(
-      (r: any) => r.role !== "supporter" && !supporterIds.has(r.user_id),
+      (r: any) =>
+        r.role !== "supporter" &&
+        r.role !== "player" &&
+        !supporterIds.has(r.user_id),
     );
 
     // Deduplicate by user_id, keep highest-priority role for label
@@ -531,7 +534,7 @@ export const CreateSupporterModal = ({
                   </PopoverContent>
                 </Popover>
                 <p className="text-xs text-muted-foreground">
-                  Coachs, joueurs et responsables du club déjà inscrits, qui n'ont pas encore le rôle supporter.
+                  Coachs et responsables du club déjà inscrits, qui n'ont pas encore le rôle supporter.
                 </p>
               </div>
 
