@@ -151,6 +151,26 @@ export function PlayerEvaluationTab({
 
   const radarData = calculateRadarData(getRadarDataFromEvaluation(selectedEvaluation));
 
+  // Comparison evaluations resolved from comparisonIds (used to overlay previous
+  // averages in "Détail par thématique" and previous star ratings in
+  // "Détail des compétences" when the user toggles a curve).
+  const comparisonEvaluations = useMemo(
+    () =>
+      comparisonIds
+        .map((id, index) => {
+          const evaluation = evaluations.find((e) => e.id === id);
+          if (!evaluation) return null;
+          return {
+            evaluation,
+            color: COMPARISON_COLORS[index % COMPARISON_COLORS.length],
+            themeScores: getRadarDataFromEvaluation(evaluation),
+            radar: calculateRadarData(getRadarDataFromEvaluation(evaluation)),
+          };
+        })
+        .filter((c): c is NonNullable<typeof c> => c !== null),
+    [comparisonIds, evaluations, getRadarDataFromEvaluation],
+  );
+
   const latestCoachEvaluation = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
   const latestSelfEvaluation = evaluations.find(e => e.type === "self" && !e.deleted_at && e.framework_id === frameworkId);
   const latestSupporterEvaluation = evaluations.find(e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId);
@@ -329,6 +349,26 @@ export function PlayerEvaluationTab({
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((themeData?.score || 0) / 5) * 100}%`, backgroundColor: color }} />
                   </div>
+                  {comparisonEvaluations.map((cmp) => {
+                    const cmpThemeData = cmp.radar.find(d => d.theme === theme.name);
+                    const cmpScore = cmpThemeData?.score || 0;
+                    return (
+                      <div key={cmp.evaluation.id} className="mt-1.5">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="text-[10px] text-muted-foreground/80 truncate flex items-center gap-1">
+                            <span className="inline-block w-2 h-0.5" style={{ backgroundColor: cmp.color }} />
+                            {new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground/80 whitespace-nowrap">
+                            {cmpScore ? getScoreLabel(cmpScore) : "—"}
+                          </span>
+                        </div>
+                        <div className="h-1 bg-secondary/60 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(cmpScore / 5) * 100}%`, backgroundColor: cmp.color, opacity: 0.7 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
@@ -377,7 +417,7 @@ export function PlayerEvaluationTab({
                           <span className={cn("text-sm", scoreData?.is_not_observed && "text-muted-foreground")}>{skill.name}</span>
                           {scoreData?.is_not_observed && <span className="ml-2 text-xs text-muted-foreground">(Non observé)</span>}
                         </div>
-                        <div className="shrink-0">
+                        <div className="shrink-0 flex flex-col items-end gap-1">
                           {scoreData?.is_not_observed ? (
                             <span className="text-xs text-muted-foreground">N/O</span>
                           ) : (
@@ -387,6 +427,36 @@ export function PlayerEvaluationTab({
                               ))}
                             </div>
                           )}
+                          {comparisonEvaluations.map((cmp) => {
+                            const cmpTheme = cmp.themeScores.find(t => t.theme_id === theme.id);
+                            const cmpScoreData = cmpTheme?.skills.find(s => s.skill_id === skill.id);
+                            if (!cmpScoreData) return null;
+                            const dateLabel = new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+                            return (
+                              <div key={cmp.evaluation.id} className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-muted-foreground/80 whitespace-nowrap" style={{ color: cmp.color }}>
+                                  {dateLabel}
+                                </span>
+                                {cmpScoreData.is_not_observed ? (
+                                  <span className="text-[10px] text-muted-foreground">N/O</span>
+                                ) : (
+                                  <div className="flex items-center gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <Star
+                                        key={star}
+                                        className="w-3 h-3"
+                                        style={
+                                          star <= (cmpScoreData.score || 0)
+                                            ? { fill: cmp.color, color: cmp.color }
+                                            : { fill: "transparent", color: cmp.color, opacity: 0.3 }
+                                        }
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
