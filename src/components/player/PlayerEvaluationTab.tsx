@@ -178,6 +178,35 @@ export function PlayerEvaluationTab({
   const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
   const hasComparisonLayers = comparisonIds.length > 0 || showSelfEvalLayer || showSupporterLayer;
 
+  // Extend comparison overlays with self / supporter layers so they propagate
+  // beyond the radar (also into "Détail par thématique" and "Détail des
+  // compétences").
+  const extraOverlays = useMemo(() => {
+    const list: typeof comparisonEvaluations = [];
+    if (showSelfEvalLayer && latestSelfEvaluation && !comparisonIds.includes(latestSelfEvaluation.id)) {
+      list.push({
+        evaluation: latestSelfEvaluation,
+        color: "#F59E0B",
+        themeScores: getRadarDataFromEvaluation(latestSelfEvaluation),
+        radar: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
+      });
+    }
+    if (showSupporterLayer && !hideSupporterLayer && latestSupporterEvaluation && !comparisonIds.includes(latestSupporterEvaluation.id)) {
+      list.push({
+        evaluation: latestSupporterEvaluation,
+        color: "#F97316",
+        themeScores: getRadarDataFromEvaluation(latestSupporterEvaluation),
+        radar: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
+      });
+    }
+    return list;
+  }, [showSelfEvalLayer, showSupporterLayer, hideSupporterLayer, latestSelfEvaluation, latestSupporterEvaluation, comparisonIds, getRadarDataFromEvaluation]);
+
+  const allOverlays = useMemo(
+    () => [...comparisonEvaluations, ...extraOverlays],
+    [comparisonEvaluations, extraOverlays],
+  );
+
   const getDisplayedDatasets = () => {
     const datasets: Array<{ id: string; label: string; date: string; data: ReturnType<typeof calculateRadarData>; color: string; isCurrent?: boolean }> = [];
     const seenIds = new Set<string>();
