@@ -178,6 +178,35 @@ export function PlayerEvaluationTab({
   const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
   const hasComparisonLayers = comparisonIds.length > 0 || showSelfEvalLayer || showSupporterLayer;
 
+  // Extend comparison overlays with self / supporter layers so they propagate
+  // beyond the radar (also into "Détail par thématique" and "Détail des
+  // compétences").
+  const extraOverlays = useMemo(() => {
+    const list: typeof comparisonEvaluations = [];
+    if (showSelfEvalLayer && latestSelfEvaluation && !comparisonIds.includes(latestSelfEvaluation.id)) {
+      list.push({
+        evaluation: latestSelfEvaluation,
+        color: "#F59E0B",
+        themeScores: getRadarDataFromEvaluation(latestSelfEvaluation),
+        radar: calculateRadarData(getRadarDataFromEvaluation(latestSelfEvaluation)),
+      });
+    }
+    if (showSupporterLayer && !hideSupporterLayer && latestSupporterEvaluation && !comparisonIds.includes(latestSupporterEvaluation.id)) {
+      list.push({
+        evaluation: latestSupporterEvaluation,
+        color: "#F97316",
+        themeScores: getRadarDataFromEvaluation(latestSupporterEvaluation),
+        radar: calculateRadarData(getRadarDataFromEvaluation(latestSupporterEvaluation)),
+      });
+    }
+    return list;
+  }, [showSelfEvalLayer, showSupporterLayer, hideSupporterLayer, latestSelfEvaluation, latestSupporterEvaluation, comparisonIds, getRadarDataFromEvaluation]);
+
+  const allOverlays = useMemo(
+    () => [...comparisonEvaluations, ...extraOverlays],
+    [comparisonEvaluations, extraOverlays],
+  );
+
   const getDisplayedDatasets = () => {
     const datasets: Array<{ id: string; label: string; date: string; data: ReturnType<typeof calculateRadarData>; color: string; isCurrent?: boolean }> = [];
     const seenIds = new Set<string>();
@@ -349,15 +378,20 @@ export function PlayerEvaluationTab({
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((themeData?.score || 0) / 5) * 100}%`, backgroundColor: color }} />
                   </div>
-                  {comparisonEvaluations.map((cmp) => {
+                  {allOverlays.map((cmp) => {
                     const cmpThemeData = cmp.radar.find(d => d.theme === theme.name);
                     const cmpScore = cmpThemeData?.score || 0;
+                    const overlayLabel = cmp.evaluation.type === "self"
+                      ? "Auto"
+                      : cmp.evaluation.type === "supporter"
+                        ? "Supporter"
+                        : new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
                     return (
                       <div key={cmp.evaluation.id} className="mt-1.5">
                         <div className="flex justify-between items-center mb-0.5">
                           <span className="text-[10px] text-muted-foreground/80 truncate flex items-center gap-1">
                             <span className="inline-block w-2 h-0.5" style={{ backgroundColor: cmp.color }} />
-                            {new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                            {overlayLabel}
                           </span>
                           <span className="text-[10px] text-muted-foreground/80 whitespace-nowrap">
                             {cmpScore ? getScoreLabel(cmpScore) : "—"}
@@ -427,11 +461,15 @@ export function PlayerEvaluationTab({
                               ))}
                             </div>
                           )}
-                          {comparisonEvaluations.map((cmp) => {
+                          {allOverlays.map((cmp) => {
                             const cmpTheme = cmp.themeScores.find(t => t.theme_id === theme.id);
                             const cmpScoreData = cmpTheme?.skills.find(s => s.skill_id === skill.id);
                             if (!cmpScoreData) return null;
-                            const dateLabel = new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+                            const dateLabel = cmp.evaluation.type === "self"
+                              ? "Auto"
+                              : cmp.evaluation.type === "supporter"
+                                ? "Supporter"
+                                : new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
                             return (
                               <div key={cmp.evaluation.id} className="flex items-center gap-1.5">
                                 <span className="text-[10px] text-muted-foreground/80 whitespace-nowrap" style={{ color: cmp.color }}>
