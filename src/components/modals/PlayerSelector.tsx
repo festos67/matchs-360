@@ -19,7 +19,6 @@ import { useState, useMemo } from "react";
 import { Check, X, Search, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -175,7 +174,7 @@ export const PlayerSelector = ({
               autoFocus
             />
           </div>
-          <ScrollArea className="h-64">
+          <div className="h-64 overflow-y-auto overscroll-contain">
             {filteredPlayers.length > 0 ? (
               <div className="p-1">
                 {filteredPlayers.map((player) => {
@@ -221,7 +220,7 @@ export const PlayerSelector = ({
                 {emptyMessage}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </PopoverContent>
       </Popover>
     </div>

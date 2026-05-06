@@ -17,7 +17,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Heart } from "lucide-react";
+import { Heart, UserPlus, Search, Check, ChevronDown } from "lucide-react";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import {
   Dialog,
@@ -36,6 +36,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -61,6 +76,15 @@ interface Player {
   team_name?: string;
 }
 
+interface ClubMember {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  nickname: string | null;
+  email: string;
+  role_label: string;
+}
+
 interface CreateSupporterModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -81,6 +105,11 @@ export const CreateSupporterModal = ({
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"new" | "existing">("new");
+  const [clubMembers, setClubMembers] = useState<ClubMember[]>([]);
+  const [selectedExisting, setSelectedExisting] = useState<ClubMember | null>(null);
+  const [existingPickerOpen, setExistingPickerOpen] = useState(false);
+  const [existingPlayerIds, setExistingPlayerIds] = useState<string[]>([]);
 
   const {
     register,
@@ -98,12 +127,25 @@ export const CreateSupporterModal = ({
   useEffect(() => {
     if (open && clubId) {
       fetchPlayers();
+      fetchClubMembers();
     }
   }, [open, clubId]);
 
   useEffect(() => {
     setValue("playerIds", selectedPlayers);
   }, [selectedPlayers, setValue]);
+
+  useEffect(() => {
+    if (!open) {
+      setActiveTab("new");
+      setSelectedExisting(null);
+      setExistingPlayerIds([]);
+      setSelectedPlayers([]);
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      reset();
+    }
+  }, [open, reset]);
 
   const fetchPlayers = async () => {
     const { data } = await supabase
@@ -126,6 +168,69 @@ export const CreateSupporterModal = ({
       }));
       setPlayers(formattedPlayers);
     }
+  };
+
+  const fetchClubMembers = async () => {
+    // Fetch all profiles of users with a role in this club, who are NOT already supporters
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("user_id, role")
+      .eq("club_id", clubId);
+
+    if (!roles) return;
+
+    const supporterIds = new Set(
+      roles.filter((r: any) => r.role === "supporter").map((r: any) => r.user_id),
+    );
+    const eligible = roles.filter(
+      (r: any) => r.role !== "supporter" && !supporterIds.has(r.user_id),
+    );
+
+    // Deduplicate by user_id, keep highest-priority role for label
+    const labelMap: Record<string, string> = {
+      admin: "Super Admin",
+      club_admin: "Responsable Club",
+      coach: "Coach",
+      player: "Joueur",
+    };
+    const priority: Record<string, number> = {
+      admin: 0, club_admin: 1, coach: 2, player: 3,
+    };
+    const byUser = new Map<string, string>();
+    for (const r of eligible as any[]) {
+      const cur = byUser.get(r.user_id);
+      if (!cur || (priority[r.role] ?? 99) < (priority[cur] ?? 99)) {
+        byUser.set(r.user_id, r.role);
+      }
+    }
+
+    const userIds = Array.from(byUser.keys());
+    if (userIds.length === 0) {
+      setClubMembers([]);
+      return;
+    }
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, nickname, email")
+      .in("id", userIds)
+      .is("deleted_at", null);
+
+    const members: ClubMember[] = (profiles || []).map((p: any) => ({
+      id: p.id,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      nickname: p.nickname,
+      email: p.email,
+      role_label: labelMap[byUser.get(p.id) || ""] || "Membre",
+    }));
+
+    members.sort((a, b) => {
+      const an = `${a.first_name || ""} ${a.last_name || ""}`.trim().toLowerCase();
+      const bn = `${b.first_name || ""} ${b.last_name || ""}`.trim().toLowerCase();
+      return an.localeCompare(bn);
+    });
+    setClubMembers(members);
   };
 
   const handleSelectionChange = (playerIds: string[]) => {
@@ -201,6 +306,44 @@ export const CreateSupporterModal = ({
     }
   };
 
+  const onSubmitExisting = async () => {
+    if (!selectedExisting || existingPlayerIds.length === 0) return;
+    setLoading(true);
+    try {
+      const { data: result, error } = await supabase.functions.invoke("send-invitation", {
+        body: {
+          email: selectedExisting.email,
+          firstName: selectedExisting.first_name || "",
+          lastName: selectedExisting.last_name || "",
+          clubId,
+          intendedRole: "supporter",
+          playerIds: existingPlayerIds,
+        },
+      });
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+
+      toast.success("Rôle supporter ajouté !", {
+        description: `${selectedExisting.first_name || ""} ${selectedExisting.last_name || ""} est maintenant supporter.`,
+      });
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error: unknown) {
+      console.error("Error adding supporter role:", error);
+      const errorInfo = await getEdgeFunctionErrorInfo(error);
+      const errorMessage = errorInfo.message;
+      if (errorMessage.includes("PLAN_LIMIT_SUPPORTERS")) {
+        if (handlePlanLimit({ message: errorMessage }, "supporters_per_team")) { setLoading(false); return; }
+      }
+      await toastInvitationError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const memberDisplayName = (m: ClubMember) =>
+    m.nickname || `${m.first_name || ""} ${m.last_name || ""}`.trim() || m.email;
+
   return (
     <>
     <Dialog open={open} onOpenChange={(isOpen) => {
@@ -210,7 +353,7 @@ export const CreateSupporterModal = ({
         onOpenChange(true);
       }
     }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -220,7 +363,20 @@ export const CreateSupporterModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "new" | "existing")} className="mt-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="new" className="gap-2">
+              <UserPlus className="w-4 h-4" />
+              Nouveau supporter
+            </TabsTrigger>
+            <TabsTrigger value="existing" className="gap-2">
+              <Search className="w-4 h-4" />
+              Membre existant
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="new" className="mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Photo */}
           <UserPhotoUpload
             photoPreview={photoPreview}
@@ -314,6 +470,108 @@ export const CreateSupporterModal = ({
             </Button>
           </div>
         </form>
+          </TabsContent>
+
+          <TabsContent value="existing" className="mt-4">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label>Sélectionner un membre du club</Label>
+                <Popover open={existingPickerOpen} onOpenChange={setExistingPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between"
+                    >
+                      {selectedExisting ? (
+                        <span className="truncate">
+                          {memberDisplayName(selectedExisting)}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            · {selectedExisting.role_label}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Rechercher un membre...</span>
+                      )}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Tapez un nom ou un email..." />
+                      <CommandList>
+                        <CommandEmpty>Aucun membre éligible</CommandEmpty>
+                        <CommandGroup>
+                          {clubMembers.map((m) => (
+                            <CommandItem
+                              key={m.id}
+                              value={`${m.first_name || ""} ${m.last_name || ""} ${m.nickname || ""} ${m.email}`}
+                              onSelect={() => {
+                                setSelectedExisting(m);
+                                setExistingPickerOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedExisting?.id === m.id ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                              <div className="flex flex-col min-w-0">
+                                <span className="truncate">{memberDisplayName(m)}</span>
+                                <span className="text-xs text-muted-foreground truncate">
+                                  {m.role_label} · {m.email}
+                                </span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Coachs, joueurs et responsables du club déjà inscrits, qui n'ont pas encore le rôle supporter.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Joueurs suivis ({existingPlayerIds.length} sélectionné
+                  {existingPlayerIds.length > 1 ? "s" : ""})
+                </Label>
+                <PlayerSelector
+                  players={players}
+                  selectedPlayerIds={existingPlayerIds}
+                  onSelectionChange={setExistingPlayerIds}
+                  placeholder="Rechercher un joueur..."
+                  emptyMessage="Aucun joueur disponible"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCancelConfirmOpen(true)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="button"
+                  onClick={onSubmitExisting}
+                  disabled={loading || !selectedExisting || existingPlayerIds.length === 0}
+                >
+                  {loading ? (
+                    <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  ) : (
+                    "Ajouter le rôle supporter"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
 
