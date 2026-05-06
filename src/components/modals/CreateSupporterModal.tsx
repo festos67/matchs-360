@@ -171,7 +171,6 @@ export const CreateSupporterModal = ({
   };
 
   const fetchClubMembers = async () => {
-  const fetchClubMembers = async () => {
     // Fetch all profiles attached to this club (covers players, coaches, club admins).
     // RLS on user_roles hides 'player' rows from coaches, so we cannot rely on user_roles to list members.
     const { data: profiles } = await supabase
