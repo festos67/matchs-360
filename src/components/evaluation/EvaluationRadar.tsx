@@ -156,15 +156,16 @@ export const EvaluationRadar = ({
             dataKey="score"
             stroke={effectivePrimaryColor}
             fill={effectivePrimaryColor}
-            fillOpacity={isDark ? 0.25 : 0.12}
-            strokeWidth={1.5}
+            fillOpacity={isDark ? 0.32 : 0.18}
+            strokeWidth={2}
             dot={{
-              r: 4,
+              r: 5,
               fill: effectivePrimaryColor,
-              strokeWidth: 0,
+              stroke: isDark ? "hsl(var(--background))" : "white",
+              strokeWidth: 1.5,
             }}
             activeDot={{
-              r: 6,
+              r: 7,
               fill: effectivePrimaryColor,
               stroke: isDark ? "hsl(var(--background))" : "white",
               strokeWidth: 2,
