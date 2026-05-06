@@ -24,7 +24,7 @@
  */
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, ArrowRightLeft, Edit, Heart, Lock, Plus, Printer, Star, Trash2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, ClipboardList, Edit, Heart, Lock, Plus, Printer, Star, Trash2, Users } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -177,6 +177,7 @@ export function PlayerSidebar({
                   >
                     <Plus className="w-4 h-4 text-orange-500 shrink-0" aria-hidden="true" />
                     <span className="flex-1 text-left truncate">Nouveau débrief</span>
+                    <ClipboardList className="w-4 h-4 text-orange-500 shrink-0" aria-hidden="true" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
