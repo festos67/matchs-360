@@ -206,6 +206,7 @@ export const ComparisonRadar = ({
                   r: 3,
                   fill: adapt(dataset.color) || COMPARISON_COLORS[index % COMPARISON_COLORS.length],
                   strokeWidth: 0,
+                  fillOpacity: 0.8,
                 }}
                 isAnimationActive={animated}
                 animationDuration={500}
@@ -226,6 +227,7 @@ export const ComparisonRadar = ({
                   r: 3.75,
                   fill: adapt(currentDataset.color) || effectivePrimary,
                   strokeWidth: 0,
+                  fillOpacity: 0.8,
                 }}
                 activeDot={{
                   r: 7.5,
