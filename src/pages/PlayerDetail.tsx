@@ -89,6 +89,8 @@ export default function PlayerDetail() {
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
   const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
+  const [showSupporterLayer, setShowSupporterLayer] = useState(false);
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newEvalKey, setNewEvalKey] = useState(0);
@@ -314,6 +316,8 @@ export default function PlayerDetail() {
       setSelectedEvaluation(evaluations[0]);
       setIsViewingHistory(false);
       setComparisonIds([]);
+      setShowSelfEvalLayer(false);
+      setShowSupporterLayer(false);
       setSelectedEvalThemes(themes);
       setSearchParams((sp) => { sp.delete("evaluation"); return sp; }, { replace: true });
     }
@@ -359,13 +363,38 @@ export default function PlayerDetail() {
 
   // Print datasets for PrintablePlayerSheet
   const comparisonDatasets = (() => {
-    const datasets: Array<{ label: string; data: ReturnType<typeof calculateRadarData>; color: string }> = [];
+    const datasets: Array<{
+      label: string;
+      data: ReturnType<typeof calculateRadarData>;
+      color: string;
+      themeScores: ThemeScores[];
+    }> = [];
     comparisonIds.forEach((evalId, index) => {
       const evaluation = evaluations.find(e => e.id === evalId);
       if (evaluation && evaluation.id !== selectedEvaluation?.id) {
-        datasets.push({ label: evaluation.name, data: calculateRadarData(getRadarDataFromEvaluation(evaluation)), color: ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"][index % 4] });
+        const ts = getRadarDataFromEvaluation(evaluation);
+        datasets.push({
+          label: evaluation.name,
+          data: calculateRadarData(ts),
+          color: ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"][index % 4],
+          themeScores: ts,
+        });
       }
     });
+    if (showSelfEvalLayer) {
+      const selfEval = evaluations.find(e => e.type === "self" && !e.deleted_at && e.framework_id === frameworkId);
+      if (selfEval && selfEval.id !== selectedEvaluation?.id) {
+        const ts = getRadarDataFromEvaluation(selfEval);
+        datasets.push({ label: "Auto-éval", data: calculateRadarData(ts), color: "#F59E0B", themeScores: ts });
+      }
+    }
+    if (showSupporterLayer && !isPlayerViewingOwnProfile) {
+      const supEval = evaluations.find(e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId);
+      if (supEval && supEval.id !== selectedEvaluation?.id) {
+        const ts = getRadarDataFromEvaluation(supEval);
+        datasets.push({ label: "Supporter", data: calculateRadarData(ts), color: "#F97316", themeScores: ts });
+      }
+    }
     return datasets;
   })();
 
@@ -508,6 +537,10 @@ export default function PlayerDetail() {
             onReturnToCurrent={handleReturnToCurrent}
             onToggleComparison={toggleComparison}
             hideSupporterLayer={isPlayerViewingOwnProfile}
+            showSelfEvalLayer={showSelfEvalLayer}
+            showSupporterLayer={showSupporterLayer}
+            onToggleSelfEvalLayer={setShowSelfEvalLayer}
+            onToggleSupporterLayer={setShowSupporterLayer}
           />
         </TabsContent>
 
