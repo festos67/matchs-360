@@ -167,6 +167,22 @@ export function PlayerSidebar({
         </div>
       </div>
 
+      {/* Attestation de compétences (Coach / Club Admin uniquement) — placée haut pour être visible sans scroll */}
+      {!isPlayerViewingOwnProfile && (canEvaluate || canMutate) && onCreateCertificate && (
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Attestation</p>
+          <Button
+            variant="outline"
+            className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-green-500/50 hover:bg-secondary hover:border-green-500"
+            onClick={onCreateCertificate}
+          >
+            <Plus className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-left truncate">Attestation de compétences</span>
+            <Award className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+
       {/* Débriefs bloc */}
       {!isPlayerViewingOwnProfile && canEvaluate && teamMembership && (
         <div className="bg-card border border-border rounded-xl p-3 mb-3">
@@ -309,22 +325,6 @@ export function PlayerSidebar({
               </AlertDialog>
             )}
           </div>
-        </div>
-      )}
-
-      {/* Attestation de compétences (Coach / Club Admin uniquement) */}
-      {!isPlayerViewingOwnProfile && (canEvaluate || canMutate) && onCreateCertificate && (
-        <div className="bg-card border border-border rounded-xl p-3 mb-3">
-          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Attestation</p>
-          <Button
-            variant="outline"
-            className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-green-500/50 hover:bg-secondary hover:border-green-500"
-            onClick={onCreateCertificate}
-          >
-            <Plus className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-left truncate">Attestation de compétences</span>
-            <Award className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
-          </Button>
         </div>
       )}
 
