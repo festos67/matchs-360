@@ -35,7 +35,8 @@ import {
   UserCircle,
   Heart,
   Plus,
-  Mail
+  Mail,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,6 +91,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: Users, label: "Mon Équipe", path: "/my-team" },
         { icon: Heart, label: "Mes Supporters", path: "/my-supporters" },
         { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
+        { icon: Star, label: "M'auto-débriefer", path: "/player/self-evaluation" },
       ];
     case "supporter":
       return [
