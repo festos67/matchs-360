@@ -205,7 +205,7 @@ export function usePlayerData(playerId: string | undefined) {
       const { data, error } = await supabase
         .from("evaluations")
         .select(`
-          id, name, date, deleted_at, framework_id, type,
+          id, name, date, deleted_at, framework_id, type, evaluator_id,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
