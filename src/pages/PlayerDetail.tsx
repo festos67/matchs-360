@@ -392,7 +392,8 @@ export default function PlayerDetail() {
       const supEval = evaluations.find(e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId);
       if (supEval && supEval.id !== selectedEvaluation?.id) {
         const ts = getRadarDataFromEvaluation(supEval);
-        datasets.push({ label: "Supporter", data: calculateRadarData(ts), color: "#F97316", themeScores: ts });
+        const supLabel = `Supporter${supEval.coach?.first_name ? ` (${supEval.coach.first_name})` : ""}`;
+        datasets.push({ label: supLabel, data: calculateRadarData(ts), color: "#F97316", themeScores: ts });
       }
     }
     return datasets;
