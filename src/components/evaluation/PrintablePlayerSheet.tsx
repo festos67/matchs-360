@@ -202,12 +202,16 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         className="bg-white text-black"
         style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
-        {/* Print page setup: control margins via @page so printers don't add
-            their own (which would clip content) and avoid stray blank pages. */}
+        {/* Print page setup: define real @page margins so EVERY printed page
+            (including those auto-paginated by the browser when content
+            overflows) keeps a safe top/bottom/left/right margin. Without this,
+            printers may clip content on continuation pages. */}
         <style>{`
-          @page { size: A4; margin: 0; }
+          @page { size: A4; margin: 12mm 12mm 12mm 12mm; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
+            .pps-page { padding: 0 !important; }
+            .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
           }
           .pps-page {
             width: 210mm;
