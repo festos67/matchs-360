@@ -307,11 +307,15 @@ export function CompetenceCertificateModal({
                             />
                             <Textarea
                               value={c.definition}
-                              onChange={(e) => updateComp(idx, { definition: e.target.value })}
+                              onChange={(e) => updateComp(idx, { definition: e.target.value.slice(0, 180) })}
                               placeholder="Comportement observé"
                               rows={2}
+                              maxLength={180}
                               className="text-xs"
                             />
+                            <div className="text-[10px] text-muted-foreground text-right">
+                              {c.definition.length}/180
+                            </div>
                           </div>
                           <Button type="button" variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10" onClick={() => removeComp(idx)}>
                             <Trash2 className="w-3.5 h-3.5" />
