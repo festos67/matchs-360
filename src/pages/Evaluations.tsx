@@ -586,6 +586,8 @@ export default function Evaluations() {
             setSecondValue: setCoachAuthor,
             secondOptions: coachAuthorOptions,
             emptyText: "Aucun débrief coach",
+            open: coachOpen,
+            setOpen: setCoachOpen,
           })}
           {renderSection({
             title: "Auto-débriefs joueurs",
@@ -600,6 +602,8 @@ export default function Evaluations() {
             setSecondValue: setSelfPlayer,
             secondOptions: selfPlayerOptions,
             emptyText: "Aucun auto-débrief",
+            open: selfOpen,
+            setOpen: setSelfOpen,
           })}
           {renderSection({
             title: "Débriefs supporters",
@@ -614,6 +618,8 @@ export default function Evaluations() {
             setSecondValue: setSuppAuthor,
             secondOptions: suppAuthorOptions,
             emptyText: "Aucun débrief supporter",
+            open: suppOpen,
+            setOpen: setSuppOpen,
           })}
         </>
       )}
