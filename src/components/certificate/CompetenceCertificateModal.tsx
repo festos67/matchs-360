@@ -34,7 +34,7 @@ import { DEFAULT_COMPETENCES, type DefaultCompetence } from "@/lib/default-compe
 import { PrintableCertificate, type CertificateCompetence } from "./PrintableCertificate";
 import type { ThemeScores } from "@/lib/evaluation-utils";
 
-const MAX_COMPETENCES = 4;
+const MAX_COMPETENCES = 3;
 
 export interface CertificateRadarOption {
   evaluationId: string;
@@ -333,10 +333,14 @@ export function CompetenceCertificateModal({
                 <Textarea
                   id="cert-message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => setMessage(e.target.value.slice(0, 300))}
                   placeholder="Mot personnalisé, encouragement, contexte particulier…"
                   rows={3}
+                  maxLength={300}
                 />
+                <div className="text-[10px] text-muted-foreground text-right">
+                  {message.length}/300
+                </div>
               </div>
 
               {/* Radar */}
