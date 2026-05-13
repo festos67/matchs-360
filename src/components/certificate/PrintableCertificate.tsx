@@ -261,3 +261,51 @@ const RadarLogoSvg = ({ color, size = 42 }: { color: string; size?: number }) =>
     </svg>
   );
 };
+
+/**
+ * Couronne de lauriers — filigrane fin pour fond de diplôme.
+ * Deux branches symétriques composées de feuilles ovales fines, ouvertes en haut.
+ */
+const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }) => {
+  // Génère une branche : suite de feuilles le long d'un arc
+  const buildBranch = (mirror: boolean) => {
+    const cx = 200;
+    const cy = 200;
+    const radius = 150;
+    const leaves: JSX.Element[] = [];
+    // Arc de -150° à -30° (côté gauche), mirroir pour droite
+    const startDeg = mirror ? -30 : 210;
+    const endDeg = mirror ? -150 : 330;
+    const steps = 14;
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const deg = startDeg + (endDeg - startDeg) * t;
+      const rad = (deg * Math.PI) / 180;
+      const x = cx + radius * Math.cos(rad);
+      const y = cy + radius * Math.sin(rad);
+      // orientation : tangente à l'arc, feuilles pointant vers l'extérieur
+      const tangentDeg = deg + (mirror ? -75 : 75);
+      leaves.push(
+        <ellipse
+          key={`${mirror ? "r" : "l"}-${i}`}
+          cx={x} cy={y} rx="14" ry="4.2"
+          fill="none" stroke={color} strokeWidth="1.2"
+          transform={`rotate(${tangentDeg} ${x} ${y})`}
+        />
+      );
+    }
+    return leaves;
+  };
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+      {buildBranch(false)}
+      {buildBranch(true)}
+      {/* nœud en bas */}
+      <path d="M 188 348 Q 200 360 212 348" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M 188 352 Q 200 366 212 352" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="200" y1="356" x2="194" y2="378" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="200" y1="356" x2="206" y2="378" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+};
