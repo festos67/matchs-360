@@ -38,7 +38,7 @@
  *   (mem://technical/framework-snapshot-system)
  * - Calculs de progression : voir mem://features/progression-percentage-logic
  */
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star, ArrowLeft, Pencil, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -86,13 +86,29 @@ export default function PlayerDetail() {
     loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
 
-  // Supporters only see their own supporter debriefs (in addition to coach
-  // debriefs); other supporters' debriefs are hidden everywhere on the page.
-  const evaluations = isSupporterViewer
-    ? rawEvaluations.filter(
-        (e) => e.type !== "supporter" || e.evaluator_id === user?.id
-      )
-    : rawEvaluations;
+  // Supporter visibility rules (privacy with the coach):
+  //  - Only the 2 most recent coach debriefs are visible (older ones hidden)
+  //  - Self-debriefs from the player are never visible
+  //  - Only the supporter's own supporter debriefs are visible
+  const evaluations = useMemo(() => {
+    if (!isSupporterViewer) return rawEvaluations;
+    const recentCoachIds = new Set(
+      rawEvaluations
+        .filter((e) => e.type === "coach" && !e.deleted_at)
+        .sort(
+          (a, b) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
+        .slice(0, 2)
+        .map((e) => e.id)
+    );
+    return rawEvaluations.filter((e) => {
+      if (e.type === "self") return false;
+      if (e.type === "supporter") return e.evaluator_id === user?.id;
+      if (e.type === "coach") return recentCoachIds.has(e.id);
+      return true;
+    });
+  }, [rawEvaluations, isSupporterViewer, user?.id]);
 
   // Local UI state
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
