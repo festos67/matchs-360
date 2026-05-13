@@ -121,7 +121,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             {/* Titre */}
             <div style={{ textAlign: "center", marginBottom: "4mm", marginTop: "5mm" }}>
               <h1 style={{
-                fontSize: "42px", fontWeight: 500, color: accent,
+                fontSize: "48px", fontWeight: 500, color: accent,
                 margin: 0, letterSpacing: "0.01em", fontStyle: "italic",
                 fontFamily: "'Cormorant Garamond', 'Georgia', serif",
               }}>
