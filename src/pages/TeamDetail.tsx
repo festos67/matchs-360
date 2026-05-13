@@ -629,9 +629,15 @@ export default function TeamDetail() {
                         {team.name} • {framework.themes.length} thématique{framework.themes.length > 1 ? "s" : ""} • {totalSkills} compétence{totalSkills > 1 ? "s" : ""}
                       </p>
                     </div>
+                    {isPlayerViewing && (
+                      <Button variant="outline" size="sm" onClick={() => handlePrintFramework()} className="flex-shrink-0">
+                        <Printer className="w-4 h-4 mr-2 text-orange-500" />
+                        Imprimer
+                      </Button>
+                    )}
                   </div>
 
-                  {(canEditFramework || !isSupporterViewing || isPlayerViewing) && (
+                  {!isPlayerViewing && (canEditFramework || !isSupporterViewing) && (
                     <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
                       <div className="flex flex-wrap items-center gap-2">
                         {canEditFramework && (
@@ -640,13 +646,13 @@ export default function TeamDetail() {
                             Modifier
                           </Button>
                         )}
-                        {(!isSupporterViewing || isPlayerViewing) && (
+                        {!isSupporterViewing && (
                           <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
                             <History className="w-4 h-4 mr-2 text-orange-500" />
                             Historique
                           </Button>
                         )}
-                        {(!isSupporterViewing || isPlayerViewing) && (
+                        {!isSupporterViewing && (
                           <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
                             <Printer className="w-4 h-4 mr-2 text-orange-500" />
                             Imprimer
