@@ -426,6 +426,24 @@ export function EvaluationHistory({
               Imprimer
             </Button>
           )}
+          {/* Supporter editing own latest debrief */}
+          {!isCoachType &&
+            !isArchived &&
+            evaluation.type === "supporter" &&
+            onEditSupporterEvaluation &&
+            editableSupporterEvalId === evaluation.id && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditSupporterEvaluation(evaluation);
+                }}
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Modifier
+              </Button>
+            )}
         </div>
       </div>
     );
