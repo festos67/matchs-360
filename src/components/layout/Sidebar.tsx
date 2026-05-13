@@ -35,6 +35,7 @@ import {
   UserCircle,
   Heart,
   Plus,
+  Award,
   Mail,
   Star
 } from "lucide-react";
@@ -46,6 +47,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { Crown } from "lucide-react";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
+import { CertificatePlayerPickerDialog } from "@/components/certificate/CertificatePlayerPickerDialog";
 
 // Navigation items by role
 const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string | null) => {
@@ -114,6 +116,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const { isAdmin, currentRole } = useAuth();
   const { isFree, isTrial } = usePlan();
   const [showCreateEval, setShowCreateEval] = useState(false);
+  const [showCertificatePicker, setShowCertificatePicker] = useState(false);
 
   const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
 
@@ -249,6 +252,24 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           </button>
         )}
 
+        {/* Quick action: Attestation de compétences (coach + club_admin) */}
+        {(currentRole?.role === "coach" || currentRole?.role === "club_admin") && (
+          <button
+            type="button"
+            onClick={() => {
+              onNavigate?.();
+              setShowCertificatePicker(true);
+            }}
+            className="mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium border border-green-500/40 bg-green-500/5 hover:bg-green-500/10 transition-all"
+          >
+            <Plus className="w-4 h-4 text-green-600 shrink-0" />
+            <span className="flex-1 text-left truncate text-foreground">Attestation de compétences</span>
+            <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-green-500/15">
+              <Award className="w-4 h-4 text-green-600" />
+            </span>
+          </button>
+        )}
+
         {/* Quick action: M'auto-débriefer (player) */}
         {currentRole?.role === "player" && (
           <Link
@@ -293,6 +314,12 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         <CreateEvaluationModal
           open={showCreateEval}
           onOpenChange={setShowCreateEval}
+        />
+      )}
+      {(currentRole?.role === "coach" || currentRole?.role === "club_admin") && (
+        <CertificatePlayerPickerDialog
+          open={showCertificatePicker}
+          onOpenChange={setShowCertificatePicker}
         />
       )}
     </>

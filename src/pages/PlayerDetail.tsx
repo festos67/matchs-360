@@ -55,6 +55,7 @@ import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
+import { CompetenceCertificateModal, type CertificateRadarOption } from "@/components/certificate/CompetenceCertificateModal";
 
 import { PlayerSidebar } from "@/components/player/PlayerSidebar";
 import { PlayerEvaluationTab } from "@/components/player/PlayerEvaluationTab";
@@ -78,6 +79,7 @@ export default function PlayerDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedEvalId = searchParams.get("evaluation");
   const requestedNew = searchParams.get("new") === "1";
+  const requestedCertificate = searchParams.get("certificate") === "1";
 
   const {
     player, teamMembership, referentCoach,
@@ -134,6 +136,7 @@ export default function PlayerDetail() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
   const [showRequestSupporterModal, setShowRequestSupporterModal] = useState(false);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
 
   // Refs
   const printRef = useRef<HTMLDivElement>(null);
@@ -286,6 +289,17 @@ export default function PlayerDetail() {
     scrollToSkillsSection();
     setSearchParams((sp) => { sp.delete("new"); return sp; }, { replace: true });
   }, [requestedNew, canEvaluate, scrollToSkillsSection, setSearchParams]);
+
+  // Auto-open certificate modal when arriving with ?certificate=1
+  useEffect(() => {
+    if (!requestedCertificate) return;
+    if (!canEvaluate && !canMutate) {
+      setSearchParams((sp) => { sp.delete("certificate"); return sp; }, { replace: true });
+      return;
+    }
+    setShowCertificateModal(true);
+    setSearchParams((sp) => { sp.delete("certificate"); return sp; }, { replace: true });
+  }, [requestedCertificate, canEvaluate, canMutate, setSearchParams]);
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });
@@ -494,6 +508,7 @@ export default function PlayerDetail() {
           onTransferPlayer={() => setShowMutationModal(true)}
           onManageSupporters={() => setShowSupportersModal(true)}
           onPrint={() => handlePrint()}
+          onCreateCertificate={() => setShowCertificateModal(true)}
         />
 
         {/* Contenu principal */}
@@ -518,6 +533,30 @@ export default function PlayerDetail() {
       {player && (
         <EditPlayerModal open={showEditModal} onOpenChange={setShowEditModal} player={player} onSuccess={refetchAll} />
       )}
+      {player && (() => {
+        const last3Coach = evaluations
+          .filter(e => e.type === "coach" && !e.deleted_at)
+          .slice(0, 3);
+        const radarOptions: CertificateRadarOption[] = last3Coach.map(ev => ({
+          evaluationId: ev.id,
+          label: `${ev.name} — ${new Date(ev.date).toLocaleDateString("fr-FR")}`,
+          themeScores: getRadarDataFromEvaluation(ev, themes),
+        }));
+        const guarantor = `${user?.user_metadata?.first_name || ""} ${user?.user_metadata?.last_name || ""}`.trim()
+          || user?.email || "";
+        return (
+          <CompetenceCertificateModal
+            open={showCertificateModal}
+            onOpenChange={setShowCertificateModal}
+            playerName={playerName}
+            clubName={teamMembership?.team?.club?.name || ""}
+            clubLogoUrl={teamMembership?.team?.club?.logo_url}
+            clubPrimaryColor={teamColor}
+            defaultGuarantorName={guarantor}
+            radarOptions={radarOptions}
+          />
+        );
+      })()}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(newTab) => {
