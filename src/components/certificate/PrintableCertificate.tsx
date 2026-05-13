@@ -93,22 +93,22 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           <div style={{
             position: "absolute", inset: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            pointerEvents: "none", opacity: 0.32, zIndex: 0,
+            pointerEvents: "none", opacity: 0.27, zIndex: 0,
           }}>
             <LaurelWreathSvg color={LAUREL_GOLD} size={760} />
           </div>
 
           {/* Logos — placés directement dans les coins hauts */}
-          <div style={{ position: "absolute", top: "14mm", left: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
-            <RadarLogoSvg color={accent} size={58} />
+          <div style={{ position: "absolute", top: "18mm", left: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
+            <RadarLogoSvg color={accent} size={52} />
             <span style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "0.04em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
               <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: accent }}>360</span>
             </span>
           </div>
-          <div style={{ position: "absolute", top: "14mm", right: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
+          <div style={{ position: "absolute", top: "18mm", right: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
             {clubLogoSrc && (
               <img src={clubLogoSrc} alt={clubName} crossOrigin="anonymous"
-                   style={{ width: "54px", height: "54px", objectFit: "contain" }} />
+                   style={{ width: "49px", height: "49px", objectFit: "contain" }} />
             )}
             <span style={{ fontSize: "13px", fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.16em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
               {clubName}
@@ -156,8 +156,8 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Corps : compétences + radar */}
-            <div style={{ display: "flex", gap: "10mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm" }}>
-              <div style={{ flex: radarData ? "1.3" : "1", display: "flex", flexDirection: "column", minWidth: 0, paddingLeft: 0, paddingRight: "4mm" }}>
+            <div style={{ display: "flex", gap: "6mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm", paddingTop: "4mm", marginLeft: "-6mm" }}>
+              <div style={{ flex: radarData ? "1.7" : "1", display: "flex", flexDirection: "column", minWidth: 0, paddingLeft: 0, paddingRight: "2mm" }}>
                 {competences.length > 0 && (
                   <>
                     <div style={{ fontSize: "11px", fontWeight: 700, color: accent, textTransform: "uppercase", letterSpacing: "0.22em", marginBottom: "10px", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
@@ -171,7 +171,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                               {c.name}
                             </div>
                             {c.definition && (
-                              <div style={{ fontSize: "11px", color: TEXT_MUTED, lineHeight: 1.5, marginTop: "1px" }}>
+                              <div style={{ fontSize: "11px", color: TEXT_MUTED, lineHeight: 1.5, marginTop: "1px", textAlign: "justify" }}>
                                 {c.definition}
                               </div>
                             )}
@@ -189,6 +189,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                     fontSize: "11.5px", color: TEXT_DARK, lineHeight: 1.6,
                     whiteSpace: "pre-wrap", fontStyle: "italic",
                     fontFamily: "'Cormorant Garamond', 'Georgia', serif",
+                    textAlign: "justify",
                   }}>
                     {additionalMessage}
                   </div>
@@ -196,7 +197,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
               </div>
               {radarData && (
                 <div style={{ flex: "1", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
-                  <div style={{ width: "100%", maxWidth: "95mm" }}>
+                  <div style={{ width: "100%", maxWidth: "82mm" }}>
                     <PrintableRadarChart data={radarData} />
                   </div>
                 </div>
@@ -206,7 +207,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           </div>
 
           {/* Date — coin bas droit */}
-          <div style={{ position: "absolute", right: "16mm", bottom: "14mm", textAlign: "right", zIndex: 2 }}>
+          <div style={{ position: "absolute", right: "16mm", bottom: "18mm", textAlign: "right", zIndex: 2 }}>
             <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
               Date
             </div>
@@ -259,45 +260,71 @@ const RadarLogoSvg = ({ color, size = 42 }: { color: string; size?: number }) =>
  * Deux branches symétriques composées de feuilles ovales fines, ouvertes en haut.
  */
 const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }) => {
-  // Génère une branche : suite de feuilles le long d'un arc
+  const cx = 200;
+  const cy = 200;
+  const radius = 150;
+
+  // Feuille de laurier réaliste : forme allongée pointue aux deux extrémités, avec nervure centrale.
+  const Leaf = ({ x, y, angle, length = 22, width = 7, k }: { x: number; y: number; angle: number; length?: number; width?: number; k: string }) => {
+    const half = length / 2;
+    // Path : pointe gauche -> courbe haute -> pointe droite -> courbe basse
+    const d = `M ${-half} 0 Q ${-half * 0.4} ${-width} ${half} 0 Q ${-half * 0.4} ${width} ${-half} 0 Z`;
+    return (
+      <g key={k} transform={`translate(${x} ${y}) rotate(${angle})`}>
+        <path d={d} fill={color} fillOpacity="0.16" stroke={color} strokeOpacity="0.9" strokeWidth="0.9" strokeLinejoin="round" />
+        {/* Nervure centrale */}
+        <line x1={-half * 0.85} y1="0" x2={half * 0.9} y2="0" stroke={color} strokeOpacity="0.7" strokeWidth="0.5" />
+      </g>
+    );
+  };
+
   const buildBranch = (mirror: boolean) => {
-    const cx = 200;
-    const cy = 200;
-    const radius = 150;
     const leaves: JSX.Element[] = [];
-    // Couronne complète : moitié gauche (90→270 CCW) + moitié droite (-90→90)
     const startDeg = mirror ? -90 : 90;
     const endDeg = mirror ? 90 : 270;
-    const steps = 22;
+    const steps = 26;
     for (let i = 0; i < steps; i++) {
       const t = i / (steps - 1);
       const deg = startDeg + (endDeg - startDeg) * t;
       const rad = (deg * Math.PI) / 180;
       const x = cx + radius * Math.cos(rad);
       const y = cy + radius * Math.sin(rad);
-      // orientation : tangente à l'arc, feuilles pointant vers l'extérieur
-      const tangentDeg = deg + (mirror ? -75 : 75);
+      // alternance interne/externe pour densité réaliste
+      const offset = i % 2 === 0 ? 0 : (mirror ? 6 : -6);
+      const ox = offset * Math.cos(rad);
+      const oy = offset * Math.sin(rad);
+      // orientation : feuilles pointant vers l'extérieur, légèrement inclinées
+      const tangentDeg = deg + (mirror ? -68 : 68) + (i % 2 === 0 ? 0 : (mirror ? -6 : 6));
+      const len = 22 + (i % 3 === 0 ? 2 : 0);
       leaves.push(
-        <ellipse
-          key={`${mirror ? "r" : "l"}-${i}`}
-          cx={x} cy={y} rx="16" ry="4.8"
-          fill={color} fillOpacity="0.18" stroke={color} strokeWidth="1.3"
-          transform={`rotate(${tangentDeg} ${x} ${y})`}
-        />
+        <Leaf key={`${mirror ? "r" : "l"}-${i}`} k={`${mirror ? "r" : "l"}-${i}`} x={x + ox} y={y + oy} angle={tangentDeg} length={len} width={6.5} />
       );
     }
     return leaves;
   };
 
+  // Quelques baies (petits cercles) pour l'aspect réaliste
+  const berries: JSX.Element[] = [];
+  for (let i = 0; i < 14; i++) {
+    const deg = 110 + i * 20;
+    const rad = (deg * Math.PI) / 180;
+    const x = cx + (radius - 4) * Math.cos(rad);
+    const y = cy + (radius - 4) * Math.sin(rad);
+    berries.push(
+      <circle key={`b-${i}`} cx={x} cy={y} r="2" fill={color} fillOpacity="0.25" />
+    );
+  }
+
   return (
     <svg width={size} height={size} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
       {buildBranch(false)}
       {buildBranch(true)}
-      {/* nœud en bas */}
-      <path d="M 188 348 Q 200 360 212 348" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M 188 352 Q 200 366 212 352" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
-      <line x1="200" y1="356" x2="194" y2="378" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="200" y1="356" x2="206" y2="378" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+      {berries}
+      {/* Ruban / nœud en bas, fin et élégant */}
+      <path d="M 184 348 Q 200 358 216 348" fill="none" stroke={color} strokeOpacity="0.85" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M 188 352 Q 200 364 212 352" fill="none" stroke={color} strokeOpacity="0.85" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M 196 358 Q 192 372 188 380" fill="none" stroke={color} strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
+      <path d="M 204 358 Q 208 372 212 380" fill="none" stroke={color} strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
     </svg>
   );
 };
