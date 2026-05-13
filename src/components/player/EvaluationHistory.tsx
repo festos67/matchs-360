@@ -100,6 +100,14 @@ interface EvaluationHistoryProps {
   onRefresh: () => void;
   onPrintEvaluation?: (evaluation: Evaluation) => void;
   hideSupporterSection?: boolean;
+  hideSelfSection?: boolean;
+  /**
+   * Si fourni, affiche un bouton "Modifier" sur le dernier débrief supporter
+   * actif dont evaluator_id correspond. Permet à un supporter d'éditer son
+   * propre dernier débrief.
+   */
+  editableSupporterEvaluatorId?: string;
+  onEditSupporterEvaluation?: (evaluation: Evaluation) => void;
 }
 
 // Predefined colors for comparison
@@ -124,6 +132,9 @@ export function EvaluationHistory({
   onRefresh,
   onPrintEvaluation,
   hideSupporterSection = false,
+  hideSelfSection = false,
+  editableSupporterEvaluatorId,
+  onEditSupporterEvaluation,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
 
