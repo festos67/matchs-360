@@ -45,6 +45,7 @@ const SelfEvaluation = lazy(() => import("./pages/player/SelfEvaluation"));
 const SupporterDashboard = lazy(() => import("./pages/supporter/SupporterDashboard"));
 const SupporterDebriefs = lazy(() => import("./pages/supporter/SupporterDebriefs"));
 const SupporterEvaluation = lazy(() => import("./pages/supporter/SupporterEvaluation"));
+const SupporterEditEvaluation = lazy(() => import("./pages/supporter/SupporterEditEvaluation"));
 const Clubs = lazy(() => import("./pages/Clubs"));
 const ClubDetail = lazy(() => import("./pages/ClubDetail"));
 const TeamDetail = lazy(() => import("./pages/TeamDetail"));
@@ -115,6 +116,7 @@ const App = () => (
               <Route path="/supporter/dashboard" element={<ProtectedRoute allowedRoles={['supporter']}><SupporterDashboard /></ProtectedRoute>} />
               <Route path="/supporter/debriefs" element={<ProtectedRoute allowedRoles={['supporter']}><SupporterDebriefs /></ProtectedRoute>} />
               <Route path="/supporter/evaluate/:requestId" element={<ProtectedRoute allowedRoles={['supporter']}><SupporterEvaluation /></ProtectedRoute>} />
+              <Route path="/supporter/edit/:evaluationId" element={<ProtectedRoute allowedRoles={['supporter']}><SupporterEditEvaluation /></ProtectedRoute>} />
 
               {/* Generic protected routes */}
               <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
