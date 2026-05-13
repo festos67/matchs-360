@@ -508,6 +508,7 @@ export default function PlayerDetail() {
           onTransferPlayer={() => setShowMutationModal(true)}
           onManageSupporters={() => setShowSupportersModal(true)}
           onPrint={() => handlePrint()}
+          onCreateCertificate={() => setShowCertificateModal(true)}
         />
 
         {/* Contenu principal */}
