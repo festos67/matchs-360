@@ -93,22 +93,22 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           <div style={{
             position: "absolute", inset: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            pointerEvents: "none", opacity: 0.32, zIndex: 0,
+            pointerEvents: "none", opacity: 0.27, zIndex: 0,
           }}>
             <LaurelWreathSvg color={LAUREL_GOLD} size={760} />
           </div>
 
           {/* Logos — placés directement dans les coins hauts */}
-          <div style={{ position: "absolute", top: "14mm", left: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
-            <RadarLogoSvg color={accent} size={58} />
+          <div style={{ position: "absolute", top: "18mm", left: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
+            <RadarLogoSvg color={accent} size={52} />
             <span style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "0.04em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
               <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: accent }}>360</span>
             </span>
           </div>
-          <div style={{ position: "absolute", top: "14mm", right: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
+          <div style={{ position: "absolute", top: "18mm", right: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
             {clubLogoSrc && (
               <img src={clubLogoSrc} alt={clubName} crossOrigin="anonymous"
-                   style={{ width: "54px", height: "54px", objectFit: "contain" }} />
+                   style={{ width: "49px", height: "49px", objectFit: "contain" }} />
             )}
             <span style={{ fontSize: "13px", fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.16em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
               {clubName}
@@ -156,8 +156,8 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Corps : compétences + radar */}
-            <div style={{ display: "flex", gap: "10mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm" }}>
-              <div style={{ flex: radarData ? "1.3" : "1", display: "flex", flexDirection: "column", minWidth: 0, paddingLeft: 0, paddingRight: "4mm" }}>
+            <div style={{ display: "flex", gap: "6mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm", paddingTop: "4mm", marginLeft: "-6mm" }}>
+              <div style={{ flex: radarData ? "1.7" : "1", display: "flex", flexDirection: "column", minWidth: 0, paddingLeft: 0, paddingRight: "2mm" }}>
                 {competences.length > 0 && (
                   <>
                     <div style={{ fontSize: "11px", fontWeight: 700, color: accent, textTransform: "uppercase", letterSpacing: "0.22em", marginBottom: "10px", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
@@ -171,7 +171,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                               {c.name}
                             </div>
                             {c.definition && (
-                              <div style={{ fontSize: "11px", color: TEXT_MUTED, lineHeight: 1.5, marginTop: "1px" }}>
+                              <div style={{ fontSize: "11px", color: TEXT_MUTED, lineHeight: 1.5, marginTop: "1px", textAlign: "justify" }}>
                                 {c.definition}
                               </div>
                             )}
@@ -189,6 +189,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                     fontSize: "11.5px", color: TEXT_DARK, lineHeight: 1.6,
                     whiteSpace: "pre-wrap", fontStyle: "italic",
                     fontFamily: "'Cormorant Garamond', 'Georgia', serif",
+                    textAlign: "justify",
                   }}>
                     {additionalMessage}
                   </div>
@@ -196,7 +197,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
               </div>
               {radarData && (
                 <div style={{ flex: "1", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
-                  <div style={{ width: "100%", maxWidth: "95mm" }}>
+                  <div style={{ width: "100%", maxWidth: "82mm" }}>
                     <PrintableRadarChart data={radarData} />
                   </div>
                 </div>
@@ -206,7 +207,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           </div>
 
           {/* Date — coin bas droit */}
-          <div style={{ position: "absolute", right: "16mm", bottom: "14mm", textAlign: "right", zIndex: 2 }}>
+          <div style={{ position: "absolute", right: "16mm", bottom: "18mm", textAlign: "right", zIndex: 2 }}>
             <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
               Date
             </div>
