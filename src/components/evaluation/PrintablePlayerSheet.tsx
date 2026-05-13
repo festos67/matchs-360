@@ -365,7 +365,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 24px" }}>
               {radarData.map((item) => (
-                <div key={item.theme}>
+                <div key={item.theme} style={{ breakInside: "avoid", pageBreakInside: "avoid", marginBottom: "6px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "3px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                       <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: item.color }} />
@@ -382,16 +382,18 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                     const cmpItem = cmp.data.find(d => d.theme === item.theme);
                     const cmpScore = cmpItem?.score || 0;
                     return (
-                      <div key={cmp.label} style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
-                        <span style={{ fontSize: "8px", color: cmp.color, fontWeight: 600, minWidth: "52px", flexShrink: 0 }}>
-                          {cmp.label}
-                        </span>
-                        <div style={{ flex: 1, height: "3px", backgroundColor: "#f3f4f6", borderRadius: "999px", overflow: "hidden" }}>
-                          <div style={{ height: "100%", borderRadius: "999px", width: `${(cmpScore / 5) * 100}%`, backgroundColor: cmp.color, opacity: 0.75 }} />
+                      <div key={cmp.label} style={{ marginTop: "4px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2px" }}>
+                          <span style={{ fontSize: "9px", color: cmp.color, fontWeight: 600 }}>
+                            {cmp.label}
+                          </span>
+                          <span style={{ fontSize: "9px", color: "#6b7280" }}>
+                            {cmpScore > 0 ? getScoreLabel(cmpScore) : "—"}
+                          </span>
                         </div>
-                        <span style={{ fontSize: "8px", color: "#6b7280", minWidth: "48px", textAlign: "right", flexShrink: 0 }}>
-                          {cmpScore > 0 ? getScoreLabel(cmpScore) : "—"}
-                        </span>
+                        <div style={{ height: "4px", backgroundColor: "#f3f4f6", borderRadius: "999px", overflow: "hidden" }}>
+                          <div style={{ height: "100%", borderRadius: "999px", width: `${(cmpScore / 5) * 100}%`, backgroundColor: cmp.color, opacity: 0.85 }} />
+                        </div>
                       </div>
                     );
                   })}
