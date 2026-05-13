@@ -95,15 +95,17 @@ export function PlayerSidebar({
 
   return (
     <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:m-3 p-4 lg:h-[calc(100vh-2rem)] lg:sticky lg:top-3 lg:overflow-y-auto custom-scrollbar">
-      {/* Bouton retour */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mb-3 -ml-2 text-[12px] text-muted-foreground"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />Retour
-      </Button>
+      {/* Bouton retour — masqué quand le joueur consulte son propre profil (page de menu) */}
+      {!isPlayerViewingOwnProfile && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-3 -ml-2 text-[12px] text-muted-foreground"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />Retour
+        </Button>
+      )}
 
       {/* Card profil */}
       <div className="bg-card border border-border rounded-2xl p-4 flex flex-col items-center text-center mb-3">
