@@ -17,7 +17,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 
 interface SupporterProfile {
@@ -83,27 +83,28 @@ export default function MySupporters() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {supporters.map((supporter) => (
-              <Card key={supporter.linkId}>
-                <CardContent className="flex items-center gap-4 p-4">
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-display font-semibold">
+                Supporters ({supporters.length})
+              </h2>
+            </div>
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {supporters.map((supporter, index) => (
+                <div
+                  key={supporter.linkId}
+                  className="animate-fade-in-up opacity-0"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
                   <CircleAvatar
                     shape="circle"
                     imageUrl={supporter.photo_url}
                     name={getDisplayName(supporter)}
                     size="md"
                   />
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">
-                      {getDisplayName(supporter)}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {supporter.email}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
