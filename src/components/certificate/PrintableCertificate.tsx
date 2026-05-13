@@ -163,9 +163,9 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                     <div style={{ fontSize: "11px", fontWeight: 700, color: accent, textTransform: "uppercase", letterSpacing: "0.22em", marginBottom: "10px", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                       Compétences observées
                     </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", boxSizing: "border-box" }}>
                       {competences.map((c, i) => (
-                        <div key={i} style={{ width: "100%" }}>
+                        <div key={i} style={{ width: "100%", boxSizing: "border-box" }}>
                           <div style={{ fontSize: "13px", fontWeight: 700, color: TEXT_DARK, fontFamily: "'Outfit', sans-serif" }}>
                             {c.name}
                           </div>
@@ -185,6 +185,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                     paddingTop: "10px",
                     borderTop: `1px solid ${accent}`,
                     width: "100%",
+                    boxSizing: "border-box",
                     fontSize: "11.5px", color: TEXT_DARK, lineHeight: 1.6,
                     whiteSpace: "pre-wrap", fontStyle: "italic",
                     fontFamily: "'Cormorant Garamond', 'Georgia', serif",
