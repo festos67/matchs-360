@@ -81,7 +81,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: Users, label: "Mes Équipes", path: "/teams" },
         { icon: UserCircle, label: "Mes Joueurs", path: "/players" },
         { icon: Heart, label: "Les Supporters", path: "/supporters" },
-        { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
+        { icon: ClipboardList, label: "Débriefs", path: "/evaluations" },
       ];
     case "player":
       return [
