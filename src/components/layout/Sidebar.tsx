@@ -91,7 +91,6 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: Users, label: "Mon Équipe", path: "/my-team" },
         { icon: Heart, label: "Mes Supporters", path: "/my-supporters" },
         { icon: ClipboardList, label: "Mes Débriefs", path: "/evaluations" },
-        { icon: Star, label: "M'auto-débriefer", path: "/player/self-evaluation" },
       ];
     case "supporter":
       return [
@@ -246,6 +245,21 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               <ClipboardList className="w-4 h-4 text-accent" />
             </span>
           </button>
+        )}
+
+        {/* Quick action: M'auto-débriefer (player) */}
+        {currentRole?.role === "player" && (
+          <Link
+            to="/player/self-evaluation"
+            onClick={handleLinkClick}
+            className="mt-4 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium border border-accent/30 bg-accent/5 hover:bg-accent/10 transition-all"
+          >
+            <Plus className="w-4 h-4 text-green-500 shrink-0" />
+            <span className="flex-1 text-left truncate text-foreground">M'auto-débriefer</span>
+            <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15">
+              <Star className="w-4 h-4 text-accent" />
+            </span>
+          </Link>
         )}
       </nav>
 
