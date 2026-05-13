@@ -192,6 +192,9 @@ export function PlayerEvaluationTab({
   const latestCoachEvaluation = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
   const latestSelfEvaluation = evaluations.find(e => e.type === "self" && !e.deleted_at && e.framework_id === frameworkId);
   const latestSupporterEvaluation = evaluations.find(e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId);
+  const supporterLayerLabel = latestSupporterEvaluation
+    ? `Supporter${latestSupporterEvaluation.coach?.first_name ? ` (${latestSupporterEvaluation.coach.first_name})` : ""}`
+    : "Supporter";
   const currentFrameworkCoachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
   const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
   const hasComparisonLayers = comparisonIds.length > 0 || showSelfEvalLayer || showSupporterLayer;
@@ -284,7 +287,7 @@ export function PlayerEvaluationTab({
               {[
                 ...comparisonIds.map((id) => evaluations.find((e) => e.id === id)?.name).filter(Boolean),
                 showSelfEvalLayer && latestSelfEvaluation ? "Auto-éval" : null,
-                showSupporterLayer && latestSupporterEvaluation ? "Supporter" : null,
+                showSupporterLayer && latestSupporterEvaluation ? supporterLayerLabel : null,
               ].filter(Boolean).join(", ")}
             </strong>
           </span>
@@ -314,7 +317,7 @@ export function PlayerEvaluationTab({
                   const sources = [];
                   if (comparisonIds.length > 0) sources.push("Dernier débrief");
                   if (showSelfEvalLayer && latestSelfEvaluation) sources.push("Auto-éval");
-                  if (showSupporterLayer && latestSupporterEvaluation) sources.push("Supporter");
+                  if (showSupporterLayer && latestSupporterEvaluation) sources.push(supporterLayerLabel);
                   return sources.length > 0 ? `Comparaison: ${sources.join(" + ")}` : "Sélectionnez au moins une source";
                 })() : selectedEvaluation ? (() => {
                   // F17: prioriser le titre personnalisé saisi par le coach
@@ -407,7 +410,7 @@ export function PlayerEvaluationTab({
                     const overlayLabel = cmp.evaluation.type === "self"
                       ? "Auto"
                       : cmp.evaluation.type === "supporter"
-                        ? "Supporter"
+                        ? `Supporter${cmp.evaluation.coach?.first_name ? ` (${cmp.evaluation.coach.first_name})` : ""}`
                         : new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
                     return (
                       <div key={cmp.evaluation.id} className="mt-1.5">
@@ -491,7 +494,7 @@ export function PlayerEvaluationTab({
                             const dateLabel = cmp.evaluation.type === "self"
                               ? "Auto"
                               : cmp.evaluation.type === "supporter"
-                                ? "Supporter"
+                                ? `Supporter${cmp.evaluation.coach?.first_name ? ` (${cmp.evaluation.coach.first_name})` : ""}`
                                 : new Date(cmp.evaluation.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" });
                             return (
                               <div key={cmp.evaluation.id} className="flex items-center gap-1.5">
