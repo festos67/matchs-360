@@ -72,6 +72,8 @@ export function CompetenceCertificateModal({
   const [askSaveAfter, setAskSaveAfter] = useState(false);
 
   const [catalogOpen, setCatalogOpen] = useState(false);
+  // true = à ajouter, false = à retirer (compétence déjà présente décochée),
+  // absent = pas de changement
   const [catalogSelection, setCatalogSelection] = useState<Record<string, boolean>>({});
   const catalogScrollRef = useRef<HTMLDivElement>(null);
 
@@ -128,14 +130,21 @@ export function CompetenceCertificateModal({
   };
 
   const handleAddSelected = () => {
-    const picks = DEFAULT_COMPETENCES.filter(c => catalogSelection[c.name]);
-    if (picks.length === 0) {
+    const toRemove = new Set(
+      Object.entries(catalogSelection)
+        .filter(([, v]) => v === false)
+        .map(([k]) => k.toLowerCase())
+    );
+    const toAdd = DEFAULT_COMPETENCES.filter(c => catalogSelection[c.name] === true);
+
+    if (toRemove.size === 0 && toAdd.length === 0) {
       toast.info("Sélectionnez au moins une compétence.");
       return;
     }
     setCompetences(prev => {
-      const next = [...prev];
-      for (const c of picks) {
+      const kept = prev.filter(x => !toRemove.has(x.name.toLowerCase()));
+      const next = [...kept];
+      for (const c of toAdd) {
         if (next.length >= MAX_COMPETENCES) {
           toast.warning(`Maximum ${MAX_COMPETENCES} compétences atteint.`);
           break;
@@ -265,13 +274,20 @@ export function CompetenceCertificateModal({
                           className="h-72 overflow-y-auto overscroll-contain p-2 space-y-1"
                         >
                           {(() => {
-                            const selectedCount = Object.values(catalogSelection).filter(Boolean).length;
-                            const remainingSlots = MAX_COMPETENCES - competences.length - selectedCount;
+                            const committedKept = competences.filter(
+                              x => catalogSelection[x.name] !== false
+                            ).length;
+                            const newPicked = DEFAULT_COMPETENCES.filter(c => {
+                              const already = competences.some(x => x.name.toLowerCase() === c.name.toLowerCase());
+                              return !already && catalogSelection[c.name] === true;
+                            }).length;
+                            const remainingSlots = MAX_COMPETENCES - committedKept - newPicked;
                             return DEFAULT_COMPETENCES.map((c) => {
                               const already = competences.some(x => x.name.toLowerCase() === c.name.toLowerCase());
-                              const checked = !!catalogSelection[c.name];
-                              const capReached = !already && !checked && remainingSlots <= 0;
-                              const disabled = already || capReached;
+                              const sel = catalogSelection[c.name];
+                              const checked = already ? sel !== false : sel === true;
+                              const capReached = !checked && remainingSlots <= 0;
+                              const disabled = capReached;
                               return (
                               <label
                                 key={c.name}
@@ -280,7 +296,19 @@ export function CompetenceCertificateModal({
                                 <Checkbox
                                   checked={checked}
                                   disabled={disabled}
-                                  onCheckedChange={(v) => setCatalogSelection(prev => ({ ...prev, [c.name]: !!v }))}
+                                  onCheckedChange={(v) => setCatalogSelection(prev => {
+                                    const next = { ...prev };
+                                    const isChecked = !!v;
+                                    if (already) {
+                                      // déjà présente : false = à retirer, sinon état neutre
+                                      if (isChecked) delete next[c.name];
+                                      else next[c.name] = false;
+                                    } else {
+                                      if (isChecked) next[c.name] = true;
+                                      else delete next[c.name];
+                                    }
+                                    return next;
+                                  })}
                                   className="mt-0.5"
                                 />
                                 <div className="flex-1 min-w-0">
