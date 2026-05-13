@@ -26,6 +26,7 @@ import {
   UserCog,
   UserCircle,
   Heart,
+  ChevronDown,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -114,6 +115,11 @@ export default function Evaluations() {
   const [suppSearch, setSuppSearch] = useState("");
   const [suppTeam, setSuppTeam] = useState<string>(teamId || "all");
   const [suppAuthor, setSuppAuthor] = useState<string>("all");
+
+  // Collapsible open state per section
+  const [coachOpen, setCoachOpen] = useState(true);
+  const [selfOpen, setSelfOpen] = useState(true);
+  const [suppOpen, setSuppOpen] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -430,14 +436,28 @@ export default function Evaluations() {
     setSecondValue: (v: string) => void;
     secondOptions: [string, string][];
     emptyText: string;
+    open: boolean;
+    setOpen: (v: boolean) => void;
   }) => {
     return (
       <section className="mb-10">
-        <div className="flex items-center gap-2 mb-3">
+        <button
+          type="button"
+          onClick={() => params.setOpen(!params.open)}
+          aria-expanded={params.open}
+          className="w-full flex items-center gap-2 mb-3 group"
+        >
+          <ChevronDown
+            className={`w-5 h-5 text-muted-foreground transition-transform ${
+              params.open ? "" : "-rotate-90"
+            }`}
+          />
           {params.icon}
           <h2 className="text-xl font-display font-semibold">{params.title}</h2>
           <Badge variant="secondary">{params.list.length}</Badge>
-        </div>
+        </button>
+        {params.open && (
+        <>
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -484,6 +504,8 @@ export default function Evaluations() {
           </div>
         ) : (
           <div className="space-y-3">{params.list.map(renderEvalCard)}</div>
+        )}
+        </>
         )}
       </section>
     );
