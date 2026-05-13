@@ -442,6 +442,7 @@ export default function PlayerDetail() {
               return activeCoachEvals.length >= 2 ? activeCoachEvals[1].date : null;
             })()}
             comparisonDatasets={comparisonDatasets}
+            referentCoachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : null}
           />
         )}
         {historyPrintEvaluation && teamMembership && (
@@ -452,6 +453,7 @@ export default function PlayerDetail() {
             team={{ name: teamMembership.team.name }}
             evaluation={historyPrintEvaluation}
             themes={historyPrintThemes.length > 0 ? historyPrintThemes : themes}
+            referentCoachName={referentCoach ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim() : null}
           />
         )}
       </div>

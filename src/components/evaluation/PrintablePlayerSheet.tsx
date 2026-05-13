@@ -46,6 +46,7 @@ interface Evaluation {
   id: string;
   name: string;
   date: string;
+  type?: "coach" | "self" | "supporter";
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -86,6 +87,7 @@ interface PrintablePlayerSheetProps {
   progressionPercent?: number | null;
   previousEvaluationDate?: string | null;
   comparisonDatasets?: ComparisonDatasetForPrint[];
+  referentCoachName?: string | null;
 }
 
 // Bleu primaire de l'interface numérique
@@ -149,7 +151,7 @@ const formatDateFr = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
 export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSheetProps>(
-  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [] }, ref) => {
+  ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [], referentCoachName }, ref) => {
     // Pré-charge les images en base64 pour garantir leur rendu dans les exports PDF
     // (évite les soucis de CORS / tainted canvas avec html2canvas).
     const imageMap = useImagesAsBase64([club.logo_url, player.photo_url]);
@@ -169,6 +171,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
       }
       return evaluation.coach.first_name || evaluation.coach.last_name || "Coach";
     };
+
+    const authorName = getCoachName();
+    const displayedCoachName = referentCoachName?.trim() || authorName;
+    const isConsultative = evaluation.type === "supporter" || evaluation.type === "self";
+    const authorRoleLabel = evaluation.type === "self" ? "le joueur" : evaluation.type === "supporter" ? "un supporter" : null;
 
     const themeScores: ThemeScores[] = themes.map(theme => ({
       theme_id: theme.id,
@@ -335,9 +342,16 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* ── Evaluation info line ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", fontSize: "12px", color: "#6b7280" }}>
             <div>
-              <span style={{ fontWeight: 600, color: "#374151" }}>Coach :</span> {getCoachName()}
+              <span style={{ fontWeight: 600, color: "#374151" }}>Coach :</span> {displayedCoachName}
               {" • "}
               <span style={{ fontWeight: 600, color: "#374151" }}>Date :</span> {evalDate}
+              {isConsultative && (
+                <>
+                  {" • "}
+                  <span style={{ fontWeight: 600, color: "#374151" }}>Débrief réalisé par :</span>{" "}
+                  {authorName}{authorRoleLabel ? ` (${authorRoleLabel})` : ""}
+                </>
+              )}
             </div>
             {periodLabel && (
               <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${BRAND_BLUE}15`, color: BRAND_BLUE, fontWeight: 600, fontSize: "11px" }}>
