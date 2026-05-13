@@ -96,7 +96,7 @@ export function PlayerSidebar({
     .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:mt-5 p-4 lg:h-[calc(100vh-2.5rem)] lg:sticky lg:top-5 lg:overflow-y-auto custom-scrollbar">
+    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:mt-2 p-4 lg:max-h-[calc(100vh-1rem)] lg:sticky lg:top-2 lg:overflow-y-auto custom-scrollbar">
       {/* Bouton retour — masqué quand le joueur consulte son propre profil (page de menu) */}
       {!isPlayerViewingOwnProfile && (
         <Button
@@ -166,22 +166,6 @@ export function PlayerSidebar({
           </div>
         </div>
       </div>
-
-      {/* Attestation de compétences (Coach / Club Admin uniquement) — placée haut pour être visible sans scroll */}
-      {!isPlayerViewingOwnProfile && (canEvaluate || canMutate) && onCreateCertificate && (
-        <div className="bg-card border border-border rounded-xl p-3 mb-3">
-          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Attestation</p>
-          <Button
-            variant="outline"
-            className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-green-500/50 hover:bg-secondary hover:border-green-500"
-            onClick={onCreateCertificate}
-          >
-            <Plus className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-left truncate">Attestation de compétences</span>
-            <Award className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
-          </Button>
-        </div>
-      )}
 
       {/* Débriefs bloc */}
       {!isPlayerViewingOwnProfile && canEvaluate && teamMembership && (
@@ -325,6 +309,22 @@ export function PlayerSidebar({
               </AlertDialog>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Attestation de compétences (Coach / Club Admin uniquement) */}
+      {!isPlayerViewingOwnProfile && (canEvaluate || canMutate) && onCreateCertificate && (
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Attestation</p>
+          <Button
+            variant="outline"
+            className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-green-500/50 hover:bg-secondary hover:border-green-500"
+            onClick={onCreateCertificate}
+          >
+            <Plus className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-left truncate">Attestation de compétences</span>
+            <Award className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
+          </Button>
         </div>
       )}
 
