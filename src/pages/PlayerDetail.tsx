@@ -81,10 +81,18 @@ export default function PlayerDetail() {
 
   const {
     player, teamMembership, referentCoach,
-    frameworkId, frameworkName, themes, evaluations,
+    frameworkId, frameworkName, themes, evaluations: rawEvaluations,
     canEvaluate, canMutate, isAdmin, isPlayerViewingOwnProfile,
     loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
+
+  // Supporters only see their own supporter debriefs (in addition to coach
+  // debriefs); other supporters' debriefs are hidden everywhere on the page.
+  const evaluations = isSupporterViewer
+    ? rawEvaluations.filter(
+        (e) => e.type !== "supporter" || e.evaluator_id === user?.id
+      )
+    : rawEvaluations;
 
   // Local UI state
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
