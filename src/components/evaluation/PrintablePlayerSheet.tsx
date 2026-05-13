@@ -334,38 +334,35 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 12px 0", textTransform: "uppercase", letterSpacing: "0.03em" }}>
               Détail par thématique
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 24px" }}>
               {radarData.map((item) => (
                 <div key={item.theme}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "3px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: item.color }} />
-                      <span style={{ fontSize: "13px", fontWeight: 500, color: "#111827" }}>{item.theme}</span>
+                      <div style={{ width: "7px", height: "7px", borderRadius: "50%", backgroundColor: item.color }} />
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#111827" }}>{item.theme}</span>
                     </div>
-                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "#374151" }}>
+                    <span style={{ fontSize: "12px", fontWeight: "bold", color: "#374151" }}>
                       {item.score > 0 ? getScoreLabel(item.score) : "—"}
                     </span>
                   </div>
-                  <div style={{ height: "6px", backgroundColor: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
+                  <div style={{ height: "5px", backgroundColor: "#e5e7eb", borderRadius: "999px", overflow: "hidden" }}>
                     <div style={{ height: "100%", borderRadius: "999px", width: `${(item.score / 5) * 100}%`, backgroundColor: item.color }} />
                   </div>
                   {comparisonDatasets.map((cmp) => {
                     const cmpItem = cmp.data.find(d => d.theme === item.theme);
                     const cmpScore = cmpItem?.score || 0;
                     return (
-                      <div key={cmp.label} style={{ marginTop: "3px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1px" }}>
-                          <span style={{ fontSize: "9px", color: "#6b7280", display: "flex", alignItems: "center", gap: "3px" }}>
-                            <span style={{ display: "inline-block", width: "8px", height: "2px", backgroundColor: cmp.color }} />
-                            {cmp.label}
-                          </span>
-                          <span style={{ fontSize: "9px", color: "#6b7280" }}>
-                            {cmpScore > 0 ? getScoreLabel(cmpScore) : "—"}
-                          </span>
+                      <div key={cmp.label} style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                        <span style={{ fontSize: "8px", color: cmp.color, fontWeight: 600, minWidth: "52px", flexShrink: 0 }}>
+                          {cmp.label}
+                        </span>
+                        <div style={{ flex: 1, height: "3px", backgroundColor: "#f3f4f6", borderRadius: "999px", overflow: "hidden" }}>
+                          <div style={{ height: "100%", borderRadius: "999px", width: `${(cmpScore / 5) * 100}%`, backgroundColor: cmp.color, opacity: 0.75 }} />
                         </div>
-                        <div style={{ height: "3px", backgroundColor: "#f3f4f6", borderRadius: "999px", overflow: "hidden" }}>
-                          <div style={{ height: "100%", borderRadius: "999px", width: `${(cmpScore / 5) * 100}%`, backgroundColor: cmp.color, opacity: 0.7 }} />
-                        </div>
+                        <span style={{ fontSize: "8px", color: "#6b7280", minWidth: "48px", textAlign: "right", flexShrink: 0 }}>
+                          {cmpScore > 0 ? getScoreLabel(cmpScore) : "—"}
+                        </span>
                       </div>
                     );
                   })}
