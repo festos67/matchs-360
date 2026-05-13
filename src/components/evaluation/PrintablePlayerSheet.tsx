@@ -202,8 +202,30 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         className="bg-white text-black"
         style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
+        {/* Print page setup: control margins via @page so printers don't add
+            their own (which would clip content) and avoid stray blank pages. */}
+        <style>{`
+          @page { size: A4; margin: 0; }
+          @media print {
+            html, body { margin: 0 !important; padding: 0 !important; }
+          }
+          .pps-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 12mm 12mm 10mm 12mm;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+          }
+          .pps-page-fixed {
+            height: 297mm;
+            overflow: hidden;
+            page-break-after: always;
+            break-after: page;
+          }
+        `}</style>
         {/* ===== PAGE 1 ===== */}
-        <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
+        <div className="pps-page pps-page-fixed">
 
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
@@ -379,11 +401,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
         </div>
 
-        {/* Page break */}
-        <div className="break-before-page" />
-
         {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
+        <div className="pps-page">
 
           {/* ── Top brand bar (repeated) ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
