@@ -225,7 +225,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           }
         `}</style>
         {/* ===== PAGE 1 ===== */}
-        <div className="pps-page">
+        <div className="pps-page pps-page-fixed">
 
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
