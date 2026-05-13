@@ -402,11 +402,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
         </div>
 
-        {/* Page break */}
-        <div className="break-before-page" />
-
         {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div style={{ padding: "10mm 10mm 8mm 10mm", minHeight: "297mm", display: "flex", flexDirection: "column" }}>
+        <div className="pps-page">
 
           {/* ── Top brand bar (repeated) ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
