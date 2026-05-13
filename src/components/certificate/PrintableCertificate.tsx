@@ -265,10 +265,10 @@ const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }
     const cy = 200;
     const radius = 150;
     const leaves: JSX.Element[] = [];
-    // Arc de -150° à -30° (côté gauche), mirroir pour droite
-    const startDeg = mirror ? -30 : 210;
-    const endDeg = mirror ? -150 : 330;
-    const steps = 14;
+    // Couronne complète : moitié gauche (90→270 CCW) + moitié droite (-90→90)
+    const startDeg = mirror ? -90 : 90;
+    const endDeg = mirror ? 90 : 270;
+    const steps = 22;
     for (let i = 0; i < steps; i++) {
       const t = i / (steps - 1);
       const deg = startDeg + (endDeg - startDeg) * t;
@@ -280,8 +280,8 @@ const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }
       leaves.push(
         <ellipse
           key={`${mirror ? "r" : "l"}-${i}`}
-          cx={x} cy={y} rx="14" ry="4.2"
-          fill="none" stroke={color} strokeWidth="1.2"
+          cx={x} cy={y} rx="16" ry="4.8"
+          fill={color} fillOpacity="0.18" stroke={color} strokeWidth="1.3"
           transform={`rotate(${tangentDeg} ${x} ${y})`}
         />
       );
