@@ -260,45 +260,71 @@ const RadarLogoSvg = ({ color, size = 42 }: { color: string; size?: number }) =>
  * Deux branches symétriques composées de feuilles ovales fines, ouvertes en haut.
  */
 const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }) => {
-  // Génère une branche : suite de feuilles le long d'un arc
+  const cx = 200;
+  const cy = 200;
+  const radius = 150;
+
+  // Feuille de laurier réaliste : forme allongée pointue aux deux extrémités, avec nervure centrale.
+  const Leaf = ({ x, y, angle, length = 22, width = 7, k }: { x: number; y: number; angle: number; length?: number; width?: number; k: string }) => {
+    const half = length / 2;
+    // Path : pointe gauche -> courbe haute -> pointe droite -> courbe basse
+    const d = `M ${-half} 0 Q ${-half * 0.4} ${-width} ${half} 0 Q ${-half * 0.4} ${width} ${-half} 0 Z`;
+    return (
+      <g key={k} transform={`translate(${x} ${y}) rotate(${angle})`}>
+        <path d={d} fill={color} fillOpacity="0.16" stroke={color} strokeOpacity="0.9" strokeWidth="0.9" strokeLinejoin="round" />
+        {/* Nervure centrale */}
+        <line x1={-half * 0.85} y1="0" x2={half * 0.9} y2="0" stroke={color} strokeOpacity="0.7" strokeWidth="0.5" />
+      </g>
+    );
+  };
+
   const buildBranch = (mirror: boolean) => {
-    const cx = 200;
-    const cy = 200;
-    const radius = 150;
     const leaves: JSX.Element[] = [];
-    // Couronne complète : moitié gauche (90→270 CCW) + moitié droite (-90→90)
     const startDeg = mirror ? -90 : 90;
     const endDeg = mirror ? 90 : 270;
-    const steps = 22;
+    const steps = 26;
     for (let i = 0; i < steps; i++) {
       const t = i / (steps - 1);
       const deg = startDeg + (endDeg - startDeg) * t;
       const rad = (deg * Math.PI) / 180;
       const x = cx + radius * Math.cos(rad);
       const y = cy + radius * Math.sin(rad);
-      // orientation : tangente à l'arc, feuilles pointant vers l'extérieur
-      const tangentDeg = deg + (mirror ? -75 : 75);
+      // alternance interne/externe pour densité réaliste
+      const offset = i % 2 === 0 ? 0 : (mirror ? 6 : -6);
+      const ox = offset * Math.cos(rad);
+      const oy = offset * Math.sin(rad);
+      // orientation : feuilles pointant vers l'extérieur, légèrement inclinées
+      const tangentDeg = deg + (mirror ? -68 : 68) + (i % 2 === 0 ? 0 : (mirror ? -6 : 6));
+      const len = 22 + (i % 3 === 0 ? 2 : 0);
       leaves.push(
-        <ellipse
-          key={`${mirror ? "r" : "l"}-${i}`}
-          cx={x} cy={y} rx="16" ry="4.8"
-          fill={color} fillOpacity="0.18" stroke={color} strokeWidth="1.3"
-          transform={`rotate(${tangentDeg} ${x} ${y})`}
-        />
+        <Leaf key={`${mirror ? "r" : "l"}-${i}`} k={`${mirror ? "r" : "l"}-${i}`} x={x + ox} y={y + oy} angle={tangentDeg} length={len} width={6.5} />
       );
     }
     return leaves;
   };
 
+  // Quelques baies (petits cercles) pour l'aspect réaliste
+  const berries: JSX.Element[] = [];
+  for (let i = 0; i < 14; i++) {
+    const deg = 110 + i * 20;
+    const rad = (deg * Math.PI) / 180;
+    const x = cx + (radius - 4) * Math.cos(rad);
+    const y = cy + (radius - 4) * Math.sin(rad);
+    berries.push(
+      <circle key={`b-${i}`} cx={x} cy={y} r="2" fill={color} fillOpacity="0.25" />
+    );
+  }
+
   return (
     <svg width={size} height={size} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
       {buildBranch(false)}
       {buildBranch(true)}
-      {/* nœud en bas */}
-      <path d="M 188 348 Q 200 360 212 348" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M 188 352 Q 200 366 212 352" fill="none" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
-      <line x1="200" y1="356" x2="194" y2="378" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
-      <line x1="200" y1="356" x2="206" y2="378" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
+      {berries}
+      {/* Ruban / nœud en bas, fin et élégant */}
+      <path d="M 184 348 Q 200 358 216 348" fill="none" stroke={color} strokeOpacity="0.85" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M 188 352 Q 200 364 212 352" fill="none" stroke={color} strokeOpacity="0.85" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M 196 358 Q 192 372 188 380" fill="none" stroke={color} strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
+      <path d="M 204 358 Q 208 372 212 380" fill="none" stroke={color} strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
     </svg>
   );
 };
