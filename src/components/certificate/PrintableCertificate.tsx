@@ -138,7 +138,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Décerné à */}
-            <div style={{ textAlign: "center", marginBottom: "5mm" }}>
+            <div style={{ textAlign: "center", marginBottom: "5mm", marginTop: "6mm" }}>
               <div style={{ fontSize: "11px", color: TEXT_MUTED, marginBottom: "6px", letterSpacing: "0.28em", textTransform: "uppercase", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                 Décernée à
               </div>
@@ -210,7 +210,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
               Date
             </div>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "4px", marginTop: "3px", minWidth: "55mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: TEXT_DARK, paddingTop: "4px", marginTop: "3px", minWidth: "55mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
               {formatDateFr(date)}
             </div>
           </div>
