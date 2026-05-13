@@ -10,7 +10,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
-import { Award, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Award, Plus, Sparkles, Trash2 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
@@ -165,6 +165,16 @@ export function CompetenceCertificateModal({
     setCompetences(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const moveComp = (idx: number, dir: -1 | 1) => {
+    setCompetences(prev => {
+      const next = [...prev];
+      const target = idx + dir;
+      if (target < 0 || target >= next.length) return prev;
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+  };
+
   const validateForm = (): string | null => {
     if (!guarantor.trim()) return "Le nom du garant est obligatoire.";
     return null;
@@ -254,17 +264,22 @@ export function CompetenceCertificateModal({
                           ref={catalogScrollRef}
                           className="h-72 overflow-y-auto overscroll-contain p-2 space-y-1"
                         >
-                          {DEFAULT_COMPETENCES.map((c) => {
-                            const already = competences.some(x => x.name.toLowerCase() === c.name.toLowerCase());
-                            const checked = !!catalogSelection[c.name];
-                            return (
+                          {(() => {
+                            const selectedCount = Object.values(catalogSelection).filter(Boolean).length;
+                            const remainingSlots = MAX_COMPETENCES - competences.length - selectedCount;
+                            return DEFAULT_COMPETENCES.map((c) => {
+                              const already = competences.some(x => x.name.toLowerCase() === c.name.toLowerCase());
+                              const checked = !!catalogSelection[c.name];
+                              const capReached = !already && !checked && remainingSlots <= 0;
+                              const disabled = already || capReached;
+                              return (
                               <label
                                 key={c.name}
-                                className={`flex items-start gap-2 p-2 rounded-md hover:bg-muted cursor-pointer ${already ? "opacity-40 cursor-not-allowed" : ""}`}
+                                className={`flex items-start gap-2 p-2 rounded-md cursor-pointer ${disabled ? "opacity-40 cursor-not-allowed pointer-events-none" : "hover:bg-muted"}`}
                               >
                                 <Checkbox
                                   checked={checked}
-                                  disabled={already}
+                                  disabled={disabled}
                                   onCheckedChange={(v) => setCatalogSelection(prev => ({ ...prev, [c.name]: !!v }))}
                                   className="mt-0.5"
                                 />
@@ -273,8 +288,9 @@ export function CompetenceCertificateModal({
                                   <div className="text-[11px] text-muted-foreground line-clamp-2">{c.definition}</div>
                                 </div>
                               </label>
-                            );
-                          })}
+                              );
+                            });
+                          })()}
                         </div>
                         <div className="border-t p-2 flex justify-end bg-muted/30">
                           <Button type="button" size="sm" onClick={handleAddSelected} className="gap-1.5">
@@ -298,6 +314,20 @@ export function CompetenceCertificateModal({
                     {competences.map((c, idx) => (
                       <div key={idx} className="border rounded-lg p-2.5 bg-card">
                         <div className="flex items-start gap-2">
+                          <div className="flex flex-col gap-0.5 shrink-0">
+                            <Button type="button" variant="ghost" size="icon" className="h-5 w-5"
+                              disabled={idx === 0}
+                              onClick={() => moveComp(idx, -1)}
+                              aria-label="Monter">
+                              <ArrowUp className="w-3 h-3" />
+                            </Button>
+                            <Button type="button" variant="ghost" size="icon" className="h-5 w-5"
+                              disabled={idx === competences.length - 1}
+                              onClick={() => moveComp(idx, 1)}
+                              aria-label="Descendre">
+                              <ArrowDown className="w-3 h-3" />
+                            </Button>
+                          </div>
                           <div className="flex-1 space-y-1.5">
                             <Input
                               value={c.name}
