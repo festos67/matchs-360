@@ -533,6 +533,30 @@ export default function PlayerDetail() {
       {player && (
         <EditPlayerModal open={showEditModal} onOpenChange={setShowEditModal} player={player} onSuccess={refetchAll} />
       )}
+      {player && (() => {
+        const last3Coach = evaluations
+          .filter(e => e.type === "coach" && !e.deleted_at)
+          .slice(0, 3);
+        const radarOptions: CertificateRadarOption[] = last3Coach.map(ev => ({
+          evaluationId: ev.id,
+          label: `${ev.name} — ${new Date(ev.date).toLocaleDateString("fr-FR")}`,
+          themeScores: getRadarDataFromEvaluation(ev, themes),
+        }));
+        const guarantor = `${user?.user_metadata?.first_name || ""} ${user?.user_metadata?.last_name || ""}`.trim()
+          || user?.email || "";
+        return (
+          <CompetenceCertificateModal
+            open={showCertificateModal}
+            onOpenChange={setShowCertificateModal}
+            playerName={playerName}
+            clubName={teamMembership?.team?.club?.name || ""}
+            clubLogoUrl={teamMembership?.team?.club?.logo_url}
+            clubPrimaryColor={teamColor}
+            defaultGuarantorName={guarantor}
+            radarOptions={radarOptions}
+          />
+        );
+      })()}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(newTab) => {
