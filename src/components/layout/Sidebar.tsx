@@ -57,6 +57,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
       { icon: UserCircle, label: "Joueurs", path: "/players" },
       { icon: Heart, label: "Supporters", path: "/supporters" },
       { icon: BookOpen, label: "Référentiels", path: "/frameworks" },
+      { icon: Trophy, label: "Débriefs", path: "/evaluations" },
       { icon: Mail, label: "Invitations", path: "/invitations" },
       { icon: Activity, label: "Statistiques", path: "/stats" },
     ];
