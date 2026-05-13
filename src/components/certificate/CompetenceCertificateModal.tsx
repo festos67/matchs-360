@@ -71,6 +71,10 @@ export function CompetenceCertificateModal({
   const [askEditAfter, setAskEditAfter] = useState(false);
   const [askSaveAfter, setAskSaveAfter] = useState(false);
 
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogSelection, setCatalogSelection] = useState<Record<string, boolean>>({});
+  const catalogScrollRef = useRef<HTMLDivElement>(null);
+
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,6 +125,28 @@ export function CompetenceCertificateModal({
       return;
     }
     setCompetences(prev => [...prev, { ...c }]);
+  };
+
+  const handleAddSelected = () => {
+    const picks = DEFAULT_COMPETENCES.filter(c => catalogSelection[c.name]);
+    if (picks.length === 0) {
+      toast.info("Sélectionnez au moins une compétence.");
+      return;
+    }
+    setCompetences(prev => {
+      const next = [...prev];
+      for (const c of picks) {
+        if (next.length >= MAX_COMPETENCES) {
+          toast.warning(`Maximum ${MAX_COMPETENCES} compétences atteint.`);
+          break;
+        }
+        if (next.some(x => x.name.toLowerCase() === c.name.toLowerCase())) continue;
+        next.push({ ...c });
+      }
+      return next;
+    });
+    setCatalogSelection({});
+    setCatalogOpen(false);
   };
 
   const addBlank = () => {
@@ -215,32 +241,51 @@ export function CompetenceCertificateModal({
                     </span>
                   </Label>
                   <div className="flex gap-2">
-                    <Popover>
+                    <Popover open={catalogOpen} onOpenChange={(v) => {
+                      setCatalogOpen(v);
+                      if (v) {
+                        setTimeout(() => {
+                          catalogScrollRef.current?.scrollTo({ top: catalogScrollRef.current.scrollHeight, behavior: "smooth" });
+                        }, 150);
+                      }
+                    }}>
                       <PopoverTrigger asChild>
                         <Button type="button" variant="outline" size="sm" className="gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5" /> Catalogue
+                          <Sparkles className="w-3.5 h-3.5" /> Modèle
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent align="end" className="w-80 p-0">
-                        <ScrollArea className="h-72">
-                          <div className="p-2 space-y-1">
-                            {DEFAULT_COMPETENCES.map((c) => {
-                              const already = competences.some(x => x.name.toLowerCase() === c.name.toLowerCase());
-                              return (
-                                <button
-                                  key={c.name}
-                                  type="button"
-                                  disabled={already || competences.length >= MAX_COMPETENCES}
-                                  onClick={() => addFromCatalog(c)}
-                                  className="w-full text-left p-2 rounded-md hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
+                        <div
+                          ref={catalogScrollRef}
+                          className="h-72 overflow-y-auto overscroll-contain p-2 space-y-1"
+                        >
+                          {DEFAULT_COMPETENCES.map((c) => {
+                            const already = competences.some(x => x.name.toLowerCase() === c.name.toLowerCase());
+                            const checked = !!catalogSelection[c.name];
+                            return (
+                              <label
+                                key={c.name}
+                                className={`flex items-start gap-2 p-2 rounded-md hover:bg-muted cursor-pointer ${already ? "opacity-40 cursor-not-allowed" : ""}`}
+                              >
+                                <Checkbox
+                                  checked={checked}
+                                  disabled={already}
+                                  onCheckedChange={(v) => setCatalogSelection(prev => ({ ...prev, [c.name]: !!v }))}
+                                  className="mt-0.5"
+                                />
+                                <div className="flex-1 min-w-0">
                                   <div className="text-xs font-bold text-primary">{c.name}</div>
                                   <div className="text-[11px] text-muted-foreground line-clamp-2">{c.definition}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </ScrollArea>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                        <div className="border-t p-2 flex justify-end bg-muted/30">
+                          <Button type="button" size="sm" onClick={handleAddSelected} className="gap-1.5">
+                            <Plus className="w-3.5 h-3.5" /> Ajouter
+                          </Button>
+                        </div>
                       </PopoverContent>
                     </Popover>
                     <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={addBlank}>
