@@ -185,25 +185,43 @@ export function SupporterEvaluationForm({
           ? `${profile.first_name} ${profile.last_name}`
           : profile?.first_name || "Supporter");
 
-      // Create evaluation
-      const { data: evaluation, error: evalError } = await supabase
-        .from("evaluations")
-        .insert({
-          player_id: playerId,
-          evaluator_id: user.id,
-          framework_id: frameworkId,
-          name: `Débrief Supporter - ${supporterName}`,
-          type: "supporter" as any,
-        })
-        .select()
-        .single();
+      let evaluationId = existingEvaluationId;
 
-      if (evalError) throw evalError;
+      if (existingEvaluationId) {
+        // Edit mode: replace scores & objectives for the existing evaluation
+        const { error: delScoresErr } = await supabase
+          .from("evaluation_scores")
+          .delete()
+          .eq("evaluation_id", existingEvaluationId);
+        if (delScoresErr) throw delScoresErr;
+
+        const { error: delObjErr } = await supabase
+          .from("evaluation_objectives")
+          .delete()
+          .eq("evaluation_id", existingEvaluationId);
+        if (delObjErr) throw delObjErr;
+      } else {
+        // Create mode
+        const { data: evaluation, error: evalError } = await supabase
+          .from("evaluations")
+          .insert({
+            player_id: playerId,
+            evaluator_id: user.id,
+            framework_id: frameworkId,
+            name: `Débrief Supporter - ${supporterName}`,
+            type: "supporter" as any,
+          })
+          .select()
+          .single();
+
+        if (evalError) throw evalError;
+        evaluationId = evaluation.id;
+      }
 
       // Insert scores
       const scoresData = themes.flatMap((theme) =>
         theme.skills.map((skill) => ({
-          evaluation_id: evaluation.id,
+          evaluation_id: evaluationId!,
           skill_id: skill.id,
           score: scores[skill.id] ?? null,
           is_not_observed: notObserved[skill.id] ?? false,
@@ -221,7 +239,7 @@ export function SupporterEvaluationForm({
       const objectivesData = Object.entries(objectives)
         .filter(([, content]) => content.trim())
         .map(([themeId, content]) => ({
-          evaluation_id: evaluation.id,
+          evaluation_id: evaluationId!,
           theme_id: themeId,
           content: content.trim(),
         }));
@@ -235,13 +253,13 @@ export function SupporterEvaluationForm({
       }
 
       // Update request status if there's a request
-      if (requestId) {
+      if (requestId && !existingEvaluationId) {
         const { error: reqError } = await supabase
           .from("supporter_evaluation_requests")
           .update({
             status: "completed",
             completed_at: new Date().toISOString(),
-            evaluation_id: evaluation.id,
+            evaluation_id: evaluationId,
           })
           .eq("id", requestId);
 
