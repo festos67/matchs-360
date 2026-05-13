@@ -391,9 +391,6 @@ export default function TeamDetail() {
       {!isPlayerViewing && !isSupporterViewing && (
         <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
       )}
-      {isPlayerViewing && (
-        <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate(-1)}><ArrowLeft className="w-4 h-4 mr-2" />Retour</Button>
-      )}
       {isSupporterViewing && (
         <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate("/supporter/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour à mes joueurs</Button>
       )}
