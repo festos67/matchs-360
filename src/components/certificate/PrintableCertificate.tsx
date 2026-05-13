@@ -12,6 +12,8 @@ import { PrintableRadarChart } from "@/components/evaluation/PrintableRadarChart
 import { calculateRadarData, type ThemeScores } from "@/lib/evaluation-utils";
 
 const BRAND_NAVY = "#1E3A8A";
+const BRAND_ORANGE = "#F59E0B";
+const LAUREL_GOLD = "#C9A227";
 const TEXT_DARK = "#0f172a";
 const TEXT_MUTED = "#475569";
 
@@ -91,25 +93,25 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           <div style={{
             position: "absolute", inset: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            pointerEvents: "none", opacity: 0.06,
+            pointerEvents: "none", opacity: 0.22, zIndex: 0,
           }}>
-            <LaurelWreathSvg color={accent} size={520} />
+            <LaurelWreathSvg color={LAUREL_GOLD} size={680} />
           </div>
 
           {/* Contenu principal */}
-          <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "6mm 16mm 8mm" }}>
+          <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", padding: "0 10mm" }}>
             {/* Top bar : Logo MATCHS360 (gauche) + Club (droite) */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6mm" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5mm" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <RadarLogoSvg color={accent} size={64} />
-                <span style={{ fontSize: "26px", fontWeight: 800, letterSpacing: "0.04em", color: accent, fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
-                  MATCHS360
+                <RadarLogoSvg color={accent} size={58} />
+                <span style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "0.04em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
+                  <span style={{ color: accent }}>MATCHS</span><span style={{ color: BRAND_ORANGE }}>360</span>
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 {clubLogoSrc && (
                   <img src={clubLogoSrc} alt={clubName} crossOrigin="anonymous"
-                       style={{ width: "60px", height: "60px", objectFit: "contain" }} />
+                       style={{ width: "54px", height: "54px", objectFit: "contain" }} />
                 )}
                 <span style={{ fontSize: "13px", fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.16em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                   {clubName}
@@ -118,9 +120,9 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Titre */}
-            <div style={{ textAlign: "center", marginBottom: "5mm" }}>
+            <div style={{ textAlign: "center", marginBottom: "4mm" }}>
               <h1 style={{
-                fontSize: "46px", fontWeight: 500, color: accent,
+                fontSize: "42px", fontWeight: 500, color: accent,
                 margin: 0, letterSpacing: "0.01em", fontStyle: "italic",
                 fontFamily: "'Cormorant Garamond', 'Georgia', serif",
               }}>
@@ -128,7 +130,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
               </h1>
               <div style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
-                gap: "10px", marginTop: "6px",
+                gap: "10px", marginTop: "4px",
               }}>
                 <div style={{ width: "60px", height: "1px", background: accent, opacity: 0.5 }} />
                 <div style={{ width: "6px", height: "6px", background: accent, transform: "rotate(45deg)" }} />
@@ -137,23 +139,26 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Décerné à */}
-            <div style={{ textAlign: "center", marginBottom: "6mm" }}>
+            <div style={{ textAlign: "center", marginBottom: "5mm" }}>
               <div style={{ fontSize: "11px", color: TEXT_MUTED, marginBottom: "6px", letterSpacing: "0.28em", textTransform: "uppercase", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                 Décernée à
               </div>
-              <div style={{ fontSize: "34px", fontWeight: 600, color: TEXT_DARK, letterSpacing: "0.02em", fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}>
+              <div style={{ fontSize: "32px", fontWeight: 600, color: TEXT_DARK, letterSpacing: "0.02em", fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}>
                 {playerName}
               </div>
+              <div style={{ fontSize: "12px", color: TEXT_MUTED, marginTop: "4px", fontStyle: "italic", fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}>
+                Garant : {guarantorName}
+              </div>
               {accompanimentPeriod && (
-                <div style={{ fontSize: "12px", color: TEXT_MUTED, marginTop: "4px", fontStyle: "italic" }}>
+                <div style={{ fontSize: "12px", color: TEXT_MUTED, marginTop: "2px", fontStyle: "italic", fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}>
                   Durée d'observation : {accompanimentPeriod}
                 </div>
               )}
             </div>
 
             {/* Corps : compétences + radar */}
-            <div style={{ display: "flex", gap: "14mm", flex: 1, minHeight: 0, alignItems: "stretch" }}>
-              <div style={{ flex: radarData ? "1.3" : "1", display: "flex", flexDirection: "column", minWidth: 0 }}>
+            <div style={{ display: "flex", gap: "10mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm" }}>
+              <div style={{ flex: radarData ? "1.3" : "1", display: "flex", flexDirection: "column", minWidth: 0, paddingLeft: 0, paddingRight: "4mm" }}>
                 {competences.length > 0 && (
                   <>
                     <div style={{ fontSize: "11px", fontWeight: 700, color: accent, textTransform: "uppercase", letterSpacing: "0.22em", marginBottom: "10px", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
@@ -162,9 +167,6 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       {competences.map((c, i) => (
                         <div key={i} style={{ display: "flex", gap: "10px", alignItems: "baseline" }}>
-                          <span style={{ fontSize: "13px", color: accent, fontWeight: 700, fontFamily: "'Outfit', sans-serif", minWidth: "18px" }}>
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: "13px", fontWeight: 700, color: TEXT_DARK, fontFamily: "'Outfit', sans-serif" }}>
                               {c.name}
@@ -182,7 +184,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                 )}
                 {additionalMessage && (
                   <div style={{
-                    marginTop: competences.length > 0 ? "8mm" : 0,
+                    marginTop: competences.length > 0 ? "6mm" : 0,
                     paddingLeft: "14px",
                     borderLeft: `2px solid ${accent}`,
                     fontSize: "11.5px", color: TEXT_DARK, lineHeight: 1.6,
@@ -202,24 +204,15 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
               )}
             </div>
 
-            {/* Pied : garant + date */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "6mm", gap: "20mm" }}>
-              <div>
-                <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
-                  Garant
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "5px", marginTop: "3px", minWidth: "70mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
-                  {guarantorName}
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
-                  Date
-                </div>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "5px", marginTop: "3px", minWidth: "60mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
-                  {formatDateFr(date)}
-                </div>
-              </div>
+          </div>
+
+          {/* Date — coin bas droit */}
+          <div style={{ position: "absolute", right: "16mm", bottom: "14mm", textAlign: "right", zIndex: 2 }}>
+            <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
+              Date
+            </div>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "4px", marginTop: "3px", minWidth: "55mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
+              {formatDateFr(date)}
             </div>
           </div>
         </div>
