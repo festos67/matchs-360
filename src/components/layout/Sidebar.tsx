@@ -155,6 +155,8 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           const isActive = location.pathname === item.path || 
             // "Mon Profil" should be active when viewing own player detail page
             (item.path === "/player/profile" && location.pathname.startsWith("/players/")) ||
+            // Player "Mon Équipe" redirects to /teams/<id>
+            (item.path === "/my-team" && location.pathname.startsWith("/teams/")) ||
             (item.path !== "/dashboard" && 
              item.path !== "/admin/dashboard" && 
              item.path !== "/club/redirect" && 
