@@ -119,7 +119,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", padding: "26mm 10mm 0" }}>
 
             {/* Titre */}
-            <div style={{ textAlign: "center", marginBottom: "4mm" }}>
+            <div style={{ textAlign: "center", marginBottom: "4mm", marginTop: "5mm" }}>
               <h1 style={{
                 fontSize: "42px", fontWeight: 500, color: accent,
                 margin: 0, letterSpacing: "0.01em", fontStyle: "italic",
@@ -206,7 +206,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           </div>
 
           {/* Date — coin bas droit */}
-          <div style={{ position: "absolute", right: "16mm", bottom: "18mm", textAlign: "right", zIndex: 2 }}>
+          <div style={{ position: "absolute", right: "22mm", bottom: "18mm", textAlign: "right", zIndex: 2 }}>
             <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
               Date
             </div>
