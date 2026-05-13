@@ -181,7 +181,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                 )}
                 {additionalMessage && (
                   <div style={{
-                    marginTop: competences.length > 0 ? "6mm" : 0,
+                    marginTop: competences.length > 0 ? "3mm" : 0,
                     paddingTop: "10px",
                     borderTop: `1px solid ${accent}`,
                     width: "100%",
