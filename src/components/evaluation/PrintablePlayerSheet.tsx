@@ -63,6 +63,7 @@ interface ComparisonDatasetForPrint {
   label: string;
   data: Array<{ theme: string; score: number; color: string }>;
   color: string;
+  themeScores?: ThemeScores[];
 }
 
 interface PrintablePlayerSheetProps {
