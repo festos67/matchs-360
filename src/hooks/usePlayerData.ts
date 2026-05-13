@@ -66,6 +66,7 @@ export interface Evaluation {
   deleted_at: string | null;
   framework_id: string;
   type: "coach" | "self" | "supporter";
+  evaluator_id?: string | null;
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
