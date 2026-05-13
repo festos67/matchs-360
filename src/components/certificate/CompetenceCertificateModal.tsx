@@ -165,7 +165,7 @@ export function CompetenceCertificateModal({
     <>
       <Dialog open={open && !showPreview} onOpenChange={(v) => { if (!v) handleClose(); }}>
         <DialogContent
-          className="max-w-2xl max-h-[85vh] flex flex-col p-0"
+          className="max-w-2xl h-[85vh] max-h-[85vh] flex flex-col overflow-hidden p-0"
           onPointerDownOutside={(e) => { e.preventDefault(); if (isDirty) setShowCancelConfirm(true); else handleClose(true); }}
           onEscapeKeyDown={(e) => { e.preventDefault(); if (isDirty) setShowCancelConfirm(true); else handleClose(true); }}
         >
@@ -179,7 +179,7 @@ export function CompetenceCertificateModal({
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 px-6 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 py-4">
             <div className="space-y-5">
               {/* Garant */}
               <div className="space-y-1.5">
@@ -321,7 +321,7 @@ export function CompetenceCertificateModal({
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
 
           <DialogFooter className="px-6 py-3 border-t bg-muted/30">
             <Button type="button" variant="outline" onClick={() => handleClose()}>
