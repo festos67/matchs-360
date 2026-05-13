@@ -170,7 +170,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
                             {c.name}
                           </div>
                           {c.definition && (
-                            <div style={{ fontSize: "11px", color: TEXT_MUTED, lineHeight: 1.5, marginTop: "1px", textAlign: "justify" }}>
+                            <div style={{ fontSize: "11.5px", color: TEXT_MUTED, lineHeight: 1.6, marginTop: "1px", textAlign: "justify", fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}>
                               {c.definition}
                             </div>
                           )}
