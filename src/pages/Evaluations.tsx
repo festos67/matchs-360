@@ -103,6 +103,11 @@ export default function Evaluations() {
     ["admin", "club_admin", "coach"].includes(r.role)
   );
 
+  // A player who is not also coach/admin/club_admin must not see supporter debriefs
+  const isPlayerOnly =
+    roles.length > 0 &&
+    roles.every((r) => r.role === "player");
+
   // Per-section filters
   const [coachSearch, setCoachSearch] = useState("");
   const [coachTeam, setCoachTeam] = useState<string>(teamId || "all");
@@ -605,7 +610,7 @@ export default function Evaluations() {
             open: selfOpen,
             setOpen: setSelfOpen,
           })}
-          {renderSection({
+          {!isPlayerOnly && renderSection({
             title: "Débriefs supporters",
             icon: <Heart className="w-5 h-5 text-pink-500" />,
             list: filteredSupp,
