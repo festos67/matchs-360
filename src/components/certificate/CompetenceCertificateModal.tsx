@@ -179,7 +179,7 @@ export function CompetenceCertificateModal({
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 px-6 py-4">
+          <ScrollArea className="flex-1 min-h-0 px-6 py-4">
             <div className="space-y-5">
               {/* Garant */}
               <div className="space-y-1.5">
@@ -364,7 +364,7 @@ export function CompetenceCertificateModal({
             </DialogTitle>
             <DialogDescription>Vérifiez le rendu avant impression ou enregistrement PDF.</DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 bg-muted/40 p-4">
+          <ScrollArea className="flex-1 min-h-0 bg-muted/40 p-4">
             <div className="mx-auto bg-white shadow-lg" style={{ width: "297mm", transform: "scale(0.6)", transformOrigin: "top center" }}>
               <PrintableCertificate
                 ref={printRef}
