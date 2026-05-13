@@ -34,7 +34,7 @@ import { DEFAULT_COMPETENCES, type DefaultCompetence } from "@/lib/default-compe
 import { PrintableCertificate, type CertificateCompetence } from "./PrintableCertificate";
 import type { ThemeScores } from "@/lib/evaluation-utils";
 
-const MAX_COMPETENCES = 10;
+const MAX_COMPETENCES = 4;
 
 export interface CertificateRadarOption {
   evaluationId: string;
