@@ -79,6 +79,7 @@ export default function PlayerDetail() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedEvalId = searchParams.get("evaluation");
   const requestedNew = searchParams.get("new") === "1";
+  const requestedCertificate = searchParams.get("certificate") === "1";
 
   const {
     player, teamMembership, referentCoach,
@@ -288,6 +289,17 @@ export default function PlayerDetail() {
     scrollToSkillsSection();
     setSearchParams((sp) => { sp.delete("new"); return sp; }, { replace: true });
   }, [requestedNew, canEvaluate, scrollToSkillsSection, setSearchParams]);
+
+  // Auto-open certificate modal when arriving with ?certificate=1
+  useEffect(() => {
+    if (!requestedCertificate) return;
+    if (!canEvaluate && !canMutate) {
+      setSearchParams((sp) => { sp.delete("certificate"); return sp; }, { replace: true });
+      return;
+    }
+    setShowCertificateModal(true);
+    setSearchParams((sp) => { sp.delete("certificate"); return sp; }, { replace: true });
+  }, [requestedCertificate, canEvaluate, canMutate, setSearchParams]);
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });
