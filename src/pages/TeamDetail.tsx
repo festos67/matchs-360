@@ -631,7 +631,7 @@ export default function TeamDetail() {
                     </div>
                   </div>
 
-                  {(canEditFramework || !isSupporterViewing) && (
+                  {(canEditFramework || !isSupporterViewing || isPlayerViewing) && (
                     <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
                       <div className="flex flex-wrap items-center gap-2">
                         {canEditFramework && (
@@ -640,13 +640,13 @@ export default function TeamDetail() {
                             Modifier
                           </Button>
                         )}
-                        {!isSupporterViewing && (
+                        {(!isSupporterViewing || isPlayerViewing) && (
                           <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
                             <History className="w-4 h-4 mr-2 text-orange-500" />
                             Historique
                           </Button>
                         )}
-                        {!isSupporterViewing && (
+                        {(!isSupporterViewing || isPlayerViewing) && (
                           <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
                             <Printer className="w-4 h-4 mr-2 text-orange-500" />
                             Imprimer
