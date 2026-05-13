@@ -48,6 +48,11 @@ interface PlayerEvaluationTabProps {
   showSupporterLayer?: boolean;
   onToggleSelfEvalLayer?: (checked: boolean) => void;
   onToggleSupporterLayer?: (checked: boolean) => void;
+  /**
+   * Quand fourni, active un raccourci "Mon dernier débrief" qui coche le
+   * dernier débrief supporter réalisé par cet utilisateur.
+   */
+  currentUserId?: string;
 }
 
 const COMPARISON_COLORS = ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"];
@@ -71,6 +76,7 @@ export function PlayerEvaluationTab({
   showSupporterLayer: controlledSupporter,
   onToggleSelfEvalLayer,
   onToggleSupporterLayer,
+  currentUserId,
 }: PlayerEvaluationTabProps) {
   const [localSelf, setLocalSelf] = useState(false);
   const [localSupporter, setLocalSupporter] = useState(false);
@@ -197,6 +203,15 @@ export function PlayerEvaluationTab({
     : "Supporter";
   const currentFrameworkCoachEvals = evaluations.filter(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
   const previousCoachEvaluation = currentFrameworkCoachEvals.length >= 2 ? currentFrameworkCoachEvals[1] : null;
+  const myLatestSupporterEvaluation = currentUserId
+    ? evaluations.find(
+        (e) =>
+          e.type === "supporter" &&
+          !e.deleted_at &&
+          e.framework_id === frameworkId &&
+          e.evaluator_id === currentUserId,
+      )
+    : null;
   const hasComparisonLayers = comparisonIds.length > 0 || showSelfEvalLayer || showSupporterLayer;
 
   // Extend comparison overlays with self / supporter layers so they propagate
@@ -346,6 +361,18 @@ export function PlayerEvaluationTab({
                     <Checkbox id="coach-layer" checked={comparisonIds.includes(previousCoachEvaluation.id)} onCheckedChange={() => onToggleComparison(previousCoachEvaluation.id)} />
                     <Label htmlFor="coach-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
                       <ClipboardList className="w-4 h-4 text-orange-500" />Dernier débrief
+                    </Label>
+                  </div>
+                )}
+                {myLatestSupporterEvaluation && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Checkbox
+                      id="my-supporter-layer"
+                      checked={comparisonIds.includes(myLatestSupporterEvaluation.id)}
+                      onCheckedChange={() => onToggleComparison(myLatestSupporterEvaluation.id)}
+                    />
+                    <Label htmlFor="my-supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                      <Heart className="w-4 h-4 text-accent" />Mon dernier débrief
                     </Label>
                   </div>
                 )}
