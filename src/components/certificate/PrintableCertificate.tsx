@@ -12,7 +12,7 @@ import { PrintableRadarChart } from "@/components/evaluation/PrintableRadarChart
 import { calculateRadarData, type ThemeScores } from "@/lib/evaluation-utils";
 
 const BRAND_NAVY = "#1E3A8A";
-const BRAND_ORANGE = "#F59E0B";
+const BRAND_ORANGE = "#E55A2B";
 const LAUREL_GOLD = "#C9A227";
 const TEXT_DARK = "#0f172a";
 const TEXT_MUTED = "#475569";
@@ -105,7 +105,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 <RadarLogoSvg color={accent} size={58} />
                 <span style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "0.04em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
-                  <span style={{ color: accent }}>MATCHS</span><span style={{ color: BRAND_ORANGE }}>360</span>
+                  <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: accent }}>360</span>
                 </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
