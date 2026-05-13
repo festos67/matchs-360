@@ -138,7 +138,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Décerné à */}
-            <div style={{ textAlign: "center", marginBottom: "5mm", marginTop: "6mm" }}>
+            <div style={{ textAlign: "center", marginBottom: "5mm" }}>
               <div style={{ fontSize: "11px", color: TEXT_MUTED, marginBottom: "6px", letterSpacing: "0.28em", textTransform: "uppercase", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                 Décernée à
               </div>
