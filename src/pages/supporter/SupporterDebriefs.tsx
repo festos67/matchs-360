@@ -95,8 +95,15 @@ const SupporterDebriefs = () => {
 
       if (!evals || evals.length === 0) return {};
 
+      // Restreindre les débriefs supporter à ceux du supporter courant :
+      // un supporter ne doit pas voir les débriefs des autres supporters.
+      const filteredEvals = evals.filter(
+        (e) => e.type !== "supporter" || e.evaluator_id === user.id,
+      );
+      if (filteredEvals.length === 0) return {};
+
       // Fetch evaluator names
-      const evaluatorIds = [...new Set(evals.map(e => e.evaluator_id))];
+      const evaluatorIds = [...new Set(filteredEvals.map(e => e.evaluator_id))];
       const { data: profiles } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, nickname")
@@ -111,7 +118,7 @@ const SupporterDebriefs = () => {
       };
 
       const result: Record<string, { supporter: EvalEntry[]; coach: EvalEntry[] }> = {};
-      for (const e of evals) {
+      for (const e of filteredEvals) {
         if (!result[e.player_id]) {
           result[e.player_id] = { supporter: [], coach: [] };
         }
