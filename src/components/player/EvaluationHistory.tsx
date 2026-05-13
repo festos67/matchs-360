@@ -155,6 +155,17 @@ export function EvaluationHistory({
 
   const activeCoachEvaluations = coachEvaluations.filter(e => !e.deleted_at);
 
+  // Latest active supporter eval that the current viewer is allowed to edit
+  // (i.e., authored by them). We expose only the most recent one to avoid
+  // editing historical entries.
+  const editableSupporterEvalId = (() => {
+    if (!editableSupporterEvaluatorId || !onEditSupporterEvaluation) return null;
+    const own = supporterEvaluations
+      .filter(e => !e.deleted_at && e.evaluator_id === editableSupporterEvaluatorId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return own[0]?.id ?? null;
+  })();
+
   // Compute the displayed overall score directly from the evaluation's own
   // scores (skill-level), independent of the current framework themes. This
   // ensures historical evaluations made under a previous framework still show
