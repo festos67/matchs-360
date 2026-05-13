@@ -138,7 +138,8 @@ export function CompetenceCertificateModal({
     const toAdd = DEFAULT_COMPETENCES.filter(c => catalogSelection[c.name] === true);
 
     if (toRemove.size === 0 && toAdd.length === 0) {
-      toast.info("Sélectionnez au moins une compétence.");
+      setCatalogSelection({});
+      setCatalogOpen(false);
       return;
     }
     setCompetences(prev => {
