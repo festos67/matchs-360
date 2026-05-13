@@ -502,10 +502,10 @@ export function EvaluationHistory({
         )}
       </div>
 
-      <Separator className="my-6" />
+      {!hideSelfSection && <Separator className="my-6" />}
 
       {/* Section B: Self Evaluations */}
-      <div>
+      {!hideSelfSection && <div>
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-accent">
             <User className="w-5 h-5" />
@@ -529,7 +529,7 @@ export function EvaluationHistory({
             <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
-      </div>
+      </div>}
 
       {!hideSupporterSection && <Separator className="my-6" />}
 
