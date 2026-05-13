@@ -71,7 +71,8 @@ import type { Evaluation, Theme } from "@/hooks/usePlayerData";
 
 export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading, roles } = useAuth();
+  const { user, loading: authLoading, roles, currentRole } = useAuth();
+  const isSupporterViewer = currentRole?.role === "supporter";
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
