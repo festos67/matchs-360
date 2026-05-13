@@ -59,6 +59,12 @@ interface SupporterEvaluationFormProps {
   hasStarted: boolean;
   onSaved: () => void;
   onUnsavedChangesChange?: (hasUnsaved: boolean) => void;
+  /** If provided, the form is in edit mode and updates the existing evaluation. */
+  existingEvaluationId?: string;
+  initialScores?: Record<string, number | null>;
+  initialNotObserved?: Record<string, boolean>;
+  initialComments?: Record<string, string>;
+  initialObjectives?: Record<string, string>;
 }
 
 export function SupporterEvaluationForm({
@@ -71,6 +77,11 @@ export function SupporterEvaluationForm({
   hasStarted,
   onSaved,
   onUnsavedChangesChange,
+  existingEvaluationId,
+  initialScores,
+  initialNotObserved,
+  initialComments,
+  initialObjectives,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
@@ -83,10 +94,10 @@ export function SupporterEvaluationForm({
   const formSectionRef = useRef<HTMLDivElement>(null);
 
   // State for scores and comments
-  const [scores, setScores] = useState<Record<string, number | null>>({});
-  const [notObserved, setNotObserved] = useState<Record<string, boolean>>({});
-  const [comments, setComments] = useState<Record<string, string>>({});
-  const [objectives, setObjectives] = useState<Record<string, string>>({});
+  const [scores, setScores] = useState<Record<string, number | null>>(initialScores ?? {});
+  const [notObserved, setNotObserved] = useState<Record<string, boolean>>(initialNotObserved ?? {});
+  const [comments, setComments] = useState<Record<string, string>>(initialComments ?? {});
+  const [objectives, setObjectives] = useState<Record<string, string>>(initialObjectives ?? {});
 
   // Handle score change
   const handleScoreChange = (skillId: string, score: number | null) => {
