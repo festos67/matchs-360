@@ -229,7 +229,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           }
         `}</style>
         {/* ===== PAGE 1 ===== */}
-        <div className="pps-page pps-page-fixed">
+        <div
+          className={comparisonDatasets.length >= 2 ? "pps-page" : "pps-page pps-page-fixed"}
+          style={comparisonDatasets.length >= 2 ? { pageBreakAfter: "always", breakAfter: "page" } : undefined}
+        >
 
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
