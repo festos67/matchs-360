@@ -216,9 +216,8 @@ export function EvaluationHistory({
             : "bg-muted/30 hover:bg-muted/50"
         }`}
       >
-        {/* Comparison checkbox - only for coach evaluations */}
-        {isCoachType && (
-          <button
+        {/* Comparison checkbox — disponible pour tous les types de débriefs */}
+        <button
             onClick={(e) => {
               e.stopPropagation();
               if (!isArchived) onToggleComparison(evaluation.id);
@@ -233,8 +232,7 @@ export function EvaluationHistory({
             ) : (
               <Square className={`w-5 h-5 ${isSelected ? "text-muted-foreground/30" : "text-muted-foreground hover:text-foreground"}`} />
             )}
-          </button>
-        )}
+        </button>
 
         <div
           className="flex-1 min-w-0 basis-[12rem] flex items-center gap-3 sm:gap-4 cursor-pointer"
