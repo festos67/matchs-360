@@ -669,7 +669,14 @@ export default function PlayerDetail() {
             onToggleComparison={toggleComparison}
             onRefresh={refetchAll}
             onPrintEvaluation={handlePrintEvaluationFromHistory}
-            hideSupporterSection={isPlayerViewingOwnProfile}
+            hideSupporterSection={isPlayerViewingOwnProfile && !isSupporterViewer}
+            hideSelfSection={isSupporterViewer}
+            editableSupporterEvaluatorId={isSupporterViewer ? user?.id : undefined}
+            onEditSupporterEvaluation={
+              isSupporterViewer
+                ? (evaluation) => navigate(`/supporter/edit/${evaluation.id}`)
+                : undefined
+            }
           />
         </TabsContent>
 
