@@ -96,7 +96,7 @@ export function PlayerSidebar({
   return (
     <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:m-3 p-4 lg:h-[calc(100vh-2rem)] lg:sticky lg:top-3 lg:overflow-y-auto custom-scrollbar">
       {/* Bouton retour — masqué quand le joueur consulte son propre profil (page de menu) */}
-      {!isPlayerViewingOwnProfile && (
+      {!isPlayerViewingOwnProfile ? (
         <Button
           variant="ghost"
           size="sm"
@@ -105,6 +105,9 @@ export function PlayerSidebar({
         >
           <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />Retour
         </Button>
+      ) : (
+        // Spacer pour aligner la card profil avec les onglets de droite
+        <div className="h-12 mb-0" aria-hidden />
       )}
 
       {/* Card profil */}
