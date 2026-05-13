@@ -310,7 +310,7 @@ export function CompetenceCertificateModal({
                             <Textarea
                               value={c.definition}
                               onChange={(e) => updateComp(idx, { definition: e.target.value })}
-                              placeholder="Définition"
+                              placeholder="Comportement observé"
                               rows={2}
                               className="text-xs"
                             />
