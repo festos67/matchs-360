@@ -93,31 +93,30 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
           <div style={{
             position: "absolute", inset: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            pointerEvents: "none", opacity: 0.22, zIndex: 0,
+            pointerEvents: "none", opacity: 0.32, zIndex: 0,
           }}>
-            <LaurelWreathSvg color={LAUREL_GOLD} size={680} />
+            <LaurelWreathSvg color={LAUREL_GOLD} size={760} />
+          </div>
+
+          {/* Logos — placés directement dans les coins hauts */}
+          <div style={{ position: "absolute", top: "14mm", left: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
+            <RadarLogoSvg color={accent} size={58} />
+            <span style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "0.04em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
+              <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: accent }}>360</span>
+            </span>
+          </div>
+          <div style={{ position: "absolute", top: "14mm", right: "16mm", display: "flex", alignItems: "center", gap: "12px", zIndex: 2 }}>
+            {clubLogoSrc && (
+              <img src={clubLogoSrc} alt={clubName} crossOrigin="anonymous"
+                   style={{ width: "54px", height: "54px", objectFit: "contain" }} />
+            )}
+            <span style={{ fontSize: "13px", fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.16em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
+              {clubName}
+            </span>
           </div>
 
           {/* Contenu principal */}
-          <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", padding: "0 10mm" }}>
-            {/* Top bar : Logo MATCHS360 (gauche) + Club (droite) */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "5mm" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <RadarLogoSvg color={accent} size={58} />
-                <span style={{ fontSize: "24px", fontWeight: 800, letterSpacing: "0.04em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
-                  <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: accent }}>360</span>
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                {clubLogoSrc && (
-                  <img src={clubLogoSrc} alt={clubName} crossOrigin="anonymous"
-                       style={{ width: "54px", height: "54px", objectFit: "contain" }} />
-                )}
-                <span style={{ fontSize: "13px", fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.16em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
-                  {clubName}
-                </span>
-              </div>
-            </div>
+          <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", padding: "26mm 10mm 0" }}>
 
             {/* Titre */}
             <div style={{ textAlign: "center", marginBottom: "4mm" }}>
@@ -266,10 +265,10 @@ const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }
     const cy = 200;
     const radius = 150;
     const leaves: JSX.Element[] = [];
-    // Arc de -150° à -30° (côté gauche), mirroir pour droite
-    const startDeg = mirror ? -30 : 210;
-    const endDeg = mirror ? -150 : 330;
-    const steps = 14;
+    // Couronne complète : moitié gauche (90→270 CCW) + moitié droite (-90→90)
+    const startDeg = mirror ? -90 : 90;
+    const endDeg = mirror ? 90 : 270;
+    const steps = 22;
     for (let i = 0; i < steps; i++) {
       const t = i / (steps - 1);
       const deg = startDeg + (endDeg - startDeg) * t;
@@ -281,8 +280,8 @@ const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }
       leaves.push(
         <ellipse
           key={`${mirror ? "r" : "l"}-${i}`}
-          cx={x} cy={y} rx="14" ry="4.2"
-          fill="none" stroke={color} strokeWidth="1.2"
+          cx={x} cy={y} rx="16" ry="4.8"
+          fill={color} fillOpacity="0.18" stroke={color} strokeWidth="1.3"
           transform={`rotate(${tangentDeg} ${x} ${y})`}
         />
       );
