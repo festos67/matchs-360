@@ -55,6 +55,7 @@ import { PlayerMutationModal } from "@/components/modals/PlayerMutationModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
 import { ManageSupportersModal } from "@/components/modals/ManageSupportersModal";
 import { RequestSupporterEvaluationModal } from "@/components/modals/RequestSupporterEvaluationModal";
+import { CompetenceCertificateModal, type CertificateRadarOption } from "@/components/certificate/CompetenceCertificateModal";
 
 import { PlayerSidebar } from "@/components/player/PlayerSidebar";
 import { PlayerEvaluationTab } from "@/components/player/PlayerEvaluationTab";
@@ -134,6 +135,7 @@ export default function PlayerDetail() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSupportersModal, setShowSupportersModal] = useState(false);
   const [showRequestSupporterModal, setShowRequestSupporterModal] = useState(false);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
 
   // Refs
   const printRef = useRef<HTMLDivElement>(null);
