@@ -241,20 +241,17 @@ export function CompetenceCertificateModal({
                     </span>
                   </Label>
                   <div className="flex gap-2">
-                    <Popover open={catalogOpen} onOpenChange={(v) => {
-                      setCatalogOpen(v);
-                      if (v) {
-                        setTimeout(() => {
-                          catalogScrollRef.current?.scrollTo({ top: catalogScrollRef.current.scrollHeight, behavior: "smooth" });
-                        }, 150);
-                      }
-                    }}>
+                    <Popover open={catalogOpen} onOpenChange={setCatalogOpen}>
                       <PopoverTrigger asChild>
                         <Button type="button" variant="outline" size="sm" className="gap-1.5">
                           <Sparkles className="w-3.5 h-3.5" /> Modèle
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent align="end" className="w-80 p-0">
+                      <PopoverContent
+                        align="end"
+                        className="w-80 p-0"
+                        onWheel={(e) => e.stopPropagation()}
+                      >
                         <div
                           ref={catalogScrollRef}
                           className="h-72 overflow-y-auto overscroll-contain p-2 space-y-1"
