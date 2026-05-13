@@ -59,6 +59,12 @@ interface SupporterEvaluationFormProps {
   hasStarted: boolean;
   onSaved: () => void;
   onUnsavedChangesChange?: (hasUnsaved: boolean) => void;
+  /** If provided, the form is in edit mode and updates the existing evaluation. */
+  existingEvaluationId?: string;
+  initialScores?: Record<string, number | null>;
+  initialNotObserved?: Record<string, boolean>;
+  initialComments?: Record<string, string>;
+  initialObjectives?: Record<string, string>;
 }
 
 export function SupporterEvaluationForm({
@@ -71,6 +77,11 @@ export function SupporterEvaluationForm({
   hasStarted,
   onSaved,
   onUnsavedChangesChange,
+  existingEvaluationId,
+  initialScores,
+  initialNotObserved,
+  initialComments,
+  initialObjectives,
 }: SupporterEvaluationFormProps) {
   const { user, profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
@@ -83,10 +94,10 @@ export function SupporterEvaluationForm({
   const formSectionRef = useRef<HTMLDivElement>(null);
 
   // State for scores and comments
-  const [scores, setScores] = useState<Record<string, number | null>>({});
-  const [notObserved, setNotObserved] = useState<Record<string, boolean>>({});
-  const [comments, setComments] = useState<Record<string, string>>({});
-  const [objectives, setObjectives] = useState<Record<string, string>>({});
+  const [scores, setScores] = useState<Record<string, number | null>>(initialScores ?? {});
+  const [notObserved, setNotObserved] = useState<Record<string, boolean>>(initialNotObserved ?? {});
+  const [comments, setComments] = useState<Record<string, string>>(initialComments ?? {});
+  const [objectives, setObjectives] = useState<Record<string, string>>(initialObjectives ?? {});
 
   // Handle score change
   const handleScoreChange = (skillId: string, score: number | null) => {
@@ -174,25 +185,43 @@ export function SupporterEvaluationForm({
           ? `${profile.first_name} ${profile.last_name}`
           : profile?.first_name || "Supporter");
 
-      // Create evaluation
-      const { data: evaluation, error: evalError } = await supabase
-        .from("evaluations")
-        .insert({
-          player_id: playerId,
-          evaluator_id: user.id,
-          framework_id: frameworkId,
-          name: `Débrief Supporter - ${supporterName}`,
-          type: "supporter" as any,
-        })
-        .select()
-        .single();
+      let evaluationId = existingEvaluationId;
 
-      if (evalError) throw evalError;
+      if (existingEvaluationId) {
+        // Edit mode: replace scores & objectives for the existing evaluation
+        const { error: delScoresErr } = await supabase
+          .from("evaluation_scores")
+          .delete()
+          .eq("evaluation_id", existingEvaluationId);
+        if (delScoresErr) throw delScoresErr;
+
+        const { error: delObjErr } = await supabase
+          .from("evaluation_objectives")
+          .delete()
+          .eq("evaluation_id", existingEvaluationId);
+        if (delObjErr) throw delObjErr;
+      } else {
+        // Create mode
+        const { data: evaluation, error: evalError } = await supabase
+          .from("evaluations")
+          .insert({
+            player_id: playerId,
+            evaluator_id: user.id,
+            framework_id: frameworkId,
+            name: `Débrief Supporter - ${supporterName}`,
+            type: "supporter" as any,
+          })
+          .select()
+          .single();
+
+        if (evalError) throw evalError;
+        evaluationId = evaluation.id;
+      }
 
       // Insert scores
       const scoresData = themes.flatMap((theme) =>
         theme.skills.map((skill) => ({
-          evaluation_id: evaluation.id,
+          evaluation_id: evaluationId!,
           skill_id: skill.id,
           score: scores[skill.id] ?? null,
           is_not_observed: notObserved[skill.id] ?? false,
@@ -210,7 +239,7 @@ export function SupporterEvaluationForm({
       const objectivesData = Object.entries(objectives)
         .filter(([, content]) => content.trim())
         .map(([themeId, content]) => ({
-          evaluation_id: evaluation.id,
+          evaluation_id: evaluationId!,
           theme_id: themeId,
           content: content.trim(),
         }));
@@ -224,13 +253,13 @@ export function SupporterEvaluationForm({
       }
 
       // Update request status if there's a request
-      if (requestId) {
+      if (requestId && !existingEvaluationId) {
         const { error: reqError } = await supabase
           .from("supporter_evaluation_requests")
           .update({
             status: "completed",
             completed_at: new Date().toISOString(),
-            evaluation_id: evaluation.id,
+            evaluation_id: evaluationId,
           })
           .eq("id", requestId);
 
@@ -341,11 +370,15 @@ export function SupporterEvaluationForm({
       <AlertDialog open={showConfirmSave} onOpenChange={(o) => !isSaving && setShowConfirmSave(o)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer l'enregistrement</AlertDialogTitle>
+            <AlertDialogTitle>
+              {existingEvaluationId ? "Confirmer la modification" : "Confirmer l'enregistrement"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Souhaitez-vous enregistrer votre débrief sur <strong>{playerName}</strong> ?
-              Une fois enregistré, vos réponses seront transmises au coach et vous
-              ne pourrez plus les modifier.
+              {existingEvaluationId ? (
+                <>Souhaitez-vous mettre à jour votre débrief sur <strong>{playerName}</strong> ? Vos réponses précédentes seront remplacées.</>
+              ) : (
+                <>Souhaitez-vous enregistrer votre débrief sur <strong>{playerName}</strong> ? Une fois enregistré, vos réponses seront transmises au coach.</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

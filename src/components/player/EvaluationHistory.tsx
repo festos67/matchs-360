@@ -60,6 +60,7 @@ interface Evaluation {
   deleted_at: string | null;
   framework_id: string;
   type: "coach" | "self" | "supporter";
+  evaluator_id?: string | null;
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -100,6 +101,14 @@ interface EvaluationHistoryProps {
   onRefresh: () => void;
   onPrintEvaluation?: (evaluation: Evaluation) => void;
   hideSupporterSection?: boolean;
+  hideSelfSection?: boolean;
+  /**
+   * Si fourni, affiche un bouton "Modifier" sur le dernier débrief supporter
+   * actif dont evaluator_id correspond. Permet à un supporter d'éditer son
+   * propre dernier débrief.
+   */
+  editableSupporterEvaluatorId?: string;
+  onEditSupporterEvaluation?: (evaluation: Evaluation) => void;
 }
 
 // Predefined colors for comparison
@@ -124,6 +133,9 @@ export function EvaluationHistory({
   onRefresh,
   onPrintEvaluation,
   hideSupporterSection = false,
+  hideSelfSection = false,
+  editableSupporterEvaluatorId,
+  onEditSupporterEvaluation,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
 
@@ -143,6 +155,17 @@ export function EvaluationHistory({
     : supporterEvaluations.filter(e => !e.deleted_at);
 
   const activeCoachEvaluations = coachEvaluations.filter(e => !e.deleted_at);
+
+  // Latest active supporter eval that the current viewer is allowed to edit
+  // (i.e., authored by them). We expose only the most recent one to avoid
+  // editing historical entries.
+  const editableSupporterEvalId = (() => {
+    if (!editableSupporterEvaluatorId || !onEditSupporterEvaluation) return null;
+    const own = supporterEvaluations
+      .filter(e => !e.deleted_at && e.evaluator_id === editableSupporterEvaluatorId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return own[0]?.id ?? null;
+  })();
 
   // Compute the displayed overall score directly from the evaluation's own
   // scores (skill-level), independent of the current framework themes. This
@@ -403,6 +426,24 @@ export function EvaluationHistory({
               Imprimer
             </Button>
           )}
+          {/* Supporter editing own latest debrief */}
+          {!isCoachType &&
+            !isArchived &&
+            evaluation.type === "supporter" &&
+            onEditSupporterEvaluation &&
+            editableSupporterEvalId === evaluation.id && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditSupporterEvaluation(evaluation);
+                }}
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Modifier
+              </Button>
+            )}
         </div>
       </div>
     );
@@ -461,10 +502,10 @@ export function EvaluationHistory({
         )}
       </div>
 
-      <Separator className="my-6" />
+      {!hideSelfSection && <Separator className="my-6" />}
 
       {/* Section B: Self Evaluations */}
-      <div>
+      {!hideSelfSection && <div>
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center gap-2 text-accent">
             <User className="w-5 h-5" />
@@ -488,7 +529,7 @@ export function EvaluationHistory({
             <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
           </div>
         )}
-      </div>
+      </div>}
 
       {!hideSupporterSection && <Separator className="my-6" />}
 
