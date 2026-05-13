@@ -55,6 +55,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
         style={{ fontFamily: "'Georgia', 'Times New Roman', serif", width: "297mm" }}
       >
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap');
           @page { size: A4 landscape; margin: 0; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
@@ -69,106 +70,132 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             padding: "18mm",
             boxSizing: "border-box",
             position: "relative",
-            background: "#ffffff",
+            background: "#fdfcf8",
+            overflow: "hidden",
           }}
         >
-          {/* Cadre épuré : un seul filet fin */}
+          {/* Cadre double — fin extérieur + très fin intérieur */}
+          <div style={{
+            position: "absolute", inset: "10mm",
+            border: `1.5px solid ${accent}`,
+            pointerEvents: "none",
+          }} />
           <div style={{
             position: "absolute", inset: "12mm",
-            border: `1px solid ${accent}`,
+            border: `0.5px solid ${accent}`,
+            opacity: 0.5,
             pointerEvents: "none",
           }} />
 
+          {/* Lauriers en filigrane — grand, centré, très transparent */}
+          <div style={{
+            position: "absolute", inset: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            pointerEvents: "none", opacity: 0.06,
+          }}>
+            <LaurelWreathSvg color={accent} size={520} />
+          </div>
+
           {/* Contenu principal */}
-          <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "8mm 14mm" }}>
+          <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", padding: "6mm 16mm 8mm" }}>
             {/* Top bar : Logo MATCHS360 (gauche) + Club (droite) */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10mm" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <RadarLogoSvg color={accent} size={42} />
-                <span style={{ fontSize: "18px", fontWeight: 700, letterSpacing: "0.18em", color: accent, fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6mm" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <RadarLogoSvg color={accent} size={64} />
+                <span style={{ fontSize: "26px", fontWeight: 800, letterSpacing: "0.04em", color: accent, fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif", lineHeight: 1 }}>
                   MATCHS360
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                 {clubLogoSrc && (
                   <img src={clubLogoSrc} alt={clubName} crossOrigin="anonymous"
-                       style={{ width: "40px", height: "40px", objectFit: "contain" }} />
+                       style={{ width: "60px", height: "60px", objectFit: "contain" }} />
                 )}
-                <span style={{ fontSize: "12px", fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.14em", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.16em", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                   {clubName}
                 </span>
               </div>
             </div>
 
             {/* Titre */}
-            <div style={{ textAlign: "center", marginBottom: "6mm" }}>
-              <div style={{
-                fontSize: "10px", color: accent, letterSpacing: "0.4em",
-                fontWeight: 600, textTransform: "uppercase", marginBottom: "8px",
-                fontFamily: "'Helvetica Neue', Arial, sans-serif",
-              }}>
-                Attestation
-              </div>
+            <div style={{ textAlign: "center", marginBottom: "5mm" }}>
               <h1 style={{
-                fontSize: "40px", fontWeight: 400, color: accent,
+                fontSize: "46px", fontWeight: 500, color: accent,
                 margin: 0, letterSpacing: "0.01em", fontStyle: "italic",
+                fontFamily: "'Cormorant Garamond', 'Georgia', serif",
               }}>
                 Attestation de compétences
               </h1>
               <div style={{
-                width: "60px", height: "1px", background: accent,
-                margin: "10px auto 0",
-              }} />
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: "10px", marginTop: "6px",
+              }}>
+                <div style={{ width: "60px", height: "1px", background: accent, opacity: 0.5 }} />
+                <div style={{ width: "6px", height: "6px", background: accent, transform: "rotate(45deg)" }} />
+                <div style={{ width: "60px", height: "1px", background: accent, opacity: 0.5 }} />
+              </div>
             </div>
 
             {/* Décerné à */}
-            <div style={{ textAlign: "center", marginBottom: "8mm" }}>
-              <div style={{ fontSize: "11px", color: TEXT_MUTED, marginBottom: "6px", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+            <div style={{ textAlign: "center", marginBottom: "6mm" }}>
+              <div style={{ fontSize: "11px", color: TEXT_MUTED, marginBottom: "6px", letterSpacing: "0.28em", textTransform: "uppercase", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
                 Décernée à
               </div>
-              <div style={{ fontSize: "32px", fontWeight: 700, color: TEXT_DARK, letterSpacing: "0.02em" }}>
+              <div style={{ fontSize: "34px", fontWeight: 600, color: TEXT_DARK, letterSpacing: "0.02em", fontFamily: "'Cormorant Garamond', 'Georgia', serif" }}>
                 {playerName}
               </div>
               {accompanimentPeriod && (
-                <div style={{ fontSize: "12px", color: TEXT_MUTED, marginTop: "6px", fontStyle: "italic" }}>
+                <div style={{ fontSize: "12px", color: TEXT_MUTED, marginTop: "4px", fontStyle: "italic" }}>
                   Durée d'observation : {accompanimentPeriod}
                 </div>
               )}
             </div>
 
             {/* Corps : compétences + radar */}
-            <div style={{ display: "flex", gap: "12mm", flex: 1, minHeight: 0, alignItems: "stretch" }}>
-              <div style={{ flex: radarData ? "1.4" : "1", display: "flex", flexDirection: "column" }}>
-                <div style={{ fontSize: "11px", fontWeight: 600, color: accent, textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: "8px", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-                  Compétences observées
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {competences.map((c, i) => (
-                    <div key={i}>
-                      <span style={{ fontSize: "12px", fontWeight: 700, color: TEXT_DARK }}>
-                        {c.name}
-                      </span>
-                      {c.definition && (
-                        <span style={{ fontSize: "11px", color: "#1f2937", lineHeight: 1.5 }}>
-                          {" — "}{c.definition}
-                        </span>
-                      )}
+            <div style={{ display: "flex", gap: "14mm", flex: 1, minHeight: 0, alignItems: "stretch" }}>
+              <div style={{ flex: radarData ? "1.3" : "1", display: "flex", flexDirection: "column", minWidth: 0 }}>
+                {competences.length > 0 && (
+                  <>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: accent, textTransform: "uppercase", letterSpacing: "0.22em", marginBottom: "10px", fontFamily: "'Outfit', 'Helvetica Neue', Arial, sans-serif" }}>
+                      Compétences observées
                     </div>
-                  ))}
-                </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {competences.map((c, i) => (
+                        <div key={i} style={{ display: "flex", gap: "10px", alignItems: "baseline" }}>
+                          <span style={{ fontSize: "13px", color: accent, fontWeight: 700, fontFamily: "'Outfit', sans-serif", minWidth: "18px" }}>
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: "13px", fontWeight: 700, color: TEXT_DARK, fontFamily: "'Outfit', sans-serif" }}>
+                              {c.name}
+                            </div>
+                            {c.definition && (
+                              <div style={{ fontSize: "11px", color: TEXT_MUTED, lineHeight: 1.5, marginTop: "1px" }}>
+                                {c.definition}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
                 {additionalMessage && (
                   <div style={{
-                    marginTop: "8mm",
-                    fontSize: "11px", color: TEXT_DARK, lineHeight: 1.6,
+                    marginTop: competences.length > 0 ? "8mm" : 0,
+                    paddingLeft: "14px",
+                    borderLeft: `2px solid ${accent}`,
+                    fontSize: "11.5px", color: TEXT_DARK, lineHeight: 1.6,
                     whiteSpace: "pre-wrap", fontStyle: "italic",
+                    fontFamily: "'Cormorant Garamond', 'Georgia', serif",
                   }}>
                     {additionalMessage}
                   </div>
                 )}
               </div>
               {radarData && (
-                <div style={{ flex: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ width: "100%", maxWidth: "90mm" }}>
+                <div style={{ flex: "1", display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
+                  <div style={{ width: "100%", maxWidth: "95mm" }}>
                     <PrintableRadarChart data={radarData} />
                   </div>
                 </div>
@@ -176,20 +203,20 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Pied : garant + date */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "8mm" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: "6mm", gap: "20mm" }}>
               <div>
-                <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.18em", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+                <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
                   Garant
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "4px", marginTop: "3px", minWidth: "70mm" }}>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "5px", marginTop: "3px", minWidth: "70mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
                   {guarantorName}
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.18em", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
+                <div style={{ fontSize: "9px", color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>
                   Date
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "4px", marginTop: "3px", minWidth: "60mm" }}>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: TEXT_DARK, borderTop: `1px solid ${accent}`, paddingTop: "5px", marginTop: "3px", minWidth: "60mm", fontFamily: "'Cormorant Garamond', 'Georgia', serif", fontStyle: "italic" }}>
                   {formatDateFr(date)}
                 </div>
               </div>
