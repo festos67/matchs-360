@@ -605,7 +605,7 @@ export default function TeamDetail() {
           {/* Self-debrief button for players */}
           {isPlayerViewing && framework && (
             <Button
-              onClick={() => navigate("/self-evaluation")}
+              onClick={() => navigate("/player/self-evaluation")}
               className="w-full gap-2 bg-emerald-500 hover:bg-emerald-600 text-white h-11 text-base font-semibold"
             >
               <Star className="w-5 h-5" />
