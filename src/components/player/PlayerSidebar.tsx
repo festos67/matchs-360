@@ -314,7 +314,7 @@ export function PlayerSidebar({
 
       {/* Attestation de compétences (Coach / Club Admin uniquement) */}
       {!isPlayerViewingOwnProfile && (canEvaluate || canMutate) && onCreateCertificate && (
-        <div className="mb-3">
+        <div className="mb-3 px-3">
           <Button
             variant="outline"
             className="w-full gap-2 justify-start h-9 text-[11px] font-semibold px-2.5 text-foreground border-green-500/50 hover:bg-secondary hover:border-green-500"
