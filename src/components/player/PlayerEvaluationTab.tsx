@@ -44,6 +44,10 @@ interface PlayerEvaluationTabProps {
   onReturnToCurrent: () => void;
   onToggleComparison: (id: string) => void;
   hideSupporterLayer?: boolean;
+  showSelfEvalLayer?: boolean;
+  showSupporterLayer?: boolean;
+  onToggleSelfEvalLayer?: (checked: boolean) => void;
+  onToggleSupporterLayer?: (checked: boolean) => void;
 }
 
 const COMPARISON_COLORS = ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"];
@@ -63,9 +67,23 @@ export function PlayerEvaluationTab({
   onReturnToCurrent,
   onToggleComparison,
   hideSupporterLayer = false,
+  showSelfEvalLayer: controlledSelf,
+  showSupporterLayer: controlledSupporter,
+  onToggleSelfEvalLayer,
+  onToggleSupporterLayer,
 }: PlayerEvaluationTabProps) {
-  const [showSelfEvalLayer, setShowSelfEvalLayer] = useState(false);
-  const [showSupporterLayer, setShowSupporterLayer] = useState(false);
+  const [localSelf, setLocalSelf] = useState(false);
+  const [localSupporter, setLocalSupporter] = useState(false);
+  const showSelfEvalLayer = controlledSelf ?? localSelf;
+  const showSupporterLayer = controlledSupporter ?? localSupporter;
+  const setShowSelfEvalLayer = (v: boolean) => {
+    if (onToggleSelfEvalLayer) onToggleSelfEvalLayer(v);
+    else setLocalSelf(v);
+  };
+  const setShowSupporterLayer = (v: boolean) => {
+    if (onToggleSupporterLayer) onToggleSupporterLayer(v);
+    else setLocalSupporter(v);
+  };
 
   const teamColor = teamMembership?.team?.club?.primary_color || "#3B82F6";
 
