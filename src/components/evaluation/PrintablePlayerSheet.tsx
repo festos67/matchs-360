@@ -211,18 +211,17 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           }
           .pps-page {
             width: 210mm;
-            height: 297mm;
+            min-height: 297mm;
             padding: 12mm 12mm 10mm 12mm;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+          }
+          .pps-page-fixed {
+            height: 297mm;
             overflow: hidden;
             page-break-after: always;
             break-after: page;
-          }
-          .pps-page:last-child {
-            page-break-after: auto;
-            break-after: auto;
           }
         `}</style>
         {/* ===== PAGE 1 ===== */}
