@@ -156,7 +156,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             </div>
 
             {/* Corps : compétences + radar */}
-            <div style={{ display: "flex", gap: "6mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm", paddingTop: "10mm", marginLeft: "-6mm" }}>
+            <div style={{ display: "flex", gap: "6mm", flex: 1, minHeight: 0, alignItems: "stretch", paddingBottom: "14mm", paddingTop: "6mm", marginLeft: "-6mm" }}>
               <div style={{ flex: radarData ? "1.7" : "1", display: "flex", flexDirection: "column", minWidth: 0, paddingLeft: 0, paddingRight: "2mm" }}>
                 {competences.length > 0 && (
                   <>
