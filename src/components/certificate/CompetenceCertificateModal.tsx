@@ -167,8 +167,6 @@ export function CompetenceCertificateModal({
 
   const validateForm = (): string | null => {
     if (!guarantor.trim()) return "Le nom du garant est obligatoire.";
-    const cleaned = competences.filter(c => c.name.trim());
-    if (cleaned.length === 0) return "Ajoutez au moins une compétence observée.";
     return null;
   };
 
@@ -235,7 +233,7 @@ export function CompetenceCertificateModal({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>
-                    Compétences observées <span className="text-destructive">*</span>
+                    Compétences observées <span className="text-muted-foreground text-xs">(facultatif)</span>
                     <span className="text-xs text-muted-foreground ml-2">
                       ({competences.length}/{MAX_COMPETENCES})
                     </span>
