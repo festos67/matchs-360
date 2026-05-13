@@ -262,7 +262,7 @@ export function CompetenceCertificateModal({
                     <Popover open={catalogOpen} onOpenChange={setCatalogOpen}>
                       <PopoverTrigger asChild>
                         <Button type="button" variant="outline" size="sm" className="gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5" /> Modèle
+                          <Plus className="w-3.5 h-3.5" /> Modèle
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent
