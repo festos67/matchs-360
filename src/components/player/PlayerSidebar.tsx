@@ -94,7 +94,7 @@ export function PlayerSidebar({
     .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:mt-[1.75rem] p-4 lg:h-[calc(100vh-2.75rem)] lg:sticky lg:top-[1.75rem] lg:overflow-y-auto custom-scrollbar">
+    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:mt-5 p-4 lg:h-[calc(100vh-2.5rem)] lg:sticky lg:top-5 lg:overflow-y-auto custom-scrollbar">
       {/* Bouton retour — masqué quand le joueur consulte son propre profil (page de menu) */}
       {!isPlayerViewingOwnProfile && (
         <Button
