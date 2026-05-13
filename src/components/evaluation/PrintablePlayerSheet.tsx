@@ -462,6 +462,34 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                                 ) : (
                                   <StarDisplay score={scoreData?.score || null} />
                                 )}
+                                {comparisonDatasets.map((cmp) => {
+                                  const cmpTheme = cmp.themeScores?.find(t => t.theme_id === themeScore.theme_id);
+                                  const cmpScoreData = cmpTheme?.skills.find(s => s.skill_id === skill.id);
+                                  if (!cmpScoreData) return null;
+                                  const cmpScore = cmpScoreData.score || 0;
+                                  return (
+                                    <div key={cmp.label} style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "4px", marginTop: "2px" }}>
+                                      <span style={{ fontSize: "8px", color: cmp.color, fontWeight: 600 }}>{cmp.label}</span>
+                                      {cmpScoreData.is_not_observed ? (
+                                        <span style={{ fontSize: "8px", color: "#9ca3af" }}>N/O</span>
+                                      ) : (
+                                        <div style={{ display: "flex", alignItems: "center", gap: "1px" }}>
+                                          {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                              key={star}
+                                              className="w-2.5 h-2.5"
+                                              style={{
+                                                fill: star <= cmpScore ? cmp.color : "transparent",
+                                                color: cmp.color,
+                                                opacity: star <= cmpScore ? 1 : 0.3,
+                                              }}
+                                            />
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </td>
                             </tr>
                           );
