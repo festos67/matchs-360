@@ -370,11 +370,15 @@ export function SupporterEvaluationForm({
       <AlertDialog open={showConfirmSave} onOpenChange={(o) => !isSaving && setShowConfirmSave(o)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer l'enregistrement</AlertDialogTitle>
+            <AlertDialogTitle>
+              {existingEvaluationId ? "Confirmer la modification" : "Confirmer l'enregistrement"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Souhaitez-vous enregistrer votre débrief sur <strong>{playerName}</strong> ?
-              Une fois enregistré, vos réponses seront transmises au coach et vous
-              ne pourrez plus les modifier.
+              {existingEvaluationId ? (
+                <>Souhaitez-vous mettre à jour votre débrief sur <strong>{playerName}</strong> ? Vos réponses précédentes seront remplacées.</>
+              ) : (
+                <>Souhaitez-vous enregistrer votre débrief sur <strong>{playerName}</strong> ? Une fois enregistré, vos réponses seront transmises au coach.</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
