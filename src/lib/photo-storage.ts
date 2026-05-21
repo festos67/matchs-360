@@ -76,3 +76,25 @@ export async function uploadProfilePhoto(
     photo_is_minor: false,
   };
 }
+
+/**
+ * RG7-001 — Wrapper pour les flux staff (Create/Edit modals) qui éditent
+ * un profil EXISTANT. Récupère la birthdate depuis `profiles` puis route
+ * via `uploadProfilePhoto` (mineur → bucket privé). Évite que chaque
+ * modal hardcode le bucket public.
+ *
+ * Si la birthdate ne peut pas être lue (RLS, profil inexistant), on
+ * échoue plutôt que de router par défaut en public — fail-safe mineur.
+ */
+export async function uploadProfilePhotoForExistingUser(
+  userId: string,
+  file: File,
+): Promise<UploadProfilePhotoResult> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("birthdate")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return uploadProfilePhoto(userId, file, data?.birthdate ?? null);
+}
