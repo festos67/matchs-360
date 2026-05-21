@@ -268,6 +268,30 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship } = body;
 
     // ============================================================
+    // BUG-AGE-002 / NB-02 — Routage de l'invitation pour mineur < 15
+    //
+    // Si l'inviteur fournit guardianEmail+guardianRelationship pour un
+    // joueur, c'est que CreatePlayerModal a détecté un mineur < 15 ans
+    // (validé côté modal via requiresParentalConsent — seuil 15, PAS 18).
+    // Dans ce cas :
+    //   - on provisionne quand même le profil enfant (besoin du userId
+    //     pour persister birthdate + créer la guardian_designation)
+    //   - on NE LUI envoie AUCUN email
+    //   - on envoie un magic link / invite au GUARDIAN vers
+    //     `/guardian/consent?minor=<minorId>` pour qu'il consente
+    //
+    // L'activation (is_active=true) reste pilotée par
+    // record-parental-consent — pas ici.
+    // ============================================================
+    const ALLOWED_GUARDIAN_REL = ["mere", "pere", "tuteur_legal", "autre_titulaire"] as const;
+    const isMinorWithGuardian =
+      intendedRole === "player" &&
+      !!guardianEmail &&
+      !!guardianRelationship &&
+      emailRegex.test(guardianEmail) &&
+      (ALLOWED_GUARDIAN_REL as readonly string[]).includes(guardianRelationship);
+
+    // ============================================================
     // F-601 — Strict whitelist of intendedRole.
     // The edge function runs with service_role and bypasses the
     // `guard_privileged_role_grant` trigger on user_roles. We must
@@ -626,7 +650,10 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       let emailDeliveryError: EmailProviderError | null = null;
-      const emailResult = resend ? await resend.emails.send({
+      // BUG-AGE-002 — Pour un mineur < 15, NE PAS envoyer d'email à
+      // l'enfant. L'email part au guardian plus bas (après création de
+      // la guardian_designation).
+      const emailResult = (resend && !isMinorWithGuardian) ? await resend.emails.send({
         from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
@@ -797,6 +824,70 @@ const handler = async (req: Request): Promise<Response> => {
             // Non bloquant pour l'invitation; logue pour audit.
             console.error("guardian_designations insert failed", desigErr);
           }
+        }
+
+        // ====================================================
+        // BUG-AGE-002 — Envoi de l'email d'invitation au GUARDIAN
+        // vers le flux de consentement (/guardian/consent?minor=...).
+        // Gère le cas guardian déjà existant (F-402) sans doublon.
+        // ====================================================
+        try {
+          const guardianRedirect = `${origin}/guardian/consent?minor=${encodeURIComponent(userId)}`;
+
+          const { data: existingGuardian } = await supabaseAdmin
+            .rpc("admin_get_user_by_email", { p_email: guardianEmailNorm })
+            .maybeSingle();
+
+          const linkType: "invite" | "magiclink" = existingGuardian ? "magiclink" : "invite";
+          const { data: gLink, error: gLinkErr } = await supabaseAdmin.auth.admin.generateLink({
+            type: linkType,
+            email: guardianEmailNorm,
+            options: { redirectTo: guardianRedirect },
+          });
+
+          if (gLinkErr || !gLink?.properties?.action_link) {
+            console.error("guardian generateLink failed", { masked: maskEmail(guardianEmailNorm), err: gLinkErr?.message });
+          } else if (resend) {
+            const guardianLink = gLink.properties.action_link;
+            const childName = [firstName, lastName].filter(Boolean).join(" ") || "votre enfant";
+            const gResult = await resend.emails.send({
+              from: getFromEmail(),
+              to: [guardianEmailNorm],
+              subject: `Consentement parental requis — ${escapeHtml(club?.name || "MATCHS360")}`,
+              html: `
+                <!DOCTYPE html>
+                <html><head><meta charset="utf-8"></head>
+                <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:#f4f4f5; margin:0; padding:40px 20px;">
+                  <div style="max-width:480px; margin:0 auto; background:white; border-radius:12px; padding:40px;">
+                    <h1 style="color:#18181b; font-size:24px; text-align:center; margin:0 0 8px;">MATCHS360</h1>
+                    <h2 style="color:#18181b; font-size:18px; margin-top:24px;">Consentement parental requis</h2>
+                    <p style="color:#3f3f46; line-height:1.6;">
+                      Bonjour,<br><br>
+                      <strong>${escapeHtml(childName)}</strong> a été inscrit(e) au club
+                      <strong>${escapeHtml(club?.name || "MATCHS360")}</strong>. En tant que titulaire
+                      de l'autorité parentale, votre consentement est nécessaire (RGPD art. 8) pour
+                      activer son compte.
+                    </p>
+                    <a href="${guardianLink}" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:14px 24px; border-radius:8px; text-align:center; font-weight:600; margin:24px 0;">
+                      Donner mon consentement
+                    </a>
+                    <p style="color:#71717a; font-size:12px;">
+                      Si vous n'êtes pas à l'origine de cette inscription, ignorez simplement cet email.
+                    </p>
+                  </div>
+                </body></html>
+              `,
+            });
+            if (gResult.error) {
+              console.error("guardian email send failed", { masked: maskEmail(guardianEmailNorm), err: gResult.error });
+            } else {
+              console.log("guardian consent email sent", { recipient: maskEmail(guardianEmailNorm), messageId: gResult.data?.id });
+            }
+          } else {
+            console.warn("RESEND non configuré — email guardian non envoyé");
+          }
+        } catch (gErr) {
+          console.error("guardian invitation flow error", (gErr as Error)?.message);
         }
       }
     }
