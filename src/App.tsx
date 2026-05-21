@@ -63,6 +63,7 @@ const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Stats = lazy(() => import("./pages/Stats"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const ProfilesBirthdateBackfill = lazy(() => import("./pages/admin/ProfilesBirthdateBackfill"));
 const ClubUsers = lazy(() => import("./pages/ClubUsers"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const MyTeamRedirect = lazy(() => import("./pages/MyTeamRedirect"));
@@ -96,6 +97,7 @@ const App = () => (
               {/* Admin routes */}
               <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/birthdate-backfill" element={<ProtectedRoute allowedRoles={['admin']}><ProfilesBirthdateBackfill /></ProtectedRoute>} />
 
               {/* Club admin routes */}
               <Route path="/club/redirect" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><ClubRedirectPage /></ProtectedRoute>} />
