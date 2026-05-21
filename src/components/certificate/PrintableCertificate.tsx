@@ -80,6 +80,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             overflow: "hidden",
           }}
         >
+          <MinorWatermark isMinor={isMinor} orientation="landscape" />
           {/* Cadre double — fin extérieur + très fin intérieur */}
           <div style={{
             position: "absolute", inset: "10mm",
