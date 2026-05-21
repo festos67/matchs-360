@@ -447,7 +447,7 @@ export default function Auth() {
             <Button
               type="submit"
               className="w-full h-12 text-base font-medium"
-              disabled={loading}
+              disabled={loading || (!isLogin && !adultSelfDeclared)}
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
