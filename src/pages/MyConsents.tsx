@@ -185,31 +185,29 @@ export default function MyConsents() {
               : "Mineur";
             const revoked = !!c.revoked_at;
             return (
-              <div
-                key={c.id}
-                className="p-4 border rounded-xl flex items-center gap-4"
-              >
-                {revoked ? (
-                  <ShieldOff className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <ShieldCheck className="w-5 h-5 text-primary" />
-                )}
-                <div className="flex-1">
-                  <p className="font-medium">{name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {RELATIONSHIP_LABEL[c.relationship] ?? c.relationship} ·
-                    signé le {new Date(c.signed_at).toLocaleDateString("fr-FR")}
-                    {revoked
-                      ? ` · révoqué le ${new Date(c.revoked_at!).toLocaleDateString("fr-FR")}`
-                      : ""}
-                  </p>
+              <div key={c.id} className="p-4 border rounded-xl space-y-3">
+                <div className="flex items-center gap-4">
+                  {revoked ? (
+                    <ShieldOff className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium">{name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {RELATIONSHIP_LABEL[c.relationship] ?? c.relationship} ·
+                      signé le {new Date(c.signed_at).toLocaleDateString("fr-FR")}
+                      {revoked
+                        ? ` · révoqué le ${new Date(c.revoked_at!).toLocaleDateString("fr-FR")}`
+                        : ""}
+                    </p>
+                  </div>
+                  {!revoked && (
+                    <Button variant="outline" size="sm" onClick={() => revoke(c.id)}>
+                      Révoquer
+                    </Button>
+                  )}
                 </div>
-                {!revoked && (
-                  <Button variant="outline" size="sm" onClick={() => revoke(c.id)}>
-                    Révoquer
-                  </Button>
-                )}
-              </div>
               {!revoked && (
                 <div className="ml-9 mt-2 p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2 flex-1">
@@ -238,6 +236,7 @@ export default function MyConsents() {
                   />
                 </div>
               )}
+              </div>
             );
           })}
         </div>
