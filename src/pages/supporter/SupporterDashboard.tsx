@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
+import { Shield } from "lucide-react";
 
 interface LinkedPlayerEnriched {
   id: string;
@@ -69,6 +70,17 @@ const SupporterDashboard = () => {
   const queryClient = useQueryClient();
   const [requestToDelete, setRequestToDelete] = useState<EvaluationRequest | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Phase 5 — detect titulaire legal (au moins 1 enfant via get_my_children)
+  const { data: myChildren } = useQuery({
+    queryKey: ["my-children-ids", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_children");
+      if (error) return [] as string[];
+      return (data ?? []) as unknown as string[];
+    },
+    enabled: !!user?.id,
+  });
 
   const handleDeleteRequest = async () => {
     if (!requestToDelete) return;
