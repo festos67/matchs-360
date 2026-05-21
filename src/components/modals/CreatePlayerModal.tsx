@@ -599,6 +599,47 @@ export const CreatePlayerModal = ({
                   </p>
                 </div>
 
+                {requiresParentalConsent(watch("birthdate")) && (
+                  <div className="space-y-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <p className="text-sm text-amber-900 dark:text-amber-100">
+                        Ce joueur a moins de {PARENTAL_CONSENT_AGE_YEARS} ans.
+                        Une demande de consentement sera envoyée à son représentant légal — l'email d'invitation ne sera PAS envoyé à l'enfant.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guardianEmail">Email du titulaire de l'autorité parentale</Label>
+                      <Input
+                        id="guardianEmail"
+                        type="email"
+                        placeholder="parent@exemple.com"
+                        {...register("guardianEmail")}
+                      />
+                      {errors.guardianEmail && (
+                        <p className="text-sm text-destructive">{errors.guardianEmail.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guardianRelationship">Lien avec l'enfant</Label>
+                      <Select
+                        onValueChange={(v) => setValue("guardianRelationship", v as any)}
+                        value={watch("guardianRelationship") || ""}
+                      >
+                        <SelectTrigger id="guardianRelationship">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mere">Mère</SelectItem>
+                          <SelectItem value="pere">Père</SelectItem>
+                          <SelectItem value="tuteur_legal">Tuteur légal</SelectItem>
+                          <SelectItem value="autre_titulaire">Autre titulaire</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
                 {(
                   <div className="space-y-2">
                     <Label>Équipe</Label>
