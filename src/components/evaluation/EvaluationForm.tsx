@@ -58,6 +58,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
+import { Shield } from "lucide-react";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
@@ -426,6 +428,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
 
   return (
     <div className="space-y-6 pb-20">
+      {/* Phase 4 RGPD : bandeau de bienveillance si le joueur est mineur */}
+      <MinorEvaluationBanner playerId={playerId} />
       {/* Bandeau persistant : édition d'un débrief historique */}
       {historyEditWarning && !readOnly && (
         <div className="p-3 bg-amber-500/15 border-l-4 border-amber-500 rounded-r flex items-start gap-2">
