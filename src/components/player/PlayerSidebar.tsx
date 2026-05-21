@@ -37,6 +37,7 @@ import { formatAverage } from "@/lib/evaluation-utils";
 import { usePlan } from "@/hooks/usePlan";
 import type { Player, TeamMembership, ReferentCoach, Evaluation } from "@/hooks/usePlayerData";
 import { getPlayerName } from "@/hooks/usePlayerData";
+import { ProfilePhoto } from "@/components/shared/ProfilePhoto";
 
 interface PlayerSidebarProps {
   player: Player;
@@ -92,8 +93,6 @@ export function PlayerSidebar({
 
   const fullName = `${player.first_name || ""} ${player.last_name || ""}`.trim();
   const displayName = fullName || player.nickname || "Joueur";
-  const initials = (fullName || player.nickname || "J")
-    .split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:-mt-3 p-4 lg:max-h-[calc(100vh+0.75rem)] lg:sticky lg:-top-3 lg:overflow-y-auto custom-scrollbar">
@@ -111,18 +110,14 @@ export function PlayerSidebar({
 
       {/* Card profil */}
       <div className="bg-card border border-border rounded-2xl p-4 flex flex-col items-center text-center mb-3">
-        {/* Avatar cercle */}
-        <div
-          className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-display font-extrabold overflow-hidden mb-3"
-          style={{
-            background: player.photo_url
-              ? `url(${player.photo_url}) center/cover`
-              : `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`,
-            color: "white",
-          }}
-        >
-          {!player.photo_url && initials}
-        </div>
+        {/* BUG-PHOTO-002 : passage par ProfilePhoto (signed URL mineur + gate consentement) */}
+        <ProfilePhoto
+          profile={player}
+          color={teamColor}
+          className="w-20 h-20 mb-3"
+          textClassName="text-2xl"
+          alt={displayName}
+        />
 
         <h1 className="font-display text-[16px] font-extrabold text-card-foreground tracking-tight leading-tight">
           {displayName}
