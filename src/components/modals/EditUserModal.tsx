@@ -222,17 +222,16 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     return response.json();
   };
 
-  const uploadPhoto = async (): Promise<string | null> => {
+  // RG7-001 — Helper centralisé : mineur → bucket privé, adulte → public.
+  // Le backstop trigger `guard_profile_photo_url` rejette toute URL
+  // publique pour un profil mineur (defense in depth).
+  const uploadPhoto = async (): Promise<{ photo_url: string; photo_is_minor: boolean } | null> => {
     if (!photoFile) return null;
     const { validateUpload } = await import("@/lib/upload-validation");
-    const { contentType, safeExt } = validateUpload(photoFile, "image");
-    const path = `${user.id}/photo.${safeExt}`;
-    const { error } = await supabase.storage
-      .from("user-photos")
-      .upload(path, photoFile, { upsert: true, contentType });
-    if (error) throw error;
-    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
-    return `${urlData.publicUrl}?t=${Date.now()}`;
+    validateUpload(photoFile, "image");
+    const { uploadProfilePhotoForExistingUser } = await import("@/lib/photo-storage");
+    const res = await uploadProfilePhotoForExistingUser(user.id, photoFile);
+    return { photo_url: res.photo_url, photo_is_minor: res.photo_is_minor };
   };
 
   const getInitials = () => {
@@ -246,11 +245,11 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
       setSaving(true);
 
       // Upload photo if needed
-      let photoUrl: string | null | undefined = undefined;
+      let uploaded: { photo_url: string; photo_is_minor: boolean } | null | undefined;
       if (photoFile) {
-        photoUrl = await uploadPhoto();
+        uploaded = await uploadPhoto();
       } else if (removePhoto) {
-        photoUrl = null;
+        uploaded = null;
       }
 
       const payload: Record<string, unknown> = {
@@ -259,8 +258,12 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
         lastName,
         nickname,
       };
-      if (photoUrl !== undefined) {
-        payload.photoUrl = photoUrl;
+      if (uploaded === null) {
+        payload.photoUrl = null;
+        payload.photoIsMinor = false;
+      } else if (uploaded) {
+        payload.photoUrl = uploaded.photo_url;
+        payload.photoIsMinor = uploaded.photo_is_minor;
       }
 
       await callAdminAction("update-profile", payload);
