@@ -775,21 +775,28 @@ const handler = async (req: Request): Promise<Response> => {
         emailRegexLocal.test(guardianEmail) &&
         ALLOWED_REL.includes(guardianRelationship)
       ) {
-        const { error: desigErr } = await supabaseAdmin
+        const guardianEmailNorm = guardianEmail.toLowerCase().trim();
+        const { data: existingDesig } = await supabaseAdmin
           .from("guardian_designations")
-          .upsert(
-            {
+          .select("id")
+          .eq("minor_profile_id", userId)
+          .eq("guardian_email", guardianEmailNorm)
+          .eq("status", "pending")
+          .maybeSingle();
+        if (!existingDesig) {
+          const { error: desigErr } = await supabaseAdmin
+            .from("guardian_designations")
+            .insert({
               minor_profile_id: userId,
-              guardian_email: guardianEmail.toLowerCase().trim(),
+              guardian_email: guardianEmailNorm,
               relationship: guardianRelationship,
               status: "pending",
               created_by: user.id,
-            },
-            { onConflict: "minor_profile_id,guardian_email" },
-          );
-        if (desigErr) {
-          console.error("guardian_designations upsert failed", desigErr);
-          // Non bloquant pour l'invitation; mais on logue pour audit.
+            });
+          if (desigErr) {
+            // Non bloquant pour l'invitation; logue pour audit.
+            console.error("guardian_designations insert failed", desigErr);
+          }
         }
       }
     }
