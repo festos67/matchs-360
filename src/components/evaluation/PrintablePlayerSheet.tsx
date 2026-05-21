@@ -242,8 +242,12 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         {/* ===== PAGE 1 ===== */}
         <div
           className={comparisonDatasets.length >= 2 ? "pps-page" : "pps-page pps-page-fixed"}
-          style={comparisonDatasets.length >= 2 ? { pageBreakAfter: "always", breakAfter: "page" } : undefined}
+          style={{
+            position: "relative",
+            ...(comparisonDatasets.length >= 2 ? { pageBreakAfter: "always", breakAfter: "page" } : {}),
+          }}
         >
+          <MinorWatermark isMinor={!!player.is_minor} orientation="portrait" />
 
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
@@ -429,7 +433,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         </div>
 
         {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div className="pps-page">
+        <div className="pps-page" style={{ position: "relative" }}>
+          <MinorWatermark isMinor={!!player.is_minor} orientation="portrait" />
 
           {/* ── Top brand bar (repeated) ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
