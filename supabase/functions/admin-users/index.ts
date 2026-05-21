@@ -94,6 +94,28 @@ function isValidPhotoUrl(value: unknown): value is string {
   return true;
 }
 
+/**
+ * RG7-001 — Chemin storage privé pour photo de mineur (bucket
+ * `user-photos-minors`). Format canonique aligné sur le trigger
+ * `guard_profile_photo_url` : `<userId>/photo-<token>.<ext>`.
+ */
+function isValidMinorPhotoPath(value: unknown, userId: string): value is string {
+  if (typeof value !== "string") return false;
+  if (value.length === 0 || value.length > MAX_PHOTO_URL_LENGTH) return false;
+  // Pas d'URL absolue ; pas de path-traversal ; pas d'espaces/HTML.
+  if (/^https?:\/\//i.test(value)) return false;
+  if (value.includes("..")) return false;
+  if (/[\s<>"]/.test(value)) return false;
+  // 1er segment = userId (anti-injection).
+  const segments = value.split("/");
+  if (segments[0] !== userId) return false;
+  // Whitelist d'extensions.
+  const m = value.match(/\.([a-zA-Z0-9]+)$/);
+  if (!m) return false;
+  const ext = m[1].toLowerCase();
+  return ["jpg", "jpeg", "png", "webp"].includes(ext);
+}
+
 function maskEmail(email: string | null | undefined): string {
   if (!email) return "***";
   const [local = "", domain = ""] = email.split("@");
@@ -599,7 +621,7 @@ Deno.serve(async (req) => {
 
       // Update profile
       if (action === "update-profile") {
-        const { userId, firstName, lastName, nickname, photoUrl } = body;
+        const { userId, firstName, lastName, nickname, photoUrl, photoIsMinor } = body;
 
         if (!(await userInClubAdminScope(userId))) return forbidden();
 
@@ -612,11 +634,19 @@ Deno.serve(async (req) => {
         if (photoUrl !== undefined) {
           if (photoUrl === null || photoUrl === "") {
             updateData.photo_url = null;
+            updateData.photo_is_minor = false;
+          } else if (photoIsMinor === true && isValidMinorPhotoPath(photoUrl, userId)) {
+            // RG7-001 — photo de mineur : chemin du bucket privé
+            // `user-photos-minors`. Le trigger DB `guard_profile_photo_url`
+            // valide à nouveau (defense in depth).
+            updateData.photo_url = photoUrl;
+            updateData.photo_is_minor = true;
           } else if (isValidPhotoUrl(photoUrl)) {
             updateData.photo_url = photoUrl;
+            updateData.photo_is_minor = false;
           } else {
             return new Response(
-              JSON.stringify({ error: "Invalid photoUrl: must be HTTPS URL on Supabase user-photos bucket" }),
+              JSON.stringify({ error: "Invalid photoUrl: must be HTTPS URL on user-photos bucket, or a minor storage path on user-photos-minors" }),
               { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
             );
           }

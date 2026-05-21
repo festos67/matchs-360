@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { validateUpload, UploadValidationError } from "@/lib/upload-validation";
+import { uploadProfilePhotoForExistingUser } from "@/lib/photo-storage";
 
 interface Player {
   id: string;
@@ -62,27 +63,26 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     return (first + last).toUpperCase() || "?";
   };
 
-  const uploadPhoto = async (): Promise<string | null> => {
+  // RG7-001 — Route via le helper centralisé (birthdate lue depuis le
+  // profil) : mineur → bucket privé, adulte → public. Aucun flux staff
+  // ne doit hardcoder le bucket public pour un profil potentiellement mineur.
+  const uploadPhoto = async (): Promise<{ photo_url: string; photo_is_minor: boolean } | null> => {
     if (!photoFile) return null;
-    const { contentType, safeExt } = validateUpload(photoFile, "image");
-    const path = `${player.id}/photo.${safeExt}`;
-    const { error } = await supabase.storage
-      .from("user-photos")
-      .upload(path, photoFile, { upsert: true, contentType });
-    if (error) throw error;
-    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
-    return `${urlData.publicUrl}?t=${Date.now()}`;
+    // Pre-validate (cohérent avec UploadValidationError catch en handleSave)
+    validateUpload(photoFile, "image");
+    const res = await uploadProfilePhotoForExistingUser(player.id, photoFile);
+    return { photo_url: res.photo_url, photo_is_minor: res.photo_is_minor };
   };
 
   const handleSave = async () => {
     try {
       setSaving(true);
 
-      let photoUrl: string | null | undefined = undefined;
+      let uploaded: { photo_url: string; photo_is_minor: boolean } | null | undefined;
       if (photoFile) {
-        photoUrl = await uploadPhoto();
+        uploaded = await uploadPhoto();
       } else if (removePhoto) {
-        photoUrl = null;
+        uploaded = null;
       }
 
       const updateData: Record<string, unknown> = {
@@ -90,8 +90,12 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
         last_name: lastName.trim() || null,
         nickname: nickname.trim() || null,
       };
-      if (photoUrl !== undefined) {
-        updateData.photo_url = photoUrl;
+      if (uploaded === null) {
+        updateData.photo_url = null;
+        updateData.photo_is_minor = false;
+      } else if (uploaded) {
+        updateData.photo_url = uploaded.photo_url;
+        updateData.photo_is_minor = uploaded.photo_is_minor;
       }
 
       const { error } = await supabase

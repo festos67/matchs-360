@@ -54,6 +54,7 @@ import { cn } from "@/lib/utils";
 import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { uploadProfilePhoto } from "@/lib/photo-storage";
 import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
@@ -237,25 +238,20 @@ export const CreateSupporterModal = ({
     setSelectedPlayers(playerIds);
   };
 
-  const uploadPhotoForUser = async (userId: string): Promise<string | null> => {
+  // RG7-001 — Helper centralisé. Supporter = adulte par construction
+  // (Phase 0), donc on passe birthdate=null → bucket public. Si jamais
+  // un mineur arrivait ici, le helper routerait en privé d'office.
+  const uploadPhotoForUser = async (
+    userId: string,
+  ): Promise<{ photo_url: string; photo_is_minor: boolean } | null> => {
     if (!photoFile) return null;
-    let validated;
     try {
-      validated = (await import("@/lib/upload-validation")).validateUpload(photoFile, "image");
+      const res = await uploadProfilePhoto(userId, photoFile, null);
+      return { photo_url: res.photo_url, photo_is_minor: res.photo_is_minor };
     } catch (e) {
-      console.error("Photo validation failed:", e);
+      console.error("Photo upload error:", e);
       return null;
     }
-    const path = `${userId}/photo.${validated.safeExt}`;
-    const { error } = await supabase.storage
-      .from("user-photos")
-      .upload(path, photoFile, { upsert: true, contentType: validated.contentType });
-    if (error) {
-      console.error("Photo upload error:", error);
-      return null;
-    }
-    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
-    return `${urlData.publicUrl}?t=${Date.now()}`;
   };
 
   const onSubmit = async (data: SupporterFormData) => {
@@ -277,9 +273,15 @@ export const CreateSupporterModal = ({
 
       // Upload photo if provided and user was created
       if (photoFile && result?.userId) {
-        const photoUrl = await uploadPhotoForUser(result.userId);
-        if (photoUrl) {
-          await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        const uploaded = await uploadPhotoForUser(result.userId);
+        if (uploaded) {
+          await supabase
+            .from("profiles")
+            .update({
+              photo_url: uploaded.photo_url,
+              photo_is_minor: uploaded.photo_is_minor,
+            })
+            .eq("id", result.userId);
         }
       }
 
