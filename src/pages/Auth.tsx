@@ -40,8 +40,6 @@ import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
 import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
-import { Checkbox } from "@/components/ui/checkbox";
-import { PHASE0_MIN_AGE_YEARS } from "@/lib/age-policy";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -80,7 +78,6 @@ export default function Auth() {
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
   // Phase 0 conformite mineurs : auto-declaration majorite obligatoire au signup public.
   // La birthdate complete sera demandee a la creation du profil par le club_admin.
-  const [adultSelfDeclared, setAdultSelfDeclared] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [sendingHelp, setSendingHelp] = useState(false);
