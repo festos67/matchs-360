@@ -268,6 +268,30 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship } = body;
 
     // ============================================================
+    // BUG-AGE-002 / NB-02 — Routage de l'invitation pour mineur < 15
+    //
+    // Si l'inviteur fournit guardianEmail+guardianRelationship pour un
+    // joueur, c'est que CreatePlayerModal a détecté un mineur < 15 ans
+    // (validé côté modal via requiresParentalConsent — seuil 15, PAS 18).
+    // Dans ce cas :
+    //   - on provisionne quand même le profil enfant (besoin du userId
+    //     pour persister birthdate + créer la guardian_designation)
+    //   - on NE LUI envoie AUCUN email
+    //   - on envoie un magic link / invite au GUARDIAN vers
+    //     `/guardian/consent?minor=<minorId>` pour qu'il consente
+    //
+    // L'activation (is_active=true) reste pilotée par
+    // record-parental-consent — pas ici.
+    // ============================================================
+    const ALLOWED_GUARDIAN_REL = ["mere", "pere", "tuteur_legal", "autre_titulaire"] as const;
+    const isMinorWithGuardian =
+      intendedRole === "player" &&
+      !!guardianEmail &&
+      !!guardianRelationship &&
+      emailRegex.test(guardianEmail) &&
+      (ALLOWED_GUARDIAN_REL as readonly string[]).includes(guardianRelationship);
+
+    // ============================================================
     // F-601 — Strict whitelist of intendedRole.
     // The edge function runs with service_role and bypasses the
     // `guard_privileged_role_grant` trigger on user_roles. We must
@@ -626,7 +650,10 @@ const handler = async (req: Request): Promise<Response> => {
       };
 
       let emailDeliveryError: EmailProviderError | null = null;
-      const emailResult = resend ? await resend.emails.send({
+      // BUG-AGE-002 — Pour un mineur < 15, NE PAS envoyer d'email à
+      // l'enfant. L'email part au guardian plus bas (après création de
+      // la guardian_designation).
+      const emailResult = (resend && !isMinorWithGuardian) ? await resend.emails.send({
         from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
