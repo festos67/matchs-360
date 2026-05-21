@@ -39,6 +39,7 @@ interface Profile {
   birthdate?: string | null;
   photo_is_minor?: boolean | null;
   image_rights_consent_at?: string | null;
+  is_active?: boolean | null;
 }
 
 interface UserRole {

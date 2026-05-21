@@ -30,7 +30,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, roles, currentRole, loading, setCurrentRole } = useAuth();
+  const { user, profile, roles, currentRole, loading, setCurrentRole } = useAuth();
 
   // F-???: Garde-fou anti-takeover. Un utilisateur dont l'email n'a pas été
   // confirmé ne doit JAMAIS pouvoir accéder à une route protégée — même si
@@ -83,6 +83,17 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   // protégé pendant que la déconnexion s'effectue).
   if (!user.email_confirmed_at) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // I8-003 : gate is_active. Un compte inactif (mineur < 15 sans consentement
+  // parental valide, ou ré-suspendu après révocation art. 7§3) est redirigé
+  // vers l'écran d'attente. La protection AUTORITAIRE est au niveau RLS
+  // (current_account_active()) ; ce check est la couche UX qui empêche le
+  // rendu de l'app et explique au mineur ce qui se passe. profile peut être
+  // null le temps du fetch — on attend, on ne bloque pas tant qu'on n'a pas
+  // lu is_active explicitement.
+  if (profile && profile.is_active === false) {
+    return <Navigate to="/pending-minor-consent" replace />;
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
