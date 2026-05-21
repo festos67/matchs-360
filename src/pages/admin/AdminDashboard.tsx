@@ -48,7 +48,38 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
-import { useQuery as _useQueryUnused } from "@tanstack/react-query";
+
+// Phase 1 conformite mineurs : bandeau de pilotage du backfill.
+function BirthdateBackfillBanner() {
+  const navigate = useNavigate();
+  const { data: count } = useQuery({
+    queryKey: ["profiles-needing-birthdate-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles_needing_birthdate" as any)
+        .select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+  if (!count || count === 0) return null;
+  return (
+    <button
+      onClick={() => navigate("/admin/birthdate-backfill")}
+      className="w-full text-left flex items-center gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 transition-colors"
+    >
+      <Shield className="w-5 h-5 text-amber-600 shrink-0" />
+      <div className="flex-1">
+        <p className="font-medium text-sm">
+          RGPD mineurs — {count} profil{count > 1 ? "s" : ""} sans date de naissance
+        </p>
+        <p className="text-xs text-muted-foreground">
+          La date de naissance est requise pour appliquer les protections mineurs (consentement, droit à l'image).
+        </p>
+      </div>
+      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+    </button>
+  );
+}
 
 const SectionHeader = ({
   title,
