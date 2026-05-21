@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
+import { TEAM_AGE_CATEGORIES } from "@/lib/age-categories";
 
 const getSeasonOptions = () => {
   const now = new Date();
@@ -102,6 +103,7 @@ const teamSchema = z.object({
   season: z.string().min(4, "Saison requise").max(20),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide"),
   coachId: z.string().optional(),
+  ageCategory: z.string().optional(),
 });
 
 type TeamFormData = z.infer<typeof teamSchema>;
@@ -207,6 +209,7 @@ export const CreateTeamModal = ({
           season: data.season,
           description: null,
           color: data.color,
+          age_category: data.ageCategory || null,
         })
         .select()
         .single();
@@ -328,6 +331,23 @@ export const CreateTeamModal = ({
                 <ColorPickerButton value={watch("color") || "#000000"} onChange={(c) => setValue("color", c)} />
               </div>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ageCategory">Catégorie d'âge</Label>
+            <Select onValueChange={(value) => setValue("ageCategory", value)}>
+              <SelectTrigger id="ageCategory">
+                <SelectValue placeholder="Non précisée (U7..U19, Senior, etc.)" />
+              </SelectTrigger>
+              <SelectContent>
+                {TEAM_AGE_CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Label indicatif. Les protections RGPD mineurs s'appliquent automatiquement selon la date de naissance des membres.
+            </p>
           </div>
 
           {/* Coach Selection - Only for Admin/Club Admin */}

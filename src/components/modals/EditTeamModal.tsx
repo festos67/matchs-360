@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TEAM_AGE_CATEGORIES } from "@/lib/age-categories";
 
 interface Coach {
   id: string;
@@ -74,6 +75,7 @@ interface EditTeamModalProps {
     color: string | null;
     club_id: string;
     description?: string | null;
+    age_category?: string | null;
   };
   onSuccess: () => void;
 }
@@ -84,6 +86,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
   const [color, setColor] = useState(team.color || "#3B82F6");
   const [season, setSeason] = useState(team.season || "2024-2025");
   const [description, setDescription] = useState(team.description || "");
+  const [ageCategory, setAgeCategory] = useState<string>(team.age_category || "");
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [availableCoaches, setAvailableCoaches] = useState<AvailableCoach[]>([]);
   const [loading, setLoading] = useState(false);
@@ -97,6 +100,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
       setColor(team.color || "#3B82F6");
       setSeason(team.season || "2024-2025");
       setDescription(team.description || "");
+      setAgeCategory(team.age_category || "");
       fetchCoaches();
       fetchAvailableCoaches();
     }
@@ -299,6 +303,7 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
           color,
           season,
           description: description.trim() || null,
+          age_category: ageCategory || null,
         })
         .eq("id", team.id);
       if (error) throw error;
@@ -387,6 +392,24 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+
+            {/* Age category — Phase 1 minor compliance */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-team-age">Catégorie d'âge</Label>
+              <Select value={ageCategory || undefined} onValueChange={(v) => setAgeCategory(v)}>
+                <SelectTrigger id="edit-team-age">
+                  <SelectValue placeholder="Non précisée" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEAM_AGE_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Label indicatif. Les protections RGPD mineurs s'appliquent automatiquement selon la date de naissance des membres.
+              </p>
             </div>
 
             {/* Coach Management */}
