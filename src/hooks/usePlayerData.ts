@@ -32,6 +32,8 @@ export interface Player {
   nickname: string | null;
   photo_url: string | null;
   email: string;
+  /** Phase 0+ : date de naissance, requise pour calculer is_minor (Phase 6) */
+  birthdate?: string | null;
 }
 
 export interface TeamMembership {
