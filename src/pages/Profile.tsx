@@ -99,7 +99,6 @@ export default function Profile() {
       setLastName(profile.last_name || "");
       setNickname(profile.nickname || "");
       setPhotoPreview(profile.photo_url || null);
-      // @ts-expect-error - colonne Phase 3 (regenerer types apres migration)
       setImageRightsConsent(!!profile.image_rights_consent_at);
     }
   }, [profile]);
@@ -169,7 +168,6 @@ export default function Profile() {
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile || !user) return null;
     // Routage automatique : adulte -> bucket public, mineur -> bucket prive.
-    // @ts-expect-error - birthdate Phase 0 (regenerer types apres migration)
     const bd = (profile?.birthdate as string | null) ?? null;
     const res = await uploadProfilePhoto(user.id, photoFile, bd);
     // NB : pour les mineurs, photo_url stocke le PATH storage (pas une URL).
@@ -247,7 +245,6 @@ export default function Profile() {
           };
       const { error } = await supabase
         .from("profiles")
-        // @ts-expect-error - colonnes Phase 3 (types regeneres apres migration)
         .update(payload)
         .eq("id", user.id);
       if (error) throw error;
