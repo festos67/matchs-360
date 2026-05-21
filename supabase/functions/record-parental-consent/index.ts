@@ -100,16 +100,23 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ error: "GUARDIAN_MUST_BE_ADULT" }, 403, cors);
     }
 
-    // Le minor_profile_id doit requerir un consentement parental.
-    // BUG-EDGE-003 fix : signature is_minor(_profile_id uuid).
-    const { data: minorIsMinor, error: mErr } = await admin.rpc("is_minor", {
-      _profile_id: body.minor_profile_id,
-    });
+    // NB-01 fix — Gate aligne sur le SEUIL DONNEES (RGPD art. 8 FR = 15 ans),
+    // pas sur le seuil image (18 ans). Les 15-17 consentent EUX-MEMES au
+    // traitement de leurs donnees ; le consentement parental n'est requis
+    // que pour les < 15. Coherence avec govern_minor_activation et
+    // send-invitation (BUG-AGE-002/003) qui utilisent deja 15.
+    // BUG-EDGE-003 : conserver le parametre _profile_id.
+    const { data: needsParental, error: mErr } = await admin.rpc(
+      "requires_parental_consent",
+      { _profile_id: body.minor_profile_id },
+    );
     if (mErr) {
+      console.error("requires_parental_consent check failed", mErr);
       return json({ error: "MINOR_AGE_CHECK_FAILED" }, 500, cors);
     }
-    if (minorIsMinor !== true) {
-      return json({ error: "NOT_A_MINOR" }, 400, cors);
+    if (needsParental !== true) {
+      // Couvre 15-17 (auto-consentement RGPD art. 8 FR) ET 18+.
+      return json({ error: "PARENTAL_CONSENT_NOT_REQUIRED" }, 400, cors);
     }
 
     // ================================================================
