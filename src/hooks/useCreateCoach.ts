@@ -161,22 +161,27 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
 
   const getAssignedTeams = () => teamAssignments.filter(a => a.assigned);
 
-  const uploadPhotoForUser = async (userId: string): Promise<string | null> => {
+  // RG7-001 — Helper centralisé. Coach = adulte par construction, mais
+  // pour un coach EXISTANT (addCoachRoleToExistingUser) on lit la
+  // birthdate via le wrapper ; pour un nouvel invité (inviteNewCoach) on
+  // utilise birthdate=null (adulte). Aucun flux ne hardcode plus le bucket.
+  const uploadPhotoForUser = async (
+    userId: string,
+    knownAdult: boolean,
+  ): Promise<{ photo_url: string; photo_is_minor: boolean } | null> => {
     if (!photoFile) return null;
-    let validated;
     try {
-      validated = (await import("@/lib/upload-validation")).validateUpload(photoFile, "image");
+      const { uploadProfilePhoto, uploadProfilePhotoForExistingUser } = await import(
+        "@/lib/photo-storage"
+      );
+      const res = knownAdult
+        ? await uploadProfilePhoto(userId, photoFile, null)
+        : await uploadProfilePhotoForExistingUser(userId, photoFile);
+      return { photo_url: res.photo_url, photo_is_minor: res.photo_is_minor };
     } catch (e) {
-      console.error("Photo validation failed:", e);
+      console.error("Photo upload error:", e);
       return null;
     }
-    const path = `${userId}/photo.${validated.safeExt}`;
-    const { error } = await supabase.storage
-      .from("user-photos")
-      .upload(path, photoFile, { upsert: true, contentType: validated.contentType });
-    if (error) { console.error("Photo upload error:", error); return null; }
-    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
-    return `${urlData.publicUrl}?t=${Date.now()}`;
   };
 
   const resetAndClose = () => {
@@ -223,9 +228,15 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       }
 
       if (photoFile) {
-        const photoUrl = await uploadPhotoForUser(selectedExistingUser.id);
-        if (photoUrl) {
-          const { error: photoErr } = await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", selectedExistingUser.id);
+        const uploaded = await uploadPhotoForUser(selectedExistingUser.id, false);
+        if (uploaded) {
+          const { error: photoErr } = await supabase
+            .from("profiles")
+            .update({
+              photo_url: uploaded.photo_url,
+              photo_is_minor: uploaded.photo_is_minor,
+            })
+            .eq("id", selectedExistingUser.id);
           if (photoErr) console.warn("Could not update photo:", photoErr);
         }
       }
@@ -267,9 +278,15 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       if (result?.error) throw new Error(result.error);
 
       if (photoFile && result?.userId) {
-        const photoUrl = await uploadPhotoForUser(result.userId);
-        if (photoUrl) {
-          const { error: photoErr } = await supabase.from("profiles").update({ photo_url: photoUrl }).eq("id", result.userId);
+        const uploaded = await uploadPhotoForUser(result.userId, true);
+        if (uploaded) {
+          const { error: photoErr } = await supabase
+            .from("profiles")
+            .update({
+              photo_url: uploaded.photo_url,
+              photo_is_minor: uploaded.photo_is_minor,
+            })
+            .eq("id", result.userId);
           if (photoErr) console.warn("Could not update photo:", photoErr);
         }
       }
