@@ -302,6 +302,23 @@ const SupporterDashboard = () => {
           <p className="text-muted-foreground mt-1">Mes joueurs</p>
         </div>
 
+        {myChildren && myChildren.length > 0 && (
+          <div className="rounded-lg border border-pink-500/30 bg-pink-500/5 p-4 flex items-start gap-3">
+            <Shield className="h-5 w-5 text-pink-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">Espace parental disponible</p>
+              <p className="text-sm text-muted-foreground">
+                En tant que titulaire légal, vous disposez d'un espace dédié pour
+                consulter, exporter ou demander l'effacement des données de votre
+                enfant (RGPD art. 15, 17, 20).
+              </p>
+            </div>
+            <Button asChild variant="default" size="sm">
+              <Link to="/parent/my-children">Accéder à l'espace parental</Link>
+            </Button>
+          </div>
+        )}
+
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <StatsCard
