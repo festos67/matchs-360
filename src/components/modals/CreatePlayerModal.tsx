@@ -73,6 +73,8 @@ import {
   PHASE0_ADULT_ONLY_MESSAGE,
   isMinorPhase0,
   isPhase0MinorBlockedError,
+  requiresParentalConsent,
+  PARENTAL_CONSENT_AGE_YEARS,
 } from "@/lib/age-policy";
 
 const playerSchema = z.object({
@@ -90,7 +92,20 @@ const playerSchema = z.object({
     .refine((s) => !isMinorPhase0(s), {
       message: `Phase beta : reserve aux personnes de ${PHASE0_MIN_AGE_YEARS} ans et plus. ${PHASE0_ADULT_ONLY_MESSAGE}`,
     }),
-});
+  guardianEmail: z.string().email("Email invalide").max(255).optional().or(z.literal("")),
+  guardianRelationship: z.enum(["mere", "pere", "tuteur_legal", "autre_titulaire"]).optional(),
+}).refine(
+  (d) => {
+    if (requiresParentalConsent(d.birthdate)) {
+      return !!d.guardianEmail && !!d.guardianRelationship;
+    }
+    return true;
+  },
+  {
+    message: "Email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
+    path: ["guardianEmail"],
+  },
+);
 
 type PlayerFormData = z.infer<typeof playerSchema>;
 
