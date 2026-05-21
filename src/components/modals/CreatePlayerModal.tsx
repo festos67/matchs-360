@@ -591,8 +591,8 @@ export const CreatePlayerModal = ({
                     <p className="text-sm text-destructive">{errors.birthdate.message}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Phase bêta : réservée aux personnes de {PHASE0_MIN_AGE_YEARS} ans et plus.
-                    La gestion des mineurs (avec consentement parental) arrivera prochainement.
+                    Inscription des mineurs ouverte. Pour un joueur de moins de 15 ans, le consentement
+                    parental sera demandé (le compte sera en attente jusqu'à validation par le représentant légal).
                   </p>
                 </div>
 
