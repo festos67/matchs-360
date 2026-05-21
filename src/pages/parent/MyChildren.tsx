@@ -117,7 +117,7 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
         _minor_id: minorId,
       });
       if (error) throw error;
-      return (data?.[0] ?? null) as ChildRecord | null;
+      return (data ?? null) as unknown as ChildRecord | null;
     },
   });
 
