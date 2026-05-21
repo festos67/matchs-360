@@ -1935,6 +1935,7 @@ export type Database = {
         Returns: Json
       }
       create_trial_notifications: { Args: never; Returns: undefined }
+      current_account_active: { Args: never; Returns: boolean }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
