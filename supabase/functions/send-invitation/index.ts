@@ -95,6 +95,11 @@ interface InvitationRequest {
   teamId?: string;
   coachRole?: "referent" | "assistant";
   playerIds?: string[];
+  // Phase 6 RGPD : transmis uniquement pour un joueur mineur < 15 ans.
+  // Materialise la designation guardian -> mineur cote serveur, condition
+  // sine qua non de l'enregistrement du consentement parental.
+  guardianEmail?: string;
+  guardianRelationship?: "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
 }
 
 type EmailProviderError = {
