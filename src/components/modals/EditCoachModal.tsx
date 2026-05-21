@@ -213,17 +213,17 @@ export const EditCoachModal = ({
     setRemovePhoto(true);
   };
 
-  const uploadPhoto = async (): Promise<string | null> => {
+  // RG7-001 — Helper centralisé. Coach = adulte par construction, mais on
+  // route via le helper qui lit la birthdate pour respecter le contrat
+  // unique (anti-récurrence) ; si jamais un profil avec birthdate <18 est
+  // édité ici, la photo ira d'office en bucket privé.
+  const uploadPhoto = async (): Promise<{ photo_url: string; photo_is_minor: boolean } | null> => {
     if (!photoFile) return null;
     const { validateUpload } = await import("@/lib/upload-validation");
-    const { contentType, safeExt } = validateUpload(photoFile, "image");
-    const path = `${coach.id}/photo.${safeExt}`;
-    const { error } = await supabase.storage
-      .from("user-photos")
-      .upload(path, photoFile, { upsert: true, contentType });
-    if (error) throw error;
-    const { data: urlData } = supabase.storage.from("user-photos").getPublicUrl(path);
-    return `${urlData.publicUrl}?t=${Date.now()}`;
+    validateUpload(photoFile, "image");
+    const { uploadProfilePhotoForExistingUser } = await import("@/lib/photo-storage");
+    const res = await uploadProfilePhotoForExistingUser(coach.id, photoFile);
+    return { photo_url: res.photo_url, photo_is_minor: res.photo_is_minor };
   };
 
   const getInitials = () => {
@@ -236,11 +236,11 @@ export const EditCoachModal = ({
     setLoading(true);
     try {
       // 1. Upload photo si nécessaire
-      let photoUrl: string | null | undefined = undefined;
+      let uploaded: { photo_url: string; photo_is_minor: boolean } | null | undefined;
       if (photoFile) {
-        photoUrl = await uploadPhoto();
+        uploaded = await uploadPhoto();
       } else if (removePhoto) {
-        photoUrl = null;
+        uploaded = null;
       }
 
       // 2. Mettre à jour le profil
@@ -248,8 +248,12 @@ export const EditCoachModal = ({
         first_name: firstName,
         last_name: lastName,
       };
-      if (photoUrl !== undefined) {
-        updateData.photo_url = photoUrl;
+      if (uploaded === null) {
+        updateData.photo_url = null;
+        updateData.photo_is_minor = false;
+      } else if (uploaded) {
+        updateData.photo_url = uploaded.photo_url;
+        updateData.photo_is_minor = uploaded.photo_is_minor;
       }
 
       const { error: profileError } = await supabase
