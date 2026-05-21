@@ -32,6 +32,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfilePhoto } from "@/components/shared/ProfilePhoto";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
