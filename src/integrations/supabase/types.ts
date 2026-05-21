@@ -375,6 +375,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "evaluations_coach_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "evaluations_framework_id_fkey"
             columns: ["framework_id"]
             isOneToOne: false
@@ -386,6 +393,13 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
         ]
@@ -519,6 +533,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invitations_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -564,6 +585,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
         ]
@@ -744,10 +772,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "player_objectives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "player_objectives_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_objectives_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
           {
@@ -1002,8 +1044,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "supporter_evaluation_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "supporter_evaluation_requests_requested_by_fkey"
             columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporter_evaluation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporter_evaluation_requests_supporter_id_fkey"
+            columns: ["supporter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1012,7 +1075,7 @@ export type Database = {
             foreignKeyName: "supporter_evaluation_requests_supporter_id_fkey"
             columns: ["supporter_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
         ]
@@ -1045,10 +1108,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "supporters_link_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "supporters_link_supporter_id_fkey"
             columns: ["supporter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporters_link_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
         ]
@@ -1132,6 +1209,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
         ]
       }
       team_objectives: {
@@ -1183,6 +1267,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "team_objectives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "team_objectives_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -1193,6 +1284,7 @@ export type Database = {
       }
       teams: {
         Row: {
+          age_category: string | null
           club_id: string
           color: string | null
           created_at: string
@@ -1205,6 +1297,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          age_category?: string | null
           club_id: string
           color?: string | null
           created_at?: string
@@ -1217,6 +1310,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          age_category?: string | null
           club_id?: string
           color?: string | null
           created_at?: string
@@ -1310,11 +1404,52 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_needing_birthdate: {
+        Row: {
+          club_id: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _admin_list_users_check_caller: {
@@ -1364,6 +1499,7 @@ export type Database = {
           out_user_id: string
         }[]
       }
+      age_years: { Args: { _birthdate: string }; Returns: number }
       calculate_prorata_amount: {
         Args: { p_full_price_cents?: number; p_start_date: string }
         Returns: number
@@ -1461,6 +1597,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      is_minor: { Args: { _profile_id: string }; Returns: boolean }
       is_plan_bypass_active: { Args: never; Returns: boolean }
       is_player_in_team: {
         Args: { _team_id: string; _user_id: string }
@@ -1483,6 +1620,10 @@ export type Database = {
         }
         Returns: number
       }
+      needs_age_verification: {
+        Args: { _profile_id: string }
+        Returns: boolean
+      }
       purge_old_audit_log: { Args: never; Returns: undefined }
       purge_old_evaluations: { Args: never; Returns: undefined }
       purge_old_frameworks: { Args: never; Returns: undefined }
@@ -1496,6 +1637,10 @@ export type Database = {
           read_ct: number
         }[]
       }
+      requires_parental_consent: {
+        Args: { _profile_id: string }
+        Returns: boolean
+      }
       resend_invitation: {
         Args: { _invitation_id: string; _new_expires_days?: number }
         Returns: Json
@@ -1505,6 +1650,7 @@ export type Database = {
         Returns: undefined
       }
       soft_delete_club: { Args: { _club_id: string }; Returns: undefined }
+      team_has_minors: { Args: { _team_id: string }; Returns: boolean }
       validate_storage_url:
         | { Args: { _bucket: string; _url: string }; Returns: boolean }
         | {
