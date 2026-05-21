@@ -48,6 +48,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
+import { useQuery as _useQueryUnused } from "@tanstack/react-query";
 
 const SectionHeader = ({
   title,
@@ -303,6 +304,8 @@ const AdminDashboard = () => {
           </h1>
           <p className="text-[13px] text-muted-foreground mt-1">Accès complet à la plateforme</p>
         </div>
+
+        <BirthdateBackfillBanner />
 
         {/* Section 1: Vue globale */}
         <div className="bg-card rounded-xl border border-border">
