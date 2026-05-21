@@ -260,47 +260,84 @@ const RadarLogoSvg = ({ color, size = 42 }: { color: string; size?: number }) =>
  * Deux branches symétriques composées de feuilles ovales fines, ouvertes en haut.
  */
 const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }) => {
-  // Couronne fine inspirée de la version ellipses, avec densité accrue et tige circulaire.
+  // Couronne ouverte vers le haut, deux branches symétriques avec multiples feuilles
+  // par point d'insertion, inspirée des diplômes classiques.
   const cx = 200;
-  const cy = 200;
-  const radius = 150;
+  const cy = 210;
 
   const buildBranch = (mirror: boolean) => {
-    const leaves: JSX.Element[] = [];
-    const startDeg = mirror ? -90 : 90;
-    const endDeg = mirror ? 90 : 270;
-    const steps = 24;
+    const elements: JSX.Element[] = [];
+    const sign = mirror ? -1 : 1;
+    const steps = 14;
+    // Arc allant du bas (nœud) vers le haut (ouverture)
+    const startAngle = mirror ? 95 : 85;   // près du bas
+    const endAngle   = mirror ? 215 : -35; // vers le haut
+    const radius = 155;
+
+    const points: { x: number; y: number; tangent: number }[] = [];
     for (let i = 0; i < steps; i++) {
       const t = i / (steps - 1);
-      const deg = startDeg + (endDeg - startDeg) * t;
+      const deg = startAngle + (endAngle - startAngle) * t;
       const rad = (deg * Math.PI) / 180;
       const x = cx + radius * Math.cos(rad);
       const y = cy + radius * Math.sin(rad);
-      const tangentDeg = deg + (mirror ? -72 : 72);
-      leaves.push(
+      const tangent = deg + 90 * sign;
+      points.push({ x, y, tangent });
+    }
+
+    // Tige fine reliant les points
+    const stemD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+    elements.push(
+      <path key={`stem-${mirror}`} d={stemD} fill="none"
+            stroke={color} strokeOpacity="0.55" strokeWidth="0.8" strokeLinecap="round" />
+    );
+
+    // À chaque point : 2 feuilles (intérieure + extérieure) en éventail
+    points.forEach((p, i) => {
+      // Skip le tout premier point (zone du nœud)
+      if (i === 0) return;
+      const leafLen = 22;
+      const leafW = 6;
+      // Feuille extérieure (vers l'extérieur du cercle)
+      const outAngle = p.tangent - 28 * sign;
+      const inAngle = p.tangent + 8 * sign;
+      elements.push(
         <ellipse
-          key={`${mirror ? "r" : "l"}-${i}`}
-          cx={x} cy={y} rx="17" ry="4.6"
-          fill={color} fillOpacity="0.16"
-          stroke={color} strokeOpacity="0.95" strokeWidth="1.1"
-          transform={`rotate(${tangentDeg} ${x} ${y})`}
+          key={`out-${mirror}-${i}`}
+          cx={p.x} cy={p.y} rx={leafLen} ry={leafW}
+          fill={color} fillOpacity="0.18"
+          stroke={color} strokeOpacity="0.85" strokeWidth="0.9"
+          transform={`rotate(${outAngle} ${p.x} ${p.y}) translate(${leafLen * 0.6} 0)`}
         />
       );
-    }
-    return leaves;
+      elements.push(
+        <ellipse
+          key={`in-${mirror}-${i}`}
+          cx={p.x} cy={p.y} rx={leafLen * 0.9} ry={leafW * 0.85}
+          fill={color} fillOpacity="0.14"
+          stroke={color} strokeOpacity="0.8" strokeWidth="0.8"
+          transform={`rotate(${inAngle} ${p.x} ${p.y}) translate(${leafLen * 0.55} 0)`}
+        />
+      );
+    });
+
+    return elements;
   };
 
   return (
     <svg width={size} height={size} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-      {/* Tige circulaire très fine */}
-      <circle cx={cx} cy={cy} r={radius} fill="none" stroke={color} strokeOpacity="0.35" strokeWidth="0.6" />
       {buildBranch(false)}
       {buildBranch(true)}
-      {/* Nœud / ruban discret en bas */}
-      <path d="M 188 348 Q 200 360 212 348" fill="none" stroke={color} strokeOpacity="0.8" strokeWidth="1.3" strokeLinecap="round" />
-      <path d="M 188 352 Q 200 366 212 352" fill="none" stroke={color} strokeOpacity="0.8" strokeWidth="1.3" strokeLinecap="round" />
-      <line x1="200" y1="356" x2="194" y2="378" stroke={color} strokeOpacity="0.7" strokeWidth="1.1" strokeLinecap="round" />
-      <line x1="200" y1="356" x2="206" y2="378" stroke={color} strokeOpacity="0.7" strokeWidth="1.1" strokeLinecap="round" />
+      {/* Nœud / ruban au bas, jonction des deux branches */}
+      <path d="M 182 360 Q 200 372 218 360" fill="none"
+            stroke={color} strokeOpacity="0.9" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M 186 366 Q 200 378 214 366" fill="none"
+            stroke={color} strokeOpacity="0.85" strokeWidth="1.3" strokeLinecap="round" />
+      {/* Rubans qui pendent */}
+      <path d="M 188 372 Q 184 385 178 392 L 172 388 Q 180 380 184 372 Z"
+            fill={color} fillOpacity="0.18" stroke={color} strokeOpacity="0.75" strokeWidth="0.9" />
+      <path d="M 212 372 Q 216 385 222 392 L 228 388 Q 220 380 216 372 Z"
+            fill={color} fillOpacity="0.18" stroke={color} strokeOpacity="0.75" strokeWidth="0.9" />
     </svg>
   );
 };
