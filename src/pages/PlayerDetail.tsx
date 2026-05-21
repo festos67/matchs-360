@@ -445,7 +445,7 @@ export default function PlayerDetail() {
         {selectedEvaluation && teamMembership && (
           <PrintablePlayerSheet
             ref={printRef}
-            player={player}
+            player={{ ...player, is_minor: isMinorPhase0(player.birthdate) }}
             club={{ name: teamMembership.team.club?.name || "", logo_url: teamMembership.team.club?.logo_url, primary_color: teamColor }}
             team={{ name: teamMembership.team.name }}
             evaluation={selectedEvaluation}
@@ -462,7 +462,7 @@ export default function PlayerDetail() {
         {historyPrintEvaluation && teamMembership && (
           <PrintablePlayerSheet
             ref={historyPrintRef}
-            player={player}
+            player={{ ...player, is_minor: isMinorPhase0(player.birthdate) }}
             club={{ name: teamMembership.team.club?.name || "", logo_url: teamMembership.team.club?.logo_url, primary_color: teamColor }}
             team={{ name: teamMembership.team.name }}
             evaluation={historyPrintEvaluation}
