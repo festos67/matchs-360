@@ -10,6 +10,7 @@ import { forwardRef } from "react";
 import { useImagesAsBase64 } from "@/hooks/useImageAsBase64";
 import { PrintableRadarChart } from "@/components/evaluation/PrintableRadarChart";
 import { calculateRadarData, type ThemeScores } from "@/lib/evaluation-utils";
+import { MinorWatermark } from "@/components/pdf/MinorWatermark";
 
 const BRAND_NAVY = "#1E3A8A";
 const BRAND_ORANGE = "#E55A2B";
@@ -34,6 +35,8 @@ interface PrintableCertificateProps {
   radarThemeScores?: ThemeScores[] | null;
   radarLabel?: string | null;
   date?: Date;
+  /** Phase 6 RGPD — true si le joueur est mineur (declenche watermark) */
+  isMinor?: boolean;
 }
 
 const formatDateFr = (d: Date) =>
@@ -44,6 +47,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
     playerName, clubName, clubLogoUrl, clubPrimaryColor,
     guarantorName, accompanimentPeriod, competences,
     additionalMessage, radarThemeScores, radarLabel, date = new Date(),
+    isMinor = false,
   }, ref) => {
     const imageMap = useImagesAsBase64([clubLogoUrl]);
     const clubLogoSrc = clubLogoUrl ? imageMap[clubLogoUrl] ?? null : null;
