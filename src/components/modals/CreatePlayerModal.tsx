@@ -567,6 +567,23 @@ export const CreatePlayerModal = ({
                   </p>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="birthdate">Date de naissance</Label>
+                  <Input
+                    id="birthdate"
+                    type="date"
+                    max={new Date().toISOString().split("T")[0]}
+                    {...register("birthdate")}
+                  />
+                  {errors.birthdate && (
+                    <p className="text-sm text-destructive">{errors.birthdate.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Phase bêta : réservée aux personnes de {PHASE0_MIN_AGE_YEARS} ans et plus.
+                    La gestion des mineurs (avec consentement parental) arrivera prochainement.
+                  </p>
+                </div>
+
                 {(
                   <div className="space-y-2">
                     <Label>Équipe</Label>
