@@ -36,6 +36,9 @@ interface Profile {
   nickname: string | null;
   photo_url: string | null;
   club_id: string | null;
+  birthdate?: string | null;
+  photo_is_minor?: boolean | null;
+  image_rights_consent_at?: string | null;
 }
 
 interface UserRole {

@@ -50,6 +50,9 @@ import {
 } from "lucide-react";
 import { PhotoCropModal } from "@/components/shared/PhotoCropModal";
 import { validateUserPassword, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib/password-policy";
+import { uploadProfilePhoto } from "@/lib/photo-storage";
+import { Switch } from "@/components/ui/switch";
+import { ShieldCheck } from "lucide-react";
 
 const roleConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   admin: { label: "Administrateur", icon: Shield, color: "bg-destructive text-destructive-foreground" },
@@ -80,6 +83,10 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Phase 3 RGPD art. 9 CC — droit a l'image (self pour adultes).
+  const [imageRightsConsent, setImageRightsConsent] = useState(false);
+  const [savingImageRights, setSavingImageRights] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth");
@@ -92,6 +99,7 @@ export default function Profile() {
       setLastName(profile.last_name || "");
       setNickname(profile.nickname || "");
       setPhotoPreview(profile.photo_url || null);
+      setImageRightsConsent(!!profile.image_rights_consent_at);
     }
   }, [profile]);
 
@@ -159,17 +167,14 @@ export default function Profile() {
 
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile || !user) return null;
-    const { validateUpload } = await import("@/lib/upload-validation");
-    const { contentType, safeExt } = validateUpload(photoFile, "image");
-    const path = `${user.id}/photo.${safeExt}`;
-    const { error } = await supabase.storage
-      .from("user-photos")
-      .upload(path, photoFile, { upsert: true, contentType });
-    if (error) throw error;
-    const { data: urlData } = supabase.storage
-      .from("user-photos")
-      .getPublicUrl(path);
-    return `${urlData.publicUrl}?t=${Date.now()}`;
+    // Routage automatique : adulte -> bucket public, mineur -> bucket prive.
+    const bd = (profile?.birthdate as string | null) ?? null;
+    const res = await uploadProfilePhoto(user.id, photoFile, bd);
+    // NB : pour les mineurs, photo_url stocke le PATH storage (pas une URL).
+    // L'app consomme via usePhotoUrl qui gere la signed URL.
+    // Persister photo_is_minor en parallele via handleSaveProfile.
+    (uploadPhoto as unknown as { __isMinor?: boolean }).__isMinor = res.photo_is_minor;
+    return res.photo_url;
   };
 
   const handleSaveProfile = async () => {
@@ -191,6 +196,8 @@ export default function Profile() {
       };
       if (photoUrl !== undefined) {
         updateData.photo_url = photoUrl;
+        updateData.photo_is_minor =
+          (uploadPhoto as unknown as { __isMinor?: boolean }).__isMinor ?? false;
       }
 
       const { error } = await supabase
@@ -218,6 +225,41 @@ export default function Profile() {
       toast.error("Erreur lors de la mise à jour du profil");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Phase 3 — toggle droit a l'image (adulte / self).
+  const handleToggleImageRights = async (next: boolean) => {
+    if (!user) return;
+    try {
+      setSavingImageRights(true);
+      const payload: Record<string, unknown> = next
+        ? {
+            image_rights_consent_at: new Date().toISOString(),
+            image_rights_consent_by: user.id,
+          }
+        : {
+            image_rights_consent_at: null,
+            image_rights_consent_ip: null,
+            image_rights_consent_by: null,
+          };
+      const { error } = await supabase
+        .from("profiles")
+        .update(payload)
+        .eq("id", user.id);
+      if (error) throw error;
+      setImageRightsConsent(next);
+      await refreshProfile();
+      toast.success(
+        next
+          ? "Diffusion de votre photo autorisée"
+          : "Diffusion de votre photo retirée — la photo est immédiatement masquée",
+      );
+    } catch (e) {
+      console.error(e);
+      toast.error("Échec de la mise à jour du consentement");
+    } finally {
+      setSavingImageRights(false);
     }
   };
 
@@ -387,6 +429,36 @@ export default function Profile() {
               <Save className="w-4 h-4 mr-2" />
               {saving ? "Enregistrement..." : "Enregistrer"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Phase 3 RGPD art. 9 CC — Droit a l'image (self pour adultes) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5" />
+              Droit à l'image
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-card">
+              <div className="flex-1 space-y-1">
+                <p className="font-medium text-sm">
+                  J'autorise la diffusion de ma photo au sein du club
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Consentement spécifique et révocable à tout moment (RGPD art. 7 §3).
+                  Tant que cette option est désactivée, votre photo est masquée
+                  partout dans l'application.
+                </p>
+              </div>
+              <Switch
+                checked={imageRightsConsent}
+                disabled={savingImageRights}
+                onCheckedChange={handleToggleImageRights}
+                aria-label="Autoriser la diffusion de ma photo"
+              />
+            </div>
           </CardContent>
         </Card>
 

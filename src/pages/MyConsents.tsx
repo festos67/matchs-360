@@ -10,7 +10,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShieldCheck, ShieldOff } from "lucide-react";
+import { ShieldCheck, ShieldOff, Camera, CameraOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 interface ConsentRow {
   id: string;
@@ -18,7 +19,12 @@ interface ConsentRow {
   relationship: string;
   signed_at: string;
   revoked_at: string | null;
-  minor?: { first_name: string | null; last_name: string | null } | null;
+  minor?: {
+    first_name: string | null;
+    last_name: string | null;
+    image_rights_consent_at?: string | null;
+    image_rights_consent_by?: string | null;
+  } | null;
 }
 
 const RELATIONSHIP_LABEL: Record<string, string> = {
@@ -59,7 +65,7 @@ export default function MyConsents() {
       const ids = Array.from(new Set(consents.map((c) => c.minor_profile_id)));
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name")
+        .select("id, first_name, last_name, image_rights_consent_at, image_rights_consent_by")
         .in("id", ids);
       const map = new Map((profs ?? []).map((p) => [p.id, p]));
       consents.forEach((c) => {
@@ -107,6 +113,59 @@ export default function MyConsents() {
     load();
   };
 
+  /**
+   * Phase 3 — Droit a l'image (art. 9 CC) : consentement PARENTAL specifique,
+   * distinct du consentement au traitement des donnees. Seul un titulaire
+   * legal (cf RLS via is_legal_guardian_of) peut le poser. Revocable a tout
+   * moment, la photo est immediatement masquee partout.
+   */
+  const toggleImageRights = async (
+    minorId: string,
+    nextEnabled: boolean,
+  ) => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u?.user) return;
+    const payload: {
+      image_rights_consent_at: string | null;
+      image_rights_consent_by: string | null;
+      image_rights_consent_ip: string | null;
+    } = nextEnabled
+      ? {
+          image_rights_consent_at: new Date().toISOString(),
+          image_rights_consent_by: u.user.id,
+          image_rights_consent_ip: null,
+        }
+      : {
+          image_rights_consent_at: null,
+          image_rights_consent_by: null,
+          image_rights_consent_ip: null,
+        };
+    const { error } = await supabase
+      .from("profiles")
+      .update(payload)
+      .eq("id", minorId);
+    if (error) {
+      toast.error("Échec de la mise à jour", { description: error.message });
+      return;
+    }
+    await supabase.from("audit_log").insert({
+      actor_id: u.user.id,
+      actor_role: "guardian",
+      action: nextEnabled
+        ? "parental_consent_granted"
+        : "parental_consent_revoked",
+      table_name: "profiles",
+      record_id: minorId,
+      after_data: { scope: "image_rights" },
+    });
+    toast.success(
+      nextEnabled
+        ? "Diffusion de la photo autorisée"
+        : "Diffusion de la photo retirée — photo immédiatement masquée",
+    );
+    load();
+  };
+
   return (
     <div className="container max-w-3xl mx-auto py-10 space-y-6">
       <div>
@@ -131,30 +190,57 @@ export default function MyConsents() {
               : "Mineur";
             const revoked = !!c.revoked_at;
             return (
-              <div
-                key={c.id}
-                className="p-4 border rounded-xl flex items-center gap-4"
-              >
-                {revoked ? (
-                  <ShieldOff className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <ShieldCheck className="w-5 h-5 text-primary" />
-                )}
-                <div className="flex-1">
-                  <p className="font-medium">{name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {RELATIONSHIP_LABEL[c.relationship] ?? c.relationship} ·
-                    signé le {new Date(c.signed_at).toLocaleDateString("fr-FR")}
-                    {revoked
-                      ? ` · révoqué le ${new Date(c.revoked_at!).toLocaleDateString("fr-FR")}`
-                      : ""}
-                  </p>
+              <div key={c.id} className="p-4 border rounded-xl space-y-3">
+                <div className="flex items-center gap-4">
+                  {revoked ? (
+                    <ShieldOff className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ShieldCheck className="w-5 h-5 text-primary" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-medium">{name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {RELATIONSHIP_LABEL[c.relationship] ?? c.relationship} ·
+                      signé le {new Date(c.signed_at).toLocaleDateString("fr-FR")}
+                      {revoked
+                        ? ` · révoqué le ${new Date(c.revoked_at!).toLocaleDateString("fr-FR")}`
+                        : ""}
+                    </p>
+                  </div>
+                  {!revoked && (
+                    <Button variant="outline" size="sm" onClick={() => revoke(c.id)}>
+                      Révoquer
+                    </Button>
+                  )}
                 </div>
-                {!revoked && (
-                  <Button variant="outline" size="sm" onClick={() => revoke(c.id)}>
-                    Révoquer
-                  </Button>
-                )}
+              {!revoked && (
+                <div className="ml-9 mt-2 p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2 flex-1">
+                    {c.minor?.image_rights_consent_at ? (
+                      <Camera className="w-4 h-4 mt-0.5 text-primary" />
+                    ) : (
+                      <CameraOff className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                    )}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        Droit à l'image — diffusion de la photo
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Consentement spécifique (art. 9 CC), distinct du
+                        consentement aux données. Photo masquée immédiatement
+                        si retiré.
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={!!c.minor?.image_rights_consent_at}
+                    onCheckedChange={(v) =>
+                      toggleImageRights(c.minor_profile_id, v)
+                    }
+                    aria-label={`Autoriser la diffusion de la photo de ${name}`}
+                  />
+                </div>
+              )}
               </div>
             );
           })}
