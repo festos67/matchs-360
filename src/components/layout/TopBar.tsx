@@ -76,17 +76,14 @@ export const TopBar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 px-2 md:px-2 h-auto py-1.5">
-              <div className="w-8 h-8 rounded-[10px] bg-secondary flex items-center justify-center overflow-hidden text-xs font-bold text-foreground">
-                {profile?.photo_url ? (
-                  <img
-                    src={profile.photo_url}
-                    alt="Profile"
-                    className="w-8 h-8 rounded-[10px] object-cover"
-                  />
-                ) : (
-                  (profile?.first_name?.[0] ?? user?.email?.[0] ?? "U").toUpperCase()
-                )}
-              </div>
+              {/* BUG-PHOTO-002 : passage par ProfilePhoto (signed URL mineur + gate consentement) */}
+              <ProfilePhoto
+                profile={profile}
+                className="w-8 h-8 !rounded-[10px]"
+                textClassName="text-xs"
+                shape="square"
+                alt="Profile"
+              />
               <div className="text-left hidden md:block">
                 <p className="text-[13px] font-bold text-foreground leading-tight">
                   {profile?.first_name || user?.email?.split("@")[0]}
