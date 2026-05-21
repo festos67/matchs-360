@@ -32,6 +32,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ProfilePhoto } from "@/components/shared/ProfilePhoto";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -59,6 +60,9 @@ interface PlayerData {
   last_name: string | null;
   nickname: string | null;
   photo_url: string | null;
+  photo_is_minor?: boolean | null;
+  image_rights_consent_at?: string | null;
+  birthdate?: string | null;
   club_id: string | null;
   club_name: string | null;
   club_short_name?: string | null;
@@ -197,7 +201,7 @@ const Players = () => {
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, email, first_name, last_name, nickname, photo_url, club_id")
+        .select("id, email, first_name, last_name, nickname, photo_url, photo_is_minor, image_rights_consent_at, birthdate, club_id")
         .in("id", userIds)
         .is("deleted_at", null);
 
@@ -252,6 +256,9 @@ const Players = () => {
           last_name: profile.last_name,
           nickname: profile.nickname,
           photo_url: profile.photo_url,
+          photo_is_minor: (profile as any).photo_is_minor ?? null,
+          image_rights_consent_at: (profile as any).image_rights_consent_at ?? null,
+          birthdate: (profile as any).birthdate ?? null,
           club_id: clubId,
           club_name: clubName,
           club_short_name: firstClub?.short_name || null,
@@ -453,21 +460,14 @@ const Players = () => {
     >
       <TableCell>
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={player.photo_url || undefined} />
-            <AvatarFallback 
-              className="font-medium"
-              style={teamColor ? {
-                backgroundColor: `${teamColor}20`,
-                color: teamColor,
-              } : {
-                backgroundColor: 'hsl(var(--primary) / 0.1)',
-                color: 'hsl(var(--primary))',
-              }}
-            >
-              {getInitials(player.first_name, player.last_name)}
-            </AvatarFallback>
-          </Avatar>
+          {/* BUG-PHOTO-002 : ProfilePhoto (signed URL mineur + gate consentement) */}
+          <ProfilePhoto
+            profile={player}
+            color={teamColor || "#3B82F6"}
+            className="h-10 w-10"
+            textClassName="text-sm"
+            alt={getDisplayName(player)}
+          />
           <div>
             <p className="font-medium">{getDisplayName(player)}</p>
             <p className="text-sm text-muted-foreground">{player.email}</p>

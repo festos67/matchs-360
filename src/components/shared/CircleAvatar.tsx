@@ -18,12 +18,20 @@
  */
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
+import { usePhotoUrl, type DisplayablePhoto } from "@/hooks/usePhotoUrl";
 
 interface CircleAvatarProps {
   name: string;
   shortName?: string | null;
   subtitle?: string;
   imageUrl?: string | null;
+  /**
+   * BUG-PHOTO-002/003 — passer `profile` plutôt que `imageUrl` pour les
+   * photos de profil utilisateurs. La photo est résolue via `usePhotoUrl`
+   * (signed URL mineur + gate consentement). `imageUrl` reste réservé aux
+   * cas non-profil (logos de club, etc.).
+   */
+  profile?: DisplayablePhoto | null;
   color?: string;
   size?: "sm" | "md" | "lg" | "xl";
   onClick?: () => void;
@@ -60,6 +68,7 @@ export const CircleAvatar = ({
   shortName,
   subtitle,
   imageUrl,
+  profile,
   color = "#3B82F6",
   size = "md",
   onClick,
@@ -69,6 +78,11 @@ export const CircleAvatar = ({
   showName = true,
   shape = "circle",
 }: CircleAvatarProps) => {
+  // Si un `profile` est fourni, on l'utilise prioritairement (chemin protégé).
+  // Sinon `imageUrl` (logos club / cas hérités).
+  const resolvedProfileUrl = usePhotoUrl(profile);
+  const finalImageUrl = profile ? resolvedProfileUrl : imageUrl;
+
   const displayText = shortName || name
     .split(" ")
     .map((n) => n[0])
@@ -91,13 +105,13 @@ export const CircleAvatar = ({
           shape === "circle" ? "!rounded-full" : "!rounded-2xl"
         )}
         style={{
-          background: imageUrl
-            ? `url(${imageUrl}) center/cover`
+          background: finalImageUrl
+            ? `url(${finalImageUrl}) center/cover`
             : `linear-gradient(135deg, ${color} 0%, ${color}88 100%)`,
           boxShadow: `0 4px 24px -4px ${color}40`,
         }}
       >
-        {!imageUrl && (
+        {!finalImageUrl && (
           <span
             className={cn(
               "font-display font-bold text-white",
