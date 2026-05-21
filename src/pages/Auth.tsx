@@ -177,14 +177,6 @@ export default function Auth() {
         // Validate signup
         signUpSchema.parse({ email, password, firstName, lastName, requestedRole });
 
-        if (!adultSelfDeclared) {
-          toast.error(
-            `Vous devez certifier etre majeur (${PHASE0_MIN_AGE_YEARS} ans ou plus) pour vous inscrire pendant la phase beta.`,
-          );
-          setLoading(false);
-          return;
-        }
-
         const redirectUrl = `${window.location.origin}/dashboard`;
 
         const { data: signUpData, error } = await supabase.auth.signUp({
@@ -196,8 +188,6 @@ export default function Auth() {
               first_name: firstName,
               last_name: lastName,
               requested_role: requestedRole,
-              adult_self_declared: true,
-              adult_self_declared_at: new Date().toISOString(),
             },
           },
         });
