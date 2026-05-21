@@ -58,8 +58,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { Shield } from "lucide-react";
+import { MinorEvaluationBanner } from "./MinorEvaluationBanner";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 
 interface Theme {
