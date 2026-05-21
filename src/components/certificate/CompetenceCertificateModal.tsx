@@ -51,6 +51,8 @@ interface CompetenceCertificateModalProps {
   clubPrimaryColor?: string;
   defaultGuarantorName?: string;
   radarOptions?: CertificateRadarOption[];
+  /** Phase 6 RGPD — true si le joueur cible est mineur (watermark PDF) */
+  isMinor?: boolean;
 }
 
 export function CompetenceCertificateModal({
@@ -58,6 +60,7 @@ export function CompetenceCertificateModal({
   playerName, clubName, clubLogoUrl, clubPrimaryColor,
   defaultGuarantorName = "",
   radarOptions = [],
+  isMinor = false,
 }: CompetenceCertificateModalProps) {
   const [guarantor, setGuarantor] = useState(defaultGuarantorName);
   const [period, setPeriod] = useState("");
