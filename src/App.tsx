@@ -60,6 +60,8 @@ const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const RoleApprovals = lazy(() => import("./pages/RoleApprovals"));
 const InvitationsAdmin = lazy(() => import("./pages/InvitationsAdmin"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
+const GuardianConsent = lazy(() => import("./pages/GuardianConsent"));
+const MyConsents = lazy(() => import("./pages/MyConsents"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Stats = lazy(() => import("./pages/Stats"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
@@ -88,6 +90,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/invite/accept" element={<InviteAccept />} />
+              <Route path="/guardian/consent" element={<GuardianConsent />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/logo-demo" element={<LogoDemo />} />
 
@@ -140,6 +143,7 @@ const App = () => (
               <Route path="/invitations" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><InvitationsAdmin /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/my-consents" element={<ProtectedRoute><MyConsents /></ProtectedRoute>} />
 
               <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
 

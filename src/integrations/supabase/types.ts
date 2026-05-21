@@ -634,6 +634,77 @@ export type Database = {
           },
         ]
       }
+      parental_consents: {
+        Row: {
+          consent_scope: Json
+          created_at: string
+          guardian_profile_id: string
+          id: string
+          minor_profile_id: string
+          relationship: Database["public"]["Enums"]["guardian_relationship"]
+          revoked_at: string | null
+          revoked_reason: string | null
+          signed_at: string
+          signed_ip: unknown
+          signed_user_agent: string | null
+        }
+        Insert: {
+          consent_scope?: Json
+          created_at?: string
+          guardian_profile_id: string
+          id?: string
+          minor_profile_id: string
+          relationship: Database["public"]["Enums"]["guardian_relationship"]
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          signed_at?: string
+          signed_ip?: unknown
+          signed_user_agent?: string | null
+        }
+        Update: {
+          consent_scope?: Json
+          created_at?: string
+          guardian_profile_id?: string
+          id?: string
+          minor_profile_id?: string
+          relationship?: Database["public"]["Enums"]["guardian_relationship"]
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          signed_at?: string
+          signed_ip?: unknown
+          signed_user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parental_consents_guardian_profile_id_fkey"
+            columns: ["guardian_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parental_consents_guardian_profile_id_fkey"
+            columns: ["guardian_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parental_consents_minor_profile_id_fkey"
+            columns: ["minor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parental_consents_minor_profile_id_fkey"
+            columns: ["minor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_limits: {
         Row: {
           can_compare_multi_source: boolean
@@ -1084,19 +1155,31 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_legal_guardian: boolean
           player_id: string
+          relationship:
+            | Database["public"]["Enums"]["guardian_relationship"]
+            | null
           supporter_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_legal_guardian?: boolean
           player_id: string
+          relationship?:
+            | Database["public"]["Enums"]["guardian_relationship"]
+            | null
           supporter_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_legal_guardian?: boolean
           player_id?: string
+          relationship?:
+            | Database["public"]["Enums"]["guardian_relationship"]
+            | null
           supporter_id?: string
         }
         Relationships: [
@@ -1597,6 +1680,10 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      is_legal_guardian_of: {
+        Args: { _guardian_id: string; _minor_id: string }
+        Returns: boolean
+      }
       is_minor: { Args: { _profile_id: string }; Returns: boolean }
       is_plan_bypass_active: { Args: never; Returns: boolean }
       is_player_in_team: {
@@ -1611,6 +1698,7 @@ export type Database = {
         Args: { _player_id: string; _supporter_id: string }
         Returns: boolean
       }
+      minor_has_valid_consent: { Args: { _minor_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -1662,6 +1750,11 @@ export type Database = {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
       coach_type: "referent" | "assistant"
       evaluation_type: "coach" | "self" | "supporter"
+      guardian_relationship:
+        | "mere"
+        | "pere"
+        | "tuteur_legal"
+        | "autre_titulaire"
       subscription_plan: "free" | "pro"
       subscription_source:
         | "direct"
@@ -1799,6 +1892,12 @@ export const Constants = {
       app_role: ["admin", "club_admin", "coach", "player", "supporter"],
       coach_type: ["referent", "assistant"],
       evaluation_type: ["coach", "self", "supporter"],
+      guardian_relationship: [
+        "mere",
+        "pere",
+        "tuteur_legal",
+        "autre_titulaire",
+      ],
       subscription_plan: ["free", "pro"],
       subscription_source: [
         "direct",

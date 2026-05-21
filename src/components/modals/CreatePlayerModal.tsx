@@ -73,6 +73,8 @@ import {
   PHASE0_ADULT_ONLY_MESSAGE,
   isMinorPhase0,
   isPhase0MinorBlockedError,
+  requiresParentalConsent,
+  PARENTAL_CONSENT_AGE_YEARS,
 } from "@/lib/age-policy";
 
 const playerSchema = z.object({
@@ -90,7 +92,20 @@ const playerSchema = z.object({
     .refine((s) => !isMinorPhase0(s), {
       message: `Phase beta : reserve aux personnes de ${PHASE0_MIN_AGE_YEARS} ans et plus. ${PHASE0_ADULT_ONLY_MESSAGE}`,
     }),
-});
+  guardianEmail: z.string().email("Email invalide").max(255).optional().or(z.literal("")),
+  guardianRelationship: z.enum(["mere", "pere", "tuteur_legal", "autre_titulaire"]).optional(),
+}).refine(
+  (d) => {
+    if (requiresParentalConsent(d.birthdate)) {
+      return !!d.guardianEmail && !!d.guardianRelationship;
+    }
+    return true;
+  },
+  {
+    message: "Email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
+    path: ["guardianEmail"],
+  },
+);
 
 type PlayerFormData = z.infer<typeof playerSchema>;
 
@@ -583,6 +598,47 @@ export const CreatePlayerModal = ({
                     La gestion des mineurs (avec consentement parental) arrivera prochainement.
                   </p>
                 </div>
+
+                {requiresParentalConsent(watch("birthdate")) && (
+                  <div className="space-y-3 p-4 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                      <p className="text-sm text-amber-900 dark:text-amber-100">
+                        Ce joueur a moins de {PARENTAL_CONSENT_AGE_YEARS} ans.
+                        Une demande de consentement sera envoyée à son représentant légal — l'email d'invitation ne sera PAS envoyé à l'enfant.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guardianEmail">Email du titulaire de l'autorité parentale</Label>
+                      <Input
+                        id="guardianEmail"
+                        type="email"
+                        placeholder="parent@exemple.com"
+                        {...register("guardianEmail")}
+                      />
+                      {errors.guardianEmail && (
+                        <p className="text-sm text-destructive">{errors.guardianEmail.message}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guardianRelationship">Lien avec l'enfant</Label>
+                      <Select
+                        onValueChange={(v) => setValue("guardianRelationship", v as any)}
+                        value={watch("guardianRelationship") || ""}
+                      >
+                        <SelectTrigger id="guardianRelationship">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mere">Mère</SelectItem>
+                          <SelectItem value="pere">Père</SelectItem>
+                          <SelectItem value="tuteur_legal">Tuteur légal</SelectItem>
+                          <SelectItem value="autre_titulaire">Autre titulaire</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
 
                 {(
                   <div className="space-y-2">
