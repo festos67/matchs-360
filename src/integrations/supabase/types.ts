@@ -242,6 +242,45 @@ export type Database = {
         }
         Relationships: []
       }
+      erasure_requests: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          executed_at: string | null
+          id: string
+          reason: string | null
+          requested_at: string
+          requested_by: string
+          scheduled_for: string
+          status: string
+          subject_profile_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          executed_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          requested_by: string
+          scheduled_for?: string
+          status?: string
+          subject_profile_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          executed_at?: string | null
+          id?: string
+          reason?: string | null
+          requested_at?: string
+          requested_by?: string
+          scheduled_for?: string
+          status?: string
+          subject_profile_id?: string
+        }
+        Relationships: []
+      }
       evaluation_objectives: {
         Row: {
           content: string
@@ -1910,6 +1949,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_my_children: { Args: never; Returns: string[] }
       get_player_club_id: { Args: { _player_id: string }; Returns: string }
       get_referent_coach_team_ids: {
         Args: { _user_id: string }
