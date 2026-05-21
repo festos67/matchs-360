@@ -762,6 +762,36 @@ const handler = async (req: Request): Promise<Response> => {
           user_id: userId,
           member_type: "player",
         });
+
+      // Phase 6 RGPD — Designation serveur du tuteur legal (preuve de
+      // filiation requise par record-parental-consent). On accepte le
+      // couple email+relationship uniquement si l'inviteur les fournit,
+      // typiquement pour les mineurs < 15 ans collectes dans le formulaire.
+      const ALLOWED_REL = ["mere", "pere", "tuteur_legal", "autre_titulaire"];
+      const emailRegexLocal = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (
+        guardianEmail &&
+        guardianRelationship &&
+        emailRegexLocal.test(guardianEmail) &&
+        ALLOWED_REL.includes(guardianRelationship)
+      ) {
+        const { error: desigErr } = await supabaseAdmin
+          .from("guardian_designations")
+          .upsert(
+            {
+              minor_profile_id: userId,
+              guardian_email: guardianEmail.toLowerCase().trim(),
+              relationship: guardianRelationship,
+              status: "pending",
+              created_by: user.id,
+            },
+            { onConflict: "minor_profile_id,guardian_email" },
+          );
+        if (desigErr) {
+          console.error("guardian_designations upsert failed", desigErr);
+          // Non bloquant pour l'invitation; mais on logue pour audit.
+        }
+      }
     }
 
     // If supporter, create links to players
