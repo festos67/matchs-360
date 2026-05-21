@@ -394,6 +394,24 @@ export function EditTeamModal({ open, onOpenChange, team, onSuccess }: EditTeamM
               />
             </div>
 
+            {/* Age category — Phase 1 minor compliance */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-team-age">Catégorie d'âge</Label>
+              <Select value={ageCategory || undefined} onValueChange={(v) => setAgeCategory(v)}>
+                <SelectTrigger id="edit-team-age">
+                  <SelectValue placeholder="Non précisée" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TEAM_AGE_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Label indicatif. Les protections RGPD mineurs s'appliquent automatiquement selon la date de naissance des membres.
+              </p>
+            </div>
+
             {/* Coach Management */}
             <div className="space-y-3 pt-2 border-t border-border">
               <Label className="flex items-center gap-2">
