@@ -881,8 +881,12 @@ export type Database = {
           email: string
           first_name: string | null
           id: string
+          image_rights_consent_at: string | null
+          image_rights_consent_by: string | null
+          image_rights_consent_ip: unknown
           last_name: string | null
           nickname: string | null
+          photo_is_minor: boolean
           photo_url: string | null
           updated_at: string
         }
@@ -894,8 +898,12 @@ export type Database = {
           email: string
           first_name?: string | null
           id: string
+          image_rights_consent_at?: string | null
+          image_rights_consent_by?: string | null
+          image_rights_consent_ip?: unknown
           last_name?: string | null
           nickname?: string | null
+          photo_is_minor?: boolean
           photo_url?: string | null
           updated_at?: string
         }
@@ -907,8 +915,12 @@ export type Database = {
           email?: string
           first_name?: string | null
           id?: string
+          image_rights_consent_at?: string | null
+          image_rights_consent_by?: string | null
+          image_rights_consent_ip?: unknown
           last_name?: string | null
           nickname?: string | null
+          photo_is_minor?: boolean
           photo_url?: string | null
           updated_at?: string
         }
@@ -1712,6 +1724,7 @@ export type Database = {
         Args: { _profile_id: string }
         Returns: boolean
       }
+      photo_display_allowed: { Args: { _profile_id: string }; Returns: boolean }
       purge_old_audit_log: { Args: never; Returns: undefined }
       purge_old_evaluations: { Args: never; Returns: undefined }
       purge_old_frameworks: { Args: never; Returns: undefined }
