@@ -265,7 +265,7 @@ const handler = async (req: Request): Promise<Response> => {
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
     const body: InvitationRequest = await req.json();
-    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds } = body;
+    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship } = body;
 
     // ============================================================
     // F-601 — Strict whitelist of intendedRole.
