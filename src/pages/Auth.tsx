@@ -40,6 +40,8 @@ import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
 import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PHASE0_MIN_AGE_YEARS } from "@/lib/age-policy";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -76,6 +78,9 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
+  // Phase 0 conformite mineurs : auto-declaration majorite obligatoire au signup public.
+  // La birthdate complete sera demandee a la creation du profil par le club_admin.
+  const [adultSelfDeclared, setAdultSelfDeclared] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [sendingHelp, setSendingHelp] = useState(false);
@@ -172,6 +177,14 @@ export default function Auth() {
         // Validate signup
         signUpSchema.parse({ email, password, firstName, lastName, requestedRole });
 
+        if (!adultSelfDeclared) {
+          toast.error(
+            `Vous devez certifier etre majeur (${PHASE0_MIN_AGE_YEARS} ans ou plus) pour vous inscrire pendant la phase beta.`,
+          );
+          setLoading(false);
+          return;
+        }
+
         const redirectUrl = `${window.location.origin}/dashboard`;
 
         const { data: signUpData, error } = await supabase.auth.signUp({
@@ -183,6 +196,8 @@ export default function Auth() {
               first_name: firstName,
               last_name: lastName,
               requested_role: requestedRole,
+              adult_self_declared: true,
+              adult_self_declared_at: new Date().toISOString(),
             },
           },
         });
@@ -429,10 +444,31 @@ export default function Auth() {
               </div>
             </div>
 
+            {!isLogin && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3">
+                <label
+                  htmlFor="adult-self-declared"
+                  className="flex items-start gap-3 cursor-pointer"
+                >
+                  <Checkbox
+                    id="adult-self-declared"
+                    checked={adultSelfDeclared}
+                    onCheckedChange={(c) => setAdultSelfDeclared(c === true)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    Je certifie être une personne majeure ({PHASE0_MIN_AGE_YEARS} ans ou plus).
+                    L'inscription des mineurs (avec consentement parental conforme RGPD)
+                    sera disponible dans une prochaine version.
+                  </span>
+                </label>
+              </div>
+            )}
+
             <Button
               type="submit"
               className="w-full h-12 text-base font-medium"
-              disabled={loading}
+              disabled={loading || (!isLogin && !adultSelfDeclared)}
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />

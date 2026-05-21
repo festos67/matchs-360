@@ -761,6 +761,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          birthdate: string | null
           club_id: string | null
           created_at: string
           deleted_at: string | null
@@ -773,6 +774,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          birthdate?: string | null
           club_id?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -785,6 +787,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          birthdate?: string | null
           club_id?: string | null
           created_at?: string
           deleted_at?: string | null

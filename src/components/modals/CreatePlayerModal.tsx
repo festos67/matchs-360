@@ -68,6 +68,12 @@ import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
+import {
+  PHASE0_MIN_AGE_YEARS,
+  PHASE0_ADULT_ONLY_MESSAGE,
+  isMinorPhase0,
+  isPhase0MinorBlockedError,
+} from "@/lib/age-policy";
 
 const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
@@ -75,6 +81,15 @@ const playerSchema = z.object({
   nickname: z.string().max(50).optional(),
   email: z.string().email("Email invalide").max(255),
   teamId: z.string().min(1, "Équipe requise"),
+  birthdate: z
+    .string()
+    .min(1, "Date de naissance requise")
+    .refine((s) => !Number.isNaN(new Date(s).getTime()), {
+      message: "Date invalide",
+    })
+    .refine((s) => !isMinorPhase0(s), {
+      message: `Phase beta : reserve aux personnes de ${PHASE0_MIN_AGE_YEARS} ans et plus. ${PHASE0_ADULT_ONLY_MESSAGE}`,
+    }),
 });
 
 type PlayerFormData = z.infer<typeof playerSchema>;
@@ -261,6 +276,18 @@ export const CreatePlayerModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
+      // Phase 0 conformite mineurs : persister birthdate sur le profil cree
+      // par le trigger handle_new_user (avec birthdate NULL initialement).
+      if (result?.userId) {
+        const { error: birthdateError } = await supabase
+          .from("profiles")
+          .update({ birthdate: data.birthdate })
+          .eq("id", result.userId);
+        if (birthdateError) {
+          console.error("Error persisting birthdate:", birthdateError);
+        }
+      }
+
       // Upload photo if provided and user was created
       if (photoFile && result?.userId) {
         const photoUrl = await uploadPhotoForUser(result.userId);
@@ -280,8 +307,28 @@ export const CreatePlayerModal = ({
       onSuccess?.();
     } catch (error: unknown) {
       console.error("Error inviting player:", error);
+
+      // Phase 0 — garde-fou DB : message metier clair, pas de SQL brut
+      if (isPhase0MinorBlockedError(error)) {
+        toast.error("Inscription mineurs indisponible", {
+          description: PHASE0_ADULT_ONLY_MESSAGE,
+          duration: 7000,
+        });
+        setLoading(false);
+        return;
+      }
+
       const errorInfo = await getEdgeFunctionErrorInfo(error);
       const errorMessage = errorInfo.message;
+
+      if (isPhase0MinorBlockedError({ message: errorMessage })) {
+        toast.error("Inscription mineurs indisponible", {
+          description: PHASE0_ADULT_ONLY_MESSAGE,
+          duration: 7000,
+        });
+        setLoading(false);
+        return;
+      }
 
       // Plan limit raised by check_member_limit / check_team_limit triggers
       if (errorMessage.includes("PLAN_LIMIT_PLAYERS")) {
@@ -517,6 +564,23 @@ export const CreatePlayerModal = ({
                   )}
                   <p className="text-xs text-muted-foreground">
                     Le joueur recevra une invitation pour créer son compte
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="birthdate">Date de naissance</Label>
+                  <Input
+                    id="birthdate"
+                    type="date"
+                    max={new Date().toISOString().split("T")[0]}
+                    {...register("birthdate")}
+                  />
+                  {errors.birthdate && (
+                    <p className="text-sm text-destructive">{errors.birthdate.message}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Phase bêta : réservée aux personnes de {PHASE0_MIN_AGE_YEARS} ans et plus.
+                    La gestion des mineurs (avec consentement parental) arrivera prochainement.
                   </p>
                 </div>
 
