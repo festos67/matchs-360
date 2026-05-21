@@ -95,6 +95,11 @@ interface InvitationRequest {
   teamId?: string;
   coachRole?: "referent" | "assistant";
   playerIds?: string[];
+  // Phase 6 RGPD : transmis uniquement pour un joueur mineur < 15 ans.
+  // Materialise la designation guardian -> mineur cote serveur, condition
+  // sine qua non de l'enregistrement du consentement parental.
+  guardianEmail?: string;
+  guardianRelationship?: "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
 }
 
 type EmailProviderError = {
@@ -260,7 +265,7 @@ const handler = async (req: Request): Promise<Response> => {
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
     const body: InvitationRequest = await req.json();
-    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds } = body;
+    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship } = body;
 
     // ============================================================
     // F-601 — Strict whitelist of intendedRole.
@@ -757,6 +762,43 @@ const handler = async (req: Request): Promise<Response> => {
           user_id: userId,
           member_type: "player",
         });
+
+      // Phase 6 RGPD — Designation serveur du tuteur legal (preuve de
+      // filiation requise par record-parental-consent). On accepte le
+      // couple email+relationship uniquement si l'inviteur les fournit,
+      // typiquement pour les mineurs < 15 ans collectes dans le formulaire.
+      const ALLOWED_REL = ["mere", "pere", "tuteur_legal", "autre_titulaire"];
+      const emailRegexLocal = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (
+        guardianEmail &&
+        guardianRelationship &&
+        emailRegexLocal.test(guardianEmail) &&
+        ALLOWED_REL.includes(guardianRelationship)
+      ) {
+        const guardianEmailNorm = guardianEmail.toLowerCase().trim();
+        const { data: existingDesig } = await supabaseAdmin
+          .from("guardian_designations")
+          .select("id")
+          .eq("minor_profile_id", userId)
+          .eq("guardian_email", guardianEmailNorm)
+          .eq("status", "pending")
+          .maybeSingle();
+        if (!existingDesig) {
+          const { error: desigErr } = await supabaseAdmin
+            .from("guardian_designations")
+            .insert({
+              minor_profile_id: userId,
+              guardian_email: guardianEmailNorm,
+              relationship: guardianRelationship,
+              status: "pending",
+              created_by: user.id,
+            });
+          if (desigErr) {
+            // Non bloquant pour l'invitation; logue pour audit.
+            console.error("guardian_designations insert failed", desigErr);
+          }
+        }
+      }
     }
 
     // If supporter, create links to players

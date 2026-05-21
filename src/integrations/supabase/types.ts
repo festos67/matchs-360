@@ -486,6 +486,48 @@ export type Database = {
           },
         ]
       }
+      guardian_designations: {
+        Row: {
+          consumed_at: string | null
+          consumed_by: string | null
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          guardian_email: string
+          id: string
+          minor_profile_id: string
+          relationship: Database["public"]["Enums"]["guardian_relationship"]
+          status: Database["public"]["Enums"]["guardian_designation_status"]
+          updated_at: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          guardian_email: string
+          id?: string
+          minor_profile_id: string
+          relationship: Database["public"]["Enums"]["guardian_relationship"]
+          status?: Database["public"]["Enums"]["guardian_designation_status"]
+          updated_at?: string
+        }
+        Update: {
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          guardian_email?: string
+          id?: string
+          minor_profile_id?: string
+          relationship?: Database["public"]["Enums"]["guardian_relationship"]
+          status?: Database["public"]["Enums"]["guardian_designation_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invitation_send_log: {
         Row: {
           caller_role: string
@@ -2077,6 +2119,7 @@ export type Database = {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
       coach_type: "referent" | "assistant"
       evaluation_type: "coach" | "self" | "supporter"
+      guardian_designation_status: "pending" | "consumed" | "cancelled"
       guardian_relationship:
         | "mere"
         | "pere"
@@ -2219,6 +2262,7 @@ export const Constants = {
       app_role: ["admin", "club_admin", "coach", "player", "supporter"],
       coach_type: ["referent", "assistant"],
       evaluation_type: ["coach", "self", "supporter"],
+      guardian_designation_status: ["pending", "consumed", "cancelled"],
       guardian_relationship: [
         "mere",
         "pere",

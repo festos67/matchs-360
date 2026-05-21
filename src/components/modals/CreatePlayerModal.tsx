@@ -282,6 +282,15 @@ export const CreatePlayerModal = ({
           clubId,
           intendedRole: "player",
           teamId: data.teamId,
+          // Phase 6 RGPD — pour un mineur < 15 ans, on transmet le titulaire
+          // legal designe afin que le serveur cree une `guardian_designation`
+          // (preuve de filiation requise lors du consentement parental).
+          ...(requiresParentalConsent(data.birthdate) && data.guardianEmail && data.guardianRelationship
+            ? {
+                guardianEmail: data.guardianEmail,
+                guardianRelationship: data.guardianRelationship,
+              }
+            : {}),
         },
       });
 

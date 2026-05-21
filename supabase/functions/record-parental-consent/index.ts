@@ -64,6 +64,12 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ error: "AUTH_INVALID" }, 401, cors);
     }
     const guardianId = claims.claims.sub as string;
+    const guardianEmailRaw =
+      (claims.claims.email as string | undefined) ?? null;
+    const guardianEmail = guardianEmailRaw ? guardianEmailRaw.toLowerCase().trim() : null;
+    if (!guardianEmail) {
+      return json({ error: "GUARDIAN_EMAIL_MISSING" }, 401, cors);
+    }
 
     let body: Body;
     try {
@@ -83,8 +89,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Le guardian doit etre majeur (anti-mineur-consent-mineur).
+    // BUG-EDGE-003 fix : la signature SQL est is_minor(_profile_id uuid).
     const { data: guardianIsMinor, error: gErr } = await admin.rpc("is_minor", {
-      _user_id: guardianId,
+      _profile_id: guardianId,
     });
     if (gErr) {
       return json({ error: "GUARDIAN_AGE_CHECK_FAILED" }, 500, cors);
@@ -93,15 +100,44 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ error: "GUARDIAN_MUST_BE_ADULT" }, 403, cors);
     }
 
-    // Le minor_profile_id doit etre mineur.
+    // Le minor_profile_id doit requerir un consentement parental.
+    // BUG-EDGE-003 fix : signature is_minor(_profile_id uuid).
     const { data: minorIsMinor, error: mErr } = await admin.rpc("is_minor", {
-      _user_id: body.minor_profile_id,
+      _profile_id: body.minor_profile_id,
     });
     if (mErr) {
       return json({ error: "MINOR_AGE_CHECK_FAILED" }, 500, cors);
     }
     if (minorIsMinor !== true) {
       return json({ error: "NOT_A_MINOR" }, 400, cors);
+    }
+
+    // ================================================================
+    // BUG-EDGE-001 fix — PREUVE DE FILIATION serveur.
+    // Le caller ne peut consentir QUE pour un mineur pour lequel une
+    // designation 'pending' a ete posee (par send-invitation lors de la
+    // creation du mineur) et qui matche l'email authentifie du caller.
+    // Sans designation : 403 ; aucun INSERT.
+    // ================================================================
+    const { data: designation, error: desigErr } = await admin
+      .from("guardian_designations")
+      .select("id, relationship, expires_at")
+      .eq("minor_profile_id", body.minor_profile_id)
+      .eq("guardian_email", guardianEmail)
+      .eq("status", "pending")
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle();
+    if (desigErr) {
+      console.error("guardian_designations lookup failed", desigErr);
+      return json({ error: "DESIGNATION_LOOKUP_FAILED" }, 500, cors);
+    }
+    if (!designation) {
+      // Pas de designation valable : refus net, aucun cote de doute.
+      return json(
+        { error: "NO_GUARDIAN_DESIGNATION" },
+        403,
+        cors,
+      );
     }
 
     // Idempotence : consentement actif deja present ?
@@ -114,6 +150,18 @@ const handler = async (req: Request): Promise<Response> => {
       .maybeSingle();
 
     if (existing) {
+      // Idempotence : on s'assure neanmoins que la designation est marquee
+      // consumed pour fermer l'anti-rejeu si elle ne l'etait pas encore.
+      await admin
+        .from("guardian_designations")
+        .update({
+          status: "consumed",
+          consumed_by: guardianId,
+          consumed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", designation.id)
+        .eq("status", "pending");
       return json(
         { ok: true, consent_id: existing.id, already_active: true },
         200,
@@ -137,12 +185,22 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (insErr || !inserted) {
-      return json(
-        { error: "INSERT_FAILED", detail: insErr?.message },
-        500,
-        cors,
-      );
+      console.error("parental_consents insert failed", insErr);
+      // Pas de fuite du message SQL brut au client.
+      return json({ error: "INSERT_FAILED" }, 500, cors);
     }
+
+    // Anti-rejeu : marquer la designation consommee.
+    await admin
+      .from("guardian_designations")
+      .update({
+        status: "consumed",
+        consumed_by: guardianId,
+        consumed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", designation.id)
+      .eq("status", "pending");
 
     // Cache : si un supporters_link existe, le marquer comme guardian.
     await admin
@@ -173,6 +231,7 @@ const handler = async (req: Request): Promise<Response> => {
       after_data: {
         minor_profile_id: body.minor_profile_id,
         relationship: body.relationship,
+        designation_id: designation.id,
       },
       ip_address: ip,
       user_agent: ua,
@@ -181,11 +240,8 @@ const handler = async (req: Request): Promise<Response> => {
     return json({ ok: true, consent_id: inserted.id }, 200, cors);
   } catch (e) {
     console.error("record-parental-consent fatal", e);
-    return json(
-      { error: "INTERNAL_ERROR", detail: (e as Error).message },
-      500,
-      buildCorsHeaders(req),
-    );
+    // Pas de fuite : message metier seulement.
+    return json({ error: "INTERNAL_ERROR" }, 500, buildCorsHeaders(req));
   }
 };
 
