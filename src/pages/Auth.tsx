@@ -40,6 +40,8 @@ import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
 import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PHASE0_MIN_AGE_YEARS } from "@/lib/age-policy";
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -76,6 +78,9 @@ export default function Auth() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [requestedRole, setRequestedRole] = useState<RequestedRole | null>(null);
+  // Phase 0 conformite mineurs : auto-declaration majorite obligatoire au signup public.
+  // La birthdate complete sera demandee a la creation du profil par le club_admin.
+  const [adultSelfDeclared, setAdultSelfDeclared] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [sendingHelp, setSendingHelp] = useState(false);
@@ -172,6 +177,14 @@ export default function Auth() {
         // Validate signup
         signUpSchema.parse({ email, password, firstName, lastName, requestedRole });
 
+        if (!adultSelfDeclared) {
+          toast.error(
+            `Vous devez certifier etre majeur (${PHASE0_MIN_AGE_YEARS} ans ou plus) pour vous inscrire pendant la phase beta.`,
+          );
+          setLoading(false);
+          return;
+        }
+
         const redirectUrl = `${window.location.origin}/dashboard`;
 
         const { data: signUpData, error } = await supabase.auth.signUp({
@@ -183,6 +196,8 @@ export default function Auth() {
               first_name: firstName,
               last_name: lastName,
               requested_role: requestedRole,
+              adult_self_declared: true,
+              adult_self_declared_at: new Date().toISOString(),
             },
           },
         });
