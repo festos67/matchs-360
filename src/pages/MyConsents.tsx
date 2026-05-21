@@ -125,10 +125,15 @@ export default function MyConsents() {
   ) => {
     const { data: u } = await supabase.auth.getUser();
     if (!u?.user) return;
-    const payload = nextEnabled
+    const payload: {
+      image_rights_consent_at: string | null;
+      image_rights_consent_by: string | null;
+      image_rights_consent_ip: string | null;
+    } = nextEnabled
       ? {
           image_rights_consent_at: new Date().toISOString(),
           image_rights_consent_by: u.user.id,
+          image_rights_consent_ip: null,
         }
       : {
           image_rights_consent_at: null,
