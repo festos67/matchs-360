@@ -382,6 +382,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "evaluations_coach_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "evaluations_framework_id_fkey"
             columns: ["framework_id"]
             isOneToOne: false
@@ -400,6 +407,13 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -540,6 +554,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invitations_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -547,6 +568,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      minor_data_access_log: {
+        Row: {
+          access_type: string
+          actor_id: string | null
+          actor_role: string | null
+          id: number
+          minor_profile_id: string
+          occurred_at: string
+          target: string | null
+        }
+        Insert: {
+          access_type: string
+          actor_id?: string | null
+          actor_role?: string | null
+          id?: never
+          minor_profile_id: string
+          occurred_at?: string
+          target?: string | null
+        }
+        Update: {
+          access_type?: string
+          actor_id?: string | null
+          actor_role?: string | null
+          id?: never
+          minor_profile_id?: string
+          occurred_at?: string
+          target?: string | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -592,6 +643,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -690,6 +748,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "parental_consents_guardian_profile_id_fkey"
+            columns: ["guardian_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "parental_consents_minor_profile_id_fkey"
             columns: ["minor_profile_id"]
             isOneToOne: false
@@ -703,7 +768,50 @@ export type Database = {
             referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "parental_consents_minor_profile_id_fkey"
+            columns: ["minor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      pending_notifications: {
+        Row: {
+          attempts: number
+          created_at: string
+          event_type: string
+          id: string
+          minor_profile_id: string | null
+          payload: Json
+          recipient_profile_id: string
+          send_error: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event_type: string
+          id?: string
+          minor_profile_id?: string | null
+          payload?: Json
+          recipient_profile_id: string
+          send_error?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          minor_profile_id?: string | null
+          payload?: Json
+          recipient_profile_id?: string
+          send_error?: string | null
+          sent_at?: string | null
+        }
+        Relationships: []
       }
       plan_limits: {
         Row: {
@@ -850,6 +958,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "player_objectives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "player_objectives_player_id_fkey"
             columns: ["player_id"]
             isOneToOne: false
@@ -861,6 +976,13 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_objectives_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
             referencedColumns: ["id"]
           },
           {
@@ -1134,6 +1256,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "supporter_evaluation_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "supporter_evaluation_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
@@ -1148,6 +1277,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "supporter_evaluation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "supporter_evaluation_requests_supporter_id_fkey"
             columns: ["supporter_id"]
             isOneToOne: false
@@ -1159,6 +1295,13 @@ export type Database = {
             columns: ["supporter_id"]
             isOneToOne: false
             referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporter_evaluation_requests_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1210,6 +1353,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "supporters_link_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "supporters_link_supporter_id_fkey"
             columns: ["supporter_id"]
             isOneToOne: false
@@ -1221,6 +1371,13 @@ export type Database = {
             columns: ["supporter_id"]
             isOneToOne: false
             referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supporters_link_supporter_id_fkey"
+            columns: ["supporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -1311,6 +1468,13 @@ export type Database = {
             referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       team_objectives: {
@@ -1366,6 +1530,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_objectives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
             referencedColumns: ["id"]
           },
           {
@@ -1506,6 +1677,13 @@ export type Database = {
             referencedRelation: "profiles_needing_birthdate"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -1534,6 +1712,62 @@ export type Database = {
           first_name?: string | null
           id?: string | null
           last_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles_safe: {
+        Row: {
+          birthdate: string | null
+          club_id: string | null
+          created_at: string | null
+          deleted_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          image_rights_consent_at: string | null
+          last_name: string | null
+          nickname: string | null
+          photo_is_minor: boolean | null
+          photo_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          birthdate?: never
+          club_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: never
+          first_name?: string | null
+          id?: string | null
+          image_rights_consent_at?: never
+          last_name?: never
+          nickname?: string | null
+          photo_is_minor?: never
+          photo_url?: never
+          updated_at?: string | null
+        }
+        Update: {
+          birthdate?: never
+          club_id?: string | null
+          created_at?: string | null
+          deleted_at?: string | null
+          email?: never
+          first_name?: string | null
+          id?: string | null
+          image_rights_consent_at?: never
+          last_name?: never
+          nickname?: string | null
+          photo_is_minor?: never
+          photo_url?: never
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1625,6 +1859,10 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      enqueue_guardian_notification: {
+        Args: { _event_type: string; _minor_id: string; _payload: Json }
+        Returns: undefined
+      }
       expire_overdue_invitations: { Args: never; Returns: number }
       get_club_plan: {
         Args: { p_club_id: string }
@@ -1645,6 +1883,32 @@ export type Database = {
           reset_at: string
           used: number
         }[]
+      }
+      get_minor_record: {
+        Args: { _minor_id: string }
+        Returns: {
+          birthdate: string | null
+          club_id: string | null
+          created_at: string
+          deleted_at: string | null
+          email: string
+          first_name: string | null
+          id: string
+          image_rights_consent_at: string | null
+          image_rights_consent_by: string | null
+          image_rights_consent_ip: unknown
+          last_name: string | null
+          nickname: string | null
+          photo_is_minor: boolean
+          photo_url: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_player_club_id: { Args: { _player_id: string }; Returns: string }
       get_referent_coach_team_ids: {
@@ -1710,6 +1974,10 @@ export type Database = {
         Args: { _player_id: string; _supporter_id: string }
         Returns: boolean
       }
+      log_minor_data_write: {
+        Args: { _minor_id: string; _target: string }
+        Returns: undefined
+      }
       minor_has_valid_consent: { Args: { _minor_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
@@ -1758,6 +2026,7 @@ export type Database = {
             Args: { _bucket: string; _owner_segment?: string; _url: string }
             Returns: boolean
           }
+      viewer_sees_sensitive: { Args: { _profile_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "club_admin" | "coach" | "player" | "supporter"
