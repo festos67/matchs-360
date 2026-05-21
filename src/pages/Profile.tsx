@@ -432,6 +432,36 @@ export default function Profile() {
           </CardContent>
         </Card>
 
+        {/* Phase 3 RGPD art. 9 CC — Droit a l'image (self pour adultes) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5" />
+              Droit à l'image
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-card">
+              <div className="flex-1 space-y-1">
+                <p className="font-medium text-sm">
+                  J'autorise la diffusion de ma photo au sein du club
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Consentement spécifique et révocable à tout moment (RGPD art. 7 §3).
+                  Tant que cette option est désactivée, votre photo est masquée
+                  partout dans l'application.
+                </p>
+              </div>
+              <Switch
+                checked={imageRightsConsent}
+                disabled={savingImageRights}
+                onCheckedChange={handleToggleImageRights}
+                aria-label="Autoriser la diffusion de ma photo"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Roles */}
         <Card>
           <CardHeader>
