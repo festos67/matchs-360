@@ -1,23 +1,26 @@
 /**
  * @module age-policy
- * @description Phase 0 (conformite mineurs) : seuil unique pour le blocage
- *              "adultes uniquement" pendant la beta. Stopgap temporaire en
- *              attendant le workflow complet de consentement parental (Phase 1+).
+ * @description Phase 6 (GO-LIVE) : le blocage Phase 0 "adultes only" a ete LEVE.
+ *              Les inscriptions de mineurs sont desormais ouvertes avec les
+ *              protections Phases 1-5 actives. Les helpers ci-dessous sont
+ *              conserves pour deriver cote client :
+ *              - isMinorPhase0()  : true si < 18 (utilise pour le watermark
+ *                                   PDF mineur, A2-011)
+ *              - requiresParentalConsent() : true si < 15 (declenche le
+ *                                   formulaire guardian_email)
  *
- *              ⚠️ NE PAS CONFONDRE :
- *              - Phase 0 (ici) : seuil 18 ans → REJET des mineurs.
- *              - Phase 1+ : seuil legal RGPD FR 15 ans → ACCEPTATION
- *                avec consentement parental.
- *
- *              Pour faire evoluer le seuil Phase 0, modifier UNIQUEMENT
- *              `PHASE0_MIN_AGE_YEARS` ici. Le trigger SQL
- *              `block_minor_signup_phase0` doit etre mis a jour en parallele.
+ *              ⚠️ Gouvernance d'activation (cote DB) :
+ *              - < 15 ans  : compte cree en PENDING (is_active=false),
+ *                            active par le consentement parental (Phase 2)
+ *              - 15-17     : auto-active (auto-consentement RGPD art. 8 FR),
+ *                            mais photo sous autorite parentale (Phase 3)
+ *              - 18+       : adulte, parcours inchange
  */
 
 export const PHASE0_MIN_AGE_YEARS = 18;
 
 export const PHASE0_ADULT_ONLY_MESSAGE =
-  "L'inscription des mineurs sera disponible prochainement. Cette version est reservee aux personnes majeures.";
+  "L'inscription des mineurs est ouverte avec consentement parental (RGPD art. 8 FR).";
 
 /**
  * Phase 2 RGPD art. 8 FR : seuil du consentement parental (15 ans).

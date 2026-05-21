@@ -43,6 +43,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star, ArrowLeft, Pencil, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
+import { isMinorPhase0 } from "@/lib/age-policy";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -445,7 +446,7 @@ export default function PlayerDetail() {
         {selectedEvaluation && teamMembership && (
           <PrintablePlayerSheet
             ref={printRef}
-            player={player}
+            player={{ ...player, is_minor: isMinorPhase0(player.birthdate) }}
             club={{ name: teamMembership.team.club?.name || "", logo_url: teamMembership.team.club?.logo_url, primary_color: teamColor }}
             team={{ name: teamMembership.team.name }}
             evaluation={selectedEvaluation}
@@ -462,7 +463,7 @@ export default function PlayerDetail() {
         {historyPrintEvaluation && teamMembership && (
           <PrintablePlayerSheet
             ref={historyPrintRef}
-            player={player}
+            player={{ ...player, is_minor: isMinorPhase0(player.birthdate) }}
             club={{ name: teamMembership.team.club?.name || "", logo_url: teamMembership.team.club?.logo_url, primary_color: teamColor }}
             team={{ name: teamMembership.team.name }}
             evaluation={historyPrintEvaluation}
@@ -554,6 +555,7 @@ export default function PlayerDetail() {
             clubPrimaryColor={teamColor}
             defaultGuarantorName={guarantor}
             radarOptions={radarOptions}
+            isMinor={isMinorPhase0(player.birthdate)}
           />
         );
       })()}

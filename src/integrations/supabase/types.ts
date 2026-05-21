@@ -1045,6 +1045,7 @@ export type Database = {
           image_rights_consent_at: string | null
           image_rights_consent_by: string | null
           image_rights_consent_ip: unknown
+          is_active: boolean
           last_name: string | null
           nickname: string | null
           photo_is_minor: boolean
@@ -1062,6 +1063,7 @@ export type Database = {
           image_rights_consent_at?: string | null
           image_rights_consent_by?: string | null
           image_rights_consent_ip?: unknown
+          is_active?: boolean
           last_name?: string | null
           nickname?: string | null
           photo_is_minor?: boolean
@@ -1079,6 +1081,7 @@ export type Database = {
           image_rights_consent_at?: string | null
           image_rights_consent_by?: string | null
           image_rights_consent_ip?: unknown
+          is_active?: boolean
           last_name?: string | null
           nickname?: string | null
           photo_is_minor?: boolean
@@ -1936,6 +1939,7 @@ export type Database = {
           image_rights_consent_at: string | null
           image_rights_consent_by: string | null
           image_rights_consent_ip: unknown
+          is_active: boolean
           last_name: string | null
           nickname: string | null
           photo_is_minor: boolean
@@ -2038,6 +2042,7 @@ export type Database = {
       purge_old_frameworks: { Args: never; Returns: undefined }
       purge_old_invitation_send_log: { Args: never; Returns: undefined }
       purge_old_invitations: { Args: never; Returns: number }
+      purge_old_minor_evaluations: { Args: never; Returns: undefined }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {

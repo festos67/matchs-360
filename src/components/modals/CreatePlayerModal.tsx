@@ -88,9 +88,6 @@ const playerSchema = z.object({
     .min(1, "Date de naissance requise")
     .refine((s) => !Number.isNaN(new Date(s).getTime()), {
       message: "Date invalide",
-    })
-    .refine((s) => !isMinorPhase0(s), {
-      message: `Phase beta : reserve aux personnes de ${PHASE0_MIN_AGE_YEARS} ans et plus. ${PHASE0_ADULT_ONLY_MESSAGE}`,
     }),
   guardianEmail: z.string().email("Email invalide").max(255).optional().or(z.literal("")),
   guardianRelationship: z.enum(["mere", "pere", "tuteur_legal", "autre_titulaire"]).optional(),
@@ -594,8 +591,8 @@ export const CreatePlayerModal = ({
                     <p className="text-sm text-destructive">{errors.birthdate.message}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Phase bêta : réservée aux personnes de {PHASE0_MIN_AGE_YEARS} ans et plus.
-                    La gestion des mineurs (avec consentement parental) arrivera prochainement.
+                    Inscription des mineurs ouverte. Pour un joueur de moins de 15 ans, le consentement
+                    parental sera demandé (le compte sera en attente jusqu'à validation par le représentant légal).
                   </p>
                 </div>
 

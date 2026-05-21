@@ -26,6 +26,7 @@ import {
 } from "@/lib/evaluation-utils";
 import { PrintableRadarChart } from "./PrintableRadarChart";
 import { useImagesAsBase64 } from "@/hooks/useImageAsBase64";
+import { MinorWatermark } from "@/components/pdf/MinorWatermark";
 
 interface Theme {
   id: string;
@@ -73,6 +74,8 @@ interface PrintablePlayerSheetProps {
     last_name: string | null;
     nickname: string | null;
     photo_url: string | null;
+    /** Phase 6 RGPD — si true, watermark "CONFIDENTIEL — MINEUR" applique */
+    is_minor?: boolean;
   };
   club: {
     name: string;
@@ -209,6 +212,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         className="bg-white text-black"
         style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
+        {/* Phase 6 RGPD (A2-011) : watermark + bandeau si le joueur est mineur */}
         {/* Print page setup: define real @page margins so EVERY printed page
             (including those auto-paginated by the browser when content
             overflows) keeps a safe top/bottom/left/right margin. Without this,
@@ -238,8 +242,12 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         {/* ===== PAGE 1 ===== */}
         <div
           className={comparisonDatasets.length >= 2 ? "pps-page" : "pps-page pps-page-fixed"}
-          style={comparisonDatasets.length >= 2 ? { pageBreakAfter: "always", breakAfter: "page" } : undefined}
+          style={{
+            position: "relative",
+            ...(comparisonDatasets.length >= 2 ? { pageBreakAfter: "always", breakAfter: "page" } : {}),
+          }}
         >
+          <MinorWatermark isMinor={!!player.is_minor} orientation="portrait" />
 
           {/* ── Top brand bar ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>
@@ -425,7 +433,8 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         </div>
 
         {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div className="pps-page">
+        <div className="pps-page" style={{ position: "relative" }}>
+          <MinorWatermark isMinor={!!player.is_minor} orientation="portrait" />
 
           {/* ── Top brand bar (repeated) ── */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "14px", borderBottom: `3px solid ${BRAND_BLUE}` }}>

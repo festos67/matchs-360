@@ -154,6 +154,15 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("supporter_id", guardianId)
       .eq("player_id", body.minor_profile_id);
 
+    // Phase 6 GO-LIVE — Active explicitement le compte mineur (defense en
+    // profondeur ; le trigger activate_minor_on_consent fait la meme chose
+    // cote DB, on garde l'appel explicite ici pour tracer dans audit_log).
+    await admin
+      .from("profiles")
+      .update({ is_active: true })
+      .eq("id", body.minor_profile_id)
+      .eq("is_active", false);
+
     // Audit (RGPD : preuve)
     await admin.from("audit_log").insert({
       actor_id: guardianId,
