@@ -47,7 +47,7 @@ export default function ProfilesBirthdateBackfill() {
     if (error) {
       toast.error("Erreur de chargement", { description: error.message });
     } else {
-      setRows((data || []) as ProfileRow[]);
+      setRows(((data as unknown) as ProfileRow[]) || []);
     }
     setLoading(false);
   };
