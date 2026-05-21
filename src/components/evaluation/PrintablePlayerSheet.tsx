@@ -26,6 +26,7 @@ import {
 } from "@/lib/evaluation-utils";
 import { PrintableRadarChart } from "./PrintableRadarChart";
 import { useImagesAsBase64 } from "@/hooks/useImageAsBase64";
+import { useResolvedPhotoBase64 } from "@/hooks/useResolvedPhotoBase64";
 import { MinorWatermark } from "@/components/pdf/MinorWatermark";
 
 interface Theme {
@@ -74,6 +75,11 @@ interface PrintablePlayerSheetProps {
     last_name: string | null;
     nickname: string | null;
     photo_url: string | null;
+    /** BUG-PHOTO-003 — routage signed URL pour photo mineur */
+    photo_is_minor?: boolean | null;
+    /** BUG-PHOTO-003 — gate consentement obligatoire (art. 9 CC) */
+    image_rights_consent_at?: string | null;
+    birthdate?: string | null;
     /** Phase 6 RGPD — si true, watermark "CONFIDENTIEL — MINEUR" applique */
     is_minor?: boolean;
   };
@@ -157,9 +163,12 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
   ({ player, club, team, evaluation, themes, progressionPercent, previousEvaluationDate, comparisonDatasets = [], referentCoachName }, ref) => {
     // Pré-charge les images en base64 pour garantir leur rendu dans les exports PDF
     // (évite les soucis de CORS / tainted canvas avec html2canvas).
-    const imageMap = useImagesAsBase64([club.logo_url, player.photo_url]);
+    // BUG-PHOTO-003 : la photo joueur passe par un resolver dédié qui
+    // applique le gate consentement (mineur ET adulte) + signed URL mineur.
+    // Si pas de consentement → null → fallback initiales (aucun octet image).
+    const imageMap = useImagesAsBase64([club.logo_url]);
     const clubLogoSrc = club.logo_url ? imageMap[club.logo_url] ?? null : null;
-    const playerPhotoSrc = player.photo_url ? imageMap[player.photo_url] ?? null : null;
+    const playerPhotoSrc = useResolvedPhotoBase64(player);
 
     const getPlayerName = () => {
       if (player.first_name && player.last_name) return `${player.first_name} ${player.last_name}`;
