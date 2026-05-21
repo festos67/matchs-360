@@ -26,6 +26,7 @@ import {
 } from "@/lib/evaluation-utils";
 import { PrintableRadarChart } from "./PrintableRadarChart";
 import { useImagesAsBase64 } from "@/hooks/useImageAsBase64";
+import { MinorWatermark } from "@/components/pdf/MinorWatermark";
 
 interface Theme {
   id: string;
@@ -73,6 +74,8 @@ interface PrintablePlayerSheetProps {
     last_name: string | null;
     nickname: string | null;
     photo_url: string | null;
+    /** Phase 6 RGPD — si true, watermark "CONFIDENTIEL — MINEUR" applique */
+    is_minor?: boolean;
   };
   club: {
     name: string;
@@ -209,6 +212,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
         className="bg-white text-black"
         style={{ fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif", width: "210mm" }}
       >
+        {/* Phase 6 RGPD (A2-011) : watermark + bandeau si le joueur est mineur */}
         {/* Print page setup: define real @page margins so EVERY printed page
             (including those auto-paginated by the browser when content
             overflows) keeps a safe top/bottom/left/right margin. Without this,
