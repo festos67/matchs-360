@@ -488,6 +488,7 @@ export function CompetenceCertificateModal({
                 additionalMessage={message.trim() || null}
                 radarThemeScores={includeRadar && selectedRadar ? selectedRadar.themeScores : null}
                 radarLabel={includeRadar && selectedRadar ? selectedRadar.label : null}
+                isMinor={isMinor}
               />
             </div>
           </ScrollArea>
