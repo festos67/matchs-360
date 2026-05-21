@@ -25,7 +25,9 @@
  */
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +39,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Camera,
   X,
@@ -47,6 +61,10 @@ import {
   Heart,
   KeyRound,
   Save,
+  Download,
+  Trash2,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { PhotoCropModal } from "@/components/shared/PhotoCropModal";
 import { validateUserPassword, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib/password-policy";
@@ -65,6 +83,7 @@ const roleConfig: Record<string, { label: string; icon: React.ElementType; color
 export default function Profile() {
   const { user, profile, roles, currentRole, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -86,6 +105,78 @@ export default function Profile() {
   // Phase 3 RGPD art. 9 CC — droit a l'image (self pour adultes).
   const [imageRightsConsent, setImageRightsConsent] = useState(false);
   const [savingImageRights, setSavingImageRights] = useState(false);
+
+  // RG2-001 / RG2-002 — droits RGPD adultes (export / effacement self).
+  const [erasureReason, setErasureReason] = useState("");
+
+  const exportMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("export-minor-data", {
+        body: { subject_profile_id: user!.id },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data: { download_url?: string } | null) => {
+      if (data?.download_url) window.location.href = data.download_url;
+      toast.success("Export prêt", {
+        description: "Le téléchargement démarre (lien valable 5 min).",
+      });
+    },
+    onError: (e: Error) =>
+      toast.error("Export impossible", { description: e.message }),
+  });
+
+  const { data: pendingErasure } = useQuery({
+    queryKey: ["my-erasure-request", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("erasure_requests")
+        .select("id, scheduled_for, status")
+        .eq("subject_profile_id", user!.id)
+        .eq("status", "pending")
+        .order("requested_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("erasure_requests")
+        .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-erasure-request", user?.id] });
+      toast.success("Demande annulée");
+    },
+    onError: (e: Error) => toast.error("Erreur", { description: e.message }),
+  });
+
+  const erasureMutation = useMutation({
+    mutationFn: async (reason: string) => {
+      const { data, error } = await supabase.functions.invoke("request-erasure", {
+        body: { subject_profile_id: user!.id, reason: reason || null },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["my-erasure-request", user?.id] });
+      setErasureReason("");
+      toast.success("Demande d'effacement enregistrée", {
+        description:
+          "Vous avez 7 jours pour l'annuler. Passé ce délai, votre compte sera anonymisé automatiquement.",
+      });
+    },
+    onError: (e: Error) => toast.error("Erreur", { description: e.message }),
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -459,6 +550,140 @@ export default function Profile() {
                 aria-label="Autoriser la diffusion de ma photo"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* RG2-001 / RG2-002 — Droits RGPD (export art. 20/15, effacement art. 17) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Mes données personnelles (RGPD)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Export */}
+            <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-card">
+              <div className="flex-1 space-y-1">
+                <p className="font-medium text-sm">Exporter mes données</p>
+                <p className="text-xs text-muted-foreground">
+                  Téléchargez une archive ZIP contenant l'intégralité de vos données
+                  (profil, évaluations, objectifs, consentements). Format ouvert et
+                  réutilisable (art. 20 — portabilité).
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => exportMutation.mutate()}
+                disabled={exportMutation.isPending}
+              >
+                {exportMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                Exporter
+              </Button>
+            </div>
+
+            {/* Pending erasure banner */}
+            {pendingErasure ? (
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-destructive/50 bg-destructive/5">
+                <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium">
+                    Suppression de compte programmée
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Votre compte sera anonymisé le{" "}
+                    <span className="font-medium text-foreground">
+                      {format(new Date(pendingErasure.scheduled_for), "PPP 'à' HH:mm", { locale: fr })}
+                    </span>
+                    . Vous pouvez encore annuler cette demande jusqu'à cette date.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => cancelMutation.mutate(pendingErasure.id)}
+                    disabled={cancelMutation.isPending}
+                  >
+                    {cancelMutation.isPending && (
+                      <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                    )}
+                    Annuler la demande
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-card">
+                <div className="flex-1 space-y-1">
+                  <p className="font-medium text-sm">Supprimer mon compte</p>
+                  <p className="text-xs text-muted-foreground">
+                    Délai de grâce de 7 jours, annulable à tout moment. Passé ce
+                    délai, vos données sont anonymisées (art. 17).
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Demander la suppression
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Demander la suppression de mon compte</AlertDialogTitle>
+                      <AlertDialogDescription asChild>
+                        <div className="space-y-2 text-sm">
+                          <p>
+                            Vous demandez l'effacement de vos données personnelles
+                            au titre de l'article 17 du RGPD.
+                          </p>
+                          <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                            <li>
+                              <strong>Délai de grâce de 7 jours</strong> pendant lequel
+                              vous pouvez annuler la demande depuis cette page.
+                            </li>
+                            <li>
+                              Passé ce délai, vos données sont{" "}
+                              <strong>anonymisées</strong> (il ne s'agit pas d'une
+                              suppression matérielle) et votre photo de profil est
+                              effacée.
+                            </li>
+                            <li>
+                              Un squelette anonymisé peut être conservé pour la
+                              traçabilité légale (historique des évaluations sans
+                              identité).
+                            </li>
+                          </ul>
+                        </div>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2">
+                      <Label htmlFor="erasure-reason">Motif (facultatif)</Label>
+                      <Textarea
+                        id="erasure-reason"
+                        value={erasureReason}
+                        onChange={(e) => setErasureReason(e.target.value)}
+                        placeholder="Vous pouvez préciser la raison de votre demande…"
+                        maxLength={500}
+                        rows={3}
+                      />
+                    </div>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => erasureMutation.mutate(erasureReason)}
+                        disabled={erasureMutation.isPending}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {erasureMutation.isPending && (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        )}
+                        Confirmer la demande
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
           </CardContent>
         </Card>
 
