@@ -34,6 +34,10 @@ export interface Player {
   email: string;
   /** Phase 0+ : date de naissance, requise pour calculer is_minor (Phase 6) */
   birthdate?: string | null;
+  /** BUG-PHOTO-002/003 — routage signed URL pour photos de mineurs */
+  photo_is_minor?: boolean | null;
+  /** BUG-PHOTO-002/003 — gate consentement droit à l'image (art. 9 CC) */
+  image_rights_consent_at?: string | null;
 }
 
 export interface TeamMembership {
