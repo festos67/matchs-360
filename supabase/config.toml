@@ -41,3 +41,17 @@ verify_jwt = true
 # Supabase gateway's JWT validation as defense-in-depth.
 [functions.send-invitation-reminders]
 verify_jwt = true
+
+# BUG-EDGE-002 — Cron-triggered RGPD art. 17 erasure executor.
+# Same defense-in-depth as send-invitation-reminders : gateway verify_jwt
+# = true + in-code constant-time comparison against SERVICE_ROLE_KEY.
+# Anonymous callers cannot trigger a mass erasure.
+[functions.execute-erasure]
+verify_jwt = true
+
+# BUG-EDGE-002 — Cron-triggered Phase 4 guardian notification dispatcher.
+# Same defense-in-depth : gateway verify_jwt = true + in-code constant-
+# time comparison against SERVICE_ROLE_KEY. Anonymous callers cannot
+# trigger a mass email send.
+[functions.dispatch-guardian-notifications]
+verify_jwt = true

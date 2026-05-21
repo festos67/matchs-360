@@ -27,6 +27,24 @@ function maskEmail(v: string): string {
   return `${l[0]}***${l[l.length - 1]}@${d}`
 }
 
+/**
+ * BUG-EDGE-002 — Comparaison constant-time (cf F-404 et
+ * send-invitation-reminders). NE PAS remplacer par ===.
+ */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const enc = new TextEncoder()
+  const abuf = enc.encode(a)
+  const bbuf = enc.encode(b)
+  const len = Math.max(abuf.byteLength, bbuf.byteLength)
+  let diff = abuf.byteLength ^ bbuf.byteLength
+  for (let i = 0; i < len; i++) {
+    const av = i < abuf.byteLength ? abuf[i] : 0
+    const bv = i < bbuf.byteLength ? bbuf[i] : 0
+    diff |= av ^ bv
+  }
+  return diff === 0
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -35,6 +53,19 @@ Deno.serve(async (req) => {
   if (!supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: 'missing env' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
+
+  // BUG-EDGE-002 — GARDE-FOU SECRET en TETE, AVANT creation du client
+  // service_role et tout envoi d'email. Fail-closed.
+  const provided = (req.headers.get('authorization') ?? '')
+    .replace(/^Bearer\s+/i, '')
+    .trim()
+  if (!provided || !timingSafeEqualStr(provided, serviceKey)) {
+    return new Response(JSON.stringify({ error: 'forbidden' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
   const sb = createClient(supabaseUrl, serviceKey)
 
   // Drain batch borne (idempotent : sent_at IS NULL).

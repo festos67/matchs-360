@@ -18,6 +18,25 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 const MINOR_BUCKET = "user-photos-minors";
 
+/**
+ * BUG-EDGE-002 — Constant-time secret comparison (cf F-404 et le pattern
+ * etabli par send-invitation-reminders). NE PAS utiliser === : leak de
+ * timing octet-par-octet sur un secret.
+ */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const abuf = enc.encode(a);
+  const bbuf = enc.encode(b);
+  const len = Math.max(abuf.byteLength, bbuf.byteLength);
+  let diff = abuf.byteLength ^ bbuf.byteLength;
+  for (let i = 0; i < len; i++) {
+    const av = i < abuf.byteLength ? abuf[i] : 0;
+    const bv = i < bbuf.byteLength ? bbuf[i] : 0;
+    diff |= av ^ bv;
+  }
+  return diff === 0;
+}
+
 async function eraseOne(admin: any, req: any): Promise<{ ok: boolean; error?: string }> {
   const subject = req.subject_profile_id as string;
   try {
@@ -102,9 +121,23 @@ const handler = async (req: Request): Promise<Response> => {
   if (preflight) return preflight;
   const cors = buildCorsHeaders(req);
 
+  // BUG-EDGE-002 — GARDE-FOU SECRET en TETE de fonction, AVANT toute
+  // operation privilegiee (creation client service_role, lecture des
+  // demandes, anonymisation). Fail-closed si le secret serveur manque.
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const provided = (req.headers.get("authorization") ?? "")
+    .replace(/^Bearer\s+/i, "")
+    .trim();
+  if (!serviceKey || !provided || !timingSafeEqualStr(provided, serviceKey)) {
+    return new Response(JSON.stringify({ error: "forbidden" }), {
+      status: 403,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    serviceKey,
   );
 
   const { data: due, error } = await admin
