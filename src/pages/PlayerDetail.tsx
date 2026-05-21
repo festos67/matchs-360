@@ -555,6 +555,7 @@ export default function PlayerDetail() {
             clubPrimaryColor={teamColor}
             defaultGuarantorName={guarantor}
             radarOptions={radarOptions}
+            isMinor={isMinorPhase0(player.birthdate)}
           />
         );
       })()}
