@@ -14,8 +14,6 @@ import { calculateRadarData, type ThemeScores } from "@/lib/evaluation-utils";
 const BRAND_NAVY = "#1E3A8A";
 const BRAND_ORANGE = "#E55A2B";
 const LAUREL_GOLD = "#C9A227";
-const LAUREL_LEAF = "#6b7a30";
-const LAUREL_STEM = "#4a5520";
 const TEXT_DARK = "#0f172a";
 const TEXT_MUTED = "#475569";
 
@@ -97,7 +95,7 @@ export const PrintableCertificate = forwardRef<HTMLDivElement, PrintableCertific
             display: "flex", alignItems: "center", justifyContent: "center",
             pointerEvents: "none", opacity: 0.27, zIndex: 0,
           }}>
-            <LaurelWreathSvg size={760} />
+            <LaurelWreathSvg color={LAUREL_GOLD} size={760} />
           </div>
 
           {/* Logos — alignés à la même hauteur dans les coins hauts */}
@@ -261,65 +259,67 @@ const RadarLogoSvg = ({ color, size = 42 }: { color: string; size?: number }) =>
  * Couronne de lauriers — filigrane fin pour fond de diplôme.
  * Deux branches symétriques composées de feuilles ovales fines, ouvertes en haut.
  */
-const LaurelWreathSvg = ({ size = 480 }: { size?: number }) => {
-  // Deux branches symétriques en arc, 6 feuilles ovales pleines par branche,
-  // disposées en éventail le long d'une tige courbe.
+const LaurelWreathSvg = ({ color, size = 480 }: { color: string; size?: number }) => {
+  // Couronne ouverte vers le haut, deux branches symétriques avec multiples feuilles
+  // par point d'insertion, inspirée des diplômes classiques.
   const cx = 200;
-  const baseY = 360; // jonction des deux tiges en bas
+  const cy = 210;
 
   const buildBranch = (mirror: boolean) => {
+    const elements: JSX.Element[] = [];
     const sign = mirror ? -1 : 1;
-    const leafCount = 6;
+    const steps = 14;
+    // Arc allant du bas (nœud) vers le haut (ouverture)
+    const startAngle = mirror ? 95 : 85;   // près du bas
+    const endAngle   = mirror ? 215 : -35; // vers le haut
+    const radius = 155;
 
-    // Points le long d'une courbe quadratique (Bezier) qui part du bas-centre
-    // et monte en s'écartant vers l'extérieur puis se recourbe vers le haut.
-    const p0 = { x: cx, y: baseY };                          // bas, jonction
-    const p1 = { x: cx + sign * 170, y: 230 };               // contrôle (extérieur)
-    const p2 = { x: cx + sign * 60, y: 70 };                 // sommet
+    const points: { x: number; y: number; tangent: number }[] = [];
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const deg = startAngle + (endAngle - startAngle) * t;
+      const rad = (deg * Math.PI) / 180;
+      const x = cx + radius * Math.cos(rad);
+      const y = cy + radius * Math.sin(rad);
+      const tangent = deg + 90 * sign;
+      points.push({ x, y, tangent });
+    }
 
-    const bezier = (t: number) => {
-      const x = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x;
-      const y = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y;
-      // Dérivée pour la tangente
-      const dx = 2 * (1 - t) * (p1.x - p0.x) + 2 * t * (p2.x - p1.x);
-      const dy = 2 * (1 - t) * (p1.y - p0.y) + 2 * t * (p2.y - p1.y);
-      const tangent = (Math.atan2(dy, dx) * 180) / Math.PI;
-      return { x, y, tangent };
-    };
+    // Tige fine reliant les points
+    const stemD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+    elements.push(
+      <path key={`stem-${mirror}`} d={stemD} fill="none"
+            stroke={color} strokeOpacity="0.55" strokeWidth="0.8" strokeLinecap="round" />
+    );
 
-    const stemD = `M ${p0.x} ${p0.y} Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`;
-    const elements: JSX.Element[] = [
-      <path
-        key={`stem-${mirror}`}
-        d={stemD}
-        fill="none"
-        stroke={LAUREL_STEM}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />,
-    ];
-
-    // Feuilles : éventail, de plus en plus tournées vers l'extérieur en montant
-    for (let i = 0; i < leafCount; i++) {
-      const t = 0.12 + (i / (leafCount - 1)) * 0.82;
-      const { x, y, tangent } = bezier(t);
-      const leafLen = 28 - i * 1.2;
-      const leafW = 9 - i * 0.4;
-      // Inclinaison : plus on monte, plus la feuille s'écarte de la tige
-      const outwardTilt = 25 + i * 6; // 25° -> ~55°
-      const angle = tangent - sign * outwardTilt;
+    // À chaque point : 2 feuilles (intérieure + extérieure) en éventail
+    points.forEach((p, i) => {
+      // Skip le tout premier point (zone du nœud)
+      if (i === 0) return;
+      const leafLen = 22;
+      const leafW = 6;
+      // Feuille extérieure (vers l'extérieur du cercle)
+      const outAngle = p.tangent - 28 * sign;
+      const inAngle = p.tangent + 8 * sign;
       elements.push(
         <ellipse
-          key={`leaf-${mirror}-${i}`}
-          cx={x}
-          cy={y}
-          rx={leafLen}
-          ry={leafW}
-          fill={LAUREL_LEAF}
-          transform={`rotate(${angle} ${x} ${y}) translate(${leafLen * 0.55} 0)`}
+          key={`out-${mirror}-${i}`}
+          cx={p.x} cy={p.y} rx={leafLen} ry={leafW}
+          fill={color} fillOpacity="0.18"
+          stroke={color} strokeOpacity="0.85" strokeWidth="0.9"
+          transform={`rotate(${outAngle} ${p.x} ${p.y}) translate(${leafLen * 0.6} 0)`}
         />
       );
-    }
+      elements.push(
+        <ellipse
+          key={`in-${mirror}-${i}`}
+          cx={p.x} cy={p.y} rx={leafLen * 0.9} ry={leafW * 0.85}
+          fill={color} fillOpacity="0.14"
+          stroke={color} strokeOpacity="0.8" strokeWidth="0.8"
+          transform={`rotate(${inAngle} ${p.x} ${p.y}) translate(${leafLen * 0.55} 0)`}
+        />
+      );
+    });
 
     return elements;
   };
@@ -328,6 +328,16 @@ const LaurelWreathSvg = ({ size = 480 }: { size?: number }) => {
     <svg width={size} height={size} viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
       {buildBranch(false)}
       {buildBranch(true)}
+      {/* Nœud / ruban au bas, jonction des deux branches */}
+      <path d="M 182 360 Q 200 372 218 360" fill="none"
+            stroke={color} strokeOpacity="0.9" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M 186 366 Q 200 378 214 366" fill="none"
+            stroke={color} strokeOpacity="0.85" strokeWidth="1.3" strokeLinecap="round" />
+      {/* Rubans qui pendent */}
+      <path d="M 188 372 Q 184 385 178 392 L 172 388 Q 180 380 184 372 Z"
+            fill={color} fillOpacity="0.18" stroke={color} strokeOpacity="0.75" strokeWidth="0.9" />
+      <path d="M 212 372 Q 216 385 222 392 L 228 388 Q 220 380 216 372 Z"
+            fill={color} fillOpacity="0.18" stroke={color} strokeOpacity="0.75" strokeWidth="0.9" />
     </svg>
   );
 };
