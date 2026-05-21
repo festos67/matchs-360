@@ -57,6 +57,7 @@ const EvaluationDetail = lazy(() => import("./pages/EvaluationDetail"));
 const CoachDetail = lazy(() => import("./pages/CoachDetail"));
 const FrameworksList = lazy(() => import("./pages/FrameworksList"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
+const PendingMinorConsent = lazy(() => import("./pages/PendingMinorConsent"));
 const RoleApprovals = lazy(() => import("./pages/RoleApprovals"));
 const InvitationsAdmin = lazy(() => import("./pages/InvitationsAdmin"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
@@ -140,6 +141,10 @@ const App = () => (
               <Route path="/evaluations" element={<ProtectedRoute><Evaluations /></ProtectedRoute>} />
               <Route path="/evaluations/:id" element={<ProtectedRoute><EvaluationDetail /></ProtectedRoute>} />
               <Route path="/pending-approval" element={<ProtectedRoute><PendingApproval /></ProtectedRoute>} />
+              {/* I8-003 : écran d'attente mineur (is_active=false). Pas de
+                  ProtectedRoute pour éviter une boucle de redirection — la
+                  page lit le profil via useAuth et signOut() si nécessaire. */}
+              <Route path="/pending-minor-consent" element={<PendingMinorConsent />} />
               <Route path="/role-approvals" element={<ProtectedRoute><RoleApprovals /></ProtectedRoute>} />
               <Route path="/invitations" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><InvitationsAdmin /></ProtectedRoute>} />
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
