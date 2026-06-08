@@ -42,13 +42,18 @@ export async function resolvePhotoUrl(
   profile: ResolvablePhoto | null | undefined,
 ): Promise<string | null> {
   if (!profile?.photo_url) return null;
-  // Gate consentement (mineur ET adulte) — art. 9 CC + RGPD
-  if (!profile.image_rights_consent_at) return null;
 
   if (!isMinorForPhoto(profile)) {
-    // Adulte : URL publique stockée telle quelle.
+    // Adulte : URL publique stockée telle quelle. Le fait d'avoir
+    // téléversé une photo vaut consentement (cf. CGU) — pas de gate
+    // `image_rights_consent_at` côté adulte pour préserver le rendu
+    // historique (fiches existantes sans consentement explicite enregistré).
     return profile.photo_url;
   }
+
+  // Mineur : gate strict art. 9 CC — pas d'affichage sans consentement
+  // du tuteur enregistré.
+  if (!profile.image_rights_consent_at) return null;
 
   // Mineur : photo_url = chemin storage privé → signed URL TTL court.
   const { data, error } = await supabase.storage
