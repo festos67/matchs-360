@@ -192,7 +192,14 @@ export const PrintableFramework = forwardRef<HTMLDivElement, PrintableFrameworkP
                             {skill.definition || <span style={{ color: "#9CA3AF", fontStyle: "italic" }}>—</span>}
                           </td>
                           <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
-                            <div style={{ minHeight: "28px" }}></div>
+                            <div style={{ display: "flex", gap: "3px", marginBottom: "4px" }}>
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <svg key={i} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinejoin="round">
+                                  <polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.8 5.8 21 7 14 2 9.3 9 8.5 12 2" />
+                                </svg>
+                              ))}
+                            </div>
+                            <div style={{ borderBottom: "1px dotted #D1D5DB", minHeight: "16px" }}></div>
                           </td>
                         </tr>
                       </>
