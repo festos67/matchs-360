@@ -257,10 +257,6 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
     const overallAverage = validAverages.length > 0 ? validAverages.reduce((a, b) => a + b, 0) / validAverages.length : null;
 
     const evalDate = formatDateFr(evaluation.date);
-    const hasPreviousEval = !!previousEvaluationDate;
-    const periodLabel = hasPreviousEval
-      ? `Du ${formatDateFr(previousEvaluationDate!)} au ${evalDate}`
-      : null;
 
     return (
       <div
