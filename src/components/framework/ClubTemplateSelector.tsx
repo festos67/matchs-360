@@ -34,6 +34,7 @@ interface ClubTemplateSelectorProps {
 }
 
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
+const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
 
 export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTemplateSelectorProps) => {
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [defaultName, setDefaultName] = useState("");
@@ -88,6 +90,11 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     if (stats) setStandardStats(stats);
   }, [fetchFrameworkStats]);
 
+  const fetchMatchsStats = useCallback(async () => {
+    const stats = await fetchFrameworkStats(MATCHS_TEMPLATE_ID);
+    if (stats) setMatchsStats(stats);
+  }, [fetchFrameworkStats]);
+
   const fetchTeamStats = useCallback(async (teamId: string) => {
     const { data: framework } = await supabase
       .from("competence_frameworks")
@@ -107,7 +114,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   useEffect(() => {
     fetchTeamsWithFrameworks();
     fetchStandardStats();
-  }, [fetchTeamsWithFrameworks, fetchStandardStats]);
+    fetchMatchsStats();
+  }, [fetchTeamsWithFrameworks, fetchStandardStats, fetchMatchsStats]);
 
   useEffect(() => {
     if (selectedTeamId) {
@@ -118,6 +126,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   }, [selectedTeamId, fetchTeamStats]);
 
   const getDefaultName = () => {
+    if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard";
     if (selectedOption === "team" && selectedTeamId) {
       const team = teams.find(t => t.id === selectedTeamId);
@@ -144,6 +153,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
+      } else if (selectedOption === "matchs") {
+        sourceFrameworkId = MATCHS_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -193,6 +204,16 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
 
   const options = [
     {
+      id: "matchs",
+      icon: FileText,
+      title: "Modèle MATCHS",
+      description: matchsStats
+        ? `Le tout premier référentiel MATCHS sorti en 2020\n${matchsStats.themes} thématiques et ${matchsStats.skills} compétences`
+        : "Le tout premier référentiel MATCHS sorti en 2020",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
+    {
       id: "standard",
       icon: FileText,
       title: "Modèle Standard MATCHS 360",
@@ -237,7 +258,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {options.map((option) => (
           <Card
             key={option.id}
