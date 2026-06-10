@@ -51,6 +51,7 @@ interface CreateClubFrameworkModalProps {
 }
 
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
+const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
 
 export function CreateClubFrameworkModal({
   open,
@@ -68,6 +69,7 @@ export function CreateClubFrameworkModal({
   const [showNameModal, setShowNameModal] = useState(false);
   const [defaultName, setDefaultName] = useState("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
@@ -88,6 +90,9 @@ export function CreateClubFrameworkModal({
       fetchArchivedFrameworks();
       fetchFrameworkStats(STANDARD_TEMPLATE_ID).then(stats => {
         if (stats) setStandardStats(stats);
+      });
+      fetchFrameworkStats(MATCHS_TEMPLATE_ID).then(stats => {
+        if (stats) setMatchsStats(stats);
       });
       setSelectedOption(null);
       setSelectedTeamId("");
@@ -153,6 +158,7 @@ export function CreateClubFrameworkModal({
   };
 
   const getDefaultName = () => {
+    if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard du Club";
     if (selectedOption === "team" && selectedTeamId) {
       const selectedTeam = teams.find(t => t.id === selectedTeamId);
@@ -186,7 +192,9 @@ export function CreateClubFrameworkModal({
       let sourceFrameworkId: string | null = null;
       const frameworkName = confirmedName;
 
-      if (selectedOption === "standard") {
+      if (selectedOption === "matchs") {
+        sourceFrameworkId = MATCHS_TEMPLATE_ID;
+      } else if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
@@ -255,6 +263,17 @@ export function CreateClubFrameworkModal({
   };
 
   const options = [
+    {
+      id: "matchs",
+      icon: FileText,
+      title: "Modèle MATCHS",
+      description: matchsStats
+        ? `Le tout premier référentiel MATCHS sorti en 2020 — ${matchsStats.themes} thématiques et ${matchsStats.skills} compétences`
+        : "Le tout premier référentiel MATCHS sorti en 2020",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      disabled: false,
+    },
     {
       id: "standard",
       icon: FileText,
