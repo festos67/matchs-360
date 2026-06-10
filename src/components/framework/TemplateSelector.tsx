@@ -45,6 +45,7 @@ interface TemplateSelectorProps {
 }
 
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
+const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
 
 export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: TemplateSelectorProps) => {
   const [loading, setLoading] = useState(false);
@@ -54,12 +55,14 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [teamsWithFramework, setTeamsWithFramework] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [defaultName, setDefaultName] = useState("");
 
   useEffect(() => {
     fetchClubTemplates();
     fetchTeams();
     fetchStandardStats();
+    fetchMatchsStats();
   }, [clubId]);
 
   const fetchClubTemplates = async () => {
@@ -115,7 +118,19 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     }
   };
 
+  const fetchMatchsStats = async () => {
+    const { data: themes } = await supabase
+      .from("themes")
+      .select("id, skills(count)")
+      .eq("framework_id", MATCHS_TEMPLATE_ID);
+    if (themes) {
+      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
+      setMatchsStats({ themes: themes.length, skills: totalSkills });
+    }
+  };
+
   const getDefaultName = () => {
+    if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard";
     if (selectedOption === "club" && clubTemplates.length > 0) return clubTemplates[0].name;
     if (selectedOption === "team" && selectedTeamId) {
@@ -142,6 +157,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
 
       if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
+      } else if (selectedOption === "matchs") {
+        sourceFrameworkId = MATCHS_TEMPLATE_ID;
       } else if (selectedOption === "club" && clubTemplates.length > 0) {
         sourceFrameworkId = clubTemplates[0].id;
       } else if (selectedOption === "team" && selectedTeamId) {
@@ -191,6 +208,16 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   };
 
   const options = [
+    {
+      id: "matchs",
+      icon: FileText,
+      title: "Modèle MATCHS",
+      description: matchsStats
+        ? `Le tout premier référentiel MATCHS sorti en 2020\n${matchsStats.themes} thématiques et ${matchsStats.skills} compétences`
+        : "Le tout premier référentiel MATCHS sorti en 2020",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+    },
     {
       id: "standard",
       icon: FileText,
