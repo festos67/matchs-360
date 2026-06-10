@@ -101,6 +101,53 @@ interface PrintablePlayerSheetProps {
 
 // Bleu primaire de l'interface numérique
 const BRAND_BLUE = "#3B82F6";
+const BRAND_ORANGE = "#D24E2A";
+const BRAND_NAVY = "#0F2466";
+const BRAND_PRIMARY = "#163A9E";
+
+const RadarLogoSvg = ({ size = 34 }: { size?: number }) => {
+  const polygon = (radius: number) => {
+    const sides = 8;
+    const pts: string[] = [];
+    for (let i = 0; i < sides; i++) {
+      const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+      pts.push(`${100 + radius * Math.cos(angle)},${100 + radius * Math.sin(angle)}`);
+    }
+    return pts.join(" ");
+  };
+  const axis = Array.from({ length: 8 }).map((_, i) => {
+    const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+    return (
+      <line key={i} x1="100" y1="100"
+        x2={100 + 80 * Math.cos(angle)}
+        y2={100 + 80 * Math.sin(angle)}
+        stroke={BRAND_PRIMARY} strokeOpacity="0.35" strokeWidth="0.6" />
+    );
+  });
+  return (
+    <svg width={size} height={size} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="MATCHS360" role="img">
+      <g>{axis}</g>
+      <polygon points={polygon(48)} fill={BRAND_PRIMARY} fillOpacity="0.08" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polygon points={polygon(84)} fill="none" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polygon points={polygon(120)} fill="none" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polyline points="55,100 85,100 95,75 105,125 115,100 145,100"
+        fill="none" stroke={BRAND_PRIMARY} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+const MatchsBrand = ({ size = "lg" }: { size?: "lg" | "sm" }) => {
+  const logoSize = size === "lg" ? 36 : 14;
+  const fontSize = size === "lg" ? "22px" : "10px";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: size === "lg" ? "8px" : "4px" }}>
+      <RadarLogoSvg size={logoSize} />
+      <span style={{ fontSize, fontWeight: 800, letterSpacing: "-0.5px", fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}>
+        <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: BRAND_NAVY }}>360</span>
+      </span>
+    </div>
+  );
+};
 
 // Palette de couleurs du rouge (1) au vert (5)
 const LEVEL_COLORS: Record<number, string> = {
@@ -268,14 +315,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 {club.name}
               </span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Activity style={{ width: "16px", height: "16px", color: "white" }} />
-              </div>
-              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: BRAND_BLUE }}>
-                MATCHS360
-              </span>
-            </div>
+            <MatchsBrand size="lg" />
           </div>
 
           {/* ── Player identity card ── */}
@@ -436,7 +476,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* Page 1 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 1/2</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: BRAND_BLUE }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
+            <MatchsBrand size="sm" />
             <span>Document confidentiel</span>
           </div>
         </div>
@@ -456,14 +496,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 <span style={{ fontSize: "12px", color: "#6b7280", marginLeft: "8px" }}>{team.name}</span>
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `linear-gradient(135deg, ${BRAND_BLUE}, #6366f1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Activity style={{ width: "16px", height: "16px", color: "white" }} />
-              </div>
-              <span style={{ fontSize: "18px", fontWeight: 800, letterSpacing: "0.08em", color: BRAND_BLUE }}>
-                MATCHS360
-              </span>
-            </div>
+            <MatchsBrand size="lg" />
           </div>
 
           <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.03em" }}>
@@ -587,7 +620,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           {/* Page 2 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Page 2/2</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 700, letterSpacing: "0.05em", color: BRAND_BLUE }}><Activity style={{ width: "12px", height: "12px" }} /> MATCHS360</span>
+            <MatchsBrand size="sm" />
             <span>Document confidentiel</span>
           </div>
         </div>
