@@ -101,6 +101,53 @@ interface PrintablePlayerSheetProps {
 
 // Bleu primaire de l'interface numérique
 const BRAND_BLUE = "#3B82F6";
+const BRAND_ORANGE = "#D24E2A";
+const BRAND_NAVY = "#0F2466";
+const BRAND_PRIMARY = "#163A9E";
+
+const RadarLogoSvg = ({ size = 34 }: { size?: number }) => {
+  const polygon = (radius: number) => {
+    const sides = 8;
+    const pts: string[] = [];
+    for (let i = 0; i < sides; i++) {
+      const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+      pts.push(`${100 + radius * Math.cos(angle)},${100 + radius * Math.sin(angle)}`);
+    }
+    return pts.join(" ");
+  };
+  const axis = Array.from({ length: 8 }).map((_, i) => {
+    const angle = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+    return (
+      <line key={i} x1="100" y1="100"
+        x2={100 + 80 * Math.cos(angle)}
+        y2={100 + 80 * Math.sin(angle)}
+        stroke={BRAND_PRIMARY} strokeOpacity="0.35" strokeWidth="0.6" />
+    );
+  });
+  return (
+    <svg width={size} height={size} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="MATCHS360" role="img">
+      <g>{axis}</g>
+      <polygon points={polygon(48)} fill={BRAND_PRIMARY} fillOpacity="0.08" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polygon points={polygon(84)} fill="none" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polygon points={polygon(120)} fill="none" stroke={BRAND_PRIMARY} strokeOpacity="0.55" strokeWidth="1" />
+      <polyline points="55,100 85,100 95,75 105,125 115,100 145,100"
+        fill="none" stroke={BRAND_PRIMARY} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+const MatchsBrand = ({ size = "lg" }: { size?: "lg" | "sm" }) => {
+  const logoSize = size === "lg" ? 36 : 14;
+  const fontSize = size === "lg" ? "22px" : "10px";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: size === "lg" ? "8px" : "4px" }}>
+      <RadarLogoSvg size={logoSize} />
+      <span style={{ fontSize, fontWeight: 800, letterSpacing: "-0.5px", fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}>
+        <span style={{ color: BRAND_ORANGE }}>MATCHS</span><span style={{ color: BRAND_NAVY }}>360</span>
+      </span>
+    </div>
+  );
+};
 
 // Palette de couleurs du rouge (1) au vert (5)
 const LEVEL_COLORS: Record<number, string> = {
