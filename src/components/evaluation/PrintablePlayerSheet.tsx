@@ -274,10 +274,9 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             overflows) keeps a safe top/bottom/left/right margin. Without this,
             printers may clip content on continuation pages. */}
         <style>{`
-          @page { size: A4; margin: 12mm 12mm 12mm 12mm; }
+          @page { size: A4; margin: 0; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
-            .pps-page { padding: 0 !important; }
             .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
           }
           .pps-page {
