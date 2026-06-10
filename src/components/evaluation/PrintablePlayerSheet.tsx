@@ -375,13 +375,15 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             </div>
 
             {/* Global level */}
-            <div style={{ textAlign: "center", minWidth: "120px" }}>
-              <GlobalAverageIcon score={overallAverage} />
-              <p style={{ fontSize: "26px", fontWeight: 800, margin: "4px 0 0 0", color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280" }}>
-                {formatAverage(overallAverage)}/5
-              </p>
+            <div style={{ minWidth: "150px", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <GlobalAverageIcon score={overallAverage} />
+                <p style={{ fontSize: "28px", fontWeight: 800, margin: 0, color: LEVEL_COLORS[Math.round(overallAverage || 0)] || "#6b7280", lineHeight: 1 }}>
+                  {formatAverage(overallAverage)}/5
+                </p>
+              </div>
               {progressionPercent !== null && progressionPercent !== undefined && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "3px", marginTop: "4px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "3px", marginTop: "6px" }}>
                   {progressionPercent >= 0 ? (
                     <TrendingUp className="w-4 h-4" style={{ color: "#22C55E" }} />
                   ) : (
@@ -409,11 +411,6 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                 </>
               )}
             </div>
-            {periodLabel && (
-              <div style={{ padding: "3px 10px", borderRadius: "999px", backgroundColor: `${BRAND_BLUE}15`, color: BRAND_BLUE, fontWeight: 600, fontSize: "11px" }}>
-                📅 {periodLabel}
-              </div>
-            )}
           </div>
 
           {/* ── Radar chart - full width ── */}
