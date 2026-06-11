@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
 
 
 interface Template {
@@ -217,6 +218,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         : "Le tout premier référentiel MATCHS sorti en 2020",
       color: "text-primary",
       bgColor: "bg-primary/10",
+      previewFrameworkId: MATCHS_TEMPLATE_ID,
     },
     {
       id: "standard",
@@ -227,6 +229,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
+      previewFrameworkId: STANDARD_TEMPLATE_ID,
     },
     {
       id: "club",
@@ -238,6 +241,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       color: "text-success",
       bgColor: "bg-success/10",
       disabled: clubTemplates.length === 0,
+      previewFrameworkId: clubTemplates[0]?.id,
     },
     {
       id: "team",
@@ -295,6 +299,14 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
             </CardHeader>
             <CardContent>
               <CardDescription className="whitespace-pre-line">{option.description}</CardDescription>
+              {option.previewFrameworkId && (
+                <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                  <TemplatePreviewDialog
+                    frameworkId={option.previewFrameworkId}
+                    templateTitle={option.title}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
