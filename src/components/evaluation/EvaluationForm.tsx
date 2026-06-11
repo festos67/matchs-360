@@ -46,6 +46,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Sparkles } from "lucide-react";
 import { ThemeAccordion } from "./ThemeAccordion";
 import { EvaluationRadar } from "./EvaluationRadar";
 import { 
@@ -85,6 +87,7 @@ interface EvaluationFormProps {
     id: string;
     name: string;
     date: string;
+    talent?: string | null;
     scores: Array<{
       skill_id: string;
       score: number | null;
@@ -156,6 +159,24 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
   const [evaluationName, setEvaluationName] = useState(
     existingEvaluation?.name || generateDefaultName()
   );
+
+  // Talent : zone de texte libre, sans note, ignorée des moyennes. Activée par
+  // référentiel (talent_enabled). Pas affichée en lecture si vide.
+  const [talent, setTalent] = useState<string>(existingEvaluation?.talent ?? "");
+  const [talentEnabled, setTalentEnabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("competence_frameworks")
+        .select("talent_enabled")
+        .eq("id", frameworkId)
+        .maybeSingle();
+      if (!cancelled) setTalentEnabled(!!data?.talent_enabled);
+    })();
+    return () => { cancelled = true; };
+  }, [frameworkId]);
 
   // Initialize scores state
   const [themeScores, setThemeScores] = useState<ThemeScores[]>(() => {
@@ -261,6 +282,11 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
     );
   };
 
+  const handleTalentChange = (value: string) => {
+    setHasBeenModified(true);
+    setTalent(value);
+  };
+
   const handleReset = () => {
     setThemeScores(
       themes.map((theme) => ({
@@ -338,6 +364,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
             name: evaluationName,
             // Store calendar date only (YYYY-MM-DD), no timezone
             date: new Date().toISOString().slice(0, 10),
+            talent: talent.trim() ? talent.trim() : null,
           })
           .eq("id", evaluationId);
 
@@ -346,6 +373,12 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         // Insert with DB-enforced unique name (retry on conflict)
         const newEval = await insertEvaluationWithUniqueName(evaluationName);
         evaluationId = newEval.id;
+        if (talent.trim()) {
+          await supabase
+            .from("evaluations")
+            .update({ talent: talent.trim() })
+            .eq("id", evaluationId);
+        }
       }
 
       // Upsert scores
