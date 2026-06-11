@@ -84,6 +84,11 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("coach_role", "referent").eq("is_active", true).is("deleted_at", null);
       const myRefTeamIds = (refTeams?.map(r => r.team_id) ?? []) as string[];
 
+      console.log("AuthZ debug", JSON.stringify({
+        callerId, isClubImport, targetTeamId, targetClubId,
+        myClubIds, myRefTeamIds,
+      }));
+
       // ---- READ check on source ----
       let srcSourceClubId: string | null = srcFw.club_id;
       if (!srcSourceClubId && srcFw.team_id) {
