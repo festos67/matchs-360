@@ -49,14 +49,14 @@ export function TemplatePreviewDialog({ frameworkId, templateTitle }: Props) {
         Aperçu
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{templateTitle}</DialogTitle>
             <DialogDescription>
               Aperçu synthétique des thématiques et compétences du modèle
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 pr-4 -mr-4">
+          <ScrollArea className="flex-1 min-h-0 pr-4 -mr-4">
             {loading ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 Chargement...
