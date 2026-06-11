@@ -287,7 +287,7 @@ export function CreateClubFrameworkModal({
     {
       id: "standard",
       icon: FileText,
-      title: "Modèle Standard",
+      title: "Modèle socio-sport",
       description: standardStats
         ? `Le référentiel MATCHS360 complet avec ${standardStats.themes} thématiques et ${standardStats.skills} compétences`
         : "Chargement...",
