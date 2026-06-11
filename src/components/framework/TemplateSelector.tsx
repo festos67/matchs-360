@@ -47,6 +47,7 @@ interface TemplateSelectorProps {
 
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
 const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
+const CPS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000003";
 
 export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: TemplateSelectorProps) => {
   const [loading, setLoading] = useState(false);
@@ -57,6 +58,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [cpsStats, setCpsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [defaultName, setDefaultName] = useState("");
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     fetchTeams();
     fetchStandardStats();
     fetchMatchsStats();
+    fetchCpsStats();
   }, [clubId]);
 
   const fetchClubTemplates = async () => {
@@ -130,9 +133,21 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     }
   };
 
+  const fetchCpsStats = async () => {
+    const { data: themes } = await supabase
+      .from("themes")
+      .select("id, skills(count)")
+      .eq("framework_id", CPS_TEMPLATE_ID);
+    if (themes) {
+      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
+      setCpsStats({ themes: themes.length, skills: totalSkills });
+    }
+  };
+
   const getDefaultName = () => {
     if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard";
+    if (selectedOption === "cps") return "Référentiel Compétences Psychosociales";
     if (selectedOption === "club" && clubTemplates.length > 0) return clubTemplates[0].name;
     if (selectedOption === "team" && selectedTeamId) {
       const team = teams.find(t => t.id === selectedTeamId);
@@ -160,6 +175,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
       } else if (selectedOption === "matchs") {
         sourceFrameworkId = MATCHS_TEMPLATE_ID;
+      } else if (selectedOption === "cps") {
+        sourceFrameworkId = CPS_TEMPLATE_ID;
       } else if (selectedOption === "club" && clubTemplates.length > 0) {
         sourceFrameworkId = clubTemplates[0].id;
       } else if (selectedOption === "team" && selectedTeamId) {
@@ -230,6 +247,17 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
       color: "text-primary",
       bgColor: "bg-primary/10",
       previewFrameworkId: STANDARD_TEMPLATE_ID,
+    },
+    {
+      id: "cps",
+      icon: FileText,
+      title: "Modèle « Compétences Psychosociales » (réf. Santé publique France 2025)",
+      description: cpsStats
+        ? `Développez les compétences psychologiques et sociales de vos joueurs en vous appuyant sur le référentiel officiel des CPS\n${cpsStats.themes} thématiques et ${cpsStats.skills} compétences`
+        : "Développez les compétences psychologiques et sociales de vos joueurs en vous appuyant sur le référentiel officiel des CPS.",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      previewFrameworkId: CPS_TEMPLATE_ID,
     },
     {
       id: "club",

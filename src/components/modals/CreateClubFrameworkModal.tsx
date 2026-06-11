@@ -53,6 +53,7 @@ interface CreateClubFrameworkModalProps {
 
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
 const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
+const CPS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000003";
 
 export function CreateClubFrameworkModal({
   open,
@@ -71,6 +72,7 @@ export function CreateClubFrameworkModal({
   const [defaultName, setDefaultName] = useState("");
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [cpsStats, setCpsStats] = useState<{ themes: number; skills: number } | null>(null);
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
@@ -94,6 +96,9 @@ export function CreateClubFrameworkModal({
       });
       fetchFrameworkStats(MATCHS_TEMPLATE_ID).then(stats => {
         if (stats) setMatchsStats(stats);
+      });
+      fetchFrameworkStats(CPS_TEMPLATE_ID).then(stats => {
+        if (stats) setCpsStats(stats);
       });
       setSelectedOption(null);
       setSelectedTeamId("");
@@ -161,6 +166,7 @@ export function CreateClubFrameworkModal({
   const getDefaultName = () => {
     if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard du Club";
+    if (selectedOption === "cps") return "Référentiel Compétences Psychosociales";
     if (selectedOption === "team" && selectedTeamId) {
       const selectedTeam = teams.find(t => t.id === selectedTeamId);
       return `Référentiel basé sur ${selectedTeam?.name || "équipe"}`;
@@ -197,6 +203,8 @@ export function CreateClubFrameworkModal({
         sourceFrameworkId = MATCHS_TEMPLATE_ID;
       } else if (selectedOption === "standard") {
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
+      } else if (selectedOption === "cps") {
+        sourceFrameworkId = CPS_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -287,6 +295,18 @@ export function CreateClubFrameworkModal({
       bgColor: "bg-primary/10",
       disabled: false,
       previewFrameworkId: STANDARD_TEMPLATE_ID,
+    },
+    {
+      id: "cps",
+      icon: FileText,
+      title: "Modèle « Compétences Psychosociales » (réf. Santé publique France 2025)",
+      description: cpsStats
+        ? `Développez les compétences psychologiques et sociales de vos joueurs en vous appuyant sur le référentiel officiel des CPS — ${cpsStats.themes} thématiques et ${cpsStats.skills} compétences`
+        : "Développez les compétences psychologiques et sociales de vos joueurs en vous appuyant sur le référentiel officiel des CPS.",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      disabled: false,
+      previewFrameworkId: CPS_TEMPLATE_ID,
     },
     {
       id: "team",
