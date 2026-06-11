@@ -113,6 +113,7 @@ export type Database = {
           is_archived: boolean
           is_template: boolean
           name: string
+          talent_enabled: boolean
           team_id: string | null
           updated_at: string
         }
@@ -124,6 +125,7 @@ export type Database = {
           is_archived?: boolean
           is_template?: boolean
           name: string
+          talent_enabled?: boolean
           team_id?: string | null
           updated_at?: string
         }
@@ -135,6 +137,7 @@ export type Database = {
           is_archived?: boolean
           is_template?: boolean
           name?: string
+          talent_enabled?: boolean
           team_id?: string | null
           updated_at?: string
         }
@@ -379,6 +382,7 @@ export type Database = {
           name: string
           notes: string | null
           player_id: string
+          talent: string | null
           type: Database["public"]["Enums"]["evaluation_type"]
         }
         Insert: {
@@ -391,6 +395,7 @@ export type Database = {
           name: string
           notes?: string | null
           player_id: string
+          talent?: string | null
           type?: Database["public"]["Enums"]["evaluation_type"]
         }
         Update: {
@@ -403,6 +408,7 @@ export type Database = {
           name?: string
           notes?: string | null
           player_id?: string
+          talent?: string | null
           type?: Database["public"]["Enums"]["evaluation_type"]
         }
         Relationships: [
