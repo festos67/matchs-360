@@ -30,6 +30,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
 
 interface Team {
   id: string;
@@ -273,6 +274,7 @@ export function CreateClubFrameworkModal({
       color: "text-primary",
       bgColor: "bg-primary/10",
       disabled: false,
+      previewFrameworkId: MATCHS_TEMPLATE_ID,
     },
     {
       id: "standard",
@@ -284,6 +286,7 @@ export function CreateClubFrameworkModal({
       color: "text-primary",
       bgColor: "bg-primary/10",
       disabled: false,
+      previewFrameworkId: STANDARD_TEMPLATE_ID,
     },
     {
       id: "team",
@@ -357,6 +360,12 @@ export function CreateClubFrameworkModal({
                       <CardTitle className="text-base">{option.title}</CardTitle>
                       <CardDescription className="text-sm mt-0.5">{option.description}</CardDescription>
                     </div>
+                    {option.previewFrameworkId && (
+                      <TemplatePreviewDialog
+                        frameworkId={option.previewFrameworkId}
+                        templateTitle={option.title}
+                      />
+                    )}
                     {selectedOption === option.id && (
                       <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                         <div className="w-2 h-2 rounded-full bg-primary-foreground" />
