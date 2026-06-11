@@ -38,6 +38,7 @@ interface EvaluationData {
   framework_id: string;
   player_id: string;
   evaluator_id: string;
+  talent: string | null;
   scores: Array<{
     skill_id: string;
     score: number | null;
@@ -86,7 +87,7 @@ export default function EvaluationDetail() {
         .from("evaluations")
         .select(
           `
-          id, name, date, type, framework_id, player_id, evaluator_id, deleted_at,
+          id, name, date, type, framework_id, player_id, evaluator_id, talent, deleted_at,
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
         `
@@ -275,6 +276,7 @@ export default function EvaluationDetail() {
               id: evaluation.id,
               name: evaluation.name,
               date: evaluation.date,
+              talent: evaluation.talent,
               scores: evaluation.scores || [],
               objectives: evaluation.objectives || [],
             }}
