@@ -299,10 +299,10 @@ export function CreateClubFrameworkModal({
     {
       id: "cps",
       icon: FileText,
-      title: "Modèle Santé Publique France (2025)",
+      title: "Modèle Santé Publique France",
       description: cpsStats
-        ? `Développer les compétences psychosociales de vos joueurs en vous appuyant sur le référentiel officiel — ${cpsStats.themes} thématiques et ${cpsStats.skills} compétences`
-        : "Développer les compétences psychosociales de vos joueurs en vous appuyant sur le référentiel officiel.",
+        ? `Développer les compétences psychosociales de vos joueurs en vous appuyant sur le référentiel officiel de 2025 — ${cpsStats.themes} thématiques et ${cpsStats.skills} compétences`
+        : "Développer les compétences psychosociales de vos joueurs en vous appuyant sur le référentiel officiel de 2025.",
       color: "text-primary",
       bgColor: "bg-primary/10",
       disabled: false,
