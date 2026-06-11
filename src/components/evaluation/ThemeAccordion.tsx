@@ -20,7 +20,7 @@
  *  - Score précédent : mem://features/debrief-previous-score-reference
  */
 import { useState } from "react";
-import { EyeOff, Eye, Info, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
+import { EyeOff, Eye, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,28 +70,13 @@ export const SkillRow = ({
       )}
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-4">
-        {/* Skill name with info tooltip */}
         <div className="flex-1 min-w-[140px]">
-          <div className="flex items-center gap-2">
-            <span className={cn(
+          <span className={cn(
               "font-medium",
               score.is_not_observed && "text-muted-foreground"
             )}>
               {skill.name}
             </span>
-            {skill.definition && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="text-muted-foreground hover:text-foreground transition-colors">
-                    <Info className="w-4 h-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs text-sm">
-                  {skill.definition}
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
           {showDefinitionInline && skill.definition && (
             <p className="text-xs text-muted-foreground mt-1 leading-snug">
               {skill.definition}
