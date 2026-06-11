@@ -54,7 +54,7 @@ export const SkillRow = ({
   onNotObservedChange,
   onCommentChange,
   disabled = false,
-  showDefinitionInline = false,
+  showDefinitionInline = true,
 }: SkillRowProps) => {
   const [showComment, setShowComment] = useState(!!score.comment);
   const [showPreviousScore, setShowPreviousScore] = useState(false);
@@ -238,7 +238,7 @@ export const ThemeAccordion = ({
   onObjectiveChange,
   disabled = false,
   defaultOpen = true,
-  showDefinitionInline = false,
+  showDefinitionInline = true,
   showAverageAsLabel = false,
 }: ThemeAccordionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
