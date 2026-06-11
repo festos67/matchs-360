@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
+import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
 
 interface Team {
   id: string;
@@ -212,6 +213,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         : "Le tout premier référentiel MATCHS sorti en 2020",
       color: "text-primary",
       bgColor: "bg-primary/10",
+      previewFrameworkId: MATCHS_TEMPLATE_ID,
     },
     {
       id: "standard",
@@ -222,6 +224,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         : "Chargement...",
       color: "text-primary",
       bgColor: "bg-primary/10",
+      previewFrameworkId: STANDARD_TEMPLATE_ID,
     },
     {
       id: "team",
@@ -281,6 +284,14 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
             </CardHeader>
             <CardContent>
               <CardDescription className="whitespace-pre-line">{option.description}</CardDescription>
+              {option.previewFrameworkId && (
+                <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                  <TemplatePreviewDialog
+                    frameworkId={option.previewFrameworkId}
+                    templateTitle={option.title}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
