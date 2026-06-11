@@ -73,6 +73,7 @@ export interface Evaluation {
   framework_id: string;
   type: "coach" | "self" | "supporter";
   evaluator_id?: string | null;
+  talent?: string | null;
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -211,7 +212,7 @@ export function usePlayerData(playerId: string | undefined) {
       const { data, error } = await supabase
         .from("evaluations")
         .select(`
-          id, name, date, deleted_at, framework_id, type, evaluator_id,
+          id, name, date, deleted_at, framework_id, type, evaluator_id, talent,
           coach:profiles!evaluations_coach_id_fkey(first_name, last_name),
           scores:evaluation_scores(skill_id, score, is_not_observed, comment),
           objectives:evaluation_objectives(theme_id, content)
