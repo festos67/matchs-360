@@ -240,10 +240,10 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     {
       id: "cps",
       icon: FileText,
-      title: "Modèle « Compétences Psychosociales » (réf. Santé publique France 2025)",
+      title: "Modèle Santé Publique France (2025)",
       description: cpsStats
-        ? `Développez les compétences psychologiques et sociales de vos joueurs en vous appuyant sur le référentiel officiel des CPS\n${cpsStats.themes} thématiques et ${cpsStats.skills} compétences`
-        : "Développez les compétences psychologiques et sociales de vos joueurs en vous appuyant sur le référentiel officiel des CPS.",
+        ? `Développer les compétences psychosociales de vos joueurs en vous appuyant sur le référentiel officiel\n${cpsStats.themes} thématiques et ${cpsStats.skills} compétences`
+        : "Développer les compétences psychosociales de vos joueurs en vous appuyant sur le référentiel officiel.",
       color: "text-primary",
       bgColor: "bg-primary/10",
       previewFrameworkId: CPS_TEMPLATE_ID,
