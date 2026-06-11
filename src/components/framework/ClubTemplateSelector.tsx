@@ -229,7 +229,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     {
       id: "standard",
       icon: FileText,
-      title: "Modèle Standard MATCHS 360",
+      title: "Modèle socio-sport",
       description: standardStats 
         ? `Utiliser le modèle standard\n${standardStats.themes} thématiques et ${standardStats.skills} compétences`
         : "Chargement...",
