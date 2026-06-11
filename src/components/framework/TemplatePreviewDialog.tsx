@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { loadFrameworkThemes, type FrameworkTheme } from "@/lib/framework-loader";
 
 interface Props {
@@ -49,14 +48,14 @@ export function TemplatePreviewDialog({ frameworkId, templateTitle }: Props) {
         Aperçu
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
-          <DialogHeader className="shrink-0">
+        <DialogContent className="max-w-2xl !grid-rows-[auto_1fr] h-[85vh] overflow-hidden">
+          <DialogHeader>
             <DialogTitle>{templateTitle}</DialogTitle>
             <DialogDescription>
               Aperçu synthétique des thématiques et compétences du modèle
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 min-h-0 pr-4 -mr-4">
+          <div className="overflow-y-auto pr-2 min-h-0">
             {loading ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
                 Chargement...
@@ -94,7 +93,7 @@ export function TemplatePreviewDialog({ frameworkId, templateTitle }: Props) {
                 )}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>
