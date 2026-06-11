@@ -604,6 +604,31 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         })}
       </div>
 
+      {/* Talent — zone libre, sans note, ignorée des moyennes */}
+      {talentEnabled && (!readOnly || (talent && talent.trim() !== "")) && (
+        <div className="glass-card p-4 space-y-2 border-l-4" style={{ borderLeftColor: "#F59E0B" }}>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            <h3 className="font-display font-semibold text-lg">Talent</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Champ optionnel — n'attribue pas de note et n'impacte pas le résultat de l'évaluation.
+            À remplir si un talent particulier est observé chez le joueur.
+          </p>
+          {readOnly ? (
+            <p className="text-sm whitespace-pre-wrap pt-1">{talent}</p>
+          ) : (
+            <Textarea
+              value={talent}
+              onChange={(e) => handleTalentChange(e.target.value)}
+              placeholder="Décrivez un talent observé chez ce joueur..."
+              rows={3}
+              className="text-sm"
+            />
+          )}
+        </div>
+      )}
+
       {/* Sticky Footer */}
       {!readOnly && (
         <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
