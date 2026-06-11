@@ -54,6 +54,7 @@ interface CreateClubFrameworkModalProps {
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
 const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
 const CPS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000003";
+const CHILD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000004";
 
 export function CreateClubFrameworkModal({
   open,
@@ -73,6 +74,7 @@ export function CreateClubFrameworkModal({
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [cpsStats, setCpsStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [childStats, setChildStats] = useState<{ themes: number; skills: number } | null>(null);
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
@@ -99,6 +101,9 @@ export function CreateClubFrameworkModal({
       });
       fetchFrameworkStats(CPS_TEMPLATE_ID).then(stats => {
         if (stats) setCpsStats(stats);
+      });
+      fetchFrameworkStats(CHILD_TEMPLATE_ID).then(stats => {
+        if (stats) setChildStats(stats);
       });
       setSelectedOption(null);
       setSelectedTeamId("");
@@ -167,6 +172,7 @@ export function CreateClubFrameworkModal({
     if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard du Club";
     if (selectedOption === "cps") return "Référentiel Compétences Psychosociales";
+    if (selectedOption === "child") return "Référentiel Socio-Sport Enfant (6-12 ans)";
     if (selectedOption === "team" && selectedTeamId) {
       const selectedTeam = teams.find(t => t.id === selectedTeamId);
       return `Référentiel basé sur ${selectedTeam?.name || "équipe"}`;
@@ -205,6 +211,8 @@ export function CreateClubFrameworkModal({
         sourceFrameworkId = STANDARD_TEMPLATE_ID;
       } else if (selectedOption === "cps") {
         sourceFrameworkId = CPS_TEMPLATE_ID;
+      } else if (selectedOption === "child") {
+        sourceFrameworkId = CHILD_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -307,6 +315,18 @@ export function CreateClubFrameworkModal({
       bgColor: "bg-primary/10",
       disabled: false,
       previewFrameworkId: CPS_TEMPLATE_ID,
+    },
+    {
+      id: "child",
+      icon: FileText,
+      title: "Modèle « Socio-Sport Enfant » (6-12 ans)",
+      description: childStats
+        ? `Accompagnez les plus jeunes dans leurs premiers apprentissages sportifs et relationnels — ${childStats.themes} thématiques et ${childStats.skills} compétences`
+        : "Accompagnez les plus jeunes dans leurs premiers apprentissages sportifs et relationnels.",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      disabled: false,
+      previewFrameworkId: CHILD_TEMPLATE_ID,
     },
     {
       id: "team",

@@ -37,6 +37,7 @@ interface ClubTemplateSelectorProps {
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
 const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
 const CPS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000003";
+const CHILD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000004";
 
 export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTemplateSelectorProps) => {
   const [loading, setLoading] = useState(false);
@@ -46,6 +47,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [standardStats, setStandardStats] = useState<{ themes: number; skills: number } | null>(null);
   const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [cpsStats, setCpsStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [childStats, setChildStats] = useState<{ themes: number; skills: number } | null>(null);
   const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [defaultName, setDefaultName] = useState("");
@@ -103,6 +105,11 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     if (stats) setCpsStats(stats);
   }, [fetchFrameworkStats]);
 
+  const fetchChildStats = useCallback(async () => {
+    const stats = await fetchFrameworkStats(CHILD_TEMPLATE_ID);
+    if (stats) setChildStats(stats);
+  }, [fetchFrameworkStats]);
+
   const fetchTeamStats = useCallback(async (teamId: string) => {
     const { data: framework } = await supabase
       .from("competence_frameworks")
@@ -124,7 +131,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     fetchStandardStats();
     fetchMatchsStats();
     fetchCpsStats();
-  }, [fetchTeamsWithFrameworks, fetchStandardStats, fetchMatchsStats, fetchCpsStats]);
+    fetchChildStats();
+  }, [fetchTeamsWithFrameworks, fetchStandardStats, fetchMatchsStats, fetchCpsStats, fetchChildStats]);
 
   useEffect(() => {
     if (selectedTeamId) {
@@ -138,6 +146,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     if (selectedOption === "matchs") return "Référentiel MATCHS";
     if (selectedOption === "standard") return "Référentiel Standard";
     if (selectedOption === "cps") return "Référentiel Compétences Psychosociales";
+    if (selectedOption === "child") return "Référentiel Socio-Sport Enfant (6-12 ans)";
     if (selectedOption === "team" && selectedTeamId) {
       const team = teams.find(t => t.id === selectedTeamId);
       return `Référentiel basé sur ${team?.name || "équipe"}`;
@@ -167,6 +176,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         sourceFrameworkId = MATCHS_TEMPLATE_ID;
       } else if (selectedOption === "cps") {
         sourceFrameworkId = CPS_TEMPLATE_ID;
+      } else if (selectedOption === "child") {
+        sourceFrameworkId = CHILD_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -247,6 +258,17 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       color: "text-primary",
       bgColor: "bg-primary/10",
       previewFrameworkId: CPS_TEMPLATE_ID,
+    },
+    {
+      id: "child",
+      icon: FileText,
+      title: "Modèle « Socio-Sport Enfant » (6-12 ans)",
+      description: childStats
+        ? `Accompagnez les plus jeunes dans leurs premiers apprentissages sportifs et relationnels\n${childStats.themes} thématiques et ${childStats.skills} compétences`
+        : "Accompagnez les plus jeunes dans leurs premiers apprentissages sportifs et relationnels.",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      previewFrameworkId: CHILD_TEMPLATE_ID,
     },
     {
       id: "team",
