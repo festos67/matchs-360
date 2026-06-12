@@ -271,10 +271,16 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             overflows) keeps a safe top/bottom/left/right margin. Without this,
             printers may clip content on continuation pages. */}
         <style>{`
-          @page { size: A4; margin: 0; }
+          /* Safe-area margins applied by the browser on EVERY printed page
+             (incl. auto-paginated overflow continuations). This guarantees a
+             top header margin identical on page 1, 2 and any 3rd sheet that
+             may appear when content overflows. */
+          @page { size: A4; margin: 12mm 12mm 10mm 12mm; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
             .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
+            /* Page padding is now provided by @page margins — avoid double margin */
+            .pps-page { padding: 0 !important; min-height: 0 !important; }
           }
           .pps-page {
             width: 210mm;
