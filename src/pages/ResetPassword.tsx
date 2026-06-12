@@ -21,7 +21,7 @@
  * Le hash est nettoyé après usage (window.history.replaceState) pour empêcher
  * le rejeu de l'URL et éviter d'exposer le token dans les logs analytics.
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,75 +39,82 @@ export default function ResetPassword() {
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  // R3 (2026-04-27): garde-fou anti double-consommation (StrictMode dev).
+  const consumedRef = useRef(false);
 
   useEffect(() => {
+    // F-304 + SEC-AUTH-001 : flow déterministe aligné sur InviteAccept (R3).
+    // Ne JAMAIS faire confiance à une session pré-existante : exiger un token
+    // recovery dans le hash, purger la session globale, nettoyer le hash AVANT
+    // setSession (empêche l'auto-détection SDK + event parasite côté useAuth),
+    // puis établir explicitement la session via setSession.
+    if (consumedRef.current) return;
+    consumedRef.current = true;
+
     let cancelled = false;
 
-    const markReady = () => {
-      if (cancelled) return;
-      setSessionReady(true);
-      // Nettoyage du hash pour empêcher tout rejeu du token
-      if (window.location.hash) {
+    (async () => {
+      try {
+        // ÉTAPE 1 — extraire et valider le hash AVANT toute opération auth.
+        const hash = window.location.hash || "";
+        const hashParams = new URLSearchParams(
+          hash.startsWith("#") ? hash.slice(1) : hash,
+        );
+        const tokenType = hashParams.get("type");
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+
+        if (tokenType !== "recovery" || !accessToken || !refreshToken) {
+          if (!cancelled) {
+            setTokenError(
+              "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
+            );
+          }
+          return;
+        }
+
+        // ÉTAPE 2 — purge globale awaité (révoque les refresh tokens sur
+        // tous les devices et empêche toute race avec l'attaquant).
+        await supabase.auth.signOut({ scope: "global" }).catch(() => {
+          /* pas de session active = OK */
+        });
+
+        // ÉTAPE 3 — nettoyer le hash AVANT setSession (empêche le SDK
+        // d'auto-détecter et de fire un SIGNED_IN parasite intercepté par
+        // le listener global du useAuth).
         window.history.replaceState(
           null,
           "",
           window.location.pathname + window.location.search,
         );
-      }
-    };
 
-    // P0-3 / F-304: ne JAMAIS faire confiance à une session pré-existante.
-    // Exiger explicitement un token recovery dans le hash URL et n'accepter
-    // QUE l'event PASSWORD_RECOVERY émis pendant cette session.
-    const hash = window.location.hash || "";
-    const hashParams = new URLSearchParams(
-      hash.startsWith("#") ? hash.slice(1) : hash,
-    );
-    const hasAccessToken = hashParams.has("access_token");
-    const tokenType = hashParams.get("type");
+        // ÉTAPE 4 — établir explicitement la session recovery.
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
 
-    if (!hasAccessToken || tokenType !== "recovery") {
-      // Pas de token recovery valide => refuser, même si l'utilisateur
-      // est par ailleurs authentifié.
-      setTokenError(
-        "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
-      );
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    // Purger toute session pré-existante avant que Supabase ne consomme
-    // le token recovery du hash, pour éviter qu'un attaquant authentifié
-    // sur un autre compte ne réutilise sa session courante.
-    void supabase.auth.signOut({ scope: "local" }).catch(() => {
-      /* ignore */
-    });
-
-    // Attendre EXCLUSIVEMENT l'event PASSWORD_RECOVERY déclenché par le
-    // parsing du token dans le hash. Aucun fallback sur getSession().
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event) => {
-        if (event === "PASSWORD_RECOVERY") {
-          markReady();
+        if (error || !data?.session) {
+          if (!cancelled) {
+            setTokenError(
+              "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
+            );
+          }
+          return;
         }
-      },
-    );
 
-    // Garde-fou : si après 10s l'event n'est jamais arrivé, le token est
-    // probablement invalide/expiré.
-    const timeoutId = setTimeout(() => {
-      if (!cancelled && !sessionReady) {
-        setTokenError(
-          "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
-        );
+        if (!cancelled) setSessionReady(true);
+      } catch {
+        if (!cancelled) {
+          setTokenError(
+            "Lien de réinitialisation invalide ou expiré. Veuillez relancer une demande depuis la page de connexion.",
+          );
+        }
       }
-    }, 10000);
+    })();
 
     return () => {
       cancelled = true;
-      clearTimeout(timeoutId);
-      subscription.unsubscribe();
     };
   }, []);
 

@@ -86,22 +86,12 @@ export default function Auth() {
   const handleContactAdmin = async () => {
     setSendingHelp(true);
     try {
-      const { data: adminRoles } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "admin");
-
-      if (adminRoles && adminRoles.length > 0) {
-        const notifications = adminRoles.map((role) => ({
-          user_id: role.user_id,
-          title: "Demande d'aide à la connexion",
-          message: `Un utilisateur (${email || "email non renseigné"}) rencontre un problème de connexion et demande de l'aide.`,
-          type: "help_request",
-        }));
-
-        await supabase.from("notifications").insert(notifications);
-      }
-
+      // SEC-AUTH-004 : la création des notifications d'aide passe désormais
+      // par une edge function (service_role) — plus aucun SELECT user_roles
+      // ni INSERT notifications côté client. Réponse générique (anti-énumération).
+      await supabase.functions.invoke("request-login-help", {
+        body: { email },
+      });
       setShowHelpDialog(false);
       setShowConfirmDialog(true);
     } catch (err) {
