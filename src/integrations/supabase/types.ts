@@ -289,6 +289,7 @@ export type Database = {
           content: string
           created_at: string
           deadline: string | null
+          deleted_at: string | null
           evaluation_id: string
           id: string
           theme_id: string
@@ -297,6 +298,7 @@ export type Database = {
           content: string
           created_at?: string
           deadline?: string | null
+          deleted_at?: string | null
           evaluation_id: string
           id?: string
           theme_id: string
@@ -305,6 +307,7 @@ export type Database = {
           content?: string
           created_at?: string
           deadline?: string | null
+          deleted_at?: string | null
           evaluation_id?: string
           id?: string
           theme_id?: string
@@ -330,6 +333,7 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string
+          deleted_at: string | null
           evaluation_id: string
           id: string
           is_not_observed: boolean
@@ -339,6 +343,7 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string
+          deleted_at?: string | null
           evaluation_id: string
           id?: string
           is_not_observed?: boolean
@@ -348,6 +353,7 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string
+          deleted_at?: string | null
           evaluation_id?: string
           id?: string
           is_not_observed?: boolean
