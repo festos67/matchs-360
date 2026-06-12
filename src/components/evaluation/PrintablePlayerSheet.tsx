@@ -50,6 +50,7 @@ interface Evaluation {
   date: string;
   type?: "coach" | "self" | "supporter";
   coach: { first_name: string | null; last_name: string | null };
+  talent?: string | null;
   scores: Array<{
     skill_id: string;
     score: number | null;
