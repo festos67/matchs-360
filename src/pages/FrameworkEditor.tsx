@@ -121,6 +121,8 @@ export default function FrameworkEditor() {
   const { teamId } = useParams<{ teamId: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const { canDo, loading: planLoading } = usePlan();
+  const canVersionFramework = planLoading ? true : canDo("can_version_framework");
 
   const [team, setTeam] = useState<Team | null>(null);
   const [framework, setFramework] = useState<Framework | null>(null);
@@ -447,10 +449,15 @@ export default function FrameworkEditor() {
                   Imprimer
                 </Button>
                 {canEdit && (
-                  <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-                    <History className="w-4 h-4 mr-2 text-orange-500" />
-                    Historique
-                  </Button>
+                  <ProFeatureLock
+                    locked={!canVersionFramework}
+                    label="Historique des versions réservé au plan Pro"
+                  >
+                    <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                      <History className="w-4 h-4 mr-2 text-orange-500" />
+                      Historique
+                    </Button>
+                  </ProFeatureLock>
                 )}
               </div>
             </div>
