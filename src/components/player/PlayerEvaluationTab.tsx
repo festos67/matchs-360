@@ -28,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { getThemePaletteColor } from "@/lib/theme-palette";
 import { loadFrameworkThemes } from "@/lib/framework-loader";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
+import { usePlan } from "@/hooks/usePlan";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
 
 interface PlayerEvaluationTabProps {
   player: Player;
@@ -78,6 +80,8 @@ export function PlayerEvaluationTab({
   onToggleSupporterLayer,
   currentUserId,
 }: PlayerEvaluationTabProps) {
+  const { canDo, loading: planLoading } = usePlan();
+  const canCompareMultiSource = planLoading ? true : canDo("can_compare_multi_source");
   const [localSelf, setLocalSelf] = useState(false);
   const [localSupporter, setLocalSupporter] = useState(false);
   const showSelfEvalLayer = controlledSelf ?? localSelf;
@@ -272,11 +276,11 @@ export function PlayerEvaluationTab({
       });
     });
 
-    if (showSelfEvalLayer) {
+    if (showSelfEvalLayer && canCompareMultiSource) {
       pushDataset(latestSelfEvaluation, { label: "Auto-débrief", color: "#F59E0B" });
     }
 
-    if (showSupporterLayer && !hideSupporterLayer) {
+    if (showSupporterLayer && !hideSupporterLayer && canCompareMultiSource) {
       pushDataset(latestSupporterEvaluation, { label: "Débrief Supporter", color: "#F97316" });
     }
 
@@ -365,32 +369,47 @@ export function PlayerEvaluationTab({
                   </div>
                 )}
                 {myLatestSupporterEvaluation && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Checkbox
-                      id="my-supporter-layer"
-                      checked={comparisonIds.includes(myLatestSupporterEvaluation.id)}
-                      onCheckedChange={() => onToggleComparison(myLatestSupporterEvaluation.id)}
-                    />
-                    <Label htmlFor="my-supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <Heart className="w-4 h-4 text-accent" />Mon dernier débrief
-                    </Label>
-                  </div>
+                  <ProFeatureLock
+                    locked={!canCompareMultiSource}
+                    label="Comparaison multi-sources réservée au plan Pro"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox
+                        id="my-supporter-layer"
+                        checked={comparisonIds.includes(myLatestSupporterEvaluation.id)}
+                        onCheckedChange={() => onToggleComparison(myLatestSupporterEvaluation.id)}
+                      />
+                      <Label htmlFor="my-supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                        <Heart className="w-4 h-4 text-accent" />Mon dernier débrief
+                      </Label>
+                    </div>
+                  </ProFeatureLock>
                 )}
                 {!!latestSelfEvaluation && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
-                    <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <UserCircle className="w-4 h-4 text-success" />Auto-éval
-                    </Label>
-                  </div>
+                  <ProFeatureLock
+                    locked={!canCompareMultiSource}
+                    label="Comparaison multi-sources réservée au plan Pro"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
+                      <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                        <UserCircle className="w-4 h-4 text-success" />Auto-éval
+                      </Label>
+                    </div>
+                  </ProFeatureLock>
                 )}
                 {!!latestSupporterEvaluation && !hideSupporterLayer && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
-                    <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <Heart className="w-4 h-4 text-accent" />Supporter
-                    </Label>
-                  </div>
+                  <ProFeatureLock
+                    locked={!canCompareMultiSource}
+                    label="Comparaison multi-sources réservée au plan Pro"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
+                      <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                        <Heart className="w-4 h-4 text-accent" />Supporter
+                      </Label>
+                    </div>
+                  </ProFeatureLock>
                 )}
               </div>
           </div>

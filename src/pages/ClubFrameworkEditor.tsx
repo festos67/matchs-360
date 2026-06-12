@@ -42,6 +42,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
+import { usePlan } from "@/hooks/usePlan";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
@@ -96,6 +98,8 @@ export default function ClubFrameworkEditor() {
   const { clubId } = useParams<{ clubId: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles, currentRole } = useAuth();
   const navigate = useNavigate();
+  const { canDo, loading: planLoading } = usePlan();
+  const canVersionFramework = planLoading ? true : canDo("can_version_framework");
 
   const [club, setClub] = useState<Club | null>(null);
   const [framework, setFramework] = useState<Framework | null>(null);
@@ -304,10 +308,15 @@ export default function ClubFrameworkEditor() {
                   <Pencil className="w-4 h-4 mr-2 text-orange-500" />
                   Modifier
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-                  <History className="w-4 h-4 mr-2 text-orange-500" />
-                  Historique
-                </Button>
+                <ProFeatureLock
+                  locked={!canVersionFramework}
+                  label="Historique des versions réservé au plan Pro"
+                >
+                  <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                    <History className="w-4 h-4 mr-2 text-orange-500" />
+                    Historique
+                  </Button>
+                </ProFeatureLock>
                 {true && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

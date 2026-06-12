@@ -67,6 +67,8 @@ import { toast } from "sonner";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
+import { usePlan } from "@/hooks/usePlan";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
@@ -119,6 +121,8 @@ export default function FrameworkEditor() {
   const { teamId } = useParams<{ teamId: string }>();
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const { canDo, loading: planLoading } = usePlan();
+  const canVersionFramework = planLoading ? true : canDo("can_version_framework");
 
   const [team, setTeam] = useState<Team | null>(null);
   const [framework, setFramework] = useState<Framework | null>(null);
@@ -445,10 +449,15 @@ export default function FrameworkEditor() {
                   Imprimer
                 </Button>
                 {canEdit && (
-                  <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
-                    <History className="w-4 h-4 mr-2 text-orange-500" />
-                    Historique
-                  </Button>
+                  <ProFeatureLock
+                    locked={!canVersionFramework}
+                    label="Historique des versions réservé au plan Pro"
+                  >
+                    <Button variant="outline" size="sm" onClick={() => setShowHistory(true)}>
+                      <History className="w-4 h-4 mr-2 text-orange-500" />
+                      Historique
+                    </Button>
+                  </ProFeatureLock>
                 )}
               </div>
             </div>

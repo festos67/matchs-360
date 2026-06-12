@@ -57,6 +57,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
+import { usePlan } from "@/hooks/usePlan";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { useReactToPrint } from "react-to-print";
 import {
@@ -115,6 +117,8 @@ export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, profile, currentRole, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const navigate = useNavigate();
+  const { canDo, loading: planLoading } = usePlan();
+  const canVersionFramework = planLoading ? true : canDo("can_version_framework");
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [archivedTeams, setArchivedTeams] = useState<Team[]>([]);
@@ -527,17 +531,22 @@ export default function ClubDetail() {
                       <Printer className="w-4 h-4 mr-2 text-accent" />
                       Imprimer
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowFrameworkHistory(true);
-                      }}
+                    <ProFeatureLock
+                      locked={!canVersionFramework}
+                      label="Historique des versions réservé au plan Pro"
                     >
-                      <History className="w-4 h-4 mr-2 text-accent" />
-                      Historique
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowFrameworkHistory(true);
+                        }}
+                      >
+                        <History className="w-4 h-4 mr-2 text-accent" />
+                        Historique
+                      </Button>
+                    </ProFeatureLock>
                     <Button
                       variant="outline"
                       size="sm"
