@@ -552,15 +552,14 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 1 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span />
-            <MatchsBrand size="sm" />
-            <span>Document confidentiel</span>
-          </div>
+          <PageFooter pageNumber={1} />
         </div>
 
-        {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div className="pps-page" style={{ position: "relative" }}>
+        {/* ===== PAGES 2..N : Détail des compétences (pagination contrôlée) ===== */}
+        {detailPages.map((pageBlocks, pageIndex) => {
+          const isLastDetailPage = pageIndex === detailPages.length - 1;
+          return (
+        <div key={pageIndex} className="pps-page pps-page-fixed" style={{ position: "relative" }}>
           <MinorWatermark isMinor={!!player.is_minor} orientation="portrait" />
 
           {/* ── Top brand bar (repeated) ── */}
@@ -578,14 +577,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-            Détail des compétences
+            Détail des compétences{pageIndex > 0 ? " (suite)" : ""}
           </h2>
 
           <div style={{ flex: 1 }}>
-            {themeScores.map((themeScore) => {
-              const theme = themes.find(t => t.id === themeScore.theme_id);
-              if (!theme) return null;
-
+            {pageBlocks.map(({ theme, ts: themeScore }) => {
               const themeAverage = calculateThemeAverage(themeScore.skills);
               const objective = themeScore.objective;
               const hasComments = themeScore.skills.some(s => s.comment);
