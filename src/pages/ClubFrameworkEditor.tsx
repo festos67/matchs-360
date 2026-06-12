@@ -42,6 +42,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
+import { usePlan } from "@/hooks/usePlan";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
