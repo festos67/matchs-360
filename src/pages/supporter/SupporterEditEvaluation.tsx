@@ -111,7 +111,8 @@ export default function SupporterEditEvaluation() {
         const { data: scoresData } = await supabase
           .from("evaluation_scores")
           .select("skill_id, score, is_not_observed, comment")
-          .eq("evaluation_id", evaluationId);
+          .eq("evaluation_id", evaluationId)
+          .is("deleted_at", null);
 
         const sMap: Record<string, number | null> = {};
         const noMap: Record<string, boolean> = {};
@@ -129,7 +130,8 @@ export default function SupporterEditEvaluation() {
         const { data: objData } = await supabase
           .from("evaluation_objectives")
           .select("theme_id, content")
-          .eq("evaluation_id", evaluationId);
+          .eq("evaluation_id", evaluationId)
+          .is("deleted_at", null);
         const oMap: Record<string, string> = {};
         (objData || []).forEach((o: any) => {
           oMap[o.theme_id] = o.content;

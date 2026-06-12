@@ -49,11 +49,13 @@ export function useTeamProgression(teamId: string | undefined, playerIds: string
             supabase
               .from("evaluation_scores")
               .select("score, is_not_observed")
-              .eq("evaluation_id", latest.id),
+              .eq("evaluation_id", latest.id)
+              .is("deleted_at", null),
             supabase
               .from("evaluation_scores")
               .select("score, is_not_observed")
-              .eq("evaluation_id", previous.id),
+              .eq("evaluation_id", previous.id)
+              .is("deleted_at", null),
           ]);
 
           const avgLatest = calcAverage(latestScores.data || []);

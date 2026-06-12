@@ -169,7 +169,7 @@ const AdminDashboard = () => {
     queryKey: ["admin-stats-evals"],
     queryFn: async () => {
       const { count } = await supabase.from("evaluations").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      const { data: scores } = await supabase.from("evaluation_scores").select("score").not("score", "is", null);
+      const { data: scores } = await supabase.from("evaluation_scores").select("score").is("deleted_at", null).not("score", "is", null);
       const validScores = (scores || []).filter((s: any) => s.score !== null).map((s: any) => s.score as number);
       const avg = validScores.length > 0 ? (validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
       const { count: tCount } = await supabase.from("teams").select("*", { count: "exact", head: true }).is("deleted_at", null);
@@ -204,8 +204,8 @@ const AdminDashboard = () => {
           if (!evals || evals.length < 2) return;
           const [latest, previous] = evals;
           const [ls, ps] = await Promise.all([
-            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id),
-            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id),
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id).is("deleted_at", null),
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id).is("deleted_at", null),
           ]);
           const avgL = calcAvg(ls.data || []);
           const avgP = calcAvg(ps.data || []);
