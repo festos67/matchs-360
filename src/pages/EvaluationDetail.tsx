@@ -93,6 +93,8 @@ export default function EvaluationDetail() {
         `
         )
         .eq("id", id)
+        .is("scores.deleted_at", null)
+        .is("objectives.deleted_at", null)
         .maybeSingle();
       if (error) throw error;
       if (!data || (data as any).deleted_at) {
