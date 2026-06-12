@@ -284,6 +284,7 @@ const handler = async (req: Request): Promise<Response> => {
     // record-parental-consent — pas ici.
     // ============================================================
     const ALLOWED_GUARDIAN_REL = ["mere", "pere", "tuteur_legal", "autre_titulaire"] as const;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isMinorWithGuardian =
       intendedRole === "player" &&
       !!guardianEmail &&
@@ -309,7 +310,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       throw new InvitationDomainError({
         message: "Adresse email invalide.",
