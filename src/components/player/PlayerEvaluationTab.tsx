@@ -577,6 +577,19 @@ export function PlayerEvaluationTab({
           })}
         </div>
       )}
+
+      {/* Talent observé — affiché uniquement si le coach a rempli le champ */}
+      {selectedEvaluation?.talent && selectedEvaluation.talent.trim() !== "" && (
+        <div className="glass-card p-6 border-primary/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <h3 className="font-display font-semibold text-lg">Talent observé</h3>
+          </div>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+            {selectedEvaluation.talent}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
