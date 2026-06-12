@@ -16,7 +16,7 @@
  *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
+import { ClipboardList, Heart, MessageSquare, Sparkles, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
