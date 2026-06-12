@@ -474,7 +474,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
           {/* Page 1 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Page 1/2</span>
+            <span />
             <MatchsBrand size="sm" />
             <span>Document confidentiel</span>
           </div>
