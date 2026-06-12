@@ -276,11 +276,11 @@ export function PlayerEvaluationTab({
       });
     });
 
-    if (showSelfEvalLayer) {
+    if (showSelfEvalLayer && canCompareMultiSource) {
       pushDataset(latestSelfEvaluation, { label: "Auto-débrief", color: "#F59E0B" });
     }
 
-    if (showSupporterLayer && !hideSupporterLayer) {
+    if (showSupporterLayer && !hideSupporterLayer && canCompareMultiSource) {
       pushDataset(latestSupporterEvaluation, { label: "Débrief Supporter", color: "#F97316" });
     }
 
