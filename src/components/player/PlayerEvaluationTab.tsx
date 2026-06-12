@@ -16,7 +16,7 @@
  *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ClipboardList, Heart, MessageSquare, Star, UserCircle } from "lucide-react";
+import { ClipboardList, Heart, MessageSquare, Sparkles, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -575,6 +575,19 @@ export function PlayerEvaluationTab({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Talent observé — affiché uniquement si le coach a rempli le champ */}
+      {selectedEvaluation?.talent && selectedEvaluation.talent.trim() !== "" && (
+        <div className="glass-card p-6 border-primary/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <h3 className="font-display font-semibold text-lg">Talent observé</h3>
+          </div>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+            {selectedEvaluation.talent}
+          </p>
         </div>
       )}
     </div>

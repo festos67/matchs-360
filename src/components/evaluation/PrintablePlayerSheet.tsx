@@ -50,6 +50,7 @@ interface Evaluation {
   date: string;
   type?: "coach" | "self" | "supporter";
   coach: { first_name: string | null; last_name: string | null };
+  talent?: string | null;
   scores: Array<{
     skill_id: string;
     score: number | null;
@@ -270,10 +271,16 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             overflows) keeps a safe top/bottom/left/right margin. Without this,
             printers may clip content on continuation pages. */}
         <style>{`
-          @page { size: A4; margin: 0; }
+          /* Safe-area margins applied by the browser on EVERY printed page
+             (incl. auto-paginated overflow continuations). This guarantees a
+             top header margin identical on page 1, 2 and any 3rd sheet that
+             may appear when content overflows. */
+          @page { size: A4; margin: 12mm 12mm 10mm 12mm; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
             .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
+            /* Page padding is now provided by @page margins — avoid double margin */
+            .pps-page { padding: 0 !important; min-height: 0 !important; }
           }
           .pps-page {
             width: 210mm;
@@ -467,7 +474,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
           {/* Page 1 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Page 1/2</span>
+            <span />
             <MatchsBrand size="sm" />
             <span>Document confidentiel</span>
           </div>
@@ -609,9 +616,31 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             })}
           </div>
 
+          {/* ── Talent observé (facultatif) ── */}
+          {evaluation.talent && evaluation.talent.trim() !== "" && (
+            <div style={{ marginTop: "14px", breakInside: "avoid", pageBreakInside: "avoid" }}>
+              <div style={{
+                border: `1px solid ${BRAND_BLUE}40`,
+                borderRadius: "8px",
+                padding: "10px 14px",
+                background: `linear-gradient(135deg, ${BRAND_BLUE}10, ${BRAND_BLUE}05)`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                  <Sparkles className="w-4 h-4" style={{ color: BRAND_BLUE }} />
+                  <h3 style={{ fontSize: "13px", fontWeight: 700, color: "#111827", margin: 0, textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    Talent observé
+                  </h3>
+                </div>
+                <p style={{ fontSize: "12px", color: "#374151", margin: 0, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                  {evaluation.talent}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Page 2 Footer */}
           <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span>Page 2/2</span>
+            <span />
             <MatchsBrand size="sm" />
             <span>Document confidentiel</span>
           </div>
