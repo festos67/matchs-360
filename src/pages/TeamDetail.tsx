@@ -57,6 +57,8 @@ import { toast } from "sonner";
 import { useTeamProgression } from "@/hooks/useTeamProgression";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
+import { usePlan } from "@/hooks/usePlan";
 import { ReadOnlyFrameworkView } from "@/components/framework/ReadOnlyFrameworkView";
 import { FrameworkEditDialog } from "@/components/framework/FrameworkEditDialog";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
@@ -110,6 +112,8 @@ export default function TeamDetail() {
   const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
+  const { canDo, loading: planLoading } = usePlan();
+  const canVersionFramework = planLoading ? true : canDo("can_version_framework");
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [showPlayerModal, setShowPlayerModal] = useState(false);
@@ -644,10 +648,15 @@ export default function TeamDetail() {
                           </Button>
                         )}
                         {!isSupporterViewing && (
-                          <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
-                            <History className="w-4 h-4 mr-2 text-orange-500" />
-                            Historique
-                          </Button>
+                          <ProFeatureLock
+                            locked={!canVersionFramework}
+                            label="Historique des versions réservé au plan Pro"
+                          >
+                            <Button variant="outline" size="sm" onClick={() => setShowFrameworkHistory(true)}>
+                              <History className="w-4 h-4 mr-2 text-orange-500" />
+                              Historique
+                            </Button>
+                          </ProFeatureLock>
                         )}
                         {!isSupporterViewing && (
                           <Button variant="outline" size="sm" onClick={() => handlePrintFramework()}>
