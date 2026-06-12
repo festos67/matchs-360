@@ -259,6 +259,80 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
     const evalDate = formatDateFr(evaluation.date);
 
+    // ───────────────────────────────────────────────────────────────
+    // Pagination déterministe des pages "Détail des compétences".
+    // @page { margin: 0 } supprime les en-têtes/pieds injectés par le
+    // navigateur (URL Lovable…) mais empêche aussi le navigateur de
+    // gérer marges + numéros sur les pages de débordement. On découpe
+    // donc nous-mêmes le contenu en pages fixes : chaque page a son
+    // en-tête, ses marges (padding) et son numéro "Page X/Y".
+    // Les hauteurs sont ESTIMÉES de façon conservatrice (mieux vaut une
+    // page de plus qu'un contenu coupé).
+    // ───────────────────────────────────────────────────────────────
+    const estimateThemeHeight = (theme: Theme, ts: ThemeScores): number => {
+      let h = 36; // en-tête du thème
+      for (const skill of theme.skills) {
+        let row = 30;
+        if (skill.definition) row += Math.ceil(skill.definition.length / 85) * 13;
+        row += comparisonDatasets.length * 16;
+        h += row;
+      }
+      const comments = ts.skills.filter(s => s.comment);
+      if (comments.length > 0) {
+        h += 26;
+        for (const c of comments) h += Math.ceil(((c.comment?.length ?? 0) + 20) / 90) * 16;
+      }
+      if (ts.objective) h += 26 + Math.ceil(ts.objective.length / 90) * 16;
+      return h + 16; // marginBottom
+    };
+
+    // Budget vertical utile d'une page détail (≈ A4 − padding − header − titre − footer)
+    const DETAIL_PAGE_BUDGET_PX = 840;
+
+    type ThemeBlock = { theme: Theme; ts: ThemeScores; height: number };
+    const themeBlocks: ThemeBlock[] = themeScores
+      .map(ts => {
+        const theme = themes.find(t => t.id === ts.theme_id);
+        return theme ? { theme, ts, height: estimateThemeHeight(theme, ts) } : null;
+      })
+      .filter((b): b is ThemeBlock => b !== null);
+
+    const talentText = evaluation.talent?.trim() ?? "";
+    const talentHeight = talentText ? 60 + Math.ceil(talentText.length / 90) * 16 : 0;
+
+    const detailPages: ThemeBlock[][] = [];
+    let currentPage: ThemeBlock[] = [];
+    let usedHeight = 0;
+    for (const block of themeBlocks) {
+      if (currentPage.length > 0 && usedHeight + block.height > DETAIL_PAGE_BUDGET_PX) {
+        detailPages.push(currentPage);
+        currentPage = [];
+        usedHeight = 0;
+      }
+      currentPage.push(block);
+      usedHeight += block.height;
+    }
+    if (talentText && currentPage.length > 0 && usedHeight + talentHeight > DETAIL_PAGE_BUDGET_PX) {
+      detailPages.push(currentPage);
+      currentPage = [];
+      usedHeight = 0;
+    }
+    if (currentPage.length > 0 || (talentText && detailPages.length === 0)) {
+      detailPages.push(currentPage);
+    } else if (talentText && usedHeight === 0 && currentPage.length === 0 && detailPages.length > 0) {
+      detailPages.push([]);
+    }
+
+    const totalPages = 1 + detailPages.length;
+
+    const PageFooter = ({ pageNumber }: { pageNumber: number }) => (
+      <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>Page {pageNumber}/{totalPages}</span>
+        <MatchsBrand size="sm" />
+        <span>Document confidentiel</span>
+      </div>
+    );
+
     return (
       <div
         ref={ref}
@@ -277,7 +351,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           @page { size: A4; margin: 0; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
-            .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
+            /* Pagination contrôlée : chaque .pps-page-fixed = exactement une
+               feuille (marges incluses via padding). overflow hidden évite
+               qu'un léger débordement crée une page parasite sans marge. */
+            .pps-page-fixed { height: 296mm !important; min-height: 0 !important; overflow: hidden !important; page-break-after: always; break-after: page; }
+            .pps-page-fixed:last-child { page-break-after: auto; break-after: auto; }
             /* En impression, on laisse la page occuper la largeur imprimable
                réelle (A4 - marges non imprimables du driver) pour éviter
                toute coupe à droite. */
@@ -474,15 +552,14 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* Page 1 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span />
-            <MatchsBrand size="sm" />
-            <span>Document confidentiel</span>
-          </div>
+          <PageFooter pageNumber={1} />
         </div>
 
-        {/* ===== PAGE 2: Détail des compétences ===== */}
-        <div className="pps-page" style={{ position: "relative" }}>
+        {/* ===== PAGES 2..N : Détail des compétences (pagination contrôlée) ===== */}
+        {detailPages.map((pageBlocks, pageIndex) => {
+          const isLastDetailPage = pageIndex === detailPages.length - 1;
+          return (
+        <div key={pageIndex} className="pps-page pps-page-fixed" style={{ position: "relative" }}>
           <MinorWatermark isMinor={!!player.is_minor} orientation="portrait" />
 
           {/* ── Top brand bar (repeated) ── */}
@@ -500,14 +577,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           <h2 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", borderBottom: "1px solid #e5e7eb", paddingBottom: "6px", marginBottom: "12px", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-            Détail des compétences
+            Détail des compétences{pageIndex > 0 ? " (suite)" : ""}
           </h2>
 
           <div style={{ flex: 1 }}>
-            {themeScores.map((themeScore) => {
-              const theme = themes.find(t => t.id === themeScore.theme_id);
-              if (!theme) return null;
-
+            {pageBlocks.map(({ theme, ts: themeScore }) => {
               const themeAverage = calculateThemeAverage(themeScore.skills);
               const objective = themeScore.objective;
               const hasComments = themeScore.skills.some(s => s.comment);
@@ -618,7 +692,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* ── Talent observé (facultatif) ── */}
-          {evaluation.talent && evaluation.talent.trim() !== "" && (
+          {isLastDetailPage && talentText !== "" && (
             <div style={{ marginTop: "14px", breakInside: "avoid", pageBreakInside: "avoid" }}>
               <div style={{
                 border: `1px solid ${BRAND_BLUE}40`,
@@ -633,19 +707,17 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                   </h3>
                 </div>
                 <p style={{ fontSize: "12px", color: "#374151", margin: 0, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
-                  {evaluation.talent}
+                  {talentText}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Page 2 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span />
-            <MatchsBrand size="sm" />
-            <span>Document confidentiel</span>
-          </div>
+          {/* Footer avec numéro de page */}
+          <PageFooter pageNumber={pageIndex + 2} />
         </div>
+          );
+        })}
       </div>
     );
   }
