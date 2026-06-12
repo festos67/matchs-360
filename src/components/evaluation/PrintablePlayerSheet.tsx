@@ -692,7 +692,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           </div>
 
           {/* ── Talent observé (facultatif) ── */}
-          {evaluation.talent && evaluation.talent.trim() !== "" && (
+          {isLastDetailPage && talentText !== "" && (
             <div style={{ marginTop: "14px", breakInside: "avoid", pageBreakInside: "avoid" }}>
               <div style={{
                 border: `1px solid ${BRAND_BLUE}40`,
@@ -707,19 +707,17 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
                   </h3>
                 </div>
                 <p style={{ fontSize: "12px", color: "#374151", margin: 0, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
-                  {evaluation.talent}
+                  {talentText}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Page 2 Footer */}
-          <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span />
-            <MatchsBrand size="sm" />
-            <span>Document confidentiel</span>
-          </div>
+          {/* Footer avec numéro de page */}
+          <PageFooter pageNumber={pageIndex + 2} />
         </div>
+          );
+        })}
       </div>
     );
   }
