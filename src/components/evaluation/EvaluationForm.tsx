@@ -381,7 +381,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         }
       }
 
-      // Upsert scores
+      // Upsert scores (soft delete forbidden via hard delete trigger)
       const scoresToUpsert = themeScores.flatMap((theme) =>
         theme.skills.map((skill) => ({
           evaluation_id: evaluationId,
@@ -389,30 +389,24 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           score: skill.score,
           is_not_observed: skill.is_not_observed,
           comment: skill.comment,
+          deleted_at: null,
         }))
       );
-
-      // Delete existing scores and insert new ones
-      const { error: delScoresErr } = await supabase
-        .from("evaluation_scores")
-        .delete()
-        .eq("evaluation_id", evaluationId);
-
-      if (delScoresErr) throw delScoresErr;
 
       if (scoresToUpsert.length > 0) {
         const { error: scoresError } = await supabase
           .from("evaluation_scores")
-          .insert(scoresToUpsert);
+          .upsert(scoresToUpsert, { onConflict: "evaluation_id,skill_id" });
 
         if (scoresError) throw scoresError;
       }
 
-      // Upsert objectives
+      // Replace objectives via soft delete + insert
       const { error: delObjErr } = await supabase
         .from("evaluation_objectives")
-        .delete()
-        .eq("evaluation_id", evaluationId);
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("evaluation_id", evaluationId)
+        .is("deleted_at", null);
 
       if (delObjErr) throw delObjErr;
 
