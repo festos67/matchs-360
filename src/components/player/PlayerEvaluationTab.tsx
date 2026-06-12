@@ -80,6 +80,8 @@ export function PlayerEvaluationTab({
   onToggleSupporterLayer,
   currentUserId,
 }: PlayerEvaluationTabProps) {
+  const { canDo, loading: planLoading } = usePlan();
+  const canCompareMultiSource = planLoading ? true : canDo("can_compare_multi_source");
   const [localSelf, setLocalSelf] = useState(false);
   const [localSupporter, setLocalSupporter] = useState(false);
   const showSelfEvalLayer = controlledSelf ?? localSelf;
