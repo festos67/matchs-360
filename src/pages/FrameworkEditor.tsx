@@ -67,6 +67,8 @@ import { toast } from "sonner";
 import { SortableTheme } from "@/components/framework/SortableTheme";
 import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
+import { usePlan } from "@/hooks/usePlan";
 import { snapshotFramework } from "@/lib/framework-snapshot";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
