@@ -369,32 +369,47 @@ export function PlayerEvaluationTab({
                   </div>
                 )}
                 {myLatestSupporterEvaluation && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Checkbox
-                      id="my-supporter-layer"
-                      checked={comparisonIds.includes(myLatestSupporterEvaluation.id)}
-                      onCheckedChange={() => onToggleComparison(myLatestSupporterEvaluation.id)}
-                    />
-                    <Label htmlFor="my-supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <Heart className="w-4 h-4 text-accent" />Mon dernier débrief
-                    </Label>
-                  </div>
+                  <ProFeatureLock
+                    locked={!canCompareMultiSource}
+                    label="Comparaison multi-sources réservée au plan Pro"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox
+                        id="my-supporter-layer"
+                        checked={comparisonIds.includes(myLatestSupporterEvaluation.id)}
+                        onCheckedChange={() => onToggleComparison(myLatestSupporterEvaluation.id)}
+                      />
+                      <Label htmlFor="my-supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                        <Heart className="w-4 h-4 text-accent" />Mon dernier débrief
+                      </Label>
+                    </div>
+                  </ProFeatureLock>
                 )}
                 {!!latestSelfEvaluation && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
-                    <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <UserCircle className="w-4 h-4 text-success" />Auto-éval
-                    </Label>
-                  </div>
+                  <ProFeatureLock
+                    locked={!canCompareMultiSource}
+                    label="Comparaison multi-sources réservée au plan Pro"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox id="self-eval-layer" checked={showSelfEvalLayer} onCheckedChange={(checked) => setShowSelfEvalLayer(checked as boolean)} />
+                      <Label htmlFor="self-eval-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                        <UserCircle className="w-4 h-4 text-success" />Auto-éval
+                      </Label>
+                    </div>
+                  </ProFeatureLock>
                 )}
                 {!!latestSupporterEvaluation && !hideSupporterLayer && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
-                    <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
-                      <Heart className="w-4 h-4 text-accent" />Supporter
-                    </Label>
-                  </div>
+                  <ProFeatureLock
+                    locked={!canCompareMultiSource}
+                    label="Comparaison multi-sources réservée au plan Pro"
+                  >
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Checkbox id="supporter-layer" checked={showSupporterLayer} onCheckedChange={(checked) => setShowSupporterLayer(checked as boolean)} />
+                      <Label htmlFor="supporter-layer" className="text-sm cursor-pointer flex items-center gap-1.5 whitespace-nowrap">
+                        <Heart className="w-4 h-4 text-accent" />Supporter
+                      </Label>
+                    </div>
+                  </ProFeatureLock>
                 )}
               </div>
           </div>
