@@ -259,6 +259,80 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
 
     const evalDate = formatDateFr(evaluation.date);
 
+    // ───────────────────────────────────────────────────────────────
+    // Pagination déterministe des pages "Détail des compétences".
+    // @page { margin: 0 } supprime les en-têtes/pieds injectés par le
+    // navigateur (URL Lovable…) mais empêche aussi le navigateur de
+    // gérer marges + numéros sur les pages de débordement. On découpe
+    // donc nous-mêmes le contenu en pages fixes : chaque page a son
+    // en-tête, ses marges (padding) et son numéro "Page X/Y".
+    // Les hauteurs sont ESTIMÉES de façon conservatrice (mieux vaut une
+    // page de plus qu'un contenu coupé).
+    // ───────────────────────────────────────────────────────────────
+    const estimateThemeHeight = (theme: Theme, ts: ThemeScores): number => {
+      let h = 36; // en-tête du thème
+      for (const skill of theme.skills) {
+        let row = 30;
+        if (skill.definition) row += Math.ceil(skill.definition.length / 85) * 13;
+        row += comparisonDatasets.length * 16;
+        h += row;
+      }
+      const comments = ts.skills.filter(s => s.comment);
+      if (comments.length > 0) {
+        h += 26;
+        for (const c of comments) h += Math.ceil(((c.comment?.length ?? 0) + 20) / 90) * 16;
+      }
+      if (ts.objective) h += 26 + Math.ceil(ts.objective.length / 90) * 16;
+      return h + 16; // marginBottom
+    };
+
+    // Budget vertical utile d'une page détail (≈ A4 − padding − header − titre − footer)
+    const DETAIL_PAGE_BUDGET_PX = 840;
+
+    type ThemeBlock = { theme: Theme; ts: ThemeScores; height: number };
+    const themeBlocks: ThemeBlock[] = themeScores
+      .map(ts => {
+        const theme = themes.find(t => t.id === ts.theme_id);
+        return theme ? { theme, ts, height: estimateThemeHeight(theme, ts) } : null;
+      })
+      .filter((b): b is ThemeBlock => b !== null);
+
+    const talentText = evaluation.talent?.trim() ?? "";
+    const talentHeight = talentText ? 60 + Math.ceil(talentText.length / 90) * 16 : 0;
+
+    const detailPages: ThemeBlock[][] = [];
+    let currentPage: ThemeBlock[] = [];
+    let usedHeight = 0;
+    for (const block of themeBlocks) {
+      if (currentPage.length > 0 && usedHeight + block.height > DETAIL_PAGE_BUDGET_PX) {
+        detailPages.push(currentPage);
+        currentPage = [];
+        usedHeight = 0;
+      }
+      currentPage.push(block);
+      usedHeight += block.height;
+    }
+    if (talentText && currentPage.length > 0 && usedHeight + talentHeight > DETAIL_PAGE_BUDGET_PX) {
+      detailPages.push(currentPage);
+      currentPage = [];
+      usedHeight = 0;
+    }
+    if (currentPage.length > 0 || (talentText && detailPages.length === 0)) {
+      detailPages.push(currentPage);
+    } else if (talentText && usedHeight === 0 && currentPage.length === 0 && detailPages.length > 0) {
+      detailPages.push([]);
+    }
+
+    const totalPages = 1 + detailPages.length;
+
+    const PageFooter = ({ pageNumber }: { pageNumber: number }) => (
+      <div style={{ paddingTop: "12px", borderTop: `2px solid ${BRAND_BLUE}20`, textAlign: "center", fontSize: "10px", color: "#9ca3af", marginTop: "auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>Page {pageNumber}/{totalPages}</span>
+        <MatchsBrand size="sm" />
+        <span>Document confidentiel</span>
+      </div>
+    );
+
     return (
       <div
         ref={ref}
