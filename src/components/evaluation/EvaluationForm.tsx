@@ -396,7 +396,7 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           score: skill.score,
           is_not_observed: skill.is_not_observed,
           comment: skill.comment,
-          deleted_at: null,
+          deleted_at: null as string | null,
         }))
       );
 
