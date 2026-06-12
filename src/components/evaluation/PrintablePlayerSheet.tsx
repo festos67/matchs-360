@@ -351,7 +351,11 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           @page { size: A4; margin: 0; }
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
-            .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
+            /* Pagination contrôlée : chaque .pps-page-fixed = exactement une
+               feuille (marges incluses via padding). overflow hidden évite
+               qu'un léger débordement crée une page parasite sans marge. */
+            .pps-page-fixed { height: 296mm !important; min-height: 0 !important; overflow: hidden !important; page-break-after: always; break-after: page; }
+            .pps-page-fixed:last-child { page-break-after: auto; break-after: auto; }
             /* En impression, on laisse la page occuper la largeur imprimable
                réelle (A4 - marges non imprimables du driver) pour éviter
                toute coupe à droite. */
