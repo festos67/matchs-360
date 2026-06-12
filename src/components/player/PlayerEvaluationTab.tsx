@@ -28,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { getThemePaletteColor } from "@/lib/theme-palette";
 import { loadFrameworkThemes } from "@/lib/framework-loader";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
+import { usePlan } from "@/hooks/usePlan";
+import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
 
 interface PlayerEvaluationTabProps {
   player: Player;
