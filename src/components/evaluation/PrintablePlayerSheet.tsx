@@ -278,6 +278,10 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
           @media print {
             html, body { margin: 0 !important; padding: 0 !important; }
             .pps-page-fixed { height: auto !important; min-height: 0 !important; page-break-after: always; break-after: page; }
+            /* En impression, on laisse la page occuper la largeur imprimable
+               réelle (A4 - marges non imprimables du driver) pour éviter
+               toute coupe à droite. */
+            .pps-page { width: 100% !important; max-width: 100% !important; }
           }
           .pps-page {
             width: 210mm;
