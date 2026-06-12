@@ -580,7 +580,7 @@ export const PrintablePlayerSheet = forwardRef<HTMLDivElement, PrintablePlayerSh
             Détail des compétences{pageIndex > 0 ? " (suite)" : ""}
           </h2>
 
-          <div style={{ flex: 1 }}>
+          <div>
             {pageBlocks.map(({ theme, ts: themeScore }) => {
               const themeAverage = calculateThemeAverage(themeScore.skills);
               const objective = themeScore.objective;
