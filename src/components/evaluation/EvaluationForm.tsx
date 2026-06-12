@@ -381,10 +381,17 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         }
       }
 
-      // Upsert scores (soft delete forbidden via hard delete trigger)
-      const scoresToUpsert = themeScores.flatMap((theme) =>
+      // Upsert scores (hard delete forbidden by trigger → use soft delete + upsert)
+      const scoresToUpsert: Array<{
+        evaluation_id: string;
+        skill_id: string;
+        score: number | null;
+        is_not_observed: boolean;
+        comment: string | null;
+        deleted_at: string | null;
+      }> = themeScores.flatMap((theme) =>
         theme.skills.map((skill) => ({
-          evaluation_id: evaluationId,
+          evaluation_id: evaluationId!,
           skill_id: skill.skill_id,
           score: skill.score,
           is_not_observed: skill.is_not_observed,
@@ -393,17 +400,27 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         }))
       );
 
+      // Soft-delete existing scores not in the new set (orphans)
+      const activeSkillIds = scoresToUpsert.map((s) => s.skill_id);
+      const { error: orphanErr } = await (supabase
+        .from("evaluation_scores") as any)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("evaluation_id", evaluationId)
+        .is("deleted_at", null)
+        .not("skill_id", "in", `(${activeSkillIds.map((id) => `"${id}"`).join(",") || "''"})`);
+      if (orphanErr) throw orphanErr;
+
       if (scoresToUpsert.length > 0) {
-        const { error: scoresError } = await supabase
-          .from("evaluation_scores")
+        const { error: scoresError } = await (supabase
+          .from("evaluation_scores") as any)
           .upsert(scoresToUpsert, { onConflict: "evaluation_id,skill_id" });
 
         if (scoresError) throw scoresError;
       }
 
       // Replace objectives via soft delete + insert
-      const { error: delObjErr } = await supabase
-        .from("evaluation_objectives")
+      const { error: delObjErr } = await (supabase
+        .from("evaluation_objectives") as any)
         .update({ deleted_at: new Date().toISOString() })
         .eq("evaluation_id", evaluationId)
         .is("deleted_at", null);
