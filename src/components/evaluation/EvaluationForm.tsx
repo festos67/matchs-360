@@ -381,14 +381,14 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         }
       }
 
-      // Upsert scores (hard delete forbidden by trigger → use soft delete + upsert)
-      const scoresToUpsert: Array<{
+      // Replace scores: soft-delete all active rows, then insert fresh ones
+      // (hard delete forbidden by trigger; ON CONFLICT can't target the partial unique index)
+      const scoresToInsert: Array<{
         evaluation_id: string;
         skill_id: string;
         score: number | null;
         is_not_observed: boolean;
         comment: string | null;
-        deleted_at: string | null;
       }> = themeScores.flatMap((theme) =>
         theme.skills.map((skill) => ({
           evaluation_id: evaluationId!,
@@ -396,24 +396,21 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           score: skill.score,
           is_not_observed: skill.is_not_observed,
           comment: skill.comment,
-          deleted_at: null as string | null,
         }))
       );
 
-      // Soft-delete existing scores not in the new set (orphans)
-      const activeSkillIds = scoresToUpsert.map((s) => s.skill_id);
-      const { error: orphanErr } = await (supabase
+      // Soft-delete all existing active scores for this evaluation
+      const { error: softDelErr } = await (supabase
         .from("evaluation_scores") as any)
         .update({ deleted_at: new Date().toISOString() })
         .eq("evaluation_id", evaluationId)
-        .is("deleted_at", null)
-        .not("skill_id", "in", `(${activeSkillIds.map((id) => `"${id}"`).join(",") || "''"})`);
-      if (orphanErr) throw orphanErr;
+        .is("deleted_at", null);
+      if (softDelErr) throw softDelErr;
 
-      if (scoresToUpsert.length > 0) {
+      if (scoresToInsert.length > 0) {
         const { error: scoresError } = await (supabase
           .from("evaluation_scores") as any)
-          .upsert(scoresToUpsert, { onConflict: "evaluation_id,skill_id" });
+          .insert(scoresToInsert);
 
         if (scoresError) throw scoresError;
       }

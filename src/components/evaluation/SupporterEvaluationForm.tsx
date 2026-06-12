@@ -188,17 +188,19 @@ export function SupporterEvaluationForm({
       let evaluationId = existingEvaluationId;
 
       if (existingEvaluationId) {
-        // Edit mode: replace scores & objectives for the existing evaluation
-        const { error: delScoresErr } = await supabase
-          .from("evaluation_scores")
-          .delete()
-          .eq("evaluation_id", existingEvaluationId);
+        // Edit mode: soft-delete scores & objectives (hard delete forbidden by trigger)
+        const { error: delScoresErr } = await (supabase
+          .from("evaluation_scores") as any)
+          .update({ deleted_at: new Date().toISOString() })
+          .eq("evaluation_id", existingEvaluationId)
+          .is("deleted_at", null);
         if (delScoresErr) throw delScoresErr;
 
-        const { error: delObjErr } = await supabase
-          .from("evaluation_objectives")
-          .delete()
-          .eq("evaluation_id", existingEvaluationId);
+        const { error: delObjErr } = await (supabase
+          .from("evaluation_objectives") as any)
+          .update({ deleted_at: new Date().toISOString() })
+          .eq("evaluation_id", existingEvaluationId)
+          .is("deleted_at", null);
         if (delObjErr) throw delObjErr;
       } else {
         // Create mode

@@ -153,6 +153,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
           .from("evaluation_scores")
           .select("score")
           .in("evaluation_id", evalIds)
+          .is("deleted_at", null)
           .not("score", "is", null);
         const valid = (scores || []).filter((s: any) => s.score !== null).map((s: any) => s.score as number);
         if (valid.length > 0) {
@@ -199,8 +200,8 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
           if (!evals || evals.length < 2) return;
           const [latest, previous] = evals;
           const [ls, ps] = await Promise.all([
-            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id),
-            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id),
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id).is("deleted_at", null),
+            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id).is("deleted_at", null),
           ]);
           const avgL = calcAvg(ls.data || []);
           const avgP = calcAvg(ps.data || []);

@@ -282,11 +282,12 @@ export const SelfEvaluationForm = ({
         }))
       );
 
-      // Delete existing scores and insert new ones
-      const { error: delScoresErr } = await supabase
-        .from("evaluation_scores")
-        .delete()
-        .eq("evaluation_id", evaluationId);
+      // Soft-delete existing scores (hard delete forbidden by trigger), then insert new ones
+      const { error: delScoresErr } = await (supabase
+        .from("evaluation_scores") as any)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("evaluation_id", evaluationId)
+        .is("deleted_at", null);
 
       if (delScoresErr) throw delScoresErr;
 
@@ -298,11 +299,12 @@ export const SelfEvaluationForm = ({
         if (scoresError) throw scoresError;
       }
 
-      // Upsert objectives
-      const { error: delObjErr } = await supabase
-        .from("evaluation_objectives")
-        .delete()
-        .eq("evaluation_id", evaluationId);
+      // Replace objectives via soft delete + insert
+      const { error: delObjErr } = await (supabase
+        .from("evaluation_objectives") as any)
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("evaluation_id", evaluationId)
+        .is("deleted_at", null);
 
       if (delObjErr) throw delObjErr;
 
