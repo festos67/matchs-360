@@ -165,28 +165,36 @@ const Supporters = () => {
       const supporterIds = [...new Set(links.map((l) => l.supporter_id))];
       const playerIds = [...new Set(links.map((l) => l.player_id))];
 
-      // Fetch supporter profiles
-      const { data: supporterProfiles } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name, photo_url")
-        .in("id", supporterIds)
-        .is("deleted_at", null);
+      // Parallel fetch: supporter profiles, player profiles, player team memberships
+      const [
+        { data: supporterProfiles },
+        { data: playerProfiles },
+        { data: playerTeams },
+      ] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, email, first_name, last_name, photo_url")
+          .in("id", supporterIds)
+          .is("deleted_at", null),
+        supabase
+          .from("profiles")
+          .select("id, first_name, last_name")
+          .in("id", playerIds),
+        supabase
+          .from("team_members")
+          .select(
+            "user_id, team_id, teams:team_id (id, name, color, short_name, club_id, clubs:club_id (id, name, logo_url, short_name, primary_color))",
+          )
+          .in("user_id", playerIds)
+          .eq("member_type", "player")
+          .eq("is_active", true),
+      ]);
 
-      // Fetch player profiles + teams
-      const { data: playerProfiles } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name")
-        .in("id", playerIds);
-
-      // Fetch player team memberships
-      const { data: playerTeams } = await supabase
-        .from("team_members")
-        .select(
-          "user_id, team_id, teams:team_id (id, name, color, short_name, club_id, clubs:club_id (id, name, logo_url, short_name, primary_color))",
-        )
-        .in("user_id", playerIds)
-        .eq("member_type", "player")
-        .eq("is_active", true);
+      // Index team memberships by user for O(1) lookup (was O(n) per player)
+      const teamByPlayer = new Map<string, any>();
+      (playerTeams || []).forEach((t: any) => {
+        if (!teamByPlayer.has(t.user_id)) teamByPlayer.set(t.user_id, t);
+      });
 
       const playerMap = new Map<
         string,
@@ -204,7 +212,7 @@ const Supporters = () => {
         }
       >();
       (playerProfiles || []).forEach((p) => {
-        const teamEntry = (playerTeams || []).find((t) => t.user_id === p.id);
+        const teamEntry = teamByPlayer.get(p.id);
         const team = teamEntry ? (teamEntry.teams as any) : null;
         const club = team?.clubs || null;
         playerMap.set(p.id, {
