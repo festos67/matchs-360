@@ -1,0 +1,68 @@
+# =============================================================================
+# matchs-360 — configuration Apache pour hébergement mutualisé OVH
+# À placer dans public/.htaccess du dépôt : Vite le copiera à la racine de
+# dist/ et il sera déployé automatiquement avec le site.
+# =============================================================================
+
+# --- 1. Forcer le HTTPS -------------------------------------------------------
+# (OVH fournit un certificat SSL Let's Encrypt gratuit ; voir le guide.)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Redirige tout le trafic HTTP vers HTTPS
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # --- 2. Routing SPA (React Router) -----------------------------------------
+  # Si le fichier ou le dossier demandé n'existe pas, on sert index.html
+  # afin que React Router gère la route côté client (ex. /joueurs/123).
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# --- 3. Compression -----------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml image/svg+xml
+</IfModule>
+
+# --- 4. Cache navigateur ------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Les assets Vite ont un hash dans leur nom (immuables) : cache 1 an.
+  <FilesMatch "\.(js|css|woff2?|ttf|eot|svg|png|jpe?g|gif|ico|webp)$">
+    ExpiresDefault "access plus 1 year"
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # index.html ne doit JAMAIS être mis en cache : il référence les derniers
+  # assets après chaque déploiement.
+  <FilesMatch "index\.html$">
+    ExpiresDefault "access plus 0 seconds"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# --- 5. En-têtes de sécurité --------------------------------------------------
+# La CSP applicative est définie dans index.html (on ne la duplique pas).
+# MAIS sur Lovable, HSTS et X-Frame-Options étaient fournis par Cloudflare, pas
+# par le code : sur OVH il faut les servir nous-mêmes. De plus, le
+# `frame-ancestors 'none'` du <meta> CSP est ignoré par les navigateurs
+# (directive valable uniquement en en-tête HTTP) → X-Frame-Options DENY prend
+# le relais pour bloquer tout iframing.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # HSTS : force le HTTPS pendant 1 an (n'est appliqué qu'une fois le SSL OVH
+  # actif ; les navigateurs l'ignorent en HTTP, donc aucun risque avant).
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# Pages d'erreur : rediriger vers l'app (utile si une route profonde est
+# atteinte avant la règle SPA, selon la config du serveur).
+ErrorDocument 404 /index.html
