@@ -75,34 +75,33 @@ export function FrameworkHistorySheet({
 
       if (error) throw error;
 
-      // Fetch theme/skill counts for each archived framework
-      const enriched: ArchivedFramework[] = [];
-      for (const fw of data || []) {
-        const { count: themeCount } = await supabase
-          .from("themes")
-          .select("id", { count: "exact", head: true })
-          .eq("framework_id", fw.id);
+      const frameworks = data || [];
+      const fwIds = frameworks.map((f) => f.id);
 
-        const { data: themeIds } = await supabase
+      // Batch: load all themes (with their skills) in a single query
+      let themesByFw = new Map<string, { skillCount: number; themeCount: number }>();
+      if (fwIds.length > 0) {
+        const { data: themes } = await supabase
           .from("themes")
-          .select("id")
-          .eq("framework_id", fw.id);
+          .select("id, framework_id, skills(id)")
+          .in("framework_id", fwIds);
 
-        let skillCount = 0;
-        if (themeIds && themeIds.length > 0) {
-          const { count } = await supabase
-            .from("skills")
-            .select("id", { count: "exact", head: true })
-            .in("theme_id", themeIds.map(t => t.id));
-          skillCount = count || 0;
+        for (const t of themes || []) {
+          const prev = themesByFw.get(t.framework_id) || { skillCount: 0, themeCount: 0 };
+          prev.themeCount += 1;
+          prev.skillCount += ((t.skills as unknown as { id: string }[]) || []).length;
+          themesByFw.set(t.framework_id, prev);
         }
-
-        enriched.push({
-          ...fw,
-          theme_count: themeCount || 0,
-          skill_count: skillCount,
-        });
       }
+
+      const enriched: ArchivedFramework[] = frameworks.map((fw) => {
+        const counts = themesByFw.get(fw.id) || { themeCount: 0, skillCount: 0 };
+        return {
+          ...fw,
+          theme_count: counts.themeCount,
+          skill_count: counts.skillCount,
+        };
+      });
       setArchived(enriched);
     } catch (error) {
       console.error("Error fetching archived frameworks:", error);
