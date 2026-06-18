@@ -1,13 +1,14 @@
 # .github/workflows/deploy.yml
 # -----------------------------------------------------------------------------
 # Build + déploiement de matchs-360 vers l'hébergement mutualisé OVH (matchs360.fr).
-# À chaque push sur `main` : contrôle qualité (typecheck) -> build Vite -> envoi FTPS.
+# OVH ne supporte PAS le FTPS → on utilise SFTP (port 22, mêmes identifiants FTP).
+# À chaque push sur `main` : typecheck -> build Vite -> envoi SFTP dans /home/matchsu/www.
 #
-# PRÉREQUIS (une seule fois) — GitHub > Settings > Secrets and variables > Actions > Secrets :
-#     - FTP_SERVER    : ftp.cluster129.hosting.ovh.net
-#     - FTP_USERNAME  : identifiant FTP OVH
-#     - FTP_PASSWORD  : mot de passe FTP OVH
-#   Détails : voir GUIDE-MIGRATION-OVH.md
+# PRÉREQUIS — GitHub > Settings > Secrets and variables > Actions > Secrets :
+#   - FTP_SERVER    : ftp.cluster129.hosting.ovh.net
+#   - FTP_USERNAME  : matchsu
+#   - FTP_PASSWORD  : mot de passe du compte matchsu
+# Prérequis OVH : SFTP activé (onglet FTP-SSH) — déjà fait.
 # -----------------------------------------------------------------------------
 
 name: Build & Deploy to OVH
@@ -33,9 +34,8 @@ jobs:
         with:
           node-version: "20"
 
-      # npm install (et non npm ci) : le package-lock.json n'est pas encore
-      # synchronisé (Lovable gère les deps via bun). À basculer en `npm ci`
-      # quand le lockfile sera unifié (cutover).
+      # npm install (et non npm ci) : package-lock.json pas encore synchronisé
+      # (Lovable gère les deps via bun). À basculer en `npm ci` au cutover.
       - name: Installation des dépendances
         run: npm install --no-audit --no-fund
 
@@ -49,25 +49,19 @@ jobs:
         continue-on-error: true
 
       # Le build lit le .env du dépôt (clé anon publique — sans risque client).
-      # Au cutover, quand .env sera retiré : décommenter le bloc env ci-dessous
-      # et définir ces variables dans GitHub > Settings > Variables (publiques).
       - name: Build de production
         run: npm run build
-        # env:
-        #   VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-        #   VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-        #   VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
 
-      - name: Déploiement FTPS vers OVH
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      # Déploiement SFTP. local_path './dist/' (slash final) pour embarquer les
+      # fichiers cachés comme .htaccess. sftp_only car OVH n'expose que SFTP/22.
+      - name: Déploiement SFTP vers OVH
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
-          local-dir: ./dist/
-          # Adapter si matchs360.fr pointe vers un sous-dossier Multisite OVH.
-          # Site principal d'un mutualisé = /www/. Slash final requis.
-          server-dir: ./www/
-          dangerous-clean-slate: false
+          port: 22
+          local_path: './dist/'
+          remote_path: '/home/matchsu/www'
+          sftp_only: true
+          delete_remote_files: false
