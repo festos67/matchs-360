@@ -1,0 +1,73 @@
+# .github/workflows/deploy.yml
+# -----------------------------------------------------------------------------
+# Build + déploiement de matchs-360 vers l'hébergement mutualisé OVH (matchs360.fr).
+# À chaque push sur `main` : contrôle qualité (typecheck) -> build Vite -> envoi FTPS.
+#
+# PRÉREQUIS (une seule fois) — GitHub > Settings > Secrets and variables > Actions > Secrets :
+#     - FTP_SERVER    : ftp.cluster129.hosting.ovh.net
+#     - FTP_USERNAME  : identifiant FTP OVH
+#     - FTP_PASSWORD  : mot de passe FTP OVH
+#   Détails : voir GUIDE-MIGRATION-OVH.md
+# -----------------------------------------------------------------------------
+
+name: Build & Deploy to OVH
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-ovh
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # npm install (et non npm ci) : le package-lock.json n'est pas encore
+      # synchronisé (Lovable gère les deps via bun). À basculer en `npm ci`
+      # quand le lockfile sera unifié (cutover).
+      - name: Installation des dépendances
+        run: npm install --no-audit --no-fund
+
+      # GARDE-QUALITÉ — un commit qui ne compile pas n'est jamais déployé.
+      - name: Contrôle de types (bloquant)
+        run: npm run typecheck
+
+      # Lint informatif : ne bloque pas le déploiement (dette éventuelle).
+      - name: Lint (informatif)
+        run: npm run lint
+        continue-on-error: true
+
+      # Le build lit le .env du dépôt (clé anon publique — sans risque client).
+      # Au cutover, quand .env sera retiré : décommenter le bloc env ci-dessous
+      # et définir ces variables dans GitHub > Settings > Variables (publiques).
+      - name: Build de production
+        run: npm run build
+        # env:
+        #   VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+        #   VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        #   VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Déploiement FTPS vers OVH
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/
+          # Adapter si matchs360.fr pointe vers un sous-dossier Multisite OVH.
+          # Site principal d'un mutualisé = /www/. Slash final requis.
+          server-dir: ./www/
+          dangerous-clean-slate: false
