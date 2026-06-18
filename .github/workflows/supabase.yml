@@ -1,0 +1,67 @@
+# .github/workflows/supabase.yml
+# -----------------------------------------------------------------------------
+# Déploiement Supabase (migrations + edge functions) — DÉCLENCHEMENT MANUEL.
+# Tant que Lovable gère encore ce projet, ce workflow N'EST PAS automatique
+# (sinon double déploiement). On le lance à la main depuis l'onglet Actions.
+#
+# PRÉREQUIS — GitHub > Settings > Secrets and variables > Actions > Secrets :
+#   - SUPABASE_ACCESS_TOKEN : jeton perso (dashboard Supabase > Account > Access Tokens)
+#   - SUPABASE_DB_PASSWORD  : mot de passe DB du projet (Settings > Database)
+#   Le project ref (aasihxqsasjpszqjlbid) n'est pas secret.
+#
+# UTILISATION : Actions > "Deploy Supabase (manuel)" > Run workflow.
+#   - migrations = dry-run  -> liste les migrations en attente SANS les appliquer (défaut)
+#   - migrations = apply    -> applique réellement (à ne faire qu'après un dry-run propre)
+#   - migrations = skip     -> ne touche pas à la base
+#   - deploy_functions      -> (dé)cocher le déploiement des edge functions
+# -----------------------------------------------------------------------------
+
+name: Deploy Supabase (manuel)
+
+on:
+  workflow_dispatch:
+    inputs:
+      migrations:
+        description: "Migrations DB"
+        type: choice
+        options: ["dry-run", "apply", "skip"]
+        default: "dry-run"
+      deploy_functions:
+        description: "Déployer les edge functions"
+        type: boolean
+        default: false
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+jobs:
+  supabase:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: aasihxqsasjpszqjlbid
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Installer la CLI Supabase
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Lier le projet
+        run: supabase link --project-ref "$PROJECT_REF"
+
+      - name: Migrations — aperçu (dry-run)
+        if: ${{ inputs.migrations == 'dry-run' }}
+        run: supabase db push --dry-run
+
+      - name: Migrations — application réelle
+        if: ${{ inputs.migrations == 'apply' }}
+        run: supabase db push
+
+      - name: Déploiement des edge functions
+        if: ${{ inputs.deploy_functions }}
+        run: supabase functions deploy --project-ref "$PROJECT_REF"

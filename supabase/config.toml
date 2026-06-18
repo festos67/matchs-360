@@ -55,3 +55,9 @@ verify_jwt = true
 # trigger a mass email send.
 [functions.dispatch-guardian-notifications]
 verify_jwt = true
+
+# SEC-AUTH-004 — endpoint d'aide à la connexion appelé depuis la page publique
+# /auth (utilisateur anonyme, aucun JWT). verify_jwt = false est requis ; la
+# fonction implémente son propre rate-limit + réponse générique anti-énumération.
+[functions.request-login-help]
+verify_jwt = false

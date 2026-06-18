@@ -40,3 +40,30 @@ sous-dossier via **Multisite**, adapter `server-dir` en conséquence.
 - **Pipeline Supabase** (migrations + edge functions) — workflow séparé, Étape 4.
 - **Cutover** : retrait de `.env` du dépôt (vars en GitHub Variables) + retrait de
   `lovable-tagger` quand l'édition Lovable sera abandonnée — Étape 5.
+
+## 7. Pipeline Supabase (manuel) — .github/workflows/supabase.yml
+
+Déploiement des migrations + edge functions vers le projet Supabase, **manuel**
+tant que Lovable gère encore le projet (évite le double déploiement).
+
+### Secrets GitHub à créer (une fois)
+| Secret | Où le trouver |
+|---|---|
+| `SUPABASE_ACCESS_TOKEN` | dashboard Supabase → Account → **Access Tokens** → Generate |
+| `SUPABASE_DB_PASSWORD` | dashboard Supabase → Project Settings → **Database** → mot de passe |
+
+### Lancer un déploiement
+Onglet **Actions** → « Deploy Supabase (manuel) » → **Run workflow** :
+1. **D'abord** `migrations = dry-run` → vérifier la liste des migrations en attente.
+   Si Lovable a déjà tout appliqué, la sortie ne doit montrer **aucune** migration
+   en attente — c'est le résultat normal pendant la phase de transition.
+2. N'utiliser `migrations = apply` qu'**après un dry-run propre** et inattendu (ex.
+   au cutover, quand Lovable ne déploie plus).
+3. `deploy_functions` : à cocher pour redéployer les edge functions depuis le repo.
+
+### Notes
+- Le déploiement des fonctions **ne supprime pas** les secrets de fonction déjà
+  configurés (Resend, etc.) : ils persistent.
+- `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` sont injectés automatiquement par
+  Supabase dans les fonctions — rien à configurer.
+- Au cutover (Étape 5), on pourra passer le déploiement des fonctions en automatique.
