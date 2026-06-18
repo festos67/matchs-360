@@ -1,15 +1,13 @@
 # .github/workflows/deploy.yml
 # -----------------------------------------------------------------------------
-# Déploiement automatique de matchs-360 vers l'hébergement mutualisé OVH.
-# À chaque push sur la branche `main`, le site est rebuildé (Vite) puis envoyé
-# par FTPS dans le dossier web de matchs360.fr.
+# Build + déploiement de matchs-360 vers l'hébergement mutualisé OVH (matchs360.fr).
+# À chaque push sur `main` : contrôle qualité (typecheck) -> build Vite -> envoi FTPS.
 #
-# PRÉREQUIS (à configurer une seule fois dans GitHub) :
-#   Settings > Secrets and variables > Actions > Secrets
-#     - FTP_SERVER    : ex. ftp.cluster0XX.hosting.ovh.net  (voir mail OVH "Hébergement")
-#     - FTP_USERNAME  : identifiant FTP OVH (ex. matchs360-xxx)
+# PRÉREQUIS (une seule fois) — GitHub > Settings > Secrets and variables > Actions > Secrets :
+#     - FTP_SERVER    : ftp.cluster129.hosting.ovh.net
+#     - FTP_USERNAME  : identifiant FTP OVH
 #     - FTP_PASSWORD  : mot de passe FTP OVH
-#   (voir le GUIDE-MIGRATION-OVH.md pour savoir où trouver ces valeurs)
+#   Détails : voir GUIDE-MIGRATION-OVH.md
 # -----------------------------------------------------------------------------
 
 name: Build & Deploy to OVH
@@ -17,10 +15,8 @@ name: Build & Deploy to OVH
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}   # permet aussi un déploiement manuel depuis l'onglet Actions
+  workflow_dispatch: {}
 
-# Évite que deux déploiements se chevauchent (un push pendant un déploiement
-# annule le précédent).
 concurrency:
   group: deploy-ovh
   cancel-in-progress: true
@@ -28,7 +24,6 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout du code
         uses: actions/checkout@v4
@@ -38,21 +33,30 @@ jobs:
         with:
           node-version: "20"
 
-      # NB : on utilise `npm install` (et non `npm ci`) car le package-lock.json
-      # du dépôt n'est pas synchronisé avec package.json (Lovable gère les
-      # dépendances via bun). `npm install` résout proprement cet écart.
+      # npm install (et non npm ci) : le package-lock.json n'est pas encore
+      # synchronisé (Lovable gère les deps via bun). À basculer en `npm ci`
+      # quand le lockfile sera unifié (cutover).
       - name: Installation des dépendances
         run: npm install --no-audit --no-fund
 
-      # Le build lit automatiquement le fichier .env présent dans le dépôt
-      # (clé `anon` publique Supabase — sans risque côté client).
-      # Si un jour vous retirez .env du dépôt, définissez les deux variables
-      # ci-dessous dans GitHub (Settings > Variables) et dé-commentez le bloc env.
+      # GARDE-QUALITÉ — un commit qui ne compile pas n'est jamais déployé.
+      - name: Contrôle de types (bloquant)
+        run: npm run typecheck
+
+      # Lint informatif : ne bloque pas le déploiement (dette éventuelle).
+      - name: Lint (informatif)
+        run: npm run lint
+        continue-on-error: true
+
+      # Le build lit le .env du dépôt (clé anon publique — sans risque client).
+      # Au cutover, quand .env sera retiré : décommenter le bloc env ci-dessous
+      # et définir ces variables dans GitHub > Settings > Variables (publiques).
       - name: Build de production
         run: npm run build
         # env:
         #   VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
         #   VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        #   VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
 
       - name: Déploiement FTPS vers OVH
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -60,13 +64,10 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps           # FTP explicite sur TLS (supporté par OVH)
+          protocol: ftps
           port: 21
-          local-dir: ./dist/       # contenu buildé par Vite
-          # IMPORTANT : adaptez server-dir au dossier racine associé à
-          # matchs360.fr dans OVH (Multisite). Par défaut sur un mutualisé le
-          # site principal est servi depuis /www/. Le slash final est requis.
+          local-dir: ./dist/
+          # Adapter si matchs360.fr pointe vers un sous-dossier Multisite OVH.
+          # Site principal d'un mutualisé = /www/. Slash final requis.
           server-dir: ./www/
-          # Conserve un état de synchro pour n'envoyer que les fichiers modifiés
-          # (déploiements incrémentaux plus rapides).
           dangerous-clean-slate: false
