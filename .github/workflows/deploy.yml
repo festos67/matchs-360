@@ -53,4 +53,4 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y lftp
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "sftp://$FTP_SERVER" \
-            -e "set sftp:auto-confirm yes; mirror -R --delete --verbose ./dist/ /home/matchsu/www/; bye"
+            -e "set sftp:auto-confirm yes; mirror -R --delete --verbose ./dist/ www/; bye"
