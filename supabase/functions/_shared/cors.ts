@@ -13,6 +13,7 @@ const STATIC_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i,
   /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i,
   /^https:\/\/([a-z0-9-]+\.)*sandbox\.lovable\.dev$/i,
+  /^https:\/\/(www\.)?matchs360\.fr$/i,
   /^http:\/\/localhost(:\d+)?$/i,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/i,
 ];
