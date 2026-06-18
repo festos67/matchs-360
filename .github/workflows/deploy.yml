@@ -1,15 +1,10 @@
 # .github/workflows/deploy.yml
-# -----------------------------------------------------------------------------
-# Build + déploiement de matchs-360 vers l'hébergement mutualisé OVH (matchs360.fr).
-# OVH ne supporte PAS le FTPS → on utilise SFTP (port 22, mêmes identifiants FTP).
-# À chaque push sur `main` : typecheck -> build Vite -> envoi SFTP dans /home/matchsu/www.
+# Build + déploiement matchs-360 vers OVH mutualisé (matchs360.fr) via SFTP/lftp.
+# OVH ne supporte pas le FTPS ; lftp en SFTP envoie le CONTENU de dist (dotfiles
+# inclus, ex .htaccess) dans /home/matchsu/www et nettoie les fichiers obsolètes.
 #
-# PRÉREQUIS — GitHub > Settings > Secrets and variables > Actions > Secrets :
-#   - FTP_SERVER    : ftp.cluster129.hosting.ovh.net
-#   - FTP_USERNAME  : matchsu
-#   - FTP_PASSWORD  : mot de passe du compte matchsu
-# Prérequis OVH : SFTP activé (onglet FTP-SSH) — déjà fait.
-# -----------------------------------------------------------------------------
+# Secrets requis : FTP_SERVER (ftp.cluster129.hosting.ovh.net), FTP_USERNAME (matchsu),
+# FTP_PASSWORD (mot de passe du compte matchsu).
 
 name: Build & Deploy to OVH
 
@@ -34,34 +29,28 @@ jobs:
         with:
           node-version: "20"
 
-      # npm install (et non npm ci) : package-lock.json pas encore synchronisé
-      # (Lovable gère les deps via bun). À basculer en `npm ci` au cutover.
       - name: Installation des dépendances
         run: npm install --no-audit --no-fund
 
-      # GARDE-QUALITÉ — un commit qui ne compile pas n'est jamais déployé.
       - name: Contrôle de types (bloquant)
         run: npm run typecheck
 
-      # Lint informatif : ne bloque pas le déploiement (dette éventuelle).
       - name: Lint (informatif)
         run: npm run lint
         continue-on-error: true
 
-      # Le build lit le .env du dépôt (clé anon publique — sans risque client).
       - name: Build de production
         run: npm run build
 
-      # Déploiement SFTP. local_path './dist/' (slash final) pour embarquer les
-      # fichiers cachés comme .htaccess. sftp_only car OVH n'expose que SFTP/22.
+      # Déploiement SFTP via lftp : mirror -R = upload du CONTENU de ./dist/
+      # (dotfiles inclus), --delete = supprime les fichiers distants obsolètes
+      # (nettoie aussi l'ancien sous-dossier www/dist/ des essais précédents).
       - name: Déploiement SFTP vers OVH
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 22
-          local_path: './dist/*'
-          remote_path: '/home/matchsu/www'
-          sftp_only: true
-          delete_remote_files: false
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y lftp
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" "sftp://$FTP_SERVER" \
+            -e "set sftp:auto-confirm yes; mirror -R --delete --verbose ./dist/ /home/matchsu/www/; bye"
