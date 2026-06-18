@@ -40,7 +40,19 @@ jobs:
         continue-on-error: true
 
       - name: Build de production
-        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+        run: |
+          # Lovable réécrit le .env du repo vers son Cloud. On force ici les
+          # variables du Supabase autonome (GitHub Variables) pour le build OVH,
+          # sans modifier le .env ni index.html du repo (preuve : preview Lovable intacte).
+          printf 'VITE_SUPABASE_URL=%s\nVITE_SUPABASE_PUBLISHABLE_KEY=%s\nVITE_SUPABASE_PROJECT_ID=%s\n' \
+            "$VITE_SUPABASE_URL" "$VITE_SUPABASE_PUBLISHABLE_KEY" "$VITE_SUPABASE_PROJECT_ID" > .env
+          npm run build
+          # La CSP de index.html pointe encore l'ancien projet → la repointer dans le build livré.
+          sed -i 's#aasihxqsasjpszqjlbid#zsossagpsxtjbloxxetq#g' dist/index.html
 
       # Déploiement SFTP via lftp : mirror -R = upload du CONTENU de ./dist/
       # (dotfiles inclus), --delete = supprime les fichiers distants obsolètes
