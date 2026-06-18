@@ -73,13 +73,7 @@ export default function ResetPassword() {
           return;
         }
 
-        // ÉTAPE 2 — purge globale awaité (révoque les refresh tokens sur
-        // tous les devices et empêche toute race avec l'attaquant).
-        await supabase.auth.signOut({ scope: "global" }).catch(() => {
-          /* pas de session active = OK */
-        });
-
-        // ÉTAPE 3 — nettoyer le hash AVANT setSession (empêche le SDK
+        // ÉTAPE 2 — nettoyer le hash AVANT setSession (empêche le SDK
         // d'auto-détecter et de fire un SIGNED_IN parasite intercepté par
         // le listener global du useAuth).
         window.history.replaceState(
@@ -88,7 +82,7 @@ export default function ResetPassword() {
           window.location.pathname + window.location.search,
         );
 
-        // ÉTAPE 4 — établir explicitement la session recovery.
+        // ÉTAPE 3 — établir explicitement la session recovery.
         const { data, error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
