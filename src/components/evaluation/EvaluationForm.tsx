@@ -362,8 +362,9 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
           .from("evaluations")
           .update({
             name: evaluationName,
-            // Store calendar date only (YYYY-MM-DD), no timezone
-            date: new Date().toISOString().slice(0, 10),
+            // Ne pas réécrire la date d'origine lors d'une édition :
+            // sinon un ancien débrief modifié heurte
+            // evaluations_unique_per_day_idx si un débrief existe déjà aujourd'hui.
             talent: talent.trim() ? talent.trim() : null,
           })
           .eq("id", evaluationId);
