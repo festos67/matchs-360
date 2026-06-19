@@ -42,8 +42,9 @@ function maskEmail(e: string): string {
  * to make the invitation email link to a phishing domain.
  * Extra origins can be added via the ALLOWED_ORIGINS env var (comma-separated).
  */
-const FALLBACK_ORIGIN = "https://matchs360.lovable.app";
+const FALLBACK_ORIGIN = "https://matchs360.fr";
 const STATIC_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+  /^https:\/\/(www\.)?matchs360\.fr$/i,
   /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i,
   /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i,
   /^https:\/\/([a-z0-9-]+\.)*sandbox\.lovable\.dev$/i,
