@@ -16,7 +16,7 @@
  *    branded as MATCHS360.
  */
 
-const DEFAULT_FROM = "MATCHS360 <noreply@notify.match360.com>";
+const DEFAULT_FROM = "MATCHS360 <noreply@notify.matchs360.fr>";
 const FORBIDDEN_DOMAINS = ["resend.dev"];
 
 function extractEmail(from: string): string | null {
