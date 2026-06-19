@@ -6,7 +6,7 @@
  * (mem://auth/invitation-system)
  *
  * @description
- * Cible des liens magiques envoyés par notify.match360.com. L'utilisateur arrive
+ * Cible des liens magiques envoyés par notify.matchs360.fr. L'utilisateur arrive
  * avec un token dans le hash URL, choisit son mot de passe et se voit
  * automatiquement attribuer son rôle (coach, player, supporter) ainsi que ses
  * affiliations club/équipe selon le contenu de l'invitation.
