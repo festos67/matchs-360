@@ -295,6 +295,23 @@ export default function TeamDetail() {
   const handleSave = async (confirmedName: string) => {
     if (!framework || !pendingEditThemes) return;
     setShowNameModal(false);
+
+    // Ne snapshotter/sauvegarder que si l'utilisateur a réellement modifié
+    const stripThemes = (ts: Theme[]) =>
+      JSON.stringify(
+        ts.map(({ isNew, skills, ...t }) => ({
+          ...t,
+          skills: skills.map(({ isNew: _i, ...s }) => s),
+        }))
+      );
+    const themesUnchanged = stripThemes(pendingEditThemes) === stripThemes(framework.themes);
+    const nameUnchanged = confirmedName.trim() === framework.name.trim();
+    if (themesUnchanged && nameUnchanged) {
+      toast.info("Aucune modification à enregistrer");
+      setPendingEditThemes(null);
+      return;
+    }
+
     setSaving(true);
 
     try {

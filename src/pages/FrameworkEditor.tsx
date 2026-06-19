@@ -335,10 +335,12 @@ export default function FrameworkEditor() {
     setSaving(true);
 
     try {
-      // Snapshot current state before saving changes (non-blocking)
-      snapshotFramework(framework.id).catch((snapError) => {
-        console.warn("Snapshot failed (background):", snapError);
-      });
+      // Ne créer une version d'historique que si l'utilisateur a réellement modifié
+      if (hasChanges) {
+        snapshotFramework(framework.id).catch((snapError) => {
+          console.warn("Snapshot failed (background):", snapError);
+        });
+      }
 
       // Optimized parallel + batched save (replaces ~60 sequential round-trips)
       await saveFrameworkChanges(framework.id, confirmedName, themes);
@@ -557,7 +559,7 @@ export default function FrameworkEditor() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button onClick={() => setShowNameModal(true)} disabled={saving || themes.length === 0}>
+            <Button onClick={() => setShowNameModal(true)} disabled={saving || themes.length === 0 || !hasChanges}>
               {saving ? (
                 <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
               ) : (
