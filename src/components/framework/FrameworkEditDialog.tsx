@@ -93,14 +93,15 @@ export const FrameworkEditDialog = ({
   const nameChanged = name.trim() !== frameworkName.trim();
   const hasChanges = history.length > 0 || nameChanged;
 
-  // Initialize themes when dialog opens
+  // Initialize themes only on closed→open transition (avoid overwriting edits on refetch)
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (open) {
-      const snapshot = JSON.parse(JSON.stringify(initialThemes));
-      setThemes(snapshot);
+    if (open && !wasOpen.current) {
+      setThemes(JSON.parse(JSON.stringify(initialThemes)));
       setName(frameworkName);
       setHistory([]);
     }
+    wasOpen.current = open;
   }, [open, initialThemes, frameworkName]);
 
   // Push current state to history before each mutation
