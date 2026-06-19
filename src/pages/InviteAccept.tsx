@@ -117,13 +117,6 @@ export default function InviteAccept() {
           return;
         }
 
-        // ÉTAPE 2 — Purger TOUTE session pré-existante (scope global pour
-        // révoquer les refresh tokens sur tous les devices). Empêche un
-        // attaquant déjà connecté d'hériter de l'invitation d'autrui.
-        await supabase.auth.signOut({ scope: "global" }).catch(() => {
-          /* pas de session active = OK */
-        });
-
         // ÉTAPE 3 — Nettoyer le hash AVANT setSession pour empêcher le SDK
         // Supabase d'auto-détecter le hash et de fire un SIGNED_IN parasite
         // intercepté par le listener global du useAuth.
