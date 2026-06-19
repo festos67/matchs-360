@@ -12,7 +12,7 @@
  *  - The address MUST be a syntactically valid `Display Name <local@domain>`
  *    or bare `local@domain`.
  *  - If RESEND_FROM_EMAIL is missing, fall back to the verified custom
- *    sender used by send-invitation (`noreply@notify.match360.com`)
+ *    sender used by send-invitation (`noreply@notify.matchs360.fr`)
  *    branded as MATCHS360.
  */
 
@@ -43,7 +43,7 @@ export function getFromEmail(): string {
   if (FORBIDDEN_DOMAINS.includes(domain)) {
     throw new Error(
       `RESEND_FROM_EMAIL uses forbidden sandbox domain '${domain}'. ` +
-        "Configure a verified custom domain (e.g. notify.match360.com).",
+        "Configure a verified custom domain (e.g. notify.matchs360.fr).",
     );
   }
 
