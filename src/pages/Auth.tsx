@@ -18,7 +18,7 @@
  * @flows (mem://auth/invitation-system)
  * - Si l'URL contient un token d'invitation dans le hash, redirige vers
  *   /invite-accept avant de proposer le signup
- * - Reset password : envoie un email via notify.match360.com
+ * - Reset password : envoie un email via notify.matchs360.fr
  *
  * @maintenance
  * - Ne JAMAIS utiliser signup anonyme — toujours email/password
