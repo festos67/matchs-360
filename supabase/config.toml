@@ -49,3 +49,8 @@ verify_jwt = false
 # fonction implémente son propre rate-limit + réponse générique anti-énumération.
 [functions.request-login-help]
 verify_jwt = false
+
+# Notification "role ajoute" pour utilisateurs existants (assignation directe).
+# verify_jwt = false : auth applicative en code (getUser + check admin/club_admin).
+[functions.notify-role-added]
+verify_jwt = false

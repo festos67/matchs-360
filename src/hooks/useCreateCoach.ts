@@ -245,6 +245,9 @@ export function useCreateCoach(clubId: string, open: boolean, onSuccess?: () => 
       toast.success(`Rôle Coach ajouté à ${data.firstName} ${data.lastName}`, {
         description: assignedTeamNames.length > 0 ? `Rattaché à : ${assignedTeamNames.join(", ")}` : `Le coach pourra être rattaché à une équipe ultérieurement.`,
       });
+      supabase.functions
+        .invoke("notify-role-added", { body: { userId: selectedExistingUser.id, role: "coach", clubId } })
+        .catch(() => {});
       resetAndClose();
     } catch (error: any) {
       console.error("Error adding coach role:", error);
