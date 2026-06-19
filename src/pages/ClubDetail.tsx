@@ -55,7 +55,6 @@ import { DeleteClubDialog } from "@/components/modals/DeleteClubDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { snapshotFramework } from "@/lib/framework-snapshot";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
 import { usePlan } from "@/hooks/usePlan";
