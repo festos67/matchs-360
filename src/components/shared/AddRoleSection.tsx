@@ -231,6 +231,10 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
       }
 
       toast.success(`Rôle "${roleLabels[newRole] || newRole}" ajouté`);
+      // Notifier l'utilisateur existant par email (best-effort)
+      supabase.functions
+        .invoke("notify-role-added", { body: { userId, role: newRole, clubId } })
+        .catch(() => { /* best-effort : ne pas bloquer l'ajout */ });
       resetForm();
       fetchExistingRoles();
       onRoleAdded?.();
