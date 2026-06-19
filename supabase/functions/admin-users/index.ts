@@ -42,9 +42,8 @@ function escapeHtml(input: unknown): string {
  * SECURITY: whitelist of trusted origins allowed in `redirectTo` for
  * invitation re-sends. Prevents phishing via forged Origin header.
  */
-const FALLBACK_ORIGIN = "https://matchs360.fr";
+const FALLBACK_ORIGIN = "https://matchs360.lovable.app";
 const STATIC_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
-  /^https:\/\/(www\.)?matchs360\.fr$/i,
   /^https:\/\/([a-z0-9-]+\.)*lovable\.app$/i,
   /^https:\/\/([a-z0-9-]+\.)*lovableproject\.com$/i,
   /^https:\/\/([a-z0-9-]+\.)*sandbox\.lovable\.dev$/i,
