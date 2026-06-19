@@ -32,29 +32,17 @@ verify_jwt = false
 [functions.import-framework]
 verify_jwt = false
 
-[functions.process-email-queue]
-verify_jwt = true
-
-# Cron-triggered (pg_cron). Caller must present the project SERVICE_ROLE
-# JWT in the Authorization header; an additional in-code constant-time
-# comparison hardens the check (see F-404). verify_jwt = true keeps the
-# Supabase gateway's JWT validation as defense-in-depth.
+# Cron-triggered (pg_cron). Auth applicative en code : comparaison temps-constant
+# du header Authorization contre le secret partage `cron_auth_secret` (Vault, lu
+# via la RPC get_cron_secret). verify_jwt = false car le secret n'est pas un JWT.
 [functions.send-invitation-reminders]
-verify_jwt = true
+verify_jwt = false
 
-# BUG-EDGE-002 — Cron-triggered RGPD art. 17 erasure executor.
-# Same defense-in-depth as send-invitation-reminders : gateway verify_jwt
-# = true + in-code constant-time comparison against SERVICE_ROLE_KEY.
-# Anonymous callers cannot trigger a mass erasure.
 [functions.execute-erasure]
-verify_jwt = true
+verify_jwt = false
 
-# BUG-EDGE-002 — Cron-triggered Phase 4 guardian notification dispatcher.
-# Same defense-in-depth : gateway verify_jwt = true + in-code constant-
-# time comparison against SERVICE_ROLE_KEY. Anonymous callers cannot
-# trigger a mass email send.
 [functions.dispatch-guardian-notifications]
-verify_jwt = true
+verify_jwt = false
 
 # SEC-AUTH-004 — endpoint d'aide à la connexion appelé depuis la page publique
 # /auth (utilisateur anonyme, aucun JWT). verify_jwt = false est requis ; la

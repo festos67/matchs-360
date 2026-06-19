@@ -121,24 +121,29 @@ const handler = async (req: Request): Promise<Response> => {
   if (preflight) return preflight;
   const cors = buildCorsHeaders(req);
 
-  // BUG-EDGE-002 — GARDE-FOU SECRET en TETE de fonction, AVANT toute
-  // operation privilegiee (creation client service_role, lecture des
-  // demandes, anonymisation). Fail-closed si le secret serveur manque.
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  if (!serviceKey || !supabaseUrl) {
+    return new Response(JSON.stringify({ error: "missing env" }), {
+      status: 500,
+      headers: { ...cors, "Content-Type": "application/json" },
+    });
+  }
+
+  const admin = createClient(supabaseUrl, serviceKey);
+
+  // AUTH — secret partage cron->edge (Vault + RPC get_cron_secret), temps
+  // constant, AVANT toute operation privilegiee. Fail-closed.
   const provided = (req.headers.get("authorization") ?? "")
     .replace(/^Bearer\s+/i, "")
     .trim();
-  if (!serviceKey || !provided || !timingSafeEqualStr(provided, serviceKey)) {
+  const { data: cronSecret } = await admin.rpc("get_cron_secret");
+  if (!provided || !cronSecret || !timingSafeEqualStr(provided, cronSecret)) {
     return new Response(JSON.stringify({ error: "forbidden" }), {
       status: 403,
       headers: { ...cors, "Content-Type": "application/json" },
     });
   }
-
-  const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    serviceKey,
-  );
 
   const { data: due, error } = await admin
     .from("erasure_requests")

@@ -43,7 +43,7 @@ function timingSafeEqualStr(a: string, b: string): boolean {
   return diff === 0;
 }
 
-const FALLBACK_ORIGIN = "https://matchs360.lovable.app";
+const FALLBACK_ORIGIN = Deno.env.get("PUBLIC_SITE_URL") ?? "https://matchs360.fr";
 
 const ROLE_LABELS: Record<string, string> = {
   club_admin: "Administrateur de club",
@@ -73,10 +73,16 @@ const handler = async (req: Request): Promise<Response> => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
-    // Authorization: only allow service-role callers (pg_cron / admin).
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+
+    // Authorization: secret partage cron->edge (Vault + RPC get_cron_secret),
+    // temps constant. Decouple de la service_role key.
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-    if (!token || !timingSafeEqualStr(token, serviceRoleKey)) {
+    const { data: cronSecret } = await supabaseAdmin.rpc("get_cron_secret");
+    if (!token || !cronSecret || !timingSafeEqualStr(token, cronSecret)) {
       return new Response(
         JSON.stringify({ error: "forbidden" }),
         { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } },
@@ -89,10 +95,6 @@ const handler = async (req: Request): Promise<Response> => {
         { status: 503, headers: { "Content-Type": "application/json", ...corsHeaders } },
       );
     }
-
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
     const resend = new Resend(resendApiKey);
 
     const now = Date.now();
