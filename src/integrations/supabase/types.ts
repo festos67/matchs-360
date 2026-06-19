@@ -595,6 +595,8 @@ export type Database = {
           id: string
           intended_role: Database["public"]["Enums"]["app_role"]
           invited_by: string | null
+          reminder_j1_sent_at: string | null
+          reminder_j3_sent_at: string | null
           status: string
           team_id: string | null
         }
@@ -608,6 +610,8 @@ export type Database = {
           id?: string
           intended_role: Database["public"]["Enums"]["app_role"]
           invited_by?: string | null
+          reminder_j1_sent_at?: string | null
+          reminder_j3_sent_at?: string | null
           status?: string
           team_id?: string | null
         }
@@ -621,6 +625,8 @@ export type Database = {
           id?: string
           intended_role?: Database["public"]["Enums"]["app_role"]
           invited_by?: string | null
+          reminder_j1_sent_at?: string | null
+          reminder_j3_sent_at?: string | null
           status?: string
           team_id?: string | null
         }
