@@ -235,9 +235,10 @@ export default function ClubFrameworkEditor() {
 
   const handleReset = async () => {
     if (framework) {
-      await snapshotFramework(framework.id);
-      await supabase.from("themes").delete().eq("framework_id", framework.id);
-      await supabase.from("competence_frameworks").delete().eq("id", framework.id);
+      await supabase
+        .from("competence_frameworks")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", framework.id);
     }
     setShowTemplateSelector(true);
   };
@@ -245,7 +246,6 @@ export default function ClubFrameworkEditor() {
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
-      await snapshotFramework(framework.id);
       const { error } = await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })

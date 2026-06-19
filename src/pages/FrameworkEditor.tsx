@@ -358,14 +358,9 @@ export default function FrameworkEditor() {
 
   const handleReset = async () => {
     if (framework) {
-      await snapshotFramework(framework.id);
-      await supabase
-        .from("themes")
-        .delete()
-        .eq("framework_id", framework.id);
       await supabase
         .from("competence_frameworks")
-        .delete()
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
         .eq("id", framework.id);
     }
     setShowTemplateSelector(true);

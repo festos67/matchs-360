@@ -335,7 +335,6 @@ export default function ClubDetail() {
     if (!clubFramework) return;
     setIsResetting(true);
     try {
-      await snapshotFramework(clubFramework.id);
       await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })
