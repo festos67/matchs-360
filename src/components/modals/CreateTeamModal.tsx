@@ -273,7 +273,7 @@ export const CreateTeamModal = ({
         onOpenChange(true);
       }
     }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -283,7 +283,8 @@ export const CreateTeamModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0 mt-4">
+          <div className="space-y-6 overflow-y-auto custom-scrollbar pr-2 -mr-2 flex-1 min-h-0">
           <div className="grid grid-cols-[1fr,auto] gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nom de l'équipe</Label>
@@ -410,8 +411,9 @@ export const CreateTeamModal = ({
               <p className="text-sm text-muted-foreground">{watch("season")}</p>
             </div>
           </div>
+          </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-border bg-background">
             <Button
               type="button"
               variant="outline"
