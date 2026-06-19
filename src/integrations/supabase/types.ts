@@ -1966,6 +1966,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["subscription_plan"]
       }
       get_coach_player_ids: { Args: { _coach_id: string }; Returns: string[] }
+      get_cron_secret: { Args: never; Returns: string }
       get_current_season: {
         Args: never
         Returns: {
