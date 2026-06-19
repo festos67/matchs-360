@@ -332,8 +332,9 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        {options.map((option) => (
+      <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {options.map((option) => (
           <Card
             key={option.id}
             className={`cursor-pointer transition-all duration-200 ${
@@ -365,7 +366,8 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
               )}
             </CardContent>
           </Card>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Team selector when "team" is selected */}
