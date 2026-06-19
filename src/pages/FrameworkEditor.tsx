@@ -69,7 +69,6 @@ import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
 import { usePlan } from "@/hooks/usePlan";
-import { snapshotFramework } from "@/lib/framework-snapshot";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
@@ -335,13 +334,6 @@ export default function FrameworkEditor() {
     setSaving(true);
 
     try {
-      // Ne créer une version d'historique que si l'utilisateur a réellement modifié
-      if (hasChanges) {
-        snapshotFramework(framework.id).catch((snapError) => {
-          console.warn("Snapshot failed (background):", snapError);
-        });
-      }
-
       // Optimized parallel + batched save (replaces ~60 sequential round-trips)
       await saveFrameworkChanges(framework.id, confirmedName, themes);
 
