@@ -1,28 +1,20 @@
 /**
  * Phase 5 RGPD art. 17 — Execution effective de l'effacement (cron quotidien).
- *
- * Pour chaque erasure_requests dont status='pending' ET scheduled_for <= now() :
- *  - ANONYMISE le profil par UPDATE (respecte les triggers prevent_hard_delete)
- *  - Vide les commentaires libres d'evaluations (peuvent contenir le nom)
- *  - SUPPRIME REELLEMENT la photo du bucket user-photos-minors
- *  - Revoque les parental_consents
- *  - Supprime les supporters_link
- *  - Conserve minor_data_access_log (UUID seulement, pas de PII)
- *  - status='executed', executed_at=now()
- *  - audit_log action='account_erased'
- *
- * Fail-safe par requete (un echec n'arrete pas le batch). Idempotent.
+ * Pour chaque erasure_requests pending ET scheduled_for <= now :
+ *  - ANONYMISE le profil (UPDATE, respecte prevent_hard_delete)
+ *  - Vide les commentaires libres d'evaluations
+ *  - SUPPRIME la photo (bucket mineur prive ET bucket public) [B8]
+ *  - Revoque parental_consents, supprime supporters_link
+ *  - Purge guardian_designations + pending_notifications du sujet [B7]
+ *  - status='executed' via claim atomique [B9], audit_log
+ * Fail-safe par requete. Anonymisations idempotentes.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 
 const MINOR_BUCKET = "user-photos-minors";
+const PUBLIC_BUCKET = "user-photos";
 
-/**
- * BUG-EDGE-002 — Constant-time secret comparison (cf F-404 et le pattern
- * etabli par send-invitation-reminders). NE PAS utiliser === : leak de
- * timing octet-par-octet sur un secret.
- */
 function timingSafeEqualStr(a: string, b: string): boolean {
   const enc = new TextEncoder();
   const abuf = enc.encode(a);
@@ -37,14 +29,31 @@ function timingSafeEqualStr(a: string, b: string): boolean {
   return diff === 0;
 }
 
+// B8 — supprime physiquement la photo en extrayant le chemin relatif au bucket
+// depuis l'URL stockee, en tentant le bucket prive (mineur) ET le bucket public
+// (cas birthdate NULL classant a tort un mineur en non-mineur -> photo publique).
+async function deletePhotoEverywhere(admin: any, photoUrl: string | null | undefined): Promise<void> {
+  if (!photoUrl) return;
+  for (const bucket of [MINOR_BUCKET, PUBLIC_BUCKET]) {
+    const marker = `/${bucket}/`;
+    const idx = photoUrl.indexOf(marker);
+    if (idx === -1) continue;
+    const path = photoUrl.slice(idx + marker.length).split("?")[0];
+    if (!path) continue;
+    try {
+      await admin.storage.from(bucket).remove([path]);
+    } catch (e) {
+      console.warn(`[execute-erasure] photo remove failed (${bucket})`, e);
+    }
+  }
+}
+
 async function eraseOne(admin: any, req: any): Promise<{ ok: boolean; error?: string }> {
   const subject = req.subject_profile_id as string;
   try {
-    // 1. Read profile
     const { data: profile } = await admin
       .from("profiles").select("photo_url, photo_is_minor").eq("id", subject).maybeSingle();
 
-    // 2. Anonymize evaluation free-text
     await admin.from("evaluations")
       .update({ notes: "[Contenu effacé sur demande RGPD]" })
       .eq("player_id", subject)
@@ -60,26 +69,22 @@ async function eraseOne(admin: any, req: any): Promise<{ ok: boolean; error?: st
         .not("comment", "is", null);
     }
 
-    // 3. Delete photo physically (only minor bucket — public bucket is shared, safer)
-    if (profile?.photo_url && profile.photo_is_minor) {
-      try {
-        await admin.storage.from(MINOR_BUCKET).remove([profile.photo_url]);
-      } catch (e) {
-        console.warn("[execute-erasure] photo remove failed", e);
-      }
-    }
+    // B8 : suppression physique de la photo (bucket prive + public)
+    await deletePhotoEverywhere(admin, profile?.photo_url);
 
-    // 4. Revoke consents
     await admin.from("parental_consents")
       .update({ revoked_at: new Date().toISOString(), revoked_reason: "account_erased" })
       .eq("minor_profile_id", subject)
       .is("revoked_at", null);
 
-    // 5. Remove supporters_link (DELETE OK: no prevent_hard_delete on that table)
     await admin.from("supporters_link")
       .delete().or(`player_id.eq.${subject},supporter_id.eq.${subject}`);
 
-    // 6. Anonymize profile (UPDATE — does not violate prevent_hard_delete_profile)
+    // B7 : purge PII residuelle liee au sujet (email tuteur + notifications)
+    await admin.from("guardian_designations").delete().eq("minor_profile_id", subject);
+    await admin.from("pending_notifications").delete()
+      .or(`minor_profile_id.eq.${subject},recipient_profile_id.eq.${subject}`);
+
     await admin.from("profiles").update({
       first_name: "[Effacé]",
       last_name: "[Effacé]",
@@ -94,13 +99,16 @@ async function eraseOne(admin: any, req: any): Promise<{ ok: boolean; error?: st
       deleted_at: new Date().toISOString(),
     }).eq("id", subject);
 
-    // 7. Mark request executed
-    await admin.from("erasure_requests").update({
+    // B9 : claim atomique -> une seule execution marque executed + audit.
+    const { data: claimed } = await admin.from("erasure_requests").update({
       status: "executed",
       executed_at: new Date().toISOString(),
-    }).eq("id", req.id);
+    }).eq("id", req.id).eq("status", "pending").select("id");
 
-    // 8. Audit
+    if (!claimed || claimed.length === 0) {
+      return { ok: true };
+    }
+
     await admin.from("audit_log").insert({
       table_name: "profiles",
       record_id: subject,
@@ -125,23 +133,19 @@ const handler = async (req: Request): Promise<Response> => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
   if (!serviceKey || !supabaseUrl) {
     return new Response(JSON.stringify({ error: "missing env" }), {
-      status: 500,
-      headers: { ...cors, "Content-Type": "application/json" },
+      status: 500, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
 
-  // AUTH — secret partage cron->edge (Vault + RPC get_cron_secret), temps
-  // constant, AVANT toute operation privilegiee. Fail-closed.
   const provided = (req.headers.get("authorization") ?? "")
     .replace(/^Bearer\s+/i, "")
     .trim();
   const { data: cronSecret } = await admin.rpc("get_cron_secret");
   if (!provided || !cronSecret || !timingSafeEqualStr(provided, cronSecret)) {
     return new Response(JSON.stringify({ error: "forbidden" }), {
-      status: 403,
-      headers: { ...cors, "Content-Type": "application/json" },
+      status: 403, headers: { ...cors, "Content-Type": "application/json" },
     });
   }
 
