@@ -44,7 +44,6 @@ import { ClubTemplateSelector } from "@/components/framework/ClubTemplateSelecto
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
 import { usePlan } from "@/hooks/usePlan";
-import { snapshotFramework } from "@/lib/framework-snapshot";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
@@ -235,9 +234,10 @@ export default function ClubFrameworkEditor() {
 
   const handleReset = async () => {
     if (framework) {
-      await snapshotFramework(framework.id);
-      await supabase.from("themes").delete().eq("framework_id", framework.id);
-      await supabase.from("competence_frameworks").delete().eq("id", framework.id);
+      await supabase
+        .from("competence_frameworks")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", framework.id);
     }
     setShowTemplateSelector(true);
   };
@@ -245,7 +245,6 @@ export default function ClubFrameworkEditor() {
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
-      await snapshotFramework(framework.id);
       const { error } = await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })

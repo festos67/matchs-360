@@ -261,7 +261,6 @@ export default function TeamDetail() {
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
-      await snapshotFramework(framework.id);
       const { error } = await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })
