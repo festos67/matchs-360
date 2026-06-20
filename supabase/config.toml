@@ -54,3 +54,8 @@ verify_jwt = false
 # verify_jwt = false : auth applicative en code (getUser + check admin/club_admin).
 [functions.notify-role-added]
 verify_jwt = false
+
+# Email aux supporters invites a evaluer un joueur. verify_jwt = false : auth
+# applicative en code (getUser + verif que l'appelant a cree la demande pending).
+[functions.notify-supporter-evaluation-request]
+verify_jwt = false
