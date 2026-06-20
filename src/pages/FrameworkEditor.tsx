@@ -335,11 +335,18 @@ export default function FrameworkEditor() {
 
     try {
       // Optimized parallel + batched save (replaces ~60 sequential round-trips)
-      await saveFrameworkChanges(framework.id, confirmedName, themes);
+      const saved = await saveFrameworkChanges(framework.id, confirmedName, themes);
 
       toast.success("Référentiel sauvegardé avec succès");
       setHasChanges(false);
-      fetchData(); // Refresh to get actual IDs
+      if (saved) {
+        const { themes: savedThemes, ...savedFramework } = saved;
+        setFramework(savedFramework as typeof framework);
+        setFrameworkName(savedFramework.name);
+        setThemes(savedThemes as Theme[]);
+      } else {
+        fetchData();
+      }
     } catch (error: any) {
       console.error("Error saving framework:", error);
       toast.error("Erreur lors de la sauvegarde");
