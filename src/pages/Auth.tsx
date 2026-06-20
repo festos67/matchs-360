@@ -222,6 +222,9 @@ export default function Auth() {
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast.error(err.errors[0].message);
+      } else {
+        console.error("Auth error:", err);
+        toast.error("Une erreur est survenue. Veuillez réessayer.");
       }
     } finally {
       setLoading(false);
