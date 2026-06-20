@@ -131,6 +131,9 @@ const CoachDashboard = () => {
             first_name,
             last_name,
             photo_url,
+            photo_is_minor,
+            image_rights_consent_at,
+            birthdate,
             email
           )
         `)
@@ -253,7 +256,7 @@ const CoachDashboard = () => {
                           <CircleAvatar
                             shape="circle"
                             name={`${playerProfile?.first_name || ""} ${playerProfile?.last_name || ""}`}
-                            imageUrl={playerProfile?.photo_url}
+                            profile={playerProfile}
                             size="sm"
                           />
                         </TableCell>

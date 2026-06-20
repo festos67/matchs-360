@@ -46,6 +46,9 @@ interface LinkedPlayerEnriched {
   last_name: string | null;
   nickname: string | null;
   photo_url: string | null;
+  photo_is_minor: boolean | null;
+  image_rights_consent_at: string | null;
+  birthdate: string | null;
   teamName: string | null;
   teamId: string | null;
   teamColor: string | null;
@@ -125,7 +128,7 @@ const SupporterDashboard = () => {
       // Fetch profiles
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, nickname, photo_url")
+        .select("id, first_name, last_name, nickname, photo_url, photo_is_minor, image_rights_consent_at, birthdate")
         .in("id", playerIds);
 
       // Fetch team memberships for players
@@ -195,6 +198,9 @@ const SupporterDashboard = () => {
           last_name: p.last_name,
           nickname: p.nickname,
           photo_url: p.photo_url,
+          photo_is_minor: (p as any).photo_is_minor ?? null,
+          image_rights_consent_at: (p as any).image_rights_consent_at ?? null,
+          birthdate: (p as any).birthdate ?? null,
           teamName: team?.name || null,
           teamId: team?.id || null,
           teamColor: team?.color || null,
@@ -416,7 +422,7 @@ const SupporterDashboard = () => {
                   <CircleAvatar
                     shape="circle"
                     name={getPlayerName(player)}
-                    imageUrl={player.photo_url}
+                    profile={player}
                     color={player.teamColor || "#3B82F6"}
                     size="md"
                     onClick={() => navigate(`/players/${player.id}`)}

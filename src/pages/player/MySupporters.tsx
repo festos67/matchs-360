@@ -26,6 +26,9 @@ interface SupporterProfile {
   last_name: string | null;
   nickname: string | null;
   photo_url: string | null;
+  photo_is_minor?: boolean | null;
+  image_rights_consent_at?: string | null;
+  birthdate?: string | null;
   email: string;
 }
 
@@ -39,7 +42,7 @@ export default function MySupporters() {
 
       const { data, error } = await supabase
         .from("supporters_link")
-        .select("id, supporter_id, profiles!supporters_link_supporter_id_fkey(id, first_name, last_name, nickname, photo_url, email)")
+        .select("id, supporter_id, profiles!supporters_link_supporter_id_fkey(id, first_name, last_name, nickname, photo_url, photo_is_minor, image_rights_consent_at, birthdate, email)")
         .eq("player_id", user.id);
 
       if (error) throw error;
@@ -101,7 +104,7 @@ export default function MySupporters() {
                 >
                   <CircleAvatar
                     shape="circle"
-                    imageUrl={supporter.photo_url}
+                    profile={supporter}
                     name={getDisplayName(supporter)}
                     size="md"
                   />
