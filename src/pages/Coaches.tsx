@@ -405,7 +405,7 @@ const Coaches = () => {
                               </Avatar>
                               <div>
                                 <p className="font-medium">
-                                  {coach.first_name || ""} {coach.last_name || ""}
+                                  {[coach.first_name, coach.last_name].filter(Boolean).join(" ") || coach.email}
                                 </p>
                                 <p className="text-sm text-muted-foreground">{coach.email}</p>
                               </div>

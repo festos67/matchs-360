@@ -325,7 +325,7 @@ export default function RoleApprovals() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium">
-                            {request.profile?.first_name} {request.profile?.last_name}
+                            {[request.profile?.first_name, request.profile?.last_name].filter(Boolean).join(" ") || "Utilisateur"}
                           </p>
                           <Badge variant="outline" className="flex items-center gap-1">
                             <Icon className={`w-3 h-3 ${config.color}`} />

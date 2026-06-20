@@ -102,7 +102,7 @@ export function CoachFormFields({
                     {user.photo_url ? <img src={user.photo_url} alt="" className="w-full h-full object-cover" /> : `${(user.first_name || "?").charAt(0)}${(user.last_name || "").charAt(0)}`.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{user.first_name} {user.last_name}</p>
+                    <p className="font-medium text-sm truncate">{[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
@@ -122,7 +122,7 @@ export function CoachFormFields({
             {selectedExistingUser.photo_url ? <img src={selectedExistingUser.photo_url} alt="" className="w-full h-full object-cover" /> : getInitials()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm">{selectedExistingUser.first_name} {selectedExistingUser.last_name}</p>
+            <p className="font-medium text-sm">{[selectedExistingUser.first_name, selectedExistingUser.last_name].filter(Boolean).join(" ") || selectedExistingUser.email}</p>
             <div className="flex items-center gap-1.5">
               {selectedExistingUser.roles.map(role => <Badge key={role} variant="secondary" className="text-xs">{roleLabels[role] || role}</Badge>)}
               <Badge className="text-xs bg-green-500 text-white">+ Coach</Badge>

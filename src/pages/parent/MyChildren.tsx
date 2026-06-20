@@ -253,7 +253,7 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
           </Avatar>
           <div className="flex-1">
             <CardTitle className="text-xl">
-              {child.first_name} {child.last_name}
+              {[child.first_name, child.last_name].filter(Boolean).join(" ") || "Enfant"}
             </CardTitle>
             <CardDescription className="flex flex-wrap gap-2 mt-1">
               {child.birthdate && (

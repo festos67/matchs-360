@@ -86,7 +86,7 @@ const formatDate = (dateStr: string) =>
   });
 
 export default function Evaluations() {
-  const { user, loading: authLoading, roles } = useAuth();
+  const { user, loading: authLoading, roles, currentRole } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -571,10 +571,18 @@ export default function Evaluations() {
           <h2 className="text-xl font-display font-semibold mb-2">
             Aucun débrief
           </h2>
-          <p className="text-muted-foreground mb-6">
-            Commencez par débriefer un joueur depuis sa fiche
-          </p>
-          <Button onClick={() => navigate("/clubs")}>Voir les clubs</Button>
+          {currentRole?.role === "player" || currentRole?.role === "supporter" ? (
+            <p className="text-muted-foreground">
+              Aucun débrief vous concernant pour le moment.
+            </p>
+          ) : (
+            <>
+              <p className="text-muted-foreground mb-6">
+                Commencez par débriefer un joueur depuis sa fiche
+              </p>
+              <Button onClick={() => navigate("/clubs")}>Voir les clubs</Button>
+            </>
+          )}
         </div>
       ) : (
         <>
