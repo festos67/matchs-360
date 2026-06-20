@@ -537,6 +537,9 @@ const handler = async (req: Request): Promise<Response> => {
     let userId: string;
     let isNewUser = false;
     let inviteEmailError: EmailProviderError | null = null;
+    // Un supporter peut suivre plusieurs joueurs d'un même club : si le rôle
+    // supporter existe déjà, ce n'est pas un conflit, on saute juste sa recréation.
+    let supporterRoleAlreadyExists = false;
 
     if (existingUser) {
       const { data: existingRole } = await supabaseAdmin
@@ -548,11 +551,17 @@ const handler = async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (existingRole) {
-        throw new InvitationDomainError({
-          message: "Cet utilisateur a déjà ce rôle dans ce club.",
-          code: "USER_ALREADY_HAS_ROLE_IN_CLUB",
-          status: 409,
-        });
+        // Pour un SUPPORTER avec des joueurs cibles, le rôle déjà présent ne
+        // bloque pas : on ajoutera seulement le(s) lien(s) joueur manquant(s).
+        // Pour tout autre cas, le conflit reste une vraie erreur métier.
+        if (intendedRole !== "supporter" || !playerIds || playerIds.length === 0) {
+          throw new InvitationDomainError({
+            message: "Cet utilisateur a déjà ce rôle dans ce club.",
+            code: "USER_ALREADY_HAS_ROLE_IN_CLUB",
+            status: 409,
+          });
+        }
+        supporterRoleAlreadyExists = true;
       }
 
       userId = existingUser.id;
@@ -714,22 +723,24 @@ const handler = async (req: Request): Promise<Response> => {
       inviteEmailError = emailDeliveryError;
     }
 
-    // Add the role
-    const { error: roleError } = await supabaseAdmin
-      .from("user_roles")
-      .insert({
-        user_id: userId,
-        role: intendedRole,
-        club_id: clubId,
-      });
+    // Add the role — idempotent pour le supporter déjà en place.
+    if (!supporterRoleAlreadyExists) {
+      const { error: roleError } = await supabaseAdmin
+        .from("user_roles")
+        .insert({
+          user_id: userId,
+          role: intendedRole,
+          club_id: clubId,
+        });
 
-    if (roleError) {
-      console.error("Role insert error:", roleError);
-      throw new InvitationDomainError({
-        message: "L'attribution du rôle a échoué côté base de données.",
-        code: "INTERNAL_ERROR",
-        status: 500,
-      });
+      if (roleError) {
+        console.error("Role insert error:", roleError);
+        throw new InvitationDomainError({
+          message: "L'attribution du rôle a échoué côté base de données.",
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
+      }
     }
 
     // If coach with teamId, add to team_members
@@ -892,16 +903,23 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // If supporter, create links to players
+    // If supporter, create links to players — DÉDUP : ne (re)crée que les liens
+    // manquants (le supporter peut déjà suivre d'autres joueurs du club).
     if (intendedRole === "supporter" && playerIds && playerIds.length > 0) {
-      const links = playerIds.map(playerId => ({
-        supporter_id: userId,
-        player_id: playerId,
-      }));
-
-      await supabaseAdmin
+      const { data: existingLinks } = await supabaseAdmin
         .from("supporters_link")
-        .insert(links);
+        .select("player_id")
+        .eq("supporter_id", userId)
+        .in("player_id", playerIds);
+      const alreadyLinked = new Set((existingLinks ?? []).map((l: { player_id: string }) => l.player_id));
+      const links = playerIds
+        .filter((playerId) => !alreadyLinked.has(playerId))
+        .map((playerId) => ({ supporter_id: userId, player_id: playerId }));
+      if (links.length > 0) {
+        await supabaseAdmin
+          .from("supporters_link")
+          .insert(links);
+      }
     }
 
     // Record the invitation
@@ -936,10 +954,32 @@ const handler = async (req: Request): Promise<Response> => {
         supporter: "Supporter",
       };
 
+      // Personnalisation supporter : nommer le(s) joueur(s) suivi(s).
+      let supporterPlayersLabel = "";
+      if (intendedRole === "supporter" && playerIds && playerIds.length > 0) {
+        const { data: followed } = await supabaseAdmin
+          .from("profiles")
+          .select("first_name, last_name, nickname")
+          .in("id", playerIds);
+        supporterPlayersLabel = (followed ?? [])
+          .map((p: { first_name?: string | null; last_name?: string | null; nickname?: string | null }) =>
+            p.nickname || [p.first_name, p.last_name].filter(Boolean).join(" "))
+          .filter(Boolean)
+          .join(", ");
+      }
+      const isSupporterFollow = intendedRole === "supporter" && supporterPlayersLabel.length > 0;
+      const notifSubject = isSupporterFollow
+        ? `Vous suivez désormais ${supporterPlayersLabel} - ${club?.name || "MATCHS360"}`
+        : `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`;
+      const notifHeading = isSupporterFollow ? "Nouveau joueur à suivre" : "Nouveau rôle attribué";
+      const notifBody = isSupporterFollow
+        ? `Vous avez été ajouté(e) comme <strong>supporter</strong> de <strong>${escapeHtml(supporterPlayersLabel)}</strong> au sein de <strong>${escapeHtml(club?.name || "MATCHS360")}</strong>. Vous pouvez désormais suivre ses évaluations.`
+        : `Vous avez été ajouté(e) à <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.`;
+
       const notificationResult = await resend.emails.send({
         from: getFromEmail(),
         to: [email.toLowerCase()],
-        subject: `Nouveau rôle ajouté - ${club?.name || "MATCHS360"}`,
+        subject: notifSubject,
         html: `
           <!DOCTYPE html>
           <html>
@@ -947,10 +987,9 @@ const handler = async (req: Request): Promise<Response> => {
           <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
             <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px;">
               <h1 style="color: #18181b; font-size: 24px; text-align: center;">MATCHS360</h1>
-              <h2 style="color: #18181b; font-size: 18px;">Nouveau rôle attribué</h2>
+              <h2 style="color: #18181b; font-size: 18px;">${notifHeading}</h2>
               <p style="color: #3f3f46; line-height: 1.6;">
-                Vous avez été ajouté(e) à <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> 
-                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.
+                ${notifBody}
               </p>
               <a href="${origin}/dashboard" style="display: inline-block; background-color: #2563eb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; margin-top: 16px;">
                 Accéder à mon espace
