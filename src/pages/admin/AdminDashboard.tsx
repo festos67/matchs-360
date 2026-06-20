@@ -347,7 +347,7 @@ const AdminDashboard = () => {
                 <div className="px-4 md:px-5 pb-4 space-y-1.5">
                   {/* Sous-titre Effectif */}
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1">Effectif</p>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Nombre de clubs" value={loadingClubs ? "-" : String(clubsCount)} icon={Building2} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de clubs actifs sur la plateforme</TooltipContent></Tooltip>
@@ -364,7 +364,7 @@ const AdminDashboard = () => {
 
                   {/* Sous-titre Débriefs */}
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1 pt-1">Débriefs</p>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Nombre de débriefs" value={loadingEvals ? "-" : String(evalStats?.total)} icon={Trophy} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total de débriefs réalisés</TooltipContent></Tooltip>
@@ -385,7 +385,7 @@ const AdminDashboard = () => {
 
                   {/* Sous-titre Objectifs */}
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1 pt-1">Objectifs</p>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <Tooltip><TooltipTrigger asChild>
                       <div><StatsCard title="Nombre d'objectifs" value={loadingObj ? "-" : String(objStats?.total)} icon={Target} /></div>
                     </TooltipTrigger><TooltipContent>Nombre total d'objectifs créés</TooltipContent></Tooltip>

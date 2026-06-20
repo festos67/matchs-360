@@ -454,7 +454,7 @@ export default function FrameworkEditor() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="glass-card p-4">
             <p className="text-3xl font-display font-bold text-primary">{themes.length}</p>
             <p className="text-sm text-muted-foreground">Thématiques</p>
