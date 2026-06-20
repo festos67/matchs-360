@@ -27,7 +27,7 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -107,6 +107,7 @@ const SectionHeader = ({
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, hasAdminRole: isAdmin, profile } = useAuth();
+  const queryClient = useQueryClient();
 
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [clubsOpen, setClubsOpen] = useState(false);
@@ -616,6 +617,8 @@ const AdminDashboard = () => {
         onOpenChange={setCreateClubOpen}
         onSuccess={() => {
           setCreateClubOpen(false);
+          queryClient.invalidateQueries({ queryKey: ["admin-clubs-list"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-stats-clubs"] });
         }}
       />
     </AppLayout>
