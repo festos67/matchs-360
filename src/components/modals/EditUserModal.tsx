@@ -143,6 +143,9 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
   }, []);
 
   useEffect(() => {
+    // Cascade : changer de club invalide l'équipe et le joueur précédemment choisis.
+    setSelectedTeam("");
+    setSelectedPlayer("");
     if (selectedClub) {
       fetchTeams(selectedClub);
     } else {

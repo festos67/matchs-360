@@ -92,6 +92,18 @@ export const GlobalSearch = () => {
     }
   }, [open]);
 
+  // Cascade : changer le filtre Club réinitialise les équipes/coachs sélectionnés
+  // (évite des sélections hors périmètre qui filtrent la recherche).
+  useEffect(() => {
+    setSelectedTeams([]);
+    setSelectedCoaches([]);
+  }, [selectedClubs]);
+
+  // Cascade : changer les équipes réinitialise les coachs sélectionnés.
+  useEffect(() => {
+    setSelectedCoaches([]);
+  }, [selectedTeams]);
+
   // Load clubs when popover opens
   const loadClubs = useCallback(async () => {
     if (clubOptions.length > 0) return;
