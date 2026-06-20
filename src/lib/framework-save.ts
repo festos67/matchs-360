@@ -8,6 +8,18 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
+export interface SavedFramework {
+  id: string;
+  name: string;
+  themes: Array<{
+    id: string;
+    name: string;
+    color: string | null;
+    order_index: number;
+    skills: Array<{ id: string; name: string; definition: string | null; order_index: number }>;
+  }>;
+}
+
 export interface SaveSkill {
   id: string;
   name: string;
@@ -29,7 +41,7 @@ export async function saveFrameworkChanges(
   frameworkId: string,
   confirmedName: string,
   themesToSave: SaveTheme[],
-): Promise<void> {
+): Promise<SavedFramework | null> {
   // Sérialise le payload pour la RPC. is_new explicite (côté SQL on lit
   // (v->>'is_new')::boolean qui retourne null si absent → traité comme false).
   const payload = themesToSave.map((t) => ({
@@ -47,7 +59,7 @@ export async function saveFrameworkChanges(
     })),
   }));
 
-  const { error } = await supabase.rpc("save_framework_atomic", {
+  const { data, error } = await supabase.rpc("save_framework_atomic", {
     p_framework_id: frameworkId,
     p_name: confirmedName,
     // supabase-js sérialise automatiquement en jsonb
@@ -55,4 +67,5 @@ export async function saveFrameworkChanges(
   });
 
   if (error) throw error;
+  return (data ?? null) as unknown as SavedFramework | null;
 }
