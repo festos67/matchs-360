@@ -32,7 +32,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getEdgeFunctionErrorMessage } from "@/lib/edge-function-errors";
 import { toastInvitationError } from "@/lib/invitation-error-toast";
 import { SupporterRequestsPanel } from "@/components/player/SupporterRequestsPanel";
 import { typedZodResolver } from "@/lib/typed-zod-resolver";
@@ -163,31 +162,31 @@ export const ManageSupportersModal = ({
 
   const filteredExisting = existingSupporters;
 
-  const handleLinkExisting = async (supporterId: string) => {
-    setLinkingId(supporterId);
+  const handleLinkExisting = async (candidate: {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string;
+  }) => {
+    setLinkingId(candidate.id);
     try {
-      // Ensure the user has the 'supporter' role for this club (idempotent)
-      const { data: existingRole } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", supporterId)
-        .eq("role", "supporter")
-        .eq("club_id", clubId)
-        .maybeSingle();
-      if (!existingRole) {
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({ user_id: supporterId, role: "supporter", club_id: clubId });
-        // Ignore unique-violation errors (role already exists), surface others
-        if (roleError && !String(roleError.message).toLowerCase().includes("duplicate")) {
-          throw roleError;
-        }
-      }
+      // Même chemin que l'invitation d'un nouveau supporter : send-invitation
+      // gère le rôle idempotent, la dédup du lien et l'email de notification
+      // personnalisé (« Vous suivez désormais … ») pour un utilisateur existant.
+      const { data: result, error } = await supabase.functions.invoke("send-invitation", {
+        body: {
+          email: candidate.email,
+          firstName: candidate.first_name ?? undefined,
+          lastName: candidate.last_name ?? undefined,
+          clubId,
+          intendedRole: "supporter",
+          playerIds: [playerId],
+        },
+      });
 
-      const { error } = await supabase
-        .from("supporters_link")
-        .insert({ player_id: playerId, supporter_id: supporterId });
       if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+
       toast.success("Supporter lié au joueur");
       queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
       queryClient.invalidateQueries({ queryKey: ["platform-users-search"] });
@@ -195,9 +194,7 @@ export const ManageSupportersModal = ({
       setActiveTab("list");
     } catch (error: unknown) {
       console.error("Error linking supporter:", error);
-      toast.error("Erreur lors de l'association", {
-        description: await getEdgeFunctionErrorMessage(error),
-      });
+      await toastInvitationError(error);
     } finally {
       setLinkingId(null);
     }
@@ -357,7 +354,7 @@ export const ManageSupportersModal = ({
                           key={s.id}
                           type="button"
                           disabled={isLinking}
-                          onClick={() => handleLinkExisting(s.id)}
+                          onClick={() => handleLinkExisting(s)}
                           className={cn(
                             "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors",
                             "hover:bg-muted disabled:opacity-50"
