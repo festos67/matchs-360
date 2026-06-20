@@ -301,7 +301,7 @@ export function EvaluationHistory({
             </div>
             <p className="text-sm text-muted-foreground">
               {isCoachType 
-                ? `Par ${evaluation.coach?.first_name} ${evaluation.coach?.last_name} • `
+                ? `Par ${[evaluation.coach?.first_name, evaluation.coach?.last_name].filter(Boolean).join(" ") || "Coach"} • `
                 : ""}
               {format(new Date(evaluation.date), "d MMMM yyyy", { locale: fr })}
             </p>

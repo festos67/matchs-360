@@ -391,7 +391,9 @@ export default function ClubDetail() {
           {currentRole?.role === "player" && <UserCircle className="w-7 h-7 text-green-500" />}
           {currentRole?.role === "supporter" && <Heart className="w-7 h-7 text-pink-500" />}
         </h1>
-        <p className="text-muted-foreground mt-1">Gérez votre club, vos équipes et vos joueurs</p>
+        <p className="text-muted-foreground mt-1">
+          {canManageClub ? "Gérez votre club, vos équipes et vos joueurs" : "Fiche du club"}
+        </p>
       </div>
       <Card className="bg-card border border-border rounded-2xl p-5 mb-4 flex flex-wrap items-start gap-5">
         {/* Logo club */}
