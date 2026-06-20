@@ -368,7 +368,7 @@ export default function TeamDetail() {
           <div className="flex items-center gap-6 flex-1 min-w-0">
             <div className="w-20 h-20 lg:w-28 lg:h-28 rounded-2xl flex items-center justify-center text-2xl lg:text-4xl font-display font-bold flex-shrink-0" style={{ background: `linear-gradient(135deg, ${teamColor} 0%, ${teamColor}88 100%)`, color: "white", boxShadow: `0 4px 24px -4px ${teamColor}40` }}>{team.short_name || team.name.slice(0, 2).toUpperCase()}</div>
             <div className="flex-1 min-w-0">
-            <h1 className="text-4xl font-display font-bold">
+            <h1 className="text-4xl font-display font-bold break-words">
               {team.name}
             </h1>
             <div className="flex items-center gap-3 mt-3 text-base text-muted-foreground flex-wrap">

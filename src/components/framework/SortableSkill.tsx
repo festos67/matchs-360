@@ -70,7 +70,7 @@ export const SortableSkill = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="grid grid-cols-[auto_1fr_1.5fr_auto] gap-3 p-2 rounded-lg border transition-colors group items-start"
+      className="grid grid-cols-1 md:grid-cols-[auto_1fr_1.5fr_auto] gap-3 p-2 rounded-lg border transition-colors group items-start"
     >
       {/* Drag handle */}
       {canEdit ? (

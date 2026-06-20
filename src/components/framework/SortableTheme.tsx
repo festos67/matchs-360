@@ -255,7 +255,7 @@ export const SortableTheme = ({
         <CollapsibleContent>
           <div className="p-4">
             {/* Column headers */}
-            <div className="grid grid-cols-[auto_1fr_1.5fr_auto] gap-3 px-2 pb-2 mb-2 border-b border-border/50">
+            <div className="hidden md:grid grid-cols-[auto_1fr_1.5fr_auto] gap-3 px-2 pb-2 mb-2 border-b border-border/50">
               <div className="w-5" />
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Compétence</p>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Définition</p>
