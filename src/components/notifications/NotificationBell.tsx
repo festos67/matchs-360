@@ -28,6 +28,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -91,20 +92,22 @@ export function NotificationBell() {
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   const markAsRead = async (id: string) => {
-    await (supabase as any)
+    const { error } = await (supabase as any)
       .from("notifications")
       .update({ is_read: true })
       .eq("id", id);
+    if (error) { toast.error("Impossible de marquer la notification comme lue"); return; }
     queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
   };
 
   const markAllAsRead = async () => {
     const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
     if (unreadIds.length === 0) return;
-    await (supabase as any)
+    const { error } = await (supabase as any)
       .from("notifications")
       .update({ is_read: true })
       .in("id", unreadIds);
+    if (error) { toast.error("Impossible de marquer les notifications comme lues"); return; }
     queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
   };
 

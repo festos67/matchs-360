@@ -179,6 +179,7 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
       if (data?.download_url) {
         window.location.href = data.download_url;
       }
+      qc.invalidateQueries({ queryKey: ["minor-access-log", minorId] });
       toast({
         title: "Export prêt",
         description: "Le téléchargement va démarrer. Conservez ce fichier en lieu sûr.",

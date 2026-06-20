@@ -350,10 +350,14 @@ export default function FrameworkEditor() {
 
   const handleReset = async () => {
     if (framework) {
-      await supabase
+      const { error } = await supabase
         .from("competence_frameworks")
         .update({ is_archived: true, archived_at: new Date().toISOString() })
         .eq("id", framework.id);
+      if (error) {
+        toast.error("Échec de la réinitialisation du référentiel");
+        return;
+      }
     }
     setShowTemplateSelector(true);
   };
