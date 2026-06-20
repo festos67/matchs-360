@@ -288,8 +288,15 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
     if (oldIndex === -1 || newIndex === -1) return;
     const reordered = arrayMove(activeIndividual, oldIndex, newIndex);
     queryClient.setQueryData(["player-objectives", playerId], [...reordered.map((o, i) => ({ ...o, order_index: i })), ...finalizedIndividual]);
-    for (let i = 0; i < reordered.length; i++) {
-      await (supabase as any).from("player_objectives").update({ order_index: i }).eq("id", reordered[i].id);
+    try {
+      for (let i = 0; i < reordered.length; i++) {
+        const { error } = await (supabase as any).from("player_objectives").update({ order_index: i }).eq("id", reordered[i].id);
+        if (error) throw error;
+      }
+    } catch (e) {
+      console.error("Reorder failed:", e);
+      toast.error("Échec de l'enregistrement de l'ordre");
+      queryClient.invalidateQueries({ queryKey: ["player-objectives", playerId] });
     }
   };
 
