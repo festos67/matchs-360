@@ -37,6 +37,7 @@ const RELATIONSHIP_LABEL: Record<string, string> = {
 export default function MyConsents() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ConsentRow[]>([]);
+  const [busy, setBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -86,31 +87,36 @@ export default function MyConsents() {
       "",
     );
     if (reason === null) return; // cancel
-    const { error } = await supabase
-      .from("parental_consents")
-      .update({
-        revoked_at: new Date().toISOString(),
-        revoked_reason: reason || null,
-      })
-      .eq("id", id);
-    if (error) {
-      toast.error("Échec de la révocation", { description: error.message });
-      return;
+    if (busy) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase
+        .from("parental_consents")
+        .update({
+          revoked_at: new Date().toISOString(),
+          revoked_reason: reason || null,
+        })
+        .eq("id", id);
+      if (error) {
+        toast.error("Échec de la révocation", { description: error.message });
+        return;
+      }
+      const { data: u } = await supabase.auth.getUser();
+      if (u?.user) {
+        await supabase.from("audit_log").insert({
+          actor_id: u.user.id,
+          actor_role: "guardian",
+          action: "parental_consent_revoked",
+          table_name: "parental_consents",
+          record_id: id,
+          after_data: { revoked_reason: reason || null },
+        });
+      }
+      toast.success("Consentement révoqué");
+      load();
+    } finally {
+      setBusy(false);
     }
-    // Audit (best-effort, ne bloque pas l'UX).
-    const { data: u } = await supabase.auth.getUser();
-    if (u?.user) {
-      await supabase.from("audit_log").insert({
-        actor_id: u.user.id,
-        actor_role: "guardian",
-        action: "parental_consent_revoked",
-        table_name: "parental_consents",
-        record_id: id,
-        after_data: { revoked_reason: reason || null },
-      });
-    }
-    toast.success("Consentement révoqué");
-    load();
   };
 
   /**
@@ -125,7 +131,10 @@ export default function MyConsents() {
   ) => {
     const { data: u } = await supabase.auth.getUser();
     if (!u?.user) return;
-    const payload: {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const payload: {
       image_rights_consent_at: string | null;
       image_rights_consent_by: string | null;
       image_rights_consent_ip: string | null;
@@ -140,30 +149,33 @@ export default function MyConsents() {
           image_rights_consent_by: null,
           image_rights_consent_ip: null,
         };
-    const { error } = await supabase
-      .from("profiles")
-      .update(payload)
-      .eq("id", minorId);
-    if (error) {
-      toast.error("Échec de la mise à jour", { description: error.message });
-      return;
+      const { error } = await supabase
+        .from("profiles")
+        .update(payload)
+        .eq("id", minorId);
+      if (error) {
+        toast.error("Échec de la mise à jour", { description: error.message });
+        return;
+      }
+      await supabase.from("audit_log").insert({
+        actor_id: u.user.id,
+        actor_role: "guardian",
+        action: nextEnabled
+          ? "parental_consent_granted"
+          : "parental_consent_revoked",
+        table_name: "profiles",
+        record_id: minorId,
+        after_data: { scope: "image_rights" },
+      });
+      toast.success(
+        nextEnabled
+          ? "Diffusion de la photo autorisée"
+          : "Diffusion de la photo retirée — photo immédiatement masquée",
+      );
+      load();
+    } finally {
+      setBusy(false);
     }
-    await supabase.from("audit_log").insert({
-      actor_id: u.user.id,
-      actor_role: "guardian",
-      action: nextEnabled
-        ? "parental_consent_granted"
-        : "parental_consent_revoked",
-      table_name: "profiles",
-      record_id: minorId,
-      after_data: { scope: "image_rights" },
-    });
-    toast.success(
-      nextEnabled
-        ? "Diffusion de la photo autorisée"
-        : "Diffusion de la photo retirée — photo immédiatement masquée",
-    );
-    load();
   };
 
   return (
@@ -208,7 +220,7 @@ export default function MyConsents() {
                     </p>
                   </div>
                   {!revoked && (
-                    <Button variant="outline" size="sm" onClick={() => revoke(c.id)}>
+                    <Button variant="outline" size="sm" disabled={busy} onClick={() => revoke(c.id)}>
                       Révoquer
                     </Button>
                   )}
@@ -234,6 +246,7 @@ export default function MyConsents() {
                   </div>
                   <Switch
                     checked={!!c.minor?.image_rights_consent_at}
+                    disabled={busy}
                     onCheckedChange={(v) =>
                       toggleImageRights(c.minor_profile_id, v)
                     }
