@@ -89,6 +89,7 @@ const Supporters = () => {
   const [search, setSearch] = useState("");
   const [teamFilter, setTeamFilter] = useState("all");
   const [playerFilter, setPlayerFilter] = useState("all");
+  const [clubFilter, setClubFilter] = useState("all");
   const [showCreateSupporter, setShowCreateSupporter] = useState(false);
   const [editingSupporter, setEditingSupporter] = useState<any>(null);
   const [collapsedPlayers, setCollapsedPlayers] = useState<Record<string, boolean>>(() => {
@@ -294,6 +295,14 @@ const Supporters = () => {
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [supporters]);
 
+  const uniqueClubs = useMemo(() => {
+    const map = new Map<string, string>();
+    supporters.forEach((s) => {
+      s.players.forEach((p) => { if (p.club_id && p.club_name) map.set(p.club_id, p.club_name); });
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+  }, [supporters]);
+
   const uniquePlayers = useMemo(() => {
     const map = new Map<string, string>();
     supporters.forEach((s) => {
@@ -306,10 +315,12 @@ const Supporters = () => {
   }, [supporters, teamFilter]);
 
   // Reset cascading filters
+  useEffect(() => { setTeamFilter("all"); setPlayerFilter("all"); }, [clubFilter]);
   useEffect(() => { setPlayerFilter("all"); }, [teamFilter]);
 
   const filteredSupporters = useMemo(() => {
     return supporters.filter((s) => {
+      if (clubFilter !== "all" && !s.players.some((p) => p.club_id === clubFilter)) return false;
       if (teamFilter !== "all" && !s.players.some((p) => p.team_id === teamFilter)) return false;
       if (playerFilter !== "all" && !s.players.some((p) => p.id === playerFilter)) return false;
       if (search.trim()) {
@@ -488,6 +499,15 @@ const Supporters = () => {
           {canCreate && currentRole?.club_id && (
             <AddEntityButton type="supporter" label="Ajouter un supporter" onClick={() => setShowCreateSupporter(true)} />
           )}
+          {currentRole?.role === "admin" && (
+            <AddEntityButton
+              type="supporter"
+              label="Ajouter un supporter"
+              onClick={() => setShowCreateSupporter(true)}
+              disabled={clubFilter === "all"}
+              disabledReason="Sélectionnez un club spécifique dans le filtre pour ajouter un supporter."
+            />
+          )}
         </div>
 
         {/* Search & Filters */}
@@ -501,6 +521,17 @@ const Supporters = () => {
               className="pl-10"
             />
           </div>
+          <Select value={clubFilter} onValueChange={setClubFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Tous les clubs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les clubs</SelectItem>
+              {uniqueClubs.map(([id, name]) => (
+                <SelectItem key={id} value={id}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Toutes les équipes" />
@@ -745,6 +776,15 @@ const Supporters = () => {
           open={showCreateSupporter}
           onOpenChange={setShowCreateSupporter}
           clubId={currentRole.club_id}
+          onSuccess={fetchSupporters}
+        />
+      )}
+
+      {currentRole?.role === "admin" && clubFilter !== "all" && (
+        <CreateSupporterModal
+          open={showCreateSupporter}
+          onOpenChange={setShowCreateSupporter}
+          clubId={clubFilter}
           onSuccess={fetchSupporters}
         />
       )}
