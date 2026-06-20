@@ -303,11 +303,18 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
     queryClient.setQueryData(["team-objectives", teamId], [...reordered.map((o, i) => ({ ...o, order_index: i })), ...finalizedObjectives]);
 
     // Persist
-    for (let i = 0; i < reordered.length; i++) {
-      await (supabase as any)
-        .from("team_objectives")
-        .update({ order_index: i })
-        .eq("id", reordered[i].id);
+    try {
+      for (let i = 0; i < reordered.length; i++) {
+        const { error } = await (supabase as any)
+          .from("team_objectives")
+          .update({ order_index: i })
+          .eq("id", reordered[i].id);
+        if (error) throw error;
+      }
+    } catch (e) {
+      console.error("Reorder failed:", e);
+      toast.error("Échec de l'enregistrement de l'ordre");
+      queryClient.invalidateQueries({ queryKey: ["team-objectives", teamId] });
     }
   };
 
