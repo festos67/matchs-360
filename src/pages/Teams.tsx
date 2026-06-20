@@ -282,8 +282,16 @@ const Teams = () => {
                   : "Vos équipes"}
             </p>
           </div>
-          {(isAdmin || currentRole?.role === "club_admin") && (
+          {currentRole?.role === "club_admin" && currentRole?.club_id && (
             <AddEntityButton type="team" onClick={() => setShowCreateTeam(true)} />
+          )}
+          {currentRole?.role === "admin" && (
+            <AddEntityButton
+              type="team"
+              onClick={() => setShowCreateTeam(true)}
+              disabled={clubFilter === "all"}
+              disabledReason="Sélectionnez un club spécifique dans le filtre pour ajouter une équipe."
+            />
           )}
         </div>
 
@@ -588,6 +596,14 @@ const Teams = () => {
           open={showCreateTeam}
           onOpenChange={setShowCreateTeam}
           clubId={currentRole.club_id}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["teams"] })}
+        />
+      )}
+      {showCreateTeam && currentRole?.role === "admin" && clubFilter !== "all" && (
+        <CreateTeamModal
+          open={showCreateTeam}
+          onOpenChange={setShowCreateTeam}
+          clubId={clubFilter}
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ["teams"] })}
         />
       )}
