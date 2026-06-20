@@ -81,7 +81,7 @@ interface TeamMember {
   id: string;
   member_type: "coach" | "player";
   coach_role: "referent" | "assistant" | null;
-  profile: { id: string; first_name: string | null; last_name: string | null; nickname: string | null; photo_url: string | null };
+  profile: { id: string; first_name: string | null; last_name: string | null; nickname: string | null; photo_url: string | null; photo_is_minor?: boolean | null; image_rights_consent_at?: string | null; birthdate?: string | null };
 }
 
 interface Skill {
@@ -166,7 +166,7 @@ export default function TeamDetail() {
   const { data: members = [], isLoading: loadingMembers } = useQuery({
     queryKey: ["team-members", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("team_members").select("id, member_type, coach_role, profile:profiles!inner(id, first_name, last_name, nickname, photo_url, deleted_at)").eq("team_id", id!).eq("is_active", true).is("profile.deleted_at", null);
+      const { data, error } = await supabase.from("team_members").select("id, member_type, coach_role, profile:profiles!inner(id, first_name, last_name, nickname, photo_url, photo_is_minor, image_rights_consent_at, birthdate, deleted_at)").eq("team_id", id!).eq("is_active", true).is("profile.deleted_at", null);
       if (error) throw error;
       return (data || []) as TeamMember[];
     },
@@ -487,7 +487,7 @@ export default function TeamDetail() {
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {players.map((player, index) => (
                   <div key={player.id} className="animate-fade-in-up opacity-0 group relative" style={{ animationDelay: `${index * 0.05}s` }}>
-                    <CircleAvatar shape="circle" name={getMemberName(player)} imageUrl={player.profile.photo_url} color={teamColor} size="md" onClick={isPlayerViewing ? (player.profile.id === user?.id ? () => navigate(`/players/${player.profile.id}`) : undefined) : () => navigate(`/players/${player.profile.id}`)} className={isPlayerViewing && player.profile.id !== user?.id ? "cursor-default" : ""} />
+                    <CircleAvatar shape="circle" name={getMemberName(player)} profile={player.profile} color={teamColor} size="md" onClick={isPlayerViewing ? (player.profile.id === user?.id ? () => navigate(`/players/${player.profile.id}`) : undefined) : () => navigate(`/players/${player.profile.id}`)} className={isPlayerViewing && player.profile.id !== user?.id ? "cursor-default" : ""} />
                     {canMutatePlayers && (
                       <Button
                         variant="secondary"

@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { usePhotoUrl } from "@/hooks/usePhotoUrl";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -82,6 +83,7 @@ const roleConfig: Record<string, { label: string; icon: React.ElementType; color
 
 export default function Profile() {
   const { user, profile, roles, currentRole, loading: authLoading, refreshProfile } = useAuth();
+  const resolvedPhotoUrl = usePhotoUrl(profile as any);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -189,7 +191,6 @@ export default function Profile() {
       setFirstName(profile.first_name || "");
       setLastName(profile.last_name || "");
       setNickname(profile.nickname || "");
-      setPhotoPreview(profile.photo_url || null);
       setImageRightsConsent(!!profile.image_rights_consent_at);
     }
   }, [profile]);
@@ -442,7 +443,7 @@ export default function Profile() {
             <div className="flex flex-col items-center gap-2">
               <div className="relative group">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={photoPreview || undefined} />
+                  <AvatarImage src={(photoPreview ?? (removePhoto ? null : resolvedPhotoUrl)) || undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary text-2xl font-medium">
                     {getInitials()}
                   </AvatarFallback>
