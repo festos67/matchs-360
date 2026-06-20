@@ -474,11 +474,11 @@ export default function AdminUsers() {
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[30%]">Identité</TableHead>
-                <TableHead className="w-[30%]">Rôles</TableHead>
-                <TableHead className="w-[10%]">Email</TableHead>
+                <TableHead className="w-[24%]">Identité</TableHead>
+                <TableHead className="w-[26%]">Rôles</TableHead>
+                <TableHead className="w-[12%]">Email</TableHead>
                 <TableHead className="w-[10%]">Statut</TableHead>
-                <TableHead className="text-right w-[20%]">Actions</TableHead>
+                <TableHead className="text-right w-[28%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -541,36 +541,37 @@ export default function AdminUsers() {
                   </TableCell>
                   <TableCell>
                     {user.email_confirmed_at ? (
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" variant="secondary">
+                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap" variant="secondary">
                         <Mail className="w-3 h-3 mr-1" />
                         Confirmé
                       </Badge>
                     ) : (
-                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" variant="secondary">
+                      <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 whitespace-nowrap" variant="secondary">
                         <MailWarning className="w-3 h-3 mr-1" />
                         En attente
                       </Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge className={statusColors[user.status]} variant="secondary">
+                    <Badge className={`${statusColors[user.status]} whitespace-nowrap`} variant="secondary">
                       {user.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end items-center gap-1 flex-nowrap">
                       <Button
-                        size="sm"
+                        size="icon"
                         variant="ghost"
+                        className="h-8 w-8 shrink-0"
                         onClick={() => setEditingUser(user)}
                         title="Modifier"
                       >
                         <Edit className="w-4 h-4 text-blue-500" />
                       </Button>
                       <Button
-                        size="sm"
+                        size="icon"
                         variant="ghost"
-                        className="text-orange-600 hover:text-orange-700"
+                        className="h-8 w-8 shrink-0 text-orange-600 hover:text-orange-700"
                         onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
                         disabled={actionLoading === user.id}
                         title="Réinitialiser le mot de passe"
@@ -580,9 +581,9 @@ export default function AdminUsers() {
                       {/* Promote to Super Admin - only visible to super admin, hidden if user already admin */}
                       {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
-                          className="text-amber-600 hover:text-amber-700"
+                          className="h-8 w-8 shrink-0 text-amber-600 hover:text-amber-700"
                           onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
                           disabled={actionLoading === user.id}
                           title="Promouvoir Super Admin"
@@ -593,9 +594,9 @@ export default function AdminUsers() {
                       {user.status === "Invité" && (
                         <>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
-                            className="text-blue-600 hover:text-blue-700"
+                            className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
                             onClick={() => handleResendInvitation(user)}
                             disabled={actionLoading === user.id}
                             title="Renvoyer l'invitation"
@@ -603,9 +604,9 @@ export default function AdminUsers() {
                             <Mail className="w-4 h-4" />
                           </Button>
                           <Button
-                            size="sm"
+                            size="icon"
                             variant="ghost"
-                            className="text-green-600 hover:text-green-700"
+                            className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700"
                             onClick={() => handleForceValidate(user)}
                             disabled={actionLoading === user.id}
                             title="Valider manuellement"
@@ -616,9 +617,9 @@ export default function AdminUsers() {
                       )}
                       {user.status === "Suspendu" ? (
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
-                          className="text-blue-600 hover:text-blue-700"
+                          className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
                           onClick={() => handleRestore(user)}
                           disabled={actionLoading === user.id}
                           title="Réactiver"
@@ -627,9 +628,9 @@ export default function AdminUsers() {
                         </Button>
                       ) : (
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="ghost"
-                          className="text-destructive hover:text-destructive"
+                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
                           onClick={() => setDeleteConfirm(user)}
                           disabled={actionLoading === user.id}
                           title="Suspendre"
