@@ -81,6 +81,8 @@ export default function PendingApproval() {
 
     if (error) {
       console.error("Error fetching role request:", error);
+      setLoading(false);
+      return;
     }
 
     setRoleRequest(data);
