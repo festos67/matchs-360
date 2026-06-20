@@ -2123,7 +2123,7 @@ export type Database = {
       }
       save_framework_atomic: {
         Args: { p_framework_id: string; p_name: string; p_themes: Json }
-        Returns: undefined
+        Returns: Json
       }
       soft_delete_club: { Args: { _club_id: string }; Returns: undefined }
       team_has_minors: { Args: { _team_id: string }; Returns: boolean }

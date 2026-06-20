@@ -217,12 +217,19 @@ export default function ClubFrameworkEditor() {
 
     try {
       // The RPC archives the current framework and creates a fresh active version.
-      await saveFrameworkChanges(framework.id, confirmedName, pendingEditThemes);
+      const saved = await saveFrameworkChanges(framework.id, confirmedName, pendingEditThemes);
 
       toast.success("Référentiel sauvegardé avec succès");
       setPendingEditThemes(null);
-      setFrameworkName(confirmedName);
-      await fetchData();
+      if (saved) {
+        const { themes: savedThemes, ...savedFramework } = saved;
+        setFramework(savedFramework as typeof framework);
+        setFrameworkName(savedFramework.name);
+        setThemes(savedThemes as Theme[]);
+      } else {
+        setFrameworkName(confirmedName);
+        await fetchData();
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: unknown) {
       console.error("Error saving framework:", error);

@@ -314,7 +314,7 @@ export default function TeamDetail() {
     setSaving(true);
 
     try {
-      await saveFrameworkChanges(
+      const saved = await saveFrameworkChanges(
         framework.id,
         confirmedName,
         pendingEditThemes.map((t) => ({
@@ -335,7 +335,11 @@ export default function TeamDetail() {
 
       toast.success("Référentiel sauvegardé avec succès");
       setPendingEditThemes(null);
-      queryClient.invalidateQueries({ queryKey: ["team-framework", id] });
+      if (saved) {
+        queryClient.setQueryData(["team-framework", id], saved as unknown as Framework);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["team-framework", id] });
+      }
       setTimeout(() => {
         frameworkRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 300);
