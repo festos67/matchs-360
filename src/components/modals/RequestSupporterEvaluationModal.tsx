@@ -143,6 +143,13 @@ export function RequestSupporterEvaluationModal({
 
       if (error) throw error;
 
+      // Notifier les supporters par email (best-effort)
+      supabase.functions
+        .invoke("notify-supporter-evaluation-request", {
+          body: { playerId, supporterIds: selectedSupporters },
+        })
+        .catch((e) => console.warn("notify supporter eval failed", e));
+
       toast.success(`Demande${selectedSupporters.length > 1 ? "s" : ""} envoyée${selectedSupporters.length > 1 ? "s" : ""} avec succès`);
       onOpenChange(false);
       onSuccess?.();

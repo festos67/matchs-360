@@ -135,6 +135,11 @@ export function SupporterRequestsPanel({
         }
       } else {
         toast.success("Demande relancée avec succès");
+        supabase.functions
+          .invoke("notify-supporter-evaluation-request", {
+            body: { playerId, supporterIds: [supporterId] },
+          })
+          .catch((e) => console.warn("notify supporter eval failed", e));
         fetchRequests();
       }
     } catch (error) {
