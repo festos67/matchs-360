@@ -99,14 +99,15 @@ export default function Evaluations() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const teamId = searchParams.get("team_id");
-  const canCreate = roles.some((r) =>
-    ["admin", "club_admin", "coach"].includes(r.role)
-  );
-
-  // A player who is not also coach/admin/club_admin must not see supporter debriefs
-  const isPlayerOnly =
-    roles.length > 0 &&
-    roles.every((r) => r.role === "player");
+  // Vue "fidèle au profil actif" : un joueur/supporter ne voit que ses propres
+  // débriefs (pas de filtres transverses ni d'action de création), même si le
+  // compte possède aussi un rôle admin/coach (ex. super-admin en profil joueur).
+  const isPlayerView =
+    currentRole?.role === "player" || currentRole?.role === "supporter";
+  // Création réservée aux profils gestionnaires ACTIFS (pas seulement "possède le rôle")
+  const canCreate =
+    !isPlayerView &&
+    roles.some((r) => ["admin", "club_admin", "coach"].includes(r.role));
 
   // Per-section filters
   const [coachSearch, setCoachSearch] = useState("");
@@ -473,35 +474,39 @@ export default function Evaluations() {
               className="pl-10"
             />
           </div>
-          <Select value={params.teamValue} onValueChange={params.setTeamValue}>
-            <SelectTrigger className="w-full sm:w-[220px]">
-              <SelectValue placeholder="Toutes les équipes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les équipes</SelectItem>
-              {teams.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={params.secondValue}
-            onValueChange={params.setSecondValue}
-          >
-            <SelectTrigger className="w-full sm:w-[220px]">
-              <SelectValue placeholder={params.secondLabel} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{params.secondLabel}</SelectItem>
-              {params.secondOptions.map(([id, name]) => (
-                <SelectItem key={id} value={id}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!isPlayerView && (
+            <>
+              <Select value={params.teamValue} onValueChange={params.setTeamValue}>
+                <SelectTrigger className="w-full sm:w-[220px]">
+                  <SelectValue placeholder="Toutes les équipes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les équipes</SelectItem>
+                  {teams.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={params.secondValue}
+                onValueChange={params.setSecondValue}
+              >
+                <SelectTrigger className="w-full sm:w-[220px]">
+                  <SelectValue placeholder={params.secondLabel} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{params.secondLabel}</SelectItem>
+                  {params.secondOptions.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
         </div>
         {params.list.length === 0 ? (
           <div className="glass-card p-8 text-center text-muted-foreground text-sm">
@@ -531,9 +536,13 @@ export default function Evaluations() {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-display font-bold">Débriefs</h1>
+          <h1 className="text-3xl font-display font-bold">
+            {isPlayerView ? "Mes Débriefs" : "Débriefs"}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Historique des débriefs, classés par catégorie
+            {isPlayerView
+              ? "Vos débriefs et auto-débriefs"
+              : "Historique des débriefs, classés par catégorie"}
           </p>
         </div>
         {canCreate && (
@@ -618,7 +627,7 @@ export default function Evaluations() {
             open: selfOpen,
             setOpen: setSelfOpen,
           })}
-          {!isPlayerOnly && renderSection({
+          {!isPlayerView && renderSection({
             title: "Débriefs supporters",
             icon: <Heart className="w-5 h-5 text-pink-500" />,
             list: filteredSupp,
