@@ -68,9 +68,6 @@ export default function InviteAccept() {
   const consumedRef = useRef(false);
 
   useEffect(() => {
-    // R3 (2026-04-27) — Refactor déterministe (élimine régression listener
-    // partiellement permissif). Flow synchrone basé sur extraction du hash
-    // + setSession explicite. Voir docs/auth-flows.md.
     if (consumedRef.current) return;
     consumedRef.current = true;
 
@@ -78,112 +75,64 @@ export default function InviteAccept() {
 
     (async () => {
       try {
-        // ÉTAPE 1 — Extraire et valider le hash AVANT toute opération auth.
+        // 1. Si des tokens implicites sont dans le hash, établir la session
+        //    explicitement (flux implicit #access_token). On nettoie le hash
+        //    avant pour éviter le double-traitement par le SDK.
         const hash = window.location.hash || "";
         const hashParams = new URLSearchParams(
           hash.startsWith("#") ? hash.slice(1) : hash,
         );
-
-        const errorDescription = hashParams.get("error_description");
-        if (errorDescription) {
-          if (!cancelled) {
-            setError(errorDescription);
-            setChecking(false);
-          }
-          return;
-        }
-
-        const tokenType = hashParams.get("type");
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
 
-        if (tokenType !== "invite") {
+        if (accessToken && refreshToken) {
+          window.history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search,
+          );
+          await supabase.auth
+            .setSession({ access_token: accessToken, refresh_token: refreshToken })
+            .catch(() => {});
+        }
+
+        // 2. Se fier à la session réellement établie (par le hash OU par le
+        //    detectSessionInUrl du SDK). Laisser au SDK le temps de finir.
+        let session = (await supabase.auth.getSession()).data.session;
+        if (!session) {
+          await new Promise((r) => setTimeout(r, 800));
+          session = (await supabase.auth.getSession()).data.session;
+        }
+
+        if (!session) {
           if (!cancelled) {
             setError(
-              "Ce lien n'est pas une invitation valide. Veuillez ouvrir le lien reçu par email.",
+              "Ce lien d'invitation a déjà été utilisé ou a expiré. Si vous avez déjà défini votre mot de passe, connectez-vous ; sinon demandez un nouveau lien.",
             );
             setChecking(false);
           }
           return;
         }
 
-        if (!accessToken || !refreshToken) {
-          if (!cancelled) {
-            setError(
-              "Lien d'invitation incomplet. Veuillez demander une nouvelle invitation.",
-            );
-            setChecking(false);
-          }
-          return;
-        }
-
-        // ÉTAPE 3 — Nettoyer le hash AVANT setSession pour empêcher le SDK
-        // Supabase d'auto-détecter le hash et de fire un SIGNED_IN parasite
-        // intercepté par le listener global du useAuth.
-        window.history.replaceState(
-          null,
-          "",
-          window.location.pathname + window.location.search,
-        );
-
-        // ÉTAPE 4 — Établir explicitement la session invite.
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-        if (sessionError || !sessionData?.session) {
-          if (!cancelled) {
-            setError(
-              "Impossible d'établir la session d'invitation. Le lien est peut-être expiré.",
-            );
-            setChecking(false);
-          }
-          return;
-        }
-
-        // ÉTAPE 5 — Validation côté serveur : vérifier qu'une invitation
-        // pending existe pour l'email de la session établie.
-        const sessionEmail = sessionData.session.user.email
-          ?.toLowerCase()
-          .trim();
-        if (!sessionEmail) {
-          await supabase.auth.signOut({ scope: "global" }).catch(() => {});
-          if (!cancelled) {
-            setError("Session d'invitation sans email. Lien malformé.");
-            setChecking(false);
-          }
-          return;
-        }
-
-        const { data: invitations, error: invError } = await supabase
-          .from("invitations")
-          .select("id, email, status, expires_at")
-          .eq("status", "pending")
-          .ilike("email", sessionEmail)
-          .limit(1);
-
-        if (invError) {
-          // Lookup non bloquant (RLS peut filtrer pour utilisateur fraîchement
-          // créé), on log et on continue avec la session Supabase valide.
-          console.warn("Invite lookup failed (non-blocking):", invError);
-        } else if (!invitations || invitations.length === 0) {
-          await supabase.auth.signOut({ scope: "global" }).catch(() => {});
-          if (!cancelled) {
-            setError(
-              "Aucune invitation active pour cet email. Veuillez demander une nouvelle invitation.",
-            );
-            setChecking(false);
-          }
-          return;
-        }
-
-        // Si l'utilisateur a déjà défini son mot de passe (ré-acceptation),
-        // rediriger directement vers le dashboard.
-        if (sessionData.session.user?.user_metadata?.password_set) {
+        // 3. Si le mot de passe est déjà défini (ré-acceptation) → dashboard.
+        if (session.user?.user_metadata?.password_set) {
           navigate("/dashboard");
           return;
+        }
+
+        // 4. Vérif d'invitation NON bloquante (le rôle est déjà créé côté
+        //    serveur ; on ne déconnecte jamais sur un échec de lookup).
+        try {
+          const email = session.user.email?.toLowerCase().trim();
+          if (email) {
+            await supabase
+              .from("invitations")
+              .select("id")
+              .ilike("email", email)
+              .limit(1);
+          }
+        } catch (e) {
+          console.warn("Invite lookup non-blocking error:", e);
         }
 
         if (!cancelled) setChecking(false);
@@ -272,6 +221,9 @@ export default function InviteAccept() {
           <p className="text-muted-foreground mb-8">{error}</p>
           <Button onClick={() => navigate("/auth")}>
             Aller à la page de connexion
+          </Button>
+          <Button variant="ghost" className="mt-3" onClick={() => navigate("/auth")}>
+            J'ai déjà un compte — me connecter
           </Button>
         </div>
       </div>
