@@ -62,7 +62,7 @@ interface CoachData {
 export default function CoachDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { hasAdminRole, currentRole, user } = useAuth();
+  const { isAdmin, currentRole, user } = useAuth();
 
   const [coach, setCoach] = useState<CoachData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ export default function CoachDetail() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [archiveConfirmText, setArchiveConfirmText] = useState("");
 
-  const canEdit = hasAdminRole || currentRole?.role === "club_admin";
+  const canEdit = isAdmin || currentRole?.role === "club_admin";
   const isOwnProfile = user?.id === id;
 
   useEffect(() => {

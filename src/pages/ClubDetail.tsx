@@ -114,7 +114,7 @@ const currentSeason = getCurrentSeason();
 
 export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, profile, currentRole, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  const { user, profile, currentRole, loading: authLoading, isAdmin, roles } = useAuth();
   const navigate = useNavigate();
   const { canDo, loading: planLoading } = usePlan();
   const canVersionFramework = planLoading ? true : canDo("can_version_framework");

@@ -95,7 +95,7 @@ export interface ReferentCoach {
 // ---- Hook ----
 
 export function usePlayerData(playerId: string | undefined) {
-  const { user, hasAdminRole: isAdmin, roles, currentRole } = useAuth();
+  const { user, isAdmin, roles, currentRole } = useAuth();
 
   // 1. Player profile
   const playerQuery = useQuery({
