@@ -46,6 +46,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
 import { Crown } from "lucide-react";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
+import { Badge } from "@/components/ui/badge";
 import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal";
 import { CertificatePlayerPickerDialog } from "@/components/certificate/CertificatePlayerPickerDialog";
 
@@ -183,6 +184,11 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
             >
               <item.icon className="w-4 h-4" />
               <span>{item.label}</span>
+              {item.path === "/stats" && (
+                <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0 h-4 font-medium">
+                  Bientôt
+                </Badge>
+              )}
             </Link>
           );
         })}
