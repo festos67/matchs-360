@@ -33,6 +33,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -559,84 +560,125 @@ export default function AdminUsers() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-1 flex-nowrap">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 shrink-0"
-                        onClick={() => setEditingUser(user)}
-                        title="Modifier"
-                      >
-                        <Edit className="w-4 h-4 text-blue-500" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 shrink-0 text-orange-600 hover:text-orange-700"
-                        onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
-                        disabled={actionLoading === user.id}
-                        title="Réinitialiser le mot de passe"
-                      >
-                        <KeyRound className="w-4 h-4" />
-                      </Button>
-                      {/* Promote to Super Admin - only visible to super admin, hidden if user already admin */}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => setEditingUser(user)}
+                            aria-label="Modifier"
+                          >
+                            <Edit className="w-4 h-4 text-blue-500" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Modifier</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 shrink-0 text-orange-600 hover:text-orange-700"
+                            onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
+                            disabled={actionLoading === user.id}
+                            aria-label="Réinitialiser le mot de passe"
+                          >
+                            <KeyRound className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Réinitialiser le mot de passe</TooltipContent>
+                      </Tooltip>
+
                       {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 shrink-0 text-amber-600 hover:text-amber-700"
-                          onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
-                          disabled={actionLoading === user.id}
-                          title="Promouvoir Super Admin"
-                        >
-                          <ShieldPlus className="w-4 h-4" />
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 shrink-0 text-amber-600 hover:text-amber-700"
+                              onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
+                              disabled={actionLoading === user.id}
+                              aria-label="Promouvoir Super Admin"
+                            >
+                              <ShieldPlus className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Promouvoir Super Admin</TooltipContent>
+                        </Tooltip>
                       )}
+
                       {user.status === "Invité" && (
                         <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
-                            onClick={() => handleResendInvitation(user)}
-                            disabled={actionLoading === user.id}
-                            title="Renvoyer l'invitation"
-                          >
-                            <Mail className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700"
-                            onClick={() => handleForceValidate(user)}
-                            disabled={actionLoading === user.id}
-                            title="Valider manuellement"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
+                                onClick={() => handleResendInvitation(user)}
+                                disabled={actionLoading === user.id}
+                                aria-label="Renvoyer l'invitation"
+                              >
+                                <Mail className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Renvoyer l'invitation</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700"
+                                onClick={() => handleForceValidate(user)}
+                                disabled={actionLoading === user.id}
+                                aria-label="Valider manuellement"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Valider manuellement</TooltipContent>
+                          </Tooltip>
                         </>
                       )}
+
+                      {/* Séparateur + marge de sécurité avant l'action de cycle de vie */}
+                      <div className="mx-2 h-6 w-px bg-border" aria-hidden="true" />
+
                       {user.status === "Suspendu" ? (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
-                          onClick={() => handleRestore(user)}
-                          disabled={actionLoading === user.id}
-                          title="Réactiver"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
+                              onClick={() => handleRestore(user)}
+                              disabled={actionLoading === user.id}
+                              aria-label="Réactiver"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Réactiver</TooltipContent>
+                        </Tooltip>
                       ) : (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteConfirm(user)}
-                          disabled={actionLoading === user.id}
-                          title="Suspendre"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteConfirm(user)}
+                              disabled={actionLoading === user.id}
+                              aria-label="Suspendre"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Suspendre</TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
                   </TableCell>

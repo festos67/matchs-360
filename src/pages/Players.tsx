@@ -52,6 +52,7 @@ import { Search, Users, Loader2, User, ChevronDown, Plus, Pencil } from "lucide-
 import { Button } from "@/components/ui/button";
 import { CreatePlayerModal } from "@/components/modals/CreatePlayerModal";
 import { EditPlayerModal } from "@/components/modals/EditPlayerModal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PlayerData {
   id: string;
@@ -505,16 +506,23 @@ const Players = () => {
       )}
       {(isAdmin || currentRole?.role === "club_admin") && (
         <TableCell className="text-right">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditingPlayer(player);
-            }}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingPlayer(player);
+                }}
+                aria-label="Modifier le joueur"
+              >
+                <Pencil className="w-4 h-4" />
+                <span className="sr-only">Modifier le joueur</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Modifier le joueur</TooltipContent>
+          </Tooltip>
         </TableCell>
       )}
     </TableRow>
