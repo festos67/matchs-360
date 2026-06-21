@@ -81,7 +81,7 @@ const NO_TEAM_KEY = "__no_team__";
 const NO_CLUB_KEY = "__no_club__";
 
 const Supporters = () => {
-  const { hasAdminRole: isAdmin, currentRole } = useAuth();
+  const { isAdmin, currentRole } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [supporters, setSupporters] = useState<SupporterData[]>([]);

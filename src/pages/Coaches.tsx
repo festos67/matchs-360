@@ -78,7 +78,7 @@ interface CoachData {
 }
 
 const Coaches = () => {
-  const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
+  const { isAdmin, currentRole, user } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const [coaches, setCoaches] = useState<CoachData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -447,8 +447,9 @@ const Coaches = () => {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Tooltip>
+                           <TableCell>
+                             {(isAdmin || currentRole?.role === "club_admin") && (
+                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button
                                   variant="ghost"
@@ -463,9 +464,10 @@ const Coaches = () => {
                                   <span className="sr-only">Modifier le coach</span>
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Modifier le coach</TooltipContent>
-                            </Tooltip>
-                          </TableCell>
+                               <TooltipContent>Modifier le coach</TooltipContent>
+                             </Tooltip>
+                             )}
+                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

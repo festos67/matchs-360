@@ -91,7 +91,7 @@ const getCurrentSeason = () => {
 };
 
 const Teams = () => {
-  const { user, hasAdminRole: isAdmin, currentRole, roles } = useAuth();
+  const { user, isAdmin, currentRole, roles } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");

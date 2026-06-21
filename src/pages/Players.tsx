@@ -87,7 +87,7 @@ const STORAGE_KEY = "players-collapsed-teams";
 const STORAGE_KEY_CLUBS = "players-collapsed-clubs";
 
 const Players = () => {
-  const { hasAdminRole: isAdmin, currentRole, user } = useAuth();
+  const { isAdmin, currentRole, user } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [players, setPlayers] = useState<PlayerData[]>([]);
