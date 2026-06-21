@@ -46,6 +46,7 @@ import { EditCoachModal } from "@/components/modals/EditCoachModal";
 import { CreateCoachModal } from "@/components/modals/CreateCoachModal";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Collapsible,
   CollapsibleContent,
@@ -447,17 +448,23 @@ const Coaches = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEdit(coach);
-                              }}
-                            >
-                              <Pencil className="w-4 h-4" />
-                              <span className="sr-only">Éditer</span>
-                            </Button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit(coach);
+                                  }}
+                                  aria-label="Modifier le coach"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                  <span className="sr-only">Modifier le coach</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Modifier le coach</TooltipContent>
+                            </Tooltip>
                           </TableCell>
                         </TableRow>
                       ))}
