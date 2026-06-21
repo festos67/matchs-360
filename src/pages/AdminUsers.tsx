@@ -341,6 +341,131 @@ export default function AdminUsers() {
     return user.email.split("@")[0];
   };
 
+  const renderActions = (user: AdminUser) => (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 shrink-0"
+            onClick={() => setEditingUser(user)}
+            aria-label="Modifier"
+          >
+            <Edit className="w-4 h-4 text-blue-500" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Modifier</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 shrink-0 text-orange-600 hover:text-orange-700"
+            onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
+            disabled={actionLoading === user.id}
+            aria-label="Réinitialiser le mot de passe"
+          >
+            <KeyRound className="w-4 h-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Réinitialiser le mot de passe</TooltipContent>
+      </Tooltip>
+
+      {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 shrink-0 text-amber-600 hover:text-amber-700"
+              onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
+              disabled={actionLoading === user.id}
+              aria-label="Promouvoir Super Admin"
+            >
+              <ShieldPlus className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Promouvoir Super Admin</TooltipContent>
+        </Tooltip>
+      )}
+
+      {user.status === "Invité" && (
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
+                onClick={() => handleResendInvitation(user)}
+                disabled={actionLoading === user.id}
+                aria-label="Renvoyer l'invitation"
+              >
+                <Mail className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Renvoyer l'invitation</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700"
+                onClick={() => handleForceValidate(user)}
+                disabled={actionLoading === user.id}
+                aria-label="Valider manuellement"
+              >
+                <CheckCircle className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Valider manuellement</TooltipContent>
+          </Tooltip>
+        </>
+      )}
+
+      {/* Séparateur + marge de sécurité avant l'action de cycle de vie */}
+      <div className="mx-2 h-6 w-px bg-border" aria-hidden="true" />
+
+      {user.status === "Suspendu" ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
+              onClick={() => handleRestore(user)}
+              disabled={actionLoading === user.id}
+              aria-label="Réactiver"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Réactiver</TooltipContent>
+        </Tooltip>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleteConfirm(user)}
+              disabled={actionLoading === user.id}
+              aria-label="Suspendre"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Suspendre</TooltipContent>
+        </Tooltip>
+      )}
+    </>
+  );
+
   // Extract unique clubs, coaches, players for filters
   const uniqueClubs = Array.from(new Map(
     users.flatMap(u => u.roles.filter(r => r.club_name).map(r => [r.club_id!, r.club_name!]))
@@ -470,8 +595,8 @@ export default function AdminUsers() {
           <span>{users.filter((u) => u.status === "Suspendu").length} suspendus</span>
         </div>
 
-        {/* Table */}
-        <div className="rounded-lg border bg-card overflow-x-auto">
+        {/* Table (desktop ≥ lg) */}
+        <div className="hidden lg:block rounded-lg border bg-card overflow-x-auto">
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
@@ -560,126 +685,7 @@ export default function AdminUsers() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-1 flex-nowrap">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 shrink-0"
-                            onClick={() => setEditingUser(user)}
-                            aria-label="Modifier"
-                          >
-                            <Edit className="w-4 h-4 text-blue-500" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Modifier</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8 shrink-0 text-orange-600 hover:text-orange-700"
-                            onClick={() => { setResetPasswordUser(user); setNewPassword(""); }}
-                            disabled={actionLoading === user.id}
-                            aria-label="Réinitialiser le mot de passe"
-                          >
-                            <KeyRound className="w-4 h-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Réinitialiser le mot de passe</TooltipContent>
-                      </Tooltip>
-
-                      {isSuperAdmin && !user.roles.some(r => r.role === "admin") && user.id !== currentUser?.id && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 shrink-0 text-amber-600 hover:text-amber-700"
-                              onClick={() => { setPromoteConfirm(user); setPromoteInput(""); }}
-                              disabled={actionLoading === user.id}
-                              aria-label="Promouvoir Super Admin"
-                            >
-                              <ShieldPlus className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Promouvoir Super Admin</TooltipContent>
-                        </Tooltip>
-                      )}
-
-                      {user.status === "Invité" && (
-                        <>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
-                                onClick={() => handleResendInvitation(user)}
-                                disabled={actionLoading === user.id}
-                                aria-label="Renvoyer l'invitation"
-                              >
-                                <Mail className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Renvoyer l'invitation</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 shrink-0 text-green-600 hover:text-green-700"
-                                onClick={() => handleForceValidate(user)}
-                                disabled={actionLoading === user.id}
-                                aria-label="Valider manuellement"
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Valider manuellement</TooltipContent>
-                          </Tooltip>
-                        </>
-                      )}
-
-                      {/* Séparateur + marge de sécurité avant l'action de cycle de vie */}
-                      <div className="mx-2 h-6 w-px bg-border" aria-hidden="true" />
-
-                      {user.status === "Suspendu" ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 shrink-0 text-blue-600 hover:text-blue-700"
-                              onClick={() => handleRestore(user)}
-                              disabled={actionLoading === user.id}
-                              aria-label="Réactiver"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Réactiver</TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => setDeleteConfirm(user)}
-                              disabled={actionLoading === user.id}
-                              aria-label="Suspendre"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Suspendre</TooltipContent>
-                        </Tooltip>
-                      )}
+                      {renderActions(user)}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -693,6 +699,87 @@ export default function AdminUsers() {
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile / tablette (< lg) : cartes empilées */}
+        <div className="lg:hidden space-y-3">
+          {users.map((user) => (
+            <div key={user.id} className="rounded-lg border bg-card p-4 space-y-3">
+              {/* Identité (tap → édition) */}
+              <div
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => setEditingUser(user)}
+              >
+                <div className="shrink-0 w-12 h-12">
+                  <CircleAvatar
+                    shape="circle"
+                    imageUrl={user.photo_url}
+                    name={getUserDisplayName(user)}
+                    size="sm"
+                    showName={false}
+                    className="[&>div:first-child]:w-12 [&>div:first-child]:h-12"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium break-words">{getUserDisplayName(user)}</div>
+                  <div className="text-sm text-muted-foreground break-all">{user.email}</div>
+                </div>
+              </div>
+
+              {/* Statut + confirmation email */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={`${statusColors[user.status]} whitespace-nowrap`} variant="secondary">
+                  {user.status}
+                </Badge>
+                {user.email_confirmed_at ? (
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap" variant="secondary">
+                    <Mail className="w-3 h-3 mr-1" />
+                    Confirmé
+                  </Badge>
+                ) : (
+                  <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 whitespace-nowrap" variant="secondary">
+                    <MailWarning className="w-3 h-3 mr-1" />
+                    En attente
+                  </Badge>
+                )}
+              </div>
+
+              {/* Rôles */}
+              <div className="flex flex-wrap gap-1">
+                {user.roles.map((role) => (
+                  <Badge
+                    key={role.id}
+                    className={roleColors[role.role] || ""}
+                    variant="secondary"
+                  >
+                    {role.role}
+                    {role.club_name && ` (${role.club_name})`}
+                  </Badge>
+                ))}
+                {user.team_memberships
+                  .filter((m) => m.is_active)
+                  .map((membership) => (
+                    <Badge key={membership.id} variant="outline" className="text-xs">
+                      {membership.member_type === "coach" ? "🏋️" : "⚽"} {membership.team_name}
+                    </Badge>
+                  ))}
+                {user.roles.length === 0 &&
+                  user.team_memberships.filter((m) => m.is_active).length === 0 && (
+                    <span className="text-muted-foreground text-sm">Aucun rôle</span>
+                  )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap items-center gap-1 pt-3 border-t border-border">
+                {renderActions(user)}
+              </div>
+            </div>
+          ))}
+          {users.length === 0 && (
+            <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+              Aucun utilisateur trouvé
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
