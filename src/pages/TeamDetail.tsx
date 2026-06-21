@@ -109,7 +109,10 @@ interface Framework {
 
 export default function TeamDetail() {
   const { id } = useParams<{ id: string }>();
-  const { user, loading: authLoading, hasAdminRole: isAdmin, roles } = useAuth();
+  // Affichage fidèle au profil ACTIF : on utilise `isAdmin` (= currentRole==='admin')
+  // et non `hasAdminRole` (capacité globale), pour que la "vue joueur" d'un
+  // super-admin masque réellement les actions de gestion. La sécurité reste RLS.
+  const { user, loading: authLoading, isAdmin, roles } = useAuth();
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const { canDo, loading: planLoading } = usePlan();
