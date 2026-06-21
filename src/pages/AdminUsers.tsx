@@ -595,8 +595,8 @@ export default function AdminUsers() {
           <span>{users.filter((u) => u.status === "Suspendu").length} suspendus</span>
         </div>
 
-        {/* Table */}
-        <div className="rounded-lg border bg-card overflow-x-auto">
+        {/* Table (desktop ≥ lg) */}
+        <div className="hidden lg:block rounded-lg border bg-card overflow-x-auto">
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
