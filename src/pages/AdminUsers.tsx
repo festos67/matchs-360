@@ -701,6 +701,87 @@ export default function AdminUsers() {
           </Table>
         </div>
 
+        {/* Mobile / tablette (< lg) : cartes empilées */}
+        <div className="lg:hidden space-y-3">
+          {users.map((user) => (
+            <div key={user.id} className="rounded-lg border bg-card p-4 space-y-3">
+              {/* Identité (tap → édition) */}
+              <div
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => setEditingUser(user)}
+              >
+                <div className="shrink-0 w-12 h-12">
+                  <CircleAvatar
+                    shape="circle"
+                    imageUrl={user.photo_url}
+                    name={getUserDisplayName(user)}
+                    size="sm"
+                    showName={false}
+                    className="[&>div:first-child]:w-12 [&>div:first-child]:h-12"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium break-words">{getUserDisplayName(user)}</div>
+                  <div className="text-sm text-muted-foreground break-all">{user.email}</div>
+                </div>
+              </div>
+
+              {/* Statut + confirmation email */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className={`${statusColors[user.status]} whitespace-nowrap`} variant="secondary">
+                  {user.status}
+                </Badge>
+                {user.email_confirmed_at ? (
+                  <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 whitespace-nowrap" variant="secondary">
+                    <Mail className="w-3 h-3 mr-1" />
+                    Confirmé
+                  </Badge>
+                ) : (
+                  <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 whitespace-nowrap" variant="secondary">
+                    <MailWarning className="w-3 h-3 mr-1" />
+                    En attente
+                  </Badge>
+                )}
+              </div>
+
+              {/* Rôles */}
+              <div className="flex flex-wrap gap-1">
+                {user.roles.map((role) => (
+                  <Badge
+                    key={role.id}
+                    className={roleColors[role.role] || ""}
+                    variant="secondary"
+                  >
+                    {role.role}
+                    {role.club_name && ` (${role.club_name})`}
+                  </Badge>
+                ))}
+                {user.team_memberships
+                  .filter((m) => m.is_active)
+                  .map((membership) => (
+                    <Badge key={membership.id} variant="outline" className="text-xs">
+                      {membership.member_type === "coach" ? "🏋️" : "⚽"} {membership.team_name}
+                    </Badge>
+                  ))}
+                {user.roles.length === 0 &&
+                  user.team_memberships.filter((m) => m.is_active).length === 0 && (
+                    <span className="text-muted-foreground text-sm">Aucun rôle</span>
+                  )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap items-center gap-1 pt-3 border-t border-border">
+                {renderActions(user)}
+              </div>
+            </div>
+          ))}
+          {users.length === 0 && (
+            <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+              Aucun utilisateur trouvé
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-muted-foreground">
             Page {pagination.page} / {totalPages}
