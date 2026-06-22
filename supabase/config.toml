@@ -59,3 +59,8 @@ verify_jwt = false
 # applicative en code (getUser + verif que l'appelant a cree la demande pending).
 [functions.notify-supporter-evaluation-request]
 verify_jwt = false
+
+# Email aux joueurs notifies d'une demande d'auto-debrief. verify_jwt = false :
+# auth applicative en code (getUser + verif que l'appelant a cree la demande pending).
+[functions.notify-self-evaluation-request]
+verify_jwt = false
