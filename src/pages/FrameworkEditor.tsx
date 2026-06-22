@@ -365,6 +365,7 @@ export default function FrameworkEditor() {
         toast.error("Échec de la réinitialisation du référentiel");
         return;
       }
+      toast.success("Référentiel actuel archivé — choisissez un nouveau modèle");
     }
     setShowTemplateSelector(true);
   };
