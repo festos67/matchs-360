@@ -23,6 +23,7 @@ import {
   calculateRadarData,
   calculateOverallAverage,
   formatAverage,
+  type ThemeScores,
 } from "@/lib/evaluation-utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -87,7 +88,7 @@ export default function SupporterPlayerView() {
       if (latest) {
         const { themes } = await loadFrameworkThemes(latest.framework_id);
         const scoreMap = new Map((latest.scores || []).map((s: any) => [s.skill_id, s]));
-        const themeScores = themes.map((t) => ({
+        const themeScores: ThemeScores[] = themes.map((t) => ({
           theme_id: t.id,
           theme_name: t.name,
           theme_color: t.color,
