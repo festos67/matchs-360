@@ -39,7 +39,7 @@
  * - Calculs de progression : voir mem://features/progression-percentage-logic
  */
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, Navigate } from "react-router-dom";
 import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star, ArrowLeft, Pencil, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
@@ -447,18 +447,8 @@ export default function PlayerDetail() {
     );
   }
 
-  if (isSupporterViewer) {
-    return (
-      <AppLayout>
-        <div className="flex flex-col items-center justify-center h-64 text-center gap-4 px-4">
-          <p className="text-muted-foreground max-w-md">
-            La fiche détaillée d'un joueur n'est pas accessible depuis votre profil supporter.
-            Pour donner votre avis, utilisez les demandes de débrief sur votre tableau de bord.
-          </p>
-          <Button onClick={() => navigate("/supporter/dashboard")}>Retour à mes joueurs</Button>
-        </div>
-      </AppLayout>
-    );
+  if (currentRole?.role === "supporter") {
+    return <Navigate to={`/supporter/players/${id}`} replace />;
   }
 
   if (!player) {
