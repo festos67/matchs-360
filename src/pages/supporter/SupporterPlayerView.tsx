@@ -101,7 +101,7 @@ export default function SupporterPlayerView() {
               comment: s?.comment ?? null,
             };
           }),
-          objective: null,
+          objective: null as string | null,
         }));
         let author: string | null = null;
         if (latest.evaluator_id) {
