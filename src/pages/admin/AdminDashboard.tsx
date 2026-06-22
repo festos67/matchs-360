@@ -50,17 +50,8 @@ import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
 
 // Phase 1 conformite mineurs : bandeau de pilotage du backfill.
-function BirthdateBackfillBanner() {
+function BirthdateBackfillBanner({ count }: { count: number }) {
   const navigate = useNavigate();
-  const { data: count } = useQuery({
-    queryKey: ["profiles-needing-birthdate-count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("profiles_needing_birthdate" as any)
-        .select("id", { count: "exact", head: true });
-      return count ?? 0;
-    },
-  });
   if (!count || count === 0) return null;
   return (
     <button
