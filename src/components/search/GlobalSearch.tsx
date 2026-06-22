@@ -473,7 +473,7 @@ export const GlobalSearch = () => {
         <Search className="w-4 h-4 text-primary" />
         <span className="text-sm text-muted-foreground flex-1 truncate min-w-0">
           <span>Rechercher</span>
-          <span className="hidden sm:inline"> un club, une équipe, un joueur...</span>
+          <span className="hidden sm:inline"> dans toute la plateforme : club, équipe, coach, joueur…</span>
         </span>
       </button>
 
@@ -484,7 +484,7 @@ export const GlobalSearch = () => {
           </VisuallyHidden>
           <Command shouldFilter={false} className="flex flex-col h-full [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
             <CommandInput
-              placeholder="Rechercher un club, une équipe, un coach, un joueur..."
+              placeholder="Rechercher dans toute la plateforme : club, équipe, coach, joueur…"
               value={query}
               onValueChange={setQuery}
             />
