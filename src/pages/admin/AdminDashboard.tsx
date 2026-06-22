@@ -217,18 +217,23 @@ const AdminDashboard = () => {
   const { data: clubs, isLoading: loadingClubsList } = useQuery({
     queryKey: ["admin-clubs-list"],
     queryFn: async () => {
-      const { data: clubsData } = await supabase
-        .from("clubs")
-        .select("id, name, logo_url, primary_color, referent_name, referent_email")
-        .is("deleted_at", null)
-        .order("name");
-      const clubsWithCounts = await Promise.all(
-        (clubsData || []).map(async (club) => {
-          const { count } = await supabase.from("teams").select("*", { count: "exact", head: true }).eq("club_id", club.id).is("deleted_at", null);
-          return { ...club, teamsCount: count || 0 };
-        })
-      );
-      return clubsWithCounts;
+      const [{ data: clubsData }, { data: teamsData }] = await Promise.all([
+        supabase
+          .from("clubs")
+          .select("id, name, logo_url, primary_color, referent_name, referent_email")
+          .is("deleted_at", null)
+          .order("name"),
+        supabase.from("teams").select("club_id").is("deleted_at", null),
+      ]);
+      const countByClub = new Map<string, number>();
+      (teamsData || []).forEach((t: any) => {
+        if (!t.club_id) return;
+        countByClub.set(t.club_id, (countByClub.get(t.club_id) || 0) + 1);
+      });
+      return (clubsData || []).map((club) => ({
+        ...club,
+        teamsCount: countByClub.get(club.id) || 0,
+      }));
     },
     enabled: !!user && isAdmin,
   });
