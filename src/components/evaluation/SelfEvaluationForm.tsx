@@ -32,6 +32,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Theme {
   id: string;
@@ -486,10 +497,33 @@ export const SelfEvaluationForm = ({
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-64 right-0 bg-background/95 backdrop-blur-sm border-t border-emerald-500/30 shadow-lg z-40 max-md:left-0">
         <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
-          <Button variant="outline" onClick={handleReset} disabled={saving}>
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Réinitialiser
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" disabled={saving}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Réinitialiser
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Réinitialiser toute votre saisie ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Toutes les notes et commentaires que vous avez saisis seront effacés. Cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction
+                  onClick={handleReset}
+                  className="bg-muted text-muted-foreground hover:bg-muted/80 border border-border"
+                >
+                  Réinitialiser
+                </AlertDialogAction>
+                <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90 border-0">
+                  Annuler
+                </AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button 
             onClick={handleSave} 
             disabled={saving}
