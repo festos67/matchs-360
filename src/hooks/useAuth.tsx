@@ -232,12 +232,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const userId = session.user.id;
           const isInitialOrUserSwitch =
             loadedUserIdRef.current === null || loadedUserIdRef.current !== userId;
-          if (isInitialOrUserSwitch) setLoading(true);
-          // setTimeout(0) pour éviter un deadlock dans le callback auth
-          pendingLoadTimer = setTimeout(() => {
-            pendingLoadTimer = null;
-            loadUserContext(userId);
-          }, 0);
+          // Dédup : ne (re)charger profil+rôles que sur connexion initiale ou
+          // changement d'utilisateur. Les events « soft » (TOKEN_REFRESHED,
+          // USER_UPDATED, INITIAL_SESSION/SIGNED_IN sur la même session) ne
+          // re-fetchent plus — les données ne changent pas, et un rafraîchissement
+          // explicite passe déjà par refreshProfile().
+          if (isInitialOrUserSwitch) {
+            setLoading(true);
+            // setTimeout(0) pour éviter un deadlock dans le callback auth
+            pendingLoadTimer = setTimeout(() => {
+              pendingLoadTimer = null;
+              loadUserContext(userId);
+            }, 0);
+          }
         } else {
           // Logout via auth event : nettoyer la clé scopée de l'user qui se déconnecte
           const previousUserId = loadedUserIdRef.current;
