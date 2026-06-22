@@ -324,6 +324,17 @@ export const SelfEvaluationForm = ({
         if (objError) throw objError;
       }
 
+      // Marquer une éventuelle demande d'auto-débrief en attente comme complétée
+      try {
+        await supabase
+          .from("self_evaluation_requests")
+          .update({ status: "completed", completed_at: new Date().toISOString(), evaluation_id: evaluationId })
+          .eq("player_id", playerId)
+          .eq("status", "pending");
+      } catch (e) {
+        console.warn("complete self-eval request failed", e);
+      }
+
       toast.success("Auto-débrief enregistré avec succès");
       document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
       onSaved?.();

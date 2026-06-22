@@ -1194,6 +1194,89 @@ export type Database = {
         }
         Relationships: []
       }
+      self_evaluation_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          evaluation_id: string | null
+          expires_at: string
+          id: string
+          player_id: string
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          evaluation_id?: string | null
+          expires_at?: string
+          id?: string
+          player_id: string
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          evaluation_id?: string | null
+          expires_at?: string
+          id?: string
+          player_id?: string
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "self_evaluation_requests_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_evaluation_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_evaluation_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_evaluation_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_evaluation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_evaluation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_needing_birthdate"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "self_evaluation_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skills: {
         Row: {
           created_at: string
