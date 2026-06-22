@@ -425,11 +425,11 @@ const SupporterDashboard = () => {
                     profile={player}
                     color={player.teamColor || "#3B82F6"}
                     size="md"
-                    onClick={() => navigate(`/players/${player.id}`)}
+                    onClick={() => navigate(`/supporter/players/${player.id}`)}
                     showName={false}
                   />
                   <button
-                    onClick={() => navigate(`/players/${player.id}`)}
+                    onClick={() => navigate(`/supporter/players/${player.id}`)}
                     className="mt-2 font-medium text-foreground hover:text-primary transition-colors text-sm"
                   >
                     {getPlayerFullName(player)}
