@@ -324,7 +324,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
   };
 
   const handleSaveObjective = async (objective: Objective | null, title: string, description: string, isPriority: boolean, newFiles: File[], removedAttachmentIds: string[]) => {
-    if (!title.trim()) { toast.error("Le titre est obligatoire"); return; }
+    if (!title.trim()) return;
     if (!user) return;
 
     try {
@@ -585,6 +585,7 @@ function PlayerObjectiveModal({
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(objective?.attachments || []);
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [titleError, setTitleError] = useState<string | null>(null);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
@@ -599,6 +600,8 @@ function PlayerObjectiveModal({
   };
 
   const handleSave = async () => {
+    if (!title.trim()) { setTitleError("Le titre est obligatoire"); return; }
+    setTitleError(null);
     setSaving(true);
     await onSave(objective, title, description, isPriority, newFiles, removedAttachmentIds);
     setSaving(false);
@@ -613,7 +616,14 @@ function PlayerObjectiveModal({
         <div className="space-y-4">
           <div>
             <Label htmlFor="po-title">Titre *</Label>
-            <Input id="po-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre de l'objectif" />
+            <Input
+              id="po-title"
+              value={title}
+              onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null); }}
+              placeholder="Titre de l'objectif"
+              aria-invalid={!!titleError}
+            />
+            {titleError && <p className="text-sm text-destructive mt-1">{titleError}</p>}
           </div>
           <div>
             <Label htmlFor="po-desc">Description</Label>
