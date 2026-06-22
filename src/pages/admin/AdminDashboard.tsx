@@ -72,11 +72,11 @@ function BirthdateBackfillBanner() {
         <p className="font-medium text-sm">
           RGPD mineurs — {count} profil{count > 1 ? "s" : ""} sans date de naissance
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-amber-800 dark:text-amber-200">
           La date de naissance est requise pour appliquer les protections mineurs (consentement, droit à l'image).
         </p>
       </div>
-      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      <ChevronRight className="w-4 h-4 text-amber-700 dark:text-amber-300" />
     </button>
   );
 }
