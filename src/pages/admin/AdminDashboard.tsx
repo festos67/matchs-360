@@ -158,36 +158,49 @@ const AdminDashboard = () => {
     queryKey: ["admin-stats-progression"],
     queryFn: async () => {
       const { data: players } = await supabase.from("user_roles").select("user_id").eq("role", "player");
-      if (!players || players.length === 0) return null;
-      const progressions: number[] = [];
+      const playerIds = [...new Set((players || []).map((p) => p.user_id))];
+      if (playerIds.length === 0) return null;
       const calcAvg = (scores: Array<{ score: number | null; is_not_observed: boolean }>) => {
         const valid = scores.filter((s) => !s.is_not_observed && s.score !== null && s.score > 0);
         if (valid.length === 0) return null;
         return valid.reduce((acc, s) => acc + (s.score || 0), 0) / valid.length;
       };
-      await Promise.all(
-        players.slice(0, 100).map(async (p) => {
-          const { data: evals } = await supabase
-            .from("evaluations")
-            .select("id, date")
-            .eq("player_id", p.user_id)
-            .eq("type", "coach")
-            .is("deleted_at", null)
-            .order("created_at", { ascending: false })
-            .limit(2);
-          if (!evals || evals.length < 2) return;
-          const [latest, previous] = evals;
-          const [ls, ps] = await Promise.all([
-            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", latest.id).is("deleted_at", null),
-            supabase.from("evaluation_scores").select("score, is_not_observed").eq("evaluation_id", previous.id).is("deleted_at", null),
-          ]);
-          const avgL = calcAvg(ls.data || []);
-          const avgP = calcAvg(ps.data || []);
-          if (avgL !== null && avgP !== null && avgP > 0) {
-            progressions.push(((avgL - avgP) / avgP) * 100);
-          }
-        })
-      );
+      const { data: evals } = await supabase
+        .from("evaluations")
+        .select("id, player_id, created_at")
+        .in("player_id", playerIds)
+        .eq("type", "coach")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false });
+      if (!evals || evals.length === 0) return null;
+      const byPlayer = new Map<string, string[]>();
+      for (const e of evals) {
+        const arr = byPlayer.get(e.player_id) || [];
+        if (arr.length < 2) { arr.push(e.id); byPlayer.set(e.player_id, arr); }
+      }
+      const neededEvalIds = [...byPlayer.values()].filter((a) => a.length === 2).flat();
+      if (neededEvalIds.length === 0) return null;
+      const { data: scoresRows } = await supabase
+        .from("evaluation_scores")
+        .select("evaluation_id, score, is_not_observed")
+        .in("evaluation_id", neededEvalIds)
+        .is("deleted_at", null);
+      const scoresByEval = new Map<string, Array<{ score: number | null; is_not_observed: boolean }>>();
+      (scoresRows || []).forEach((s: { evaluation_id: string; score: number | null; is_not_observed: boolean }) => {
+        const arr = scoresByEval.get(s.evaluation_id) || [];
+        arr.push({ score: s.score, is_not_observed: s.is_not_observed });
+        scoresByEval.set(s.evaluation_id, arr);
+      });
+      const progressions: number[] = [];
+      for (const arr of byPlayer.values()) {
+        if (arr.length < 2) continue;
+        const [latestId, previousId] = arr;
+        const avgL = calcAvg(scoresByEval.get(latestId) || []);
+        const avgP = calcAvg(scoresByEval.get(previousId) || []);
+        if (avgL !== null && avgP !== null && avgP > 0) {
+          progressions.push(((avgL - avgP) / avgP) * 100);
+        }
+      }
       if (progressions.length === 0) return null;
       return Math.round((progressions.reduce((a, b) => a + b, 0) / progressions.length) * 10) / 10;
     },
