@@ -309,6 +309,32 @@ export default function PlayerDetail() {
   const handleRequestSelfEval = async () => {
     if (!user || !id) return;
     try {
+      // 1. Le joueur doit avoir une équipe active
+      const { data: membership } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", id)
+        .eq("member_type", "player")
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      if (!membership?.team_id) {
+        toast.error("Ce joueur n'est associé à aucune équipe active.");
+        return;
+      }
+      // 2. ...avec un référentiel d'équipe NON archivé
+      const { data: framework } = await supabase
+        .from("competence_frameworks")
+        .select("id")
+        .eq("team_id", membership.team_id)
+        .eq("is_archived", false)
+        .maybeSingle();
+      if (!framework) {
+        toast.error(
+          "Aucun référentiel d'équipe : mettez d'abord en place un référentiel avant de demander un auto-débrief.",
+        );
+        return;
+      }
       const { error } = await supabase
         .from("self_evaluation_requests")
         .insert({ player_id: id, requested_by: user.id, status: "pending" });
