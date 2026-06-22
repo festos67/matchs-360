@@ -152,7 +152,7 @@ const App = () => (
               <Route path="/my-consents" element={<ProtectedRoute><MyConsents /></ProtectedRoute>} />
               <Route path="/parent/my-children" element={<ProtectedRoute><ParentMyChildren /></ProtectedRoute>} />
 
-              <Route path="/pricing" element={<ProtectedRoute><Pricing /></ProtectedRoute>} />
+              <Route path="/pricing" element={<ProtectedRoute allowedRoles={['club_admin', 'admin']}><Pricing /></ProtectedRoute>} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
