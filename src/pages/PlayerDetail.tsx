@@ -304,6 +304,30 @@ export default function PlayerDetail() {
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });
+
+  const handleRequestSelfEval = async () => {
+    if (!user || !id) return;
+    try {
+      const { error } = await supabase
+        .from("self_evaluation_requests")
+        .insert({ player_id: id, requested_by: user.id, status: "pending" });
+      if (error) {
+        if ((error as any).code === "23505" || error.message?.toLowerCase().includes("duplicate")) {
+          toast.info("Une demande d'auto-débrief est déjà en attente pour ce joueur");
+          return;
+        }
+        throw error;
+      }
+      supabase.functions
+        .invoke("notify-self-evaluation-request", { body: { playerId: id } })
+        .catch((e) => console.warn("notify self eval failed", e));
+      toast.success("Demande d'auto-débrief envoyée au joueur");
+    } catch (e) {
+      console.error("request self-eval failed", e);
+      toast.error("Erreur lors de l'envoi de la demande");
+    }
+  };
+
   const handlePrintFramework = useReactToPrint({ contentRef: frameworkPrintRef, documentTitle: `Referentiel_${teamMembership?.team?.name || "Equipe"}_${new Date().toLocaleDateString("fr-FR")}` });
   const handlePrintHistory = useReactToPrint({ contentRef: historyPrintRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });
 
@@ -503,7 +527,7 @@ export default function PlayerDetail() {
               scrollToSkillsSection();
             }
           }}
-          onRequestSelfEval={() => toast.success("Demande d'auto-débrief envoyée au joueur")}
+          onRequestSelfEval={handleRequestSelfEval}
           onRequestSupporterEval={() => setShowRequestSupporterModal(true)}
           onEditPlayer={() => setShowEditModal(true)}
           onTransferPlayer={() => setShowMutationModal(true)}
