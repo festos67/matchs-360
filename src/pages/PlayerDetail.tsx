@@ -66,6 +66,7 @@ import { PlayerObjectivesTab } from "@/components/player/PlayerObjectivesTab";
 import { usePlayerData, getPlayerName } from "@/hooks/usePlayerData";
 import { calculateRadarData, calculateOverallAverage, type ThemeScores } from "@/lib/evaluation-utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { toast } from "sonner";
 import { loadFrameworkThemes } from "@/lib/framework-loader";
@@ -320,7 +321,7 @@ export default function PlayerDetail() {
       }
       supabase.functions
         .invoke("notify-self-evaluation-request", { body: { playerId: id } })
-        .catch((e) => console.warn("notify self eval failed", e));
+        .catch((e: unknown) => console.warn("notify self eval failed", e));
       toast.success("Demande d'auto-débrief envoyée au joueur");
     } catch (e) {
       console.error("request self-eval failed", e);
