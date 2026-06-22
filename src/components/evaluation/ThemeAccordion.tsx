@@ -20,7 +20,7 @@
  *  - Score précédent : mem://features/debrief-previous-score-reference
  */
 import { useState } from "react";
-import { EyeOff, Eye, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
+import { Ban, RotateCcw, MessageSquare, ChevronDown, ChevronRight, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,6 +77,9 @@ export const SkillRow = ({
             )}>
               {skill.name}
             </span>
+          {score.is_not_observed && (
+            <span className="ml-2 text-xs text-muted-foreground">(non observé)</span>
+          )}
           {showDefinitionInline && skill.definition && (
             <p className="text-xs text-muted-foreground mt-1 leading-snug">
               {skill.definition}
@@ -92,7 +95,7 @@ export const SkillRow = ({
           size="lg"
         />
 
-        {/* Not observed toggle */}
+        {/* Toggle "non observé" (exclure / réintégrer la compétence) */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -101,20 +104,27 @@ export const SkillRow = ({
               size="icon"
               disabled={disabled}
               onClick={() => onNotObservedChange(!score.is_not_observed)}
+              aria-label={
+                score.is_not_observed
+                  ? "Réintégrer cette compétence dans le débrief"
+                  : "Marquer « non observé » (exclure du calcul)"
+              }
               className={cn(
                 "shrink-0",
                 score.is_not_observed && "bg-muted text-muted-foreground"
               )}
             >
               {score.is_not_observed ? (
-                <EyeOff className="w-5 h-5" />
+                <RotateCcw className="w-5 h-5" />
               ) : (
-                <Eye className="w-5 h-5" />
+                <Ban className="w-5 h-5" />
               )}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {score.is_not_observed ? "Marquer comme observé" : "Non observé"}
+            {score.is_not_observed
+              ? "Réintégrer cette compétence"
+              : "Marquer « non observé » (exclue du calcul de la moyenne)"}
           </TooltipContent>
         </Tooltip>
 
