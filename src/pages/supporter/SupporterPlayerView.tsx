@@ -2,128 +2,69 @@
  * @page SupporterPlayerView
  * @route /supporter/players/:id
  * @access Supporter (joueur lié uniquement)
- * @description Fiche lecture seule d'un joueur suivi : identité (équipe, club,
- *              coach) + dernière évaluation officielle (radar). Les auto-débriefs
- *              restent privés (non affichés). Le détail complet d'un débrief
- *              s'ouvre via /evaluations/:id (lecture seule).
+ * @description Fiche lecture seule d'un joueur suivi : identité + restitution
+ *              complète de la dernière évaluation officielle (réutilise
+ *              PlayerEvaluationTab). Les auto-débriefs restent privés
+ *              (le RLS ne les renvoie pas au supporter).
  */
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Trophy, ClipboardList } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ClipboardList } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
-import { EvaluationRadar } from "@/components/evaluation/EvaluationRadar";
+import { PlayerEvaluationTab } from "@/components/player/PlayerEvaluationTab";
+import { usePlayerData, getPlayerName, type Theme } from "@/hooks/usePlayerData";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { loadFrameworkThemes } from "@/lib/framework-loader";
-import {
-  calculateRadarData,
-  calculateOverallAverage,
-  formatAverage,
-  type ThemeScores,
-} from "@/lib/evaluation-utils";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 
 export default function SupporterPlayerView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["supporter-player-view", id, user?.id],
-    enabled: !!user && !!id,
-    queryFn: async () => {
-      if (!user || !id) return null;
+  const {
+    player,
+    teamMembership,
+    referentCoach,
+    evaluations,
+    themes,
+    frameworkId,
+    loading,
+  } = usePlayerData(id);
 
-      const { data: link } = await supabase
-        .from("supporters_link").select("id")
-        .eq("supporter_id", user.id).eq("player_id", id).maybeSingle();
-      if (!link) return { notLinked: true as const };
+  // Dernier débrief COACH (jamais d'auto-débrief : le RLS ne les renvoie pas au supporter)
+  const selectedEvaluation = useMemo(() => {
+    const coachEvals = evaluations.filter((e) => e.type === "coach" && !e.deleted_at);
+    return (
+      coachEvals.find((e) => !frameworkId || e.framework_id === frameworkId) ||
+      coachEvals[0] ||
+      null
+    );
+  }, [evaluations, frameworkId]);
 
-      const { data: player } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, nickname, photo_url, photo_is_minor, image_rights_consent_at, birthdate")
-        .eq("id", id).maybeSingle();
-      if (!player) return { notLinked: true as const };
+  // Thèmes du référentiel correspondant au débrief sélectionné
+  const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    if (
+      selectedEvaluation?.framework_id &&
+      selectedEvaluation.framework_id !== frameworkId
+    ) {
+      loadFrameworkThemes(selectedEvaluation.framework_id).then(({ themes: loaded }) => {
+        if (!cancelled) setSelectedEvalThemes(loaded as unknown as Theme[]);
+      });
+    } else {
+      setSelectedEvalThemes(themes);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedEvaluation, themes, frameworkId]);
 
-      const { data: membership } = await supabase
-        .from("team_members")
-        .select("team_id, teams(id, name, color, club:clubs(name))")
-        .eq("user_id", id).eq("member_type", "player").eq("is_active", true).is("deleted_at", null)
-        .maybeSingle();
-      const team = (membership?.teams as any) ?? null;
-
-      let coachName: string | null = null;
-      if (team?.id) {
-        const { data: coach } = await supabase
-          .from("team_members")
-          .select("profile:profiles!team_members_user_id_fkey(first_name, last_name)")
-          .eq("team_id", team.id).eq("member_type", "coach").eq("coach_role", "referent")
-          .eq("is_active", true).is("deleted_at", null).maybeSingle();
-        const c = (coach?.profile as any);
-        if (c) coachName = `${c.first_name || ""} ${c.last_name || ""}`.trim() || null;
-      }
-
-      const { data: latest } = await supabase
-        .from("evaluations")
-        .select("id, name, date, framework_id, evaluator_id, scores:evaluation_scores(skill_id, score, is_not_observed, comment)")
-        .eq("player_id", id).eq("type", "coach" as any).is("deleted_at", null)
-        .order("date", { ascending: false }).limit(1).maybeSingle();
-
-      let latestEval:
-        | null
-        | {
-            id: string;
-            name: string;
-            date: string;
-            author: string | null;
-            radarData: ReturnType<typeof calculateRadarData>;
-            overall: number | null;
-          } = null;
-
-      if (latest) {
-        const { themes } = await loadFrameworkThemes(latest.framework_id);
-        const scoreMap = new Map((latest.scores || []).map((s: any) => [s.skill_id, s]));
-        const themeScores: ThemeScores[] = themes.map((t) => ({
-          theme_id: t.id,
-          theme_name: t.name,
-          theme_color: t.color,
-          skills: t.skills.map((sk) => {
-            const s: any = scoreMap.get(sk.id);
-            return {
-              skill_id: sk.id,
-              score: s?.score ?? null,
-              is_not_observed: s?.is_not_observed ?? false,
-              comment: s?.comment ?? null,
-            };
-          }),
-          objective: null as string | null,
-        }));
-        let author: string | null = null;
-        if (latest.evaluator_id) {
-          const { data: a } = await supabase
-            .from("profiles").select("first_name, last_name").eq("id", latest.evaluator_id).maybeSingle();
-          if (a) author = `${a.first_name || ""} ${a.last_name || ""}`.trim() || null;
-        }
-        latestEval = {
-          id: latest.id,
-          name: latest.name,
-          date: latest.date,
-          author,
-          radarData: calculateRadarData(themeScores),
-          overall: calculateOverallAverage(themeScores),
-        };
-      }
-
-      return { player, team, coachName, latestEval };
-    },
-  });
-
-  if (isLoading) {
+  if (loading) {
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -135,7 +76,7 @@ export default function SupporterPlayerView() {
     );
   }
 
-  if (!data || "notLinked" in data) {
+  if (!player) {
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-64 text-center gap-4 px-4">
@@ -148,20 +89,27 @@ export default function SupporterPlayerView() {
     );
   }
 
-  const { player, team, coachName, latestEval } = data;
-  const playerName =
-    player.nickname?.trim() ||
-    `${player.first_name || ""} ${player.last_name || ""}`.trim() ||
-    "Joueur";
-  const teamColor = team?.color || "#3B82F6";
+  const playerName = getPlayerName(player);
+  const teamColor = teamMembership?.team?.club?.primary_color || "#3B82F6";
+  const teamName = teamMembership?.team?.name;
+  const clubName = teamMembership?.team?.club?.name;
+  const coachName = referentCoach
+    ? `${referentCoach.first_name || ""} ${referentCoach.last_name || ""}`.trim()
+    : null;
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/supporter/dashboard")} className="gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/supporter/dashboard")}
+          className="gap-2"
+        >
           <ArrowLeft className="w-4 h-4" /> Retour à mes joueurs
         </Button>
 
+        {/* Fiche joueur */}
         <Card>
           <CardContent className="p-6 flex items-center gap-4">
             <CircleAvatar
@@ -174,9 +122,10 @@ export default function SupporterPlayerView() {
             />
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-display font-bold">{playerName}</h1>
-              {team?.name && (
+              {teamName && (
                 <p className="text-sm text-muted-foreground">
-                  {team.name}{team?.club?.name ? ` · ${team.club.name}` : ""}
+                  {teamName}
+                  {clubName ? ` · ${clubName}` : ""}
                 </p>
               )}
               {coachName && <p className="text-sm text-muted-foreground">Coach : {coachName}</p>}
@@ -184,46 +133,31 @@ export default function SupporterPlayerView() {
           </CardContent>
         </Card>
 
-        <div>
-          <h2 className="text-xl font-display font-semibold mb-4 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            Dernière évaluation
-          </h2>
-          {latestEval ? (
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div>
-                    <p className="font-semibold">{latestEval.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(latestEval.date), "d MMM yyyy", { locale: fr })}
-                      {latestEval.author && ` · par ${latestEval.author}`}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-bold text-primary">{formatAverage(latestEval.overall)}</p>
-                    <p className="text-xs text-muted-foreground">Moyenne /5</p>
-                  </div>
-                </div>
-                <EvaluationRadar data={latestEval.radarData} />
-                <div className="flex justify-end">
-                  <Button variant="outline" onClick={() => navigate(`/evaluations/${latestEval.id}`)}>
-                    Consulter le détail
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="p-6 text-center text-muted-foreground">
-                Aucune évaluation officielle pour le moment.
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {/* Détail complet de la dernière évaluation (radar + thématiques + compétences) */}
+        <PlayerEvaluationTab
+          player={player}
+          teamMembership={teamMembership}
+          referentCoach={referentCoach}
+          evaluations={evaluations}
+          selectedEvaluation={selectedEvaluation}
+          selectedEvalThemes={selectedEvalThemes}
+          themes={themes}
+          frameworkId={frameworkId}
+          canEvaluate={false}
+          isViewingHistory={false}
+          comparisonIds={[]}
+          onReturnToCurrent={() => {}}
+          onToggleComparison={() => {}}
+          hideSupporterLayer
+          currentUserId={user?.id}
+        />
 
         <div className="flex justify-center">
-          <Button variant="ghost" onClick={() => navigate("/supporter/debriefs")} className="gap-2">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/supporter/debriefs")}
+            className="gap-2"
+          >
             <ClipboardList className="w-4 h-4" />
             Voir tous les débriefs
           </Button>
