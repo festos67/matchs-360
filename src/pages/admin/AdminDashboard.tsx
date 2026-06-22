@@ -423,7 +423,7 @@ const AdminDashboard = () => {
               isOpen={clubsOpen}
               onToggle={() => setClubsOpen(!clubsOpen)}
               action={
-                <Button variant="accent" size="sm" className="min-w-[160px]" onClick={() => setCreateClubOpen(true)}>
+                <Button size="sm" className="min-w-[160px]" onClick={() => setCreateClubOpen(true)}>
                   <Plus className="w-4 h-4 mr-1" />
                   Nouveau club
                 </Button>
@@ -513,7 +513,7 @@ const AdminDashboard = () => {
               isOpen={debriefsOpen}
               onToggle={() => setDebriefsOpen(!debriefsOpen)}
               action={
-                <Button variant="accent" size="sm" className="min-w-[160px]" onClick={() => setCreateEvalOpen(true)}>
+                <Button size="sm" className="min-w-[160px]" onClick={() => setCreateEvalOpen(true)}>
                   <Plus className="w-4 h-4 mr-1" />
                   Nouveau débrief
                 </Button>

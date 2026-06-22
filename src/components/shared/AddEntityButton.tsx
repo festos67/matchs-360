@@ -48,7 +48,7 @@ export const AddEntityButton = ({ type, onClick, className, label, disabled = fa
         className,
       )}
     >
-      <Plus className={cn("w-4 h-4 shrink-0", disabled ? "text-muted-foreground" : "text-orange-500")} />
+      <Plus className={cn("w-4 h-4 shrink-0", disabled ? "text-muted-foreground" : "text-primary")} />
       <span className="flex-1 text-left truncate">{label ?? defaultLabel}</span>
       <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0", bg)}>
         <Icon className={cn("w-4 h-4", color)} />
