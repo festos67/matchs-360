@@ -53,7 +53,7 @@ import {
   ShieldPlus,
   Search,
   CheckCircle,
-  Trash2,
+  Ban,
   Edit,
   RefreshCw,
   RotateCcw,
@@ -452,12 +452,12 @@ export default function AdminUsers() {
             <Button
               size="icon"
               variant="ghost"
-              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-8 w-8 shrink-0 text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
               onClick={() => setDeleteConfirm(user)}
               disabled={actionLoading === user.id}
               aria-label="Suspendre"
             >
-              <Trash2 className="w-4 h-4" />
+              <Ban className="w-4 h-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Suspendre</TooltipContent>
@@ -833,17 +833,21 @@ export default function AdminUsers() {
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Suspendre cet utilisateur ?</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Ban className="w-5 h-5 text-amber-600" />
+              Suspendre cet utilisateur ?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               L'utilisateur <strong>{deleteConfirm?.email}</strong> sera suspendu et
-              ne pourra plus accéder à la plateforme. Cette action est réversible.
+              ne pourra plus accéder à la plateforme. Cette action est réversible
+              (ce n'est pas une suppression définitive).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteConfirm && handleSoftDelete(deleteConfirm)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-amber-600 text-white hover:bg-amber-700"
             >
               Suspendre
             </AlertDialogAction>
