@@ -50,17 +50,8 @@ import { CreateEvaluationModal } from "@/components/modals/CreateEvaluationModal
 import { CreateClubModal } from "@/components/modals/CreateClubModal";
 
 // Phase 1 conformite mineurs : bandeau de pilotage du backfill.
-function BirthdateBackfillBanner() {
+function BirthdateBackfillBanner({ count }: { count: number }) {
   const navigate = useNavigate();
-  const { data: count } = useQuery({
-    queryKey: ["profiles-needing-birthdate-count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("profiles_needing_birthdate" as any)
-        .select("id", { count: "exact", head: true });
-      return count ?? 0;
-    },
-  });
   if (!count || count === 0) return null;
   return (
     <button
@@ -125,60 +116,42 @@ const AdminDashboard = () => {
     }
   }, [user, loading, isAdmin, navigate]);
 
-  // KPI: clubs
-  const { data: clubsCount, isLoading: loadingClubs } = useQuery({
-    queryKey: ["admin-stats-clubs"],
+  // KPI: agrégat global en 1 RPC (clubs, teams, players, users, evaluations,
+  // needing_birthdate, avg_score). Évite la rafale de 6 HEAD au chargement.
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ["admin-dashboard-stats"],
     queryFn: async () => {
-      const { count } = await supabase.from("clubs").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      return count || 0;
+      const { data, error } = await supabase.rpc("get_admin_dashboard_stats" as any);
+      if (error) throw error;
+      return data as {
+        clubs: number;
+        teams: number;
+        players: number;
+        users: number;
+        evaluations: number;
+        needing_birthdate: number;
+        avg_score: number | null;
+      };
     },
     enabled: !!user && isAdmin,
   });
 
-  // KPI: teams
-  const { data: teamsCount, isLoading: loadingTeams } = useQuery({
-    queryKey: ["admin-stats-teams"],
-    queryFn: async () => {
-      const { count } = await supabase.from("teams").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      return count || 0;
-    },
-    enabled: !!user && isAdmin,
-  });
-
-  // KPI: players
-  const { data: playersCount, isLoading: loadingPlayers } = useQuery({
-    queryKey: ["admin-stats-players"],
-    queryFn: async () => {
-      const { count } = await supabase.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "player");
-      return count || 0;
-    },
-    enabled: !!user && isAdmin,
-  });
-
-  // KPI: total users
-  const { data: usersCount, isLoading: loadingUsers } = useQuery({
-    queryKey: ["admin-stats-users"],
-    queryFn: async () => {
-      const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      return count || 0;
-    },
-    enabled: !!user && isAdmin,
-  });
-
-  // KPI: evaluations count + average score + avg per team
-  const { data: evalStats, isLoading: loadingEvals } = useQuery({
-    queryKey: ["admin-stats-evals"],
-    queryFn: async () => {
-      const { count } = await supabase.from("evaluations").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      const { data: scores } = await supabase.from("evaluation_scores").select("score").is("deleted_at", null).not("score", "is", null);
-      const validScores = (scores || []).filter((s: any) => s.score !== null).map((s: any) => s.score as number);
-      const avg = validScores.length > 0 ? (validScores.reduce((a: number, b: number) => a + b, 0) / validScores.length) : null;
-      const { count: tCount } = await supabase.from("teams").select("*", { count: "exact", head: true }).is("deleted_at", null);
-      const avgPerTeam = tCount && tCount > 0 ? ((count || 0) / tCount).toFixed(1) : "N/A";
-      return { total: count || 0, avgScore: avg ? (avg.toFixed(1) + " / 5") : "N/A", avgPerTeam };
-    },
-    enabled: !!user && isAdmin,
-  });
+  const clubsCount = stats?.clubs ?? 0;
+  const teamsCount = stats?.teams ?? 0;
+  const playersCount = stats?.players ?? 0;
+  const usersCount = stats?.users ?? 0;
+  const evalStats = stats
+    ? {
+        total: stats.evaluations,
+        avgScore: stats.avg_score != null ? `${stats.avg_score.toFixed(1)} / 5` : "N/A",
+        avgPerTeam: stats.teams > 0 ? (stats.evaluations / stats.teams).toFixed(1) : "N/A",
+      }
+    : undefined;
+  const loadingClubs = loadingStats;
+  const loadingTeams = loadingStats;
+  const loadingPlayers = loadingStats;
+  const loadingUsers = loadingStats;
+  const loadingEvals = loadingStats;
 
   // KPI: avg progression
   const { data: avgProgression, isLoading: loadingProgression } = useQuery({
@@ -244,18 +217,23 @@ const AdminDashboard = () => {
   const { data: clubs, isLoading: loadingClubsList } = useQuery({
     queryKey: ["admin-clubs-list"],
     queryFn: async () => {
-      const { data: clubsData } = await supabase
-        .from("clubs")
-        .select("id, name, logo_url, primary_color, referent_name, referent_email")
-        .is("deleted_at", null)
-        .order("name");
-      const clubsWithCounts = await Promise.all(
-        (clubsData || []).map(async (club) => {
-          const { count } = await supabase.from("teams").select("*", { count: "exact", head: true }).eq("club_id", club.id).is("deleted_at", null);
-          return { ...club, teamsCount: count || 0 };
-        })
-      );
-      return clubsWithCounts;
+      const [{ data: clubsData }, { data: teamsData }] = await Promise.all([
+        supabase
+          .from("clubs")
+          .select("id, name, logo_url, primary_color, referent_name, referent_email")
+          .is("deleted_at", null)
+          .order("name"),
+        supabase.from("teams").select("club_id").is("deleted_at", null),
+      ]);
+      const countByClub = new Map<string, number>();
+      (teamsData || []).forEach((t: any) => {
+        if (!t.club_id) return;
+        countByClub.set(t.club_id, (countByClub.get(t.club_id) || 0) + 1);
+      });
+      return (clubsData || []).map((club) => ({
+        ...club,
+        teamsCount: countByClub.get(club.id) || 0,
+      }));
     },
     enabled: !!user && isAdmin,
   });
@@ -337,7 +315,7 @@ const AdminDashboard = () => {
           <p className="text-[13px] text-muted-foreground mt-1">Accès complet à la plateforme</p>
         </div>
 
-        <BirthdateBackfillBanner />
+        <BirthdateBackfillBanner count={stats?.needing_birthdate ?? 0} />
 
         {/* Section 1: Vue globale */}
         <div className="bg-card rounded-xl border border-border">
