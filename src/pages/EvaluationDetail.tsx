@@ -51,10 +51,11 @@ interface EvaluationData {
 export default function EvaluationDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { roles } = useAuth();
+  const { roles, currentRole } = useAuth();
   const canEvaluate = roles.some((r) =>
     ["admin", "club_admin", "coach"].includes(r.role)
   );
+  const isSupporter = currentRole?.role === "supporter";
 
   const [evaluation, setEvaluation] = useState<EvaluationData | null>(null);
   const [themes, setThemes] = useState<FrameworkTheme[]>([]);
@@ -210,12 +211,16 @@ export default function EvaluationDetail() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Joueur :{" "}
-                  <button
-                    onClick={() => navigate(`/players/${player.id}`)}
-                    className="underline hover:text-foreground"
-                  >
-                    {playerName}
-                  </button>
+                  {isSupporter ? (
+                    <span className="text-foreground">{playerName}</span>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/players/${player.id}`)}
+                      className="underline hover:text-foreground"
+                    >
+                      {playerName}
+                    </button>
+                  )}
                   {team && (
                     <>
                       {" "}
@@ -256,12 +261,14 @@ export default function EvaluationDetail() {
                       Modifier
                     </Button>
                   ))}
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/players/${player.id}`)}
-                >
-                  Voir la fiche complète →
-                </Button>
+                {!isSupporter && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/players/${player.id}`)}
+                  >
+                    Voir la fiche complète →
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>
