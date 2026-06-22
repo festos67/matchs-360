@@ -65,6 +65,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>(objective?.attachments || []);
   const [removedAttachmentIds, setRemovedAttachmentIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [titleError, setTitleError] = useState<string | null>(null);
 
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
@@ -95,9 +96,10 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("Le titre est obligatoire");
+      setTitleError("Le titre est obligatoire");
       return;
     }
+    setTitleError(null);
     if (!user) return;
 
     setSaving(true);
@@ -186,7 +188,14 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
         <div className="space-y-4">
           <div>
             <Label htmlFor="obj-title">Titre *</Label>
-            <Input id="obj-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre de l'objectif" />
+            <Input
+              id="obj-title"
+              value={title}
+              onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null); }}
+              placeholder="Titre de l'objectif"
+              aria-invalid={!!titleError}
+            />
+            {titleError && <p className="text-sm text-destructive mt-1">{titleError}</p>}
           </div>
 
           <div>
