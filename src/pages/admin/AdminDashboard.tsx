@@ -310,7 +310,7 @@ const AdminDashboard = () => {
           <p className="text-[13px] text-muted-foreground mt-1">Accès complet à la plateforme</p>
         </div>
 
-        <BirthdateBackfillBanner />
+        <BirthdateBackfillBanner count={stats?.needing_birthdate ?? 0} />
 
         {/* Section 1: Vue globale */}
         <div className="bg-card rounded-xl border border-border">
