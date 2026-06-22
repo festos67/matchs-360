@@ -214,7 +214,7 @@
   .floating-input {
     @apply relative;
     input {
-      @apply peer w-full bg-input border border-border rounded-lg px-4 py-3 text-foreground placeholder-transparent focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary;
+      @apply peer w-full bg-background border border-border rounded-lg px-4 py-3 text-foreground placeholder-transparent focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary;
     }
     label {
       @apply absolute left-4 top-3 text-muted-foreground transition-all duration-200 pointer-events-none;
