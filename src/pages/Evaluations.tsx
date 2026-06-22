@@ -547,7 +547,6 @@ export default function Evaluations() {
         </div>
         {canCreate && (
           <Button
-            variant="accent"
             onClick={() => setShowCreateModal(true)}
             className="gap-2"
           >

@@ -833,7 +833,7 @@ export default function PlayerDetail() {
                     <Download className="w-4 h-4" />Imprimer
                   </Button>
                   {isPlayerViewingOwnProfile && (
-                    <Button size="sm" variant="accent" className="gap-2" onClick={() => navigate("/player/self-evaluation")}>
+                    <Button size="sm" className="gap-2" onClick={() => navigate("/player/self-evaluation")}>
                       <Star className="w-4 h-4" />M'auto-débriefer
                     </Button>
                   )}
