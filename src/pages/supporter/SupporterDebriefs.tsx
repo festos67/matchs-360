@@ -20,7 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ClipboardList, Heart } from "lucide-react";
+import { ChevronRight, ClipboardList, Heart } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -254,15 +254,21 @@ const SupporterDebriefs = () => {
 };
 
 function EvalRow({ eval: ev }: { eval: EvalEntry }) {
+  const navigate = useNavigate();
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-      <div>
-        <p className="text-sm font-medium text-foreground">{ev.name}</p>
+    <button
+      type="button"
+      onClick={() => navigate(`/evaluations/${ev.id}`)}
+      className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-muted/50 border border-border hover:bg-muted hover:border-primary/30 transition-colors text-left"
+    >
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-foreground truncate">{ev.name}</p>
         <p className="text-xs text-muted-foreground">
           Par {ev.evaluator_name} • {format(new Date(ev.date), "d MMM yyyy", { locale: fr })}
         </p>
       </div>
-    </div>
+      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+    </button>
   );
 }
 
