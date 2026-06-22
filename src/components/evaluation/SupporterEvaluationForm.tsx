@@ -176,6 +176,13 @@ export function SupporterEvaluationForm({
   const performSave = async () => {
     if (!user) return;
 
+    // Empêcher un avis vide : au moins une compétence notée.
+    const hasAnyScore = Object.values(scores).some((v) => v !== null && v !== undefined && v > 0);
+    if (!hasAnyScore) {
+      toast.error("Renseignez au moins une compétence avant d'enregistrer votre avis.");
+      return;
+    }
+
     if (savingRef.current) return;
     savingRef.current = true;
     setIsSaving(true);

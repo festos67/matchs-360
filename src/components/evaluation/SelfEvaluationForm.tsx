@@ -231,6 +231,16 @@ export const SelfEvaluationForm = ({
       return;
     }
 
+    // Empêcher un auto-débrief vide : au moins une compétence notée.
+    const scoredCount = themeScores.reduce(
+      (n, t) => n + t.skills.filter((s) => !s.is_not_observed && s.score !== null && s.score > 0).length,
+      0,
+    );
+    if (scoredCount === 0) {
+      toast.error("Renseignez au moins une compétence avant d'enregistrer votre auto-débrief.");
+      return;
+    }
+
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
