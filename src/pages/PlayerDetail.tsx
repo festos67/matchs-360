@@ -447,7 +447,30 @@ export default function PlayerDetail() {
     );
   }
 
-  if (!player) return null;
+  if (isSupporterViewer) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center h-64 text-center gap-4 px-4">
+          <p className="text-muted-foreground max-w-md">
+            La fiche détaillée d'un joueur n'est pas accessible depuis votre profil supporter.
+            Pour donner votre avis, utilisez les demandes de débrief sur votre tableau de bord.
+          </p>
+          <Button onClick={() => navigate("/supporter/dashboard")}>Retour à mes joueurs</Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!player) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center h-64 text-center gap-4 px-4">
+          <p className="text-muted-foreground">Joueur introuvable ou accès non autorisé.</p>
+          <Button onClick={() => navigate(-1)}>Retour</Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const teamColor = teamMembership?.team?.club?.primary_color || "#3B82F6";
   const playerName = getPlayerName(player);
