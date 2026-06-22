@@ -86,6 +86,17 @@ function clearDraft() {
   localStorage.removeItem(DRAFT_KEY);
 }
 
+/**
+ * Déduit les initiales depuis le nom : 1ʳᵉ lettre de chaque mot (max 3),
+ * ou les 3 premières lettres si un seul mot.
+ */
+function deriveInitials(name: string): string {
+  const words = (name || "").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "";
+  if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
+  return words.map((w) => w[0]).join("").toUpperCase().slice(0, 3);
+}
+
 interface CreateClubModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -128,6 +139,16 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
   const secondaryColor = watch("secondaryColor");
   const watchName = watch("name");
   const watchShortName = watch("shortName");
+
+  // Auto-dérivation des initiales depuis le nom, tant que l'utilisateur n'a pas
+  // édité le champ « Initiales » manuellement.
+  const shortNameTouchedRef = useRef<boolean>(!!draft?.shortName);
+  const shortNameField = register("shortName");
+  useEffect(() => {
+    if (shortNameTouchedRef.current) return;
+    setValue("shortName", deriveInitials(watchName), { shouldDirty: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchName]);
 
   const hasFormData = useCallback(() => {
     const v = getValues();
@@ -190,6 +211,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
   const handleDiscard = () => {
     clearDraft();
     reset(defaultValues);
+    shortNameTouchedRef.current = false;
     removeLogo();
     setShowConfirm(false);
     onOpenChange(false);
@@ -259,6 +281,7 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
 
       clearDraft();
       reset(defaultValues);
+      shortNameTouchedRef.current = false;
       removeLogo();
       onOpenChange(false);
       onSuccess?.();
@@ -315,7 +338,17 @@ export const CreateClubModal = ({ open, onOpenChange, onSuccess }: CreateClubMod
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="shortName">Initiales</Label>
-                  <Input id="shortName" placeholder="FCE" maxLength={3} className="w-20 text-center uppercase font-bold" {...register("shortName")} />
+                  <Input
+                    id="shortName"
+                    placeholder="FCE"
+                    maxLength={3}
+                    className="w-20 text-center uppercase font-bold"
+                    {...shortNameField}
+                    onChange={(e) => {
+                      shortNameTouchedRef.current = true;
+                      shortNameField.onChange(e);
+                    }}
+                  />
                   {errors.shortName && <p className="text-sm text-destructive">{errors.shortName.message}</p>}
                 </div>
               </div>
