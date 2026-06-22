@@ -596,7 +596,7 @@ export default function Evaluations() {
       ) : (
         <>
           {renderSection({
-            title: "Débriefs coach",
+            title: isPlayerView ? "Débriefs de mes coachs" : "Débriefs coach",
             icon: <UserCog className="w-5 h-5 text-orange-500" />,
             list: filteredCoach,
             search: coachSearch,
@@ -612,7 +612,7 @@ export default function Evaluations() {
             setOpen: setCoachOpen,
           })}
           {renderSection({
-            title: "Auto-débriefs joueurs",
+            title: isPlayerView ? "Mes auto-débriefs" : "Auto-débriefs joueurs",
             icon: <UserCircle className="w-5 h-5 text-green-500" />,
             list: filteredSelf,
             search: selfSearch,
