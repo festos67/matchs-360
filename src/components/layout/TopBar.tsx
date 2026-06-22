@@ -117,7 +117,7 @@ export const TopBar = () => {
             )}
             
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
+            <DropdownMenuItem onClick={handleSignOut} className="text-primary focus:text-primary">
               <LogOut className="w-4 h-4 mr-2" />
               Déconnexion
             </DropdownMenuItem>
