@@ -2050,6 +2050,7 @@ export type Database = {
         Returns: undefined
       }
       expire_overdue_invitations: { Args: never; Returns: number }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_club_plan: {
         Args: { p_club_id: string }
         Returns: Database["public"]["Enums"]["subscription_plan"]
