@@ -309,7 +309,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium text-destructive hover:bg-destructive/10 transition-all w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all w-full"
         >
           <LogOut className="w-4 h-4" />
           <span>Déconnexion</span>
