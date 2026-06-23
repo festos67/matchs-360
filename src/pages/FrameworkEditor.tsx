@@ -534,7 +534,7 @@ export default function FrameworkEditor() {
 
       {/* Sticky Footer */}
       {canEdit && (
-        <div className="fixed bottom-0 left-16 right-0 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
+        <div className="fixed bottom-0 left-[var(--sb-w,4rem)] right-0 transition-[left] duration-200 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg z-40 max-md:left-0">
           <div className="max-w-4xl mx-auto px-4 py-3 flex gap-3 justify-end">
             <AlertDialog>
               <AlertDialogTrigger asChild>

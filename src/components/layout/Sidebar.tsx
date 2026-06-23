@@ -19,7 +19,7 @@
  *  - Restrictions joueur : mem://features/player/interface-restrictions
  */
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   Building2, 
@@ -112,10 +112,11 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
 interface SidebarContentProps {
   onNavigate?: () => void;
   pinned?: boolean;
+  expanded?: boolean;
   onTogglePin?: () => void;
 }
 
-export const SidebarContent = ({ onNavigate, pinned = false, onTogglePin }: SidebarContentProps) => {
+export const SidebarContent = ({ onNavigate, pinned = false, expanded = false, onTogglePin }: SidebarContentProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
@@ -125,10 +126,9 @@ export const SidebarContent = ({ onNavigate, pinned = false, onTogglePin }: Side
 
   const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
 
-  // Libellés visibles seulement si épinglé OU au survol/focus du rail
   const labelCls = cn(
     "transition-opacity duration-200 whitespace-nowrap",
-    pinned ? "opacity-100" : "opacity-0 group-hover/sb:opacity-100 group-focus-within/sb:opacity-100",
+    expanded ? "opacity-100" : "opacity-0",
   );
 
   const handleLogout = async () => {
@@ -366,6 +366,8 @@ export const Sidebar = () => {
   const [pinned, setPinned] = useState<boolean>(() => {
     try { return localStorage.getItem("sidebar_pinned") === "true"; } catch { return false; }
   });
+  const [hovered, setHovered] = useState(false);
+  const expanded = pinned || hovered;
   const togglePin = () => {
     setPinned((p) => {
       const next = !p;
@@ -373,22 +375,29 @@ export const Sidebar = () => {
       return next;
     });
   };
+  useEffect(() => {
+    document.documentElement.style.setProperty("--sb-w", expanded ? "16rem" : "4rem");
+  }, [expanded]);
   return (
     <>
-      {/* Réserve l'emprise du rail dans le flux ; ne pousse le contenu que si épinglé */}
       <div
         aria-hidden
-        className={cn("hidden md:block shrink-0 transition-[width] duration-200", pinned ? "w-64" : "w-16")}
+        className={cn("hidden md:block shrink-0 transition-[width] duration-200", expanded ? "w-64" : "w-16")}
       />
-      {/* Rail fixe : icônes seules ; déployé au survol/focus (overlay) ou épinglé ouvert */}
       <aside
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocusCapture={() => setHovered(true)}
+        onBlurCapture={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setHovered(false);
+        }}
         className={cn(
-          "group/sb hidden md:flex fixed inset-y-0 left-0 z-50 flex-col overflow-hidden bg-sidebar border-r border-sidebar-border transition-[width] duration-200",
-          pinned ? "w-64" : "w-16 hover:w-64 focus-within:w-64",
+          "hidden md:flex fixed inset-y-0 left-0 z-50 flex-col overflow-hidden bg-sidebar border-r border-sidebar-border transition-[width] duration-200",
+          expanded ? "w-64" : "w-16",
         )}
       >
         <div className="flex h-full w-64 flex-col">
-          <SidebarContent pinned={pinned} onTogglePin={togglePin} />
+          <SidebarContent pinned={pinned} expanded={expanded} onTogglePin={togglePin} />
         </div>
       </aside>
     </>
