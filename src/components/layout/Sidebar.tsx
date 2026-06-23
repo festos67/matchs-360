@@ -37,7 +37,9 @@ import {
   Plus,
   Award,
   Mail,
-  Star
+  Star,
+  PanelLeft,
+  PanelLeftClose
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -109,9 +111,11 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
 
 interface SidebarContentProps {
   onNavigate?: () => void;
+  pinned?: boolean;
+  onTogglePin?: () => void;
 }
 
-export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
+export const SidebarContent = ({ onNavigate, pinned = false, onTogglePin }: SidebarContentProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin, currentRole } = useAuth();
@@ -120,6 +124,12 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   const [showCertificatePicker, setShowCertificatePicker] = useState(false);
 
   const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
+
+  // Libellés visibles seulement si épinglé OU au survol/focus du rail
+  const labelCls = cn(
+    "transition-opacity duration-200 whitespace-nowrap",
+    pinned ? "opacity-100" : "opacity-0 group-hover/sb:opacity-100 group-focus-within/sb:opacity-100",
+  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -144,13 +154,24 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
   return (
     <>
       {/* Logo */}
-      <div className="px-4 pt-6 pb-4 border-b border-sidebar-border">
-        <Link to={getDashboardPath()} className="flex items-center gap-3 px-2" onClick={handleLinkClick}>
+      <div className="flex items-center justify-between px-4 pt-6 pb-4 border-b border-sidebar-border">
+        <Link to={getDashboardPath()} className="flex items-center gap-3 px-2 min-w-0" onClick={handleLinkClick}>
           <RadarPulseLogo size={54} />
-          <span className="font-display text-2xl font-extrabold text-accent tracking-tight leading-tight">
+          <span className={cn("font-display text-2xl font-extrabold text-accent tracking-tight leading-tight", labelCls)}>
             MATCHS<span className="text-secondary-foreground">360</span>
           </span>
         </Link>
+        {onTogglePin && (
+          <button
+            type="button"
+            onClick={onTogglePin}
+            aria-label={pinned ? "Détacher le menu" : "Épingler le menu ouvert"}
+            aria-pressed={pinned}
+            className={cn("shrink-0 rounded-md p-1.5 text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground", labelCls)}
+          >
+            {pinned ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeft className="w-4 h-4" />}
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -175,6 +196,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               key={item.path}
               to={item.path}
               onClick={handleLinkClick}
+              title={item.label}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 isActive
@@ -183,9 +205,9 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               )}
             >
               <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              <span className={labelCls}>{item.label}</span>
               {item.path === "/stats" && (
-                <Badge variant="secondary" className="ml-auto text-[10px] px-1.5 py-0 h-4 font-medium">
+                <Badge variant="secondary" className={cn("ml-auto text-[10px] px-1.5 py-0 h-4 font-medium", labelCls)}>
                   Bientôt
                 </Badge>
               )}
@@ -196,12 +218,13 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         {/* Admin Section */}
         {isAdmin && (
           <div className="pt-4 mt-4 border-t border-sidebar-border">
-            <div className="text-[9px] font-bold text-sidebar-foreground/40 uppercase tracking-[1.2px] px-3 pt-2 pb-1.5">
+            <div className={cn("text-[9px] font-bold text-sidebar-foreground/40 uppercase tracking-[1.2px] px-3 pt-2 pb-1.5", labelCls)}>
               Administration
             </div>
             <Link
               to="/admin/users"
               onClick={handleLinkClick}
+              title="Gestion Utilisateurs"
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 location.pathname === "/admin/users"
@@ -210,11 +233,12 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               )}
             >
               <Shield className="w-4 h-4" />
-              <span>Gestion Utilisateurs</span>
+              <span className={labelCls}>Gestion Utilisateurs</span>
             </Link>
             <Link
               to="/role-approvals"
               onClick={handleLinkClick}
+              title="Approbations"
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
                 location.pathname === "/role-approvals"
@@ -223,7 +247,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               )}
             >
               <Users className="w-4 h-4" />
-              <span>Approbations</span>
+              <span className={labelCls}>Approbations</span>
             </Link>
           </div>
         )}
@@ -233,10 +257,11 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           <Link
             to="/pricing"
             onClick={handleLinkClick}
+            title="Passer en Pro"
             className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-bold text-accent hover:bg-accent/10 transition-all mt-4 border border-accent/30"
           >
             <Crown className="w-4 h-4" />
-            <span>Passer en Pro</span>
+            <span className={labelCls}>Passer en Pro</span>
           </Link>
         )}
 
@@ -248,11 +273,12 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               onNavigate?.();
               setShowCreateEval(true);
             }}
+            title="Nouveau débrief"
             className="mt-4 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium border border-accent/30 bg-accent/5 hover:bg-accent/10 transition-all"
           >
             <Plus className="w-4 h-4 text-orange-500 shrink-0" />
-            <span className="flex-1 text-left truncate text-foreground">Nouveau débrief</span>
-            <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15">
+            <span className={cn("flex-1 text-left truncate text-foreground", labelCls)}>Nouveau débrief</span>
+            <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15", labelCls)}>
               <ClipboardList className="w-4 h-4 text-accent" />
             </span>
           </button>
@@ -266,11 +292,12 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
               onNavigate?.();
               setShowCertificatePicker(true);
             }}
+            title="Attestation de compétences"
             className="mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium border border-green-500/40 bg-green-500/5 hover:bg-green-500/10 transition-all"
           >
             <Plus className="w-4 h-4 text-green-600 shrink-0" />
-            <span className="flex-1 text-left truncate text-foreground">Attestation de compétences</span>
-            <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-green-500/15">
+            <span className={cn("flex-1 text-left truncate text-foreground", labelCls)}>Attestation de compétences</span>
+            <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-green-500/15", labelCls)}>
               <Award className="w-4 h-4 text-green-600" />
             </span>
           </button>
@@ -281,11 +308,12 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           <Link
             to="/player/self-evaluation"
             onClick={handleLinkClick}
+            title="M'auto-débriefer"
             className="mt-4 w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium border border-accent/30 bg-accent/5 hover:bg-accent/10 transition-all"
           >
             <Plus className="w-4 h-4 text-green-500 shrink-0" />
-            <span className="flex-1 text-left truncate text-foreground">M'auto-débriefer</span>
-            <span className="flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15">
+            <span className={cn("flex-1 text-left truncate text-foreground", labelCls)}>M'auto-débriefer</span>
+            <span className={cn("flex items-center justify-center w-7 h-7 rounded-md shrink-0 bg-accent/15", labelCls)}>
               <Star className="w-4 h-4 text-accent" />
             </span>
           </Link>
@@ -297,6 +325,7 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
         <Link
           to="/profile"
           onClick={handleLinkClick}
+          title="Mon profil"
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all",
             location.pathname === "/profile"
@@ -305,14 +334,15 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
           )}
         >
           <Settings className="w-4 h-4" />
-          <span>Mon profil</span>
+          <span className={labelCls}>Mon profil</span>
         </Link>
         <button
           onClick={handleLogout}
+          title="Déconnexion"
           className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium text-primary hover:text-primary hover:bg-primary/10 transition-all w-full"
         >
           <LogOut className="w-4 h-4" />
-          <span>Déconnexion</span>
+          <span className={labelCls}>Déconnexion</span>
         </button>
       </div>
 
@@ -333,9 +363,34 @@ export const SidebarContent = ({ onNavigate }: SidebarContentProps) => {
 };
 
 export const Sidebar = () => {
+  const [pinned, setPinned] = useState<boolean>(() => {
+    try { return localStorage.getItem("sidebar_pinned") === "true"; } catch { return false; }
+  });
+  const togglePin = () => {
+    setPinned((p) => {
+      const next = !p;
+      try { localStorage.setItem("sidebar_pinned", String(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
   return (
-    <aside className="hidden md:flex w-64 bg-sidebar border-r border-sidebar-border flex-col">
-      <SidebarContent />
-    </aside>
+    <>
+      {/* Réserve l'emprise du rail dans le flux ; ne pousse le contenu que si épinglé */}
+      <div
+        aria-hidden
+        className={cn("hidden md:block shrink-0 transition-[width] duration-200", pinned ? "w-64" : "w-16")}
+      />
+      {/* Rail fixe : icônes seules ; déployé au survol/focus (overlay) ou épinglé ouvert */}
+      <aside
+        className={cn(
+          "group/sb hidden md:flex fixed inset-y-0 left-0 z-50 flex-col overflow-hidden bg-sidebar border-r border-sidebar-border transition-[width] duration-200",
+          pinned ? "w-64" : "w-16 hover:w-64 focus-within:w-64",
+        )}
+      >
+        <div className="flex h-full w-64 flex-col">
+          <SidebarContent pinned={pinned} onTogglePin={togglePin} />
+        </div>
+      </aside>
+    </>
   );
 };
