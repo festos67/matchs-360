@@ -110,8 +110,22 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
       onOpenChange(false);
     } catch (error: unknown) {
       console.error("Error updating player:", error);
-      const msg = error instanceof UploadValidationError ? error.message : "Erreur lors de la mise à jour";
-      toast.error(msg);
+      if (error instanceof UploadValidationError) {
+        toast.error(error.message);
+      } else {
+        const raw = error instanceof Error ? error.message : "";
+        // Trigger Postgres : surnom d'un mineur protege.
+        if (/NICKNAME_PROTECTED/i.test(raw)) {
+          toast.error("Surnom protégé", {
+            description:
+              "Le surnom d'un mineur ne peut être modifié que par lui-même, son représentant légal ou un administrateur.",
+          });
+        } else {
+          toast.error("Erreur lors de la mise à jour", {
+            description: raw || "Une erreur est survenue. Vérifiez vos droits sur ce profil.",
+          });
+        }
+      }
     } finally {
       setSaving(false);
     }
