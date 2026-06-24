@@ -386,7 +386,7 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     }
   };
 
-  const needsClubSelection = newRole === "club_admin" || newRole === "coach" || newRole === "player";
+  const needsClubSelection = newRole === "coach" || newRole === "player";
   const needsTeamSelection = newRole === "coach" || newRole === "player";
   const needsPlayerSelection = newRole === "supporter";
 
@@ -600,9 +600,10 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">Administrateur</SelectItem>
-                      <SelectItem value="club_admin">Admin Club</SelectItem>
                       <SelectItem value="coach">Coach</SelectItem>
-                      <SelectItem value="player">Joueur</SelectItem>
+                      {!user.roles.some((r) => r.role === "player") && (
+                        <SelectItem value="player">Joueur</SelectItem>
+                      )}
                       <SelectItem value="supporter">Supporter</SelectItem>
                     </SelectContent>
                   </Select>
