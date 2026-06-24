@@ -27,7 +27,7 @@ import { StatsCard } from "@/components/shared/StatsCard";
 import { AddEntityButton } from "@/components/shared/AddEntityButton";
 import {
   Users, Trophy, UserCog, Eye, Plus, User, Search,
-  ChevronDown, ChevronRight, Target, BarChart3, TrendingUp, Shield,
+  ChevronDown, ChevronRight, Target, BarChart3, TrendingUp, Shield, Heart, Users2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -124,6 +124,39 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
       return count || 0;
     },
     enabled: !!clubTeamIds && clubTeamIds.length > 0,
+  });
+
+  const { data: kpiSupportersCount, isLoading: loadingSupporters } = useQuery({
+    queryKey: ["club-stats-supporters", clubId, clubTeamIds],
+    queryFn: async () => {
+      if (!clubTeamIds || clubTeamIds.length === 0) return 0;
+      const { data: members } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .in("team_id", clubTeamIds)
+        .eq("member_type", "player")
+        .eq("is_active", true);
+      const playerIds = [...new Set((members || []).map((m) => m.user_id))];
+      if (playerIds.length === 0) return 0;
+      const { data: links } = await supabase
+        .from("supporters_link")
+        .select("supporter_id")
+        .in("player_id", playerIds);
+      return new Set((links || []).map((l) => l.supporter_id)).size;
+    },
+    enabled: !!clubTeamIds && clubTeamIds.length > 0,
+  });
+
+  const { data: totalUsersCount, isLoading: loadingTotalUsers } = useQuery({
+    queryKey: ["app-stats-total-users"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .is("deleted_at", null)
+        .not("email", "is", null);
+      return count || 0;
+    },
   });
 
   const { data: evalStats, isLoading: loadingEvals } = useQuery({
@@ -373,7 +406,7 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
             <TooltipProvider delayDuration={200}>
               <div className="px-4 md:px-5 pb-4 space-y-1.5">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1">Effectif</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
                   <Tooltip><TooltipTrigger asChild>
                     <div><StatsCard title="Coachs" value={loadingCoaches ? "-" : String(kpiCoachesCount || 0)} icon={UserCog} /></div>
                   </TooltipTrigger><TooltipContent>Nombre total de coachs actifs dans le club</TooltipContent></Tooltip>
@@ -383,6 +416,12 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
                   <Tooltip><TooltipTrigger asChild>
                     <div><StatsCard title="Joueurs" value={loadingPlayers ? "-" : String(kpiPlayersCount || 0)} icon={User} /></div>
                   </TooltipTrigger><TooltipContent>Nombre total de joueurs actifs dans le club</TooltipContent></Tooltip>
+                  <Tooltip><TooltipTrigger asChild>
+                    <div><StatsCard title="Supporters" value={loadingSupporters ? "-" : String(kpiSupportersCount || 0)} icon={Heart} /></div>
+                  </TooltipTrigger><TooltipContent>Nombre de supporters distincts liés aux joueurs du club</TooltipContent></Tooltip>
+                  <Tooltip><TooltipTrigger asChild>
+                    <div><StatsCard title="Utilisateurs (app)" value={loadingTotalUsers ? "-" : String(totalUsersCount || 0)} icon={Users2} /></div>
+                  </TooltipTrigger><TooltipContent>Nombre total d'utilisateurs uniques sur l'application (comptés par adresse email, pas par rôle)</TooltipContent></Tooltip>
                 </div>
 
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium pl-1 pt-1">Débriefs</p>
