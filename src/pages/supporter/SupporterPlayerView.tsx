@@ -45,6 +45,14 @@ export default function SupporterPlayerView() {
     );
   }, [evaluations, frameworkId]);
 
+  // Comparaisons activées (ex: superposition du débrief supporter sur celui du coach)
+  const [comparisonIds, setComparisonIds] = useState<string[]>([]);
+  const handleToggleComparison = (id: string) => {
+    setComparisonIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
   // Thèmes du référentiel correspondant au débrief sélectionné
   const [selectedEvalThemes, setSelectedEvalThemes] = useState<Theme[]>([]);
   useEffect(() => {
@@ -145,9 +153,9 @@ export default function SupporterPlayerView() {
           frameworkId={frameworkId}
           canEvaluate={false}
           isViewingHistory={false}
-          comparisonIds={[]}
-          onReturnToCurrent={() => {}}
-          onToggleComparison={() => {}}
+          comparisonIds={comparisonIds}
+          onReturnToCurrent={() => setComparisonIds([])}
+          onToggleComparison={handleToggleComparison}
           hideSupporterLayer
           currentUserId={user?.id}
         />
