@@ -346,10 +346,10 @@ const SupporterDashboard = () => {
 
         {/* Pending Requests */}
         {(pendingRequests?.length || 0) > 0 && (
-          <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/30 rounded-xl p-6">
+          <div className="bg-gradient-to-r from-pink-500/10 to-pink-400/10 border border-pink-500/30 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                <Star className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                <Star className="w-5 h-5 text-pink-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Demandes de débrief</h2>
@@ -360,10 +360,10 @@ const SupporterDashboard = () => {
               {pendingRequests?.map((request) => (
                 <div
                   key={request.id}
-                  className="flex items-center justify-between p-4 bg-background/80 rounded-lg border border-orange-500/20"
+                  className="flex items-center justify-between p-4 bg-background/80 rounded-lg border border-pink-500/20"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold">
+                    <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center text-pink-500 font-bold">
                       {request.playerName.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -377,7 +377,7 @@ const SupporterDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button asChild className="gap-2 bg-orange-500 hover:bg-orange-600">
+                    <Button asChild className="gap-2 bg-pink-500 hover:bg-pink-600">
                       <Link to={`/supporter/evaluate/${request.id}`}>
                         <ClipboardList className="w-4 h-4" />
                         Débriefer
