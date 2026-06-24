@@ -44,6 +44,13 @@ interface UserRole {
   club_name?: string | null;
 }
 
+interface DisplayRole {
+  key: string;
+  role: string;
+  label: string;
+  context?: string;
+}
+
 interface Team {
   id: string;
   name: string;
@@ -79,6 +86,7 @@ const roleColors: Record<string, string> = {
 export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: AddRoleSectionProps) {
   const { hasAdminRole: isAdmin } = useAuth();
   const [existingRoles, setExistingRoles] = useState<UserRole[]>([]);
+  const [displayRoles, setDisplayRoles] = useState<DisplayRole[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newRole, setNewRole] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
@@ -125,6 +133,80 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
         ...r,
         club_name: null as string | null,
       })));
+
+      const display: DisplayRole[] = [];
+
+      // 1) club_admin / admin viennent de user_roles
+      (data || []).forEach((r) => {
+        if (r.role === "club_admin" || r.role === "admin") {
+          display.push({
+            key: `ur-${r.id}`,
+            role: r.role,
+            label: roleLabels[r.role] || r.role,
+          });
+        }
+      });
+
+      // 2) Coach / Player : source de vérité = team_members actifs
+      const { data: memberships } = await supabase
+        .from("team_members")
+        .select("id, member_type, coach_role, team:teams(name)")
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .is("deleted_at", null);
+
+      (memberships || []).forEach((m: any) => {
+        if (m.member_type === "player") {
+          display.push({
+            key: `tm-${m.id}`,
+            role: "player",
+            label: "Joueur",
+            context: m.team?.name,
+          });
+        } else if (m.member_type === "coach") {
+          const suffix = m.coach_role === "referent" ? "Référent" : "Assistant";
+          display.push({
+            key: `tm-${m.id}`,
+            role: "coach",
+            label: `Coach ${suffix}`,
+            context: m.team?.name,
+          });
+        }
+      });
+
+      // 3) Supporter : lien supporters_link → préciser le joueur suivi
+      const { data: supporterLinks } = await supabase
+        .from("supporters_link")
+        .select("id, player:profiles!supporters_link_player_id_fkey(first_name, last_name, nickname)")
+        .eq("supporter_id", userId);
+
+      (supporterLinks || []).forEach((l: any) => {
+        const p = l.player;
+        const name = p
+          ? p.nickname || `${p.first_name || ""} ${p.last_name || ""}`.trim() || "joueur"
+          : "joueur";
+        display.push({
+          key: `sl-${l.id}`,
+          role: "supporter",
+          label: "Supporter",
+          context: `de ${name}`,
+        });
+      });
+
+      // Si aucune source détaillée mais user_roles contient un rôle, l'afficher en repli
+      (data || []).forEach((r) => {
+        if (r.role === "player" && !display.some((d) => d.role === "player")) {
+          display.push({ key: `ur-${r.id}`, role: "player", label: "Joueur" });
+        }
+        if (r.role === "coach" && !display.some((d) => d.role === "coach")) {
+          display.push({ key: `ur-${r.id}`, role: "coach", label: "Coach" });
+        }
+        if (r.role === "supporter" && !display.some((d) => d.role === "supporter")) {
+          display.push({ key: `ur-${r.id}`, role: "supporter", label: "Supporter" });
+        }
+      });
+
+      setDisplayRoles(display);
     } catch (error) {
       console.error("Error fetching roles:", error);
     } finally {
@@ -322,15 +404,16 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
 
       {/* Rôles existants */}
       <div className="flex flex-wrap gap-1.5">
-        {existingRoles.map((role) => (
+        {displayRoles.map((r) => (
           <Badge
-            key={role.id}
-            className={roleColors[role.role] || "bg-muted text-foreground"}
+            key={r.key}
+            className={roleColors[r.role] || "bg-muted text-foreground"}
           >
-            {roleLabels[role.role] || role.role}
+            {r.label}
+            {r.context ? ` · ${r.context}` : ""}
           </Badge>
         ))}
-        {existingRoles.length === 0 && (
+        {displayRoles.length === 0 && (
           <span className="text-sm text-muted-foreground">Aucun rôle attribué</span>
         )}
       </div>
