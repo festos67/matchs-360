@@ -65,7 +65,11 @@ export function UserPhotoUpload({
 
   const handleCropComplete = (blob: Blob) => {
     if (!pendingFile) return;
-    const cropped = new File([blob], pendingFile.name, { type: "image/jpeg" });
+    // Le crop produit toujours du JPEG : on force l'extension `.jpg`
+    // pour rester cohérent avec le MIME (sinon la validation upload
+    // rejette le mismatch extension ↔ type).
+    const baseName = pendingFile.name.replace(/\.[^.]+$/, "") || "photo";
+    const cropped = new File([blob], `${baseName}.jpg`, { type: "image/jpeg" });
     const reader = new FileReader();
     reader.onload = (ev) => {
       onFileSelected(cropped, ev.target?.result as string);
