@@ -240,9 +240,26 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
       onRoleAdded?.();
     } catch (error: any) {
       console.error("Error adding role:", error);
-      toast.error("Erreur lors de l'ajout du rôle", {
-        description: error.message,
-      });
+      const raw = String(error?.message || "");
+      const isPermission =
+        error?.code === "42501" ||
+        /row-level security|permission denied|violates row-level/i.test(raw);
+
+      if (isPermission && newRole === "supporter") {
+        toast.error("Action non autorisée", {
+          description:
+            "Seuls les responsables de club et les coachs référents peuvent attribuer le rôle Supporter. En tant que coach assistant, demandez à un coach référent ou au responsable du club.",
+        });
+      } else if (isPermission) {
+        toast.error("Action non autorisée", {
+          description:
+            "Vous n'avez pas les droits pour attribuer ce rôle. Cette action est réservée aux responsables de club et aux coachs référents (selon le rôle).",
+        });
+      } else {
+        toast.error("Erreur lors de l'ajout du rôle", {
+          description: raw,
+        });
+      }
     } finally {
       setSaving(false);
     }
