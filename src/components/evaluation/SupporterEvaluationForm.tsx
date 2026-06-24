@@ -289,6 +289,11 @@ export function SupporterEvaluationForm({
 
   return (
     <div className="space-y-8 pb-24">
+      {/* Briefing message */}
+      <p className="text-muted-foreground">
+        Les qualités ci-dessous ont été définies dans le cadre du club. À vous de les évaluer selon votre propre vécu avec le joueur, quel que soit le contexte. Si l'une d'elles vous semble trop éloignée de ce que vous pouvez observer, cochez simplement "non observé". Chaque regard compte.
+      </p>
+
       {/* Real-time Radar Preview */}
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
@@ -327,11 +332,6 @@ export function SupporterEvaluationForm({
             </Badge>
           </div>
         </div>
-
-        <p className="text-muted-foreground mb-6">
-          Partagez votre perception des compétences du joueur. Vos observations sont
-          précieuses pour compléter la vision des coachs.
-        </p>
 
         <div className={`space-y-4 ${!hasStarted ? "opacity-50 pointer-events-none select-none" : ""}`}>
           {themes.map((theme) => (
