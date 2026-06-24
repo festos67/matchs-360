@@ -31,6 +31,7 @@ interface PlayerHistoryTabProps {
   hideSelfSection?: boolean;
   editableSupporterEvaluatorId?: string;
   onEditSupporterEvaluation?: (evaluation: Evaluation) => void;
+  hideSelfPrint?: boolean;
 }
 
 export function PlayerHistoryTab(props: PlayerHistoryTabProps) {
@@ -52,6 +53,7 @@ export function PlayerHistoryTab(props: PlayerHistoryTabProps) {
       hideSelfSection={props.hideSelfSection}
       editableSupporterEvaluatorId={props.editableSupporterEvaluatorId}
       onEditSupporterEvaluation={props.onEditSupporterEvaluation}
+      hideSelfPrint={props.hideSelfPrint}
     />
   );
 }

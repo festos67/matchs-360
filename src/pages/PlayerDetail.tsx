@@ -803,6 +803,7 @@ export default function PlayerDetail() {
             onPrintEvaluation={handlePrintEvaluationFromHistory}
             hideSupporterSection={isPlayerViewingOwnProfile && !isSupporterViewer}
             hideSelfSection={isSupporterViewer}
+            hideSelfPrint={isPlayerViewingOwnProfile}
             editableSupporterEvaluatorId={isSupporterViewer ? user?.id : undefined}
             onEditSupporterEvaluation={
               isSupporterViewer

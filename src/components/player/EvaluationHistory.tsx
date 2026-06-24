@@ -109,6 +109,11 @@ interface EvaluationHistoryProps {
    */
   editableSupporterEvaluatorId?: string;
   onEditSupporterEvaluation?: (evaluation: Evaluation) => void;
+  /**
+   * Si vrai, masque le bouton "Imprimer" sur les auto-débriefs (type "self").
+   * Utilisé pour empêcher le joueur d'imprimer sa propre auto-évaluation.
+   */
+  hideSelfPrint?: boolean;
 }
 
 // Predefined colors for comparison
@@ -136,6 +141,7 @@ export function EvaluationHistory({
   hideSelfSection = false,
   editableSupporterEvaluatorId,
   onEditSupporterEvaluation,
+  hideSelfPrint = false,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
 
@@ -413,7 +419,7 @@ export function EvaluationHistory({
               </Button>
             </div>
           )}
-          {!isCoachType && !isArchived && onPrintEvaluation && (
+          {!isCoachType && !isArchived && onPrintEvaluation && !(hideSelfPrint && evaluation.type === "self") && (
             <Button
               size="sm"
               variant="outline"
