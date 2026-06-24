@@ -126,6 +126,39 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
     enabled: !!clubTeamIds && clubTeamIds.length > 0,
   });
 
+  const { data: kpiSupportersCount, isLoading: loadingSupporters } = useQuery({
+    queryKey: ["club-stats-supporters", clubId, clubTeamIds],
+    queryFn: async () => {
+      if (!clubTeamIds || clubTeamIds.length === 0) return 0;
+      const { data: members } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .in("team_id", clubTeamIds)
+        .eq("member_type", "player")
+        .eq("is_active", true);
+      const playerIds = [...new Set((members || []).map((m) => m.user_id))];
+      if (playerIds.length === 0) return 0;
+      const { data: links } = await supabase
+        .from("supporters_link")
+        .select("supporter_id")
+        .in("player_id", playerIds);
+      return new Set((links || []).map((l) => l.supporter_id)).size;
+    },
+    enabled: !!clubTeamIds && clubTeamIds.length > 0,
+  });
+
+  const { data: totalUsersCount, isLoading: loadingTotalUsers } = useQuery({
+    queryKey: ["app-stats-total-users"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .is("deleted_at", null)
+        .not("email", "is", null);
+      return count || 0;
+    },
+  });
+
   const { data: evalStats, isLoading: loadingEvals } = useQuery({
     queryKey: ["club-stats-evals", clubId, clubTeamIds],
     queryFn: async () => {
