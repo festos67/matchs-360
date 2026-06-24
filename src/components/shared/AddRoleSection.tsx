@@ -17,7 +17,7 @@
  *  - Mode promotion : mem://features/user-role-management/promotion-mode
  *  - Index unique métier : mem://technical/database-integrity
  */
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -88,6 +88,16 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
   const [players, setPlayers] = useState<PlayerOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showAddForm && formRef.current) {
+      // Wait for layout (form expansion) before scrolling into view
+      requestAnimationFrame(() => {
+        formRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      });
+    }
+  }, [showAddForm]);
 
   useEffect(() => {
     fetchExistingRoles();
@@ -327,7 +337,7 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
 
       {/* Formulaire d'ajout */}
       {showAddForm && (
-        <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+        <div ref={formRef} className="border rounded-lg p-3 space-y-3 bg-muted/30 scroll-mb-4">
           <p className="text-sm font-medium">Ajouter un nouveau rôle</p>
 
           <div className="space-y-2">
