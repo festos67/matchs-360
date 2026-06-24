@@ -481,13 +481,13 @@ export function EvaluationHistory({
         </div>
       </div>
 
-      {hideSelfPrint && (
-        <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-          <p className="text-sm text-foreground">
-            💡 <strong>Astuce :</strong> coche les débriefs que tu souhaites comparer, puis clique sur l'onglet <strong>« Résultat »</strong> pour visualiser la superposition de tes graphiques et suivre ton évolution !
-          </p>
-        </div>
-      )}
+      <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
+        <p className="text-sm text-foreground">
+          💡 <strong>Astuce :</strong> {hideSelfPrint
+            ? <>coche les débriefs que tu souhaites comparer, puis clique sur l'onglet <strong>« Résultat »</strong> pour visualiser la superposition de tes graphiques et suivre ton évolution !</>
+            : <>cochez les débriefs que vous souhaitez comparer, puis allez dans l'onglet <strong>« Résultat »</strong> pour visualiser la superposition des graphiques.</>}
+        </p>
+      </div>
 
       {/* Section A: Coach Evaluations (Official) */}
       <div className="mb-8">
@@ -574,14 +574,6 @@ export function EvaluationHistory({
         )}
       </div>}
 
-      {/* Comparison tip */}
-      {activeCoachEvaluations.length > 1 && (
-        <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            💡 <strong>Astuce:</strong> Cochez les débriefs officiels que vous souhaitez comparer, puis allez dans l'onglet "Vue Radar" pour visualiser la superposition des graphiques.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
