@@ -34,10 +34,16 @@ import {
   User,
   Heart,
   Printer,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -144,6 +150,9 @@ export function EvaluationHistory({
   hideSelfPrint = false,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
+  const [openCoach, setOpenCoach] = useState(true);
+  const [openSelf, setOpenSelf] = useState(true);
+  const [openSupporter, setOpenSupporter] = useState(true);
 
   // Separate evaluations by type
   const coachEvaluations = evaluations.filter(e => e.type === "coach");
@@ -490,89 +499,105 @@ export function EvaluationHistory({
       </div>
 
       {/* Section A: Coach Evaluations (Official) */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-primary">
-            <ClipboardCheck className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Suivi Officiel (Coach)</h3>
+      <Collapsible open={openCoach} onOpenChange={setOpenCoach} className="mb-8">
+        <CollapsibleTrigger className="w-full group">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-2 text-orange-500">
+              <ClipboardCheck className="w-5 h-5" />
+              <h3 className="font-semibold text-lg">Suivi Officiel (Coach)</h3>
+            </div>
+            <Badge className="text-xs bg-orange-500/10 text-orange-500 border-orange-500/20">
+              {filteredCoachEvals.length} débrief{filteredCoachEvals.length > 1 ? "s" : ""}
+            </Badge>
+            <ChevronDown className={`w-5 h-5 ml-auto text-muted-foreground transition-transform ${openCoach ? "" : "-rotate-90"}`} />
           </div>
-          <Badge variant="outline" className="text-xs">
-            {filteredCoachEvals.length} débrief{filteredCoachEvals.length > 1 ? "s" : ""}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Débriefs validés par les coachs — Référence officielle pour le club
-        </p>
-        
-        {filteredCoachEvals.length > 0 ? (
-          <div className="space-y-3">
-            {filteredCoachEvals.map((evaluation) => renderEvaluationItem(evaluation, true))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg">
-            <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-50" />
-            <p>Aucun débrief officiel {showArchivedEvaluations ? "" : "actif"}</p>
-          </div>
-        )}
-      </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Débriefs validés par les coachs — Référence officielle pour le club
+          </p>
+          {filteredCoachEvals.length > 0 ? (
+            <div className="space-y-3">
+              {filteredCoachEvals.map((evaluation) => renderEvaluationItem(evaluation, true))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-lg">
+              <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-50" />
+              <p>Aucun débrief officiel {showArchivedEvaluations ? "" : "actif"}</p>
+            </div>
+          )}
+        </CollapsibleContent>
+      </Collapsible>
 
       {!hideSelfSection && <Separator className="my-6" />}
 
       {/* Section B: Self Evaluations */}
-      {!hideSelfSection && <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-accent">
-            <User className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Auto-débriefs (Joueur)</h3>
-          </div>
-          <Badge className="text-xs bg-accent/10 text-accent border-accent/20">
-            {filteredSelfEvals.length} auto-débrief{filteredSelfEvals.length > 1 ? "s" : ""}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Perception personnelle du joueur — Données consultatives uniquement
-        </p>
-        
-        {filteredSelfEvals.length > 0 ? (
-          <div className="space-y-3">
-            {filteredSelfEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground bg-accent/5 rounded-lg border border-accent/20">
-            <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-accent" />
-            <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
-          </div>
-        )}
-      </div>}
+      {!hideSelfSection && (
+        <Collapsible open={openSelf} onOpenChange={setOpenSelf}>
+          <CollapsibleTrigger className="w-full group">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2 text-green-600">
+                <User className="w-5 h-5" />
+                <h3 className="font-semibold text-lg">Auto-débriefs (Joueur)</h3>
+              </div>
+              <Badge className="text-xs bg-green-600/10 text-green-600 border-green-600/20">
+                {filteredSelfEvals.length} auto-débrief{filteredSelfEvals.length > 1 ? "s" : ""}
+              </Badge>
+              <ChevronDown className={`w-5 h-5 ml-auto text-muted-foreground transition-transform ${openSelf ? "" : "-rotate-90"}`} />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Perception personnelle du joueur — Données consultatives uniquement
+            </p>
+            {filteredSelfEvals.length > 0 ? (
+              <div className="space-y-3">
+                {filteredSelfEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground bg-green-600/5 rounded-lg border border-green-600/20">
+                <Star className="w-10 h-10 mx-auto mb-2 opacity-50 text-green-600" />
+                <p>Aucun auto-débrief {showArchivedEvaluations ? "" : "disponible"}</p>
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
       {!hideSupporterSection && <Separator className="my-6" />}
 
       {/* Section C: Supporter Evaluations */}
-      {!hideSupporterSection && <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-2 text-success">
-            <Heart className="w-5 h-5" />
-            <h3 className="font-semibold text-lg">Débriefs Supporters</h3>
-          </div>
-          <Badge className="text-xs bg-success/10 text-success border-success/20">
-            {filteredSupporterEvals.length} débrief{filteredSupporterEvals.length > 1 ? "s" : ""}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground mb-4">
-          Perception des proches (parents) — Données consultatives uniquement
-        </p>
-        
-        {filteredSupporterEvals.length > 0 ? (
-          <div className="space-y-3">
-            {filteredSupporterEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground bg-success/5 rounded-lg border border-success/20">
-            <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-success" />
-            <p>Aucun débrief supporter {showArchivedEvaluations ? "" : "disponible"}</p>
-          </div>
-        )}
-      </div>}
+      {!hideSupporterSection && (
+        <Collapsible open={openSupporter} onOpenChange={setOpenSupporter}>
+          <CollapsibleTrigger className="w-full group">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2 text-pink-500">
+                <Heart className="w-5 h-5" />
+                <h3 className="font-semibold text-lg">Débriefs Supporters</h3>
+              </div>
+              <Badge className="text-xs bg-pink-500/10 text-pink-500 border-pink-500/20">
+                {filteredSupporterEvals.length} débrief{filteredSupporterEvals.length > 1 ? "s" : ""}
+              </Badge>
+              <ChevronDown className={`w-5 h-5 ml-auto text-muted-foreground transition-transform ${openSupporter ? "" : "-rotate-90"}`} />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Perception des proches (parents) — Données consultatives uniquement
+            </p>
+            {filteredSupporterEvals.length > 0 ? (
+              <div className="space-y-3">
+                {filteredSupporterEvals.map((evaluation) => renderEvaluationItem(evaluation, false))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground bg-pink-500/5 rounded-lg border border-pink-500/20">
+                <Heart className="w-10 h-10 mx-auto mb-2 opacity-50 text-pink-500" />
+                <p>Aucun débrief supporter {showArchivedEvaluations ? "" : "disponible"}</p>
+              </div>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
 
     </div>
   );
