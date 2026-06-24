@@ -365,10 +365,18 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
     setCoachRole("assistant");
   };
 
-  // Rôles disponibles (exclure le rôle actuel et admin)
-  const availableRoles = Object.keys(roleLabels).filter(
-    (role) => role !== "admin"
-  );
+  // Rôles disponibles :
+  // - Toujours exclure "admin" (super admin) et "club_admin"
+  //   (la promotion responsable club se fait via les paramètres du club)
+  // - Si l'utilisateur cible est déjà joueur, on ne propose pas un 2ᵉ rôle joueur
+  //   (un joueur ne peut pas cumuler deux rôles "Joueur")
+  const alreadyPlayer =
+    currentRole === "player" || displayRoles.some((r) => r.role === "player");
+  const availableRoles = Object.keys(roleLabels).filter((role) => {
+    if (role === "admin" || role === "club_admin") return false;
+    if (role === "player" && alreadyPlayer) return false;
+    return true;
+  });
 
   const needsTeam = newRole === "coach" || newRole === "player";
   const needsPlayer = newRole === "supporter";
