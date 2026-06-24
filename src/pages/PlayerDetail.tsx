@@ -538,7 +538,7 @@ export default function PlayerDetail() {
       </div>
 
       {/* Layout sidebar + contenu */}
-      <div className="flex flex-col lg:flex-row -m-3 md:-m-6 lg:gap-0 min-h-[calc(100vh-3.5rem)]">
+      <div className="flex flex-col lg:flex-row -m-3 md:-m-6 lg:gap-0 lg:h-[calc(100dvh-3.5rem)] lg:overflow-hidden">
         <PlayerSidebar
           player={player}
           teamMembership={teamMembership}
@@ -577,7 +577,7 @@ export default function PlayerDetail() {
         />
 
         {/* Contenu principal */}
-        <div className="flex-1 min-w-0 p-4 md:p-5">
+        <div className="flex-1 min-w-0 p-4 md:p-5 lg:h-full lg:overflow-y-auto custom-scrollbar">
 
       {/* Modals */}
       {teamMembership && (
