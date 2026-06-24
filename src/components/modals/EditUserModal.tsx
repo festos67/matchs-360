@@ -600,9 +600,10 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">Administrateur</SelectItem>
-                      <SelectItem value="club_admin">Admin Club</SelectItem>
                       <SelectItem value="coach">Coach</SelectItem>
-                      <SelectItem value="player">Joueur</SelectItem>
+                      {!user.roles.some((r) => r.role === "player") && (
+                        <SelectItem value="player">Joueur</SelectItem>
+                      )}
                       <SelectItem value="supporter">Supporter</SelectItem>
                     </SelectContent>
                   </Select>
