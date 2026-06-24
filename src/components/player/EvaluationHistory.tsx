@@ -150,6 +150,9 @@ export function EvaluationHistory({
   hideSelfPrint = false,
 }: EvaluationHistoryProps) {
   const [showArchivedEvaluations, setShowArchivedEvaluations] = useState(false);
+  const [openCoach, setOpenCoach] = useState(true);
+  const [openSelf, setOpenSelf] = useState(true);
+  const [openSupporter, setOpenSupporter] = useState(true);
 
   // Separate evaluations by type
   const coachEvaluations = evaluations.filter(e => e.type === "coach");
