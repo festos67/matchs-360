@@ -323,10 +323,8 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
       }
 
       toast.success(`Rôle "${roleLabels[newRole] || newRole}" ajouté`);
-      // Notifier l'utilisateur existant par email (best-effort)
-      supabase.functions
-        .invoke("notify-role-added", { body: { userId, role: newRole, clubId } })
-        .catch(() => { /* best-effort : ne pas bloquer l'ajout */ });
+      // L'email de felicitations + la notification in-app sont declenches
+      // automatiquement par le trigger SQL trg_user_role_assigned sur user_roles.
       resetForm();
       fetchExistingRoles();
       onRoleAdded?.();
