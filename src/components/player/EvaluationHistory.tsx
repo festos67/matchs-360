@@ -457,13 +457,6 @@ export function EvaluationHistory({
 
   return (
     <div className="glass-card p-6">
-      {hideSelfPrint && (
-        <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-          <p className="text-sm text-foreground">
-            💡 <strong>Astuce :</strong> coche les débriefs que tu souhaites comparer, puis clique sur l'onglet <strong>« Résultat »</strong> pour visualiser la superposition de tes graphiques et suivre ton évolution !
-          </p>
-        </div>
-      )}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-display font-semibold">Historique des débriefs</h2>
         <div className="flex items-center gap-4">
@@ -487,6 +480,14 @@ export function EvaluationHistory({
           )}
         </div>
       </div>
+
+      {hideSelfPrint && (
+        <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
+          <p className="text-sm text-foreground">
+            💡 <strong>Astuce :</strong> coche les débriefs que tu souhaites comparer, puis clique sur l'onglet <strong>« Résultat »</strong> pour visualiser la superposition de tes graphiques et suivre ton évolution !
+          </p>
+        </div>
+      )}
 
       {/* Section A: Coach Evaluations (Official) */}
       <div className="mb-8">
