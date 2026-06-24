@@ -283,7 +283,11 @@ export function EvaluationHistory({
                 ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length] + "20"
                 : isSelected
                 ? `${teamColor}20`
-                : isCoachType ? "hsl(var(--primary) / 0.2)" : "hsl(37.7 92.1% 50.2% / 0.2)",
+                : isCoachType
+                  ? "rgb(249 115 22 / 0.15)" // orange-500
+                  : evaluation.type === "supporter"
+                    ? "rgb(236 72 153 / 0.15)" // pink-500
+                    : "rgb(22 163 74 / 0.15)", // green-600
             }}
           >
             {isCoachType ? (
@@ -292,11 +296,13 @@ export function EvaluationHistory({
                 style={{
                   color: isCompared
                     ? COMPARISON_COLORS[comparisonIds.indexOf(evaluation.id) % COMPARISON_COLORS.length]
-                    : "hsl(var(--primary))",
+                    : "rgb(249 115 22)",
                 }}
               />
             ) : (
-              <Star className="w-6 h-6 text-amber-500" />
+              <Star
+                className={`w-6 h-6 ${evaluation.type === "supporter" ? "text-pink-500" : "text-green-600"}`}
+              />
             )}
           </div>
           <div className="flex-1 min-w-0">
