@@ -304,7 +304,7 @@ export function SupporterEvaluationForm({
             </p>
           </div>
           <div className="text-center">
-            <p className="text-3xl font-display font-bold text-warning">
+            <p className="text-3xl font-display font-bold text-pink-500">
               {formatAverage(overallAverage)}
             </p>
             <p className="text-xs text-muted-foreground">Moyenne</p>
@@ -327,7 +327,7 @@ export function SupporterEvaluationForm({
             <h2 className="text-xl font-display font-semibold">
               Débrief de {playerName}
             </h2>
-            <Badge className="bg-warning/20 text-warning border-warning/30">
+            <Badge className="bg-pink-500/20 text-pink-600 border-pink-500/30">
               Point de vue Supporter
             </Badge>
           </div>
@@ -366,7 +366,7 @@ export function SupporterEvaluationForm({
               size="lg"
               onClick={() => setShowConfirmSave(true)}
               disabled={isSaving}
-              className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground ml-auto"
+              className="gap-2 bg-pink-500 hover:bg-pink-500/90 text-white ml-auto"
             >
               <Save className="w-4 h-4" />
               {isSaving ? "Enregistrement..." : "Enregistrer ma perception"}
