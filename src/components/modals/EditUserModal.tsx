@@ -386,7 +386,7 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
     }
   };
 
-  const needsClubSelection = newRole === "club_admin" || newRole === "coach" || newRole === "player";
+  const needsClubSelection = newRole === "coach" || newRole === "player";
   const needsTeamSelection = newRole === "coach" || newRole === "player";
   const needsPlayerSelection = newRole === "supporter";
 
