@@ -299,7 +299,7 @@ export default function SupporterEvaluation() {
       </Button>
 
       {/* Header */}
-      <div ref={headerRef} className="glass-card p-6 mb-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30 scroll-mt-4">
+      <div ref={headerRef} className="glass-card p-6 mb-8 bg-gradient-to-r from-pink-500/10 to-pink-400/10 border-pink-500/30 scroll-mt-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg shrink-0">
             {getPlayerName().slice(0, 2).toUpperCase()}
@@ -309,7 +309,7 @@ export default function SupporterEvaluation() {
               <h1 className="text-2xl font-display font-bold text-foreground">
                 Débrief de {getPlayerName()}
               </h1>
-              <Badge variant="outline" className="bg-orange-500/20 text-orange-600 border-orange-500/30">
+              <Badge variant="outline" className="bg-pink-500/20 text-pink-600 border-pink-500/30">
                 Point de vue Supporter
               </Badge>
             </div>
@@ -326,8 +326,8 @@ export default function SupporterEvaluation() {
               </p>
             )}
           </div>
-          <div className="w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
-            <Heart className="w-7 h-7 text-orange-500" />
+          <div className="w-14 h-14 rounded-xl bg-pink-500/20 flex items-center justify-center shrink-0">
+            <Heart className="w-7 h-7 text-pink-500" />
           </div>
         </div>
       </div>
@@ -336,9 +336,9 @@ export default function SupporterEvaluation() {
       {!hasStarted && (
         <div
           ref={startCardRef}
-          className="glass-card p-8 mb-8 text-center border-2 border-dashed border-warning/40 bg-warning/5 scroll-mt-4"
+          className="glass-card p-8 mb-8 text-center border-2 border-dashed border-pink-500/40 bg-pink-500/5 scroll-mt-4"
         >
-          <Play className="w-10 h-10 mx-auto mb-3 text-warning" />
+          <Play className="w-10 h-10 mx-auto mb-3 text-pink-500" />
           <h3 className="text-lg font-display font-semibold mb-2">
             Prêt(e) à partager votre perception ?
           </h3>
@@ -350,7 +350,7 @@ export default function SupporterEvaluation() {
             size="lg"
             onClick={handleStart}
             disabled={alreadyEvaluated}
-            className="gap-2 bg-warning hover:bg-warning/90 text-warning-foreground"
+            className="gap-2 bg-pink-500 hover:bg-pink-500/90 text-white"
           >
             <Play className="w-4 h-4" />
             Démarrer le débrief
