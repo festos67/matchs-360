@@ -181,7 +181,7 @@ export default function SupporterEditEvaluation() {
         <ArrowLeft className="w-4 h-4 mr-2" /> Retour
       </Button>
 
-      <div className="glass-card p-6 mb-8 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-orange-500/30">
+      <div className="glass-card p-6 mb-8 bg-gradient-to-r from-pink-500/10 to-pink-400/10 border-pink-500/30">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg shrink-0">
             {playerName.slice(0, 2).toUpperCase()}
@@ -191,7 +191,7 @@ export default function SupporterEditEvaluation() {
               <h1 className="text-2xl font-display font-bold text-foreground">
                 Modifier mon débrief de {playerName}
               </h1>
-              <Badge variant="outline" className="bg-orange-500/20 text-orange-600 border-orange-500/30">
+              <Badge variant="outline" className="bg-pink-500/20 text-pink-600 border-pink-500/30">
                 Édition
               </Badge>
             </div>
@@ -199,8 +199,8 @@ export default function SupporterEditEvaluation() {
               Ajustez vos évaluations puis enregistrez pour mettre à jour votre débrief.
             </p>
           </div>
-          <div className="w-14 h-14 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
-            <Heart className="w-7 h-7 text-orange-500" />
+          <div className="w-14 h-14 rounded-xl bg-pink-500/20 flex items-center justify-center shrink-0">
+            <Heart className="w-7 h-7 text-pink-500" />
           </div>
         </div>
       </div>
