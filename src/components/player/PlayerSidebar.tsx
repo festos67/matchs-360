@@ -95,7 +95,7 @@ export function PlayerSidebar({
   const displayName = fullName || player.nickname || "Joueur";
 
   return (
-    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:-mt-3 p-4 lg:max-h-[calc(100vh+0.75rem)] lg:sticky lg:-top-3 lg:overflow-y-auto custom-scrollbar">
+    <aside className="lg:w-[240px] lg:flex-shrink-0 lg:border border-border lg:bg-card lg:rounded-2xl lg:mx-3 lg:mb-3 lg:-mt-3 p-4 lg:h-[calc(100%+0.75rem)] lg:overflow-y-auto custom-scrollbar">
       {/* Bouton retour — masqué quand le joueur consulte son propre profil (page de menu) */}
       {!isPlayerViewingOwnProfile && (
         <Button
