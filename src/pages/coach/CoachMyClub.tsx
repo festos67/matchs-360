@@ -75,7 +75,11 @@ const CoachMyClub = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const clubId = isCoachRole ? effectiveCoachClubId || rawClubId : rawClubId;
+  const clubId = isCoachRole
+    ? loadingCoachScope
+      ? null
+      : effectiveCoachClubId || rawClubId
+    : rawClubId;
   const waitingForCoachScope = isCoachRole && loadingCoachScope;
 
   // Fetch club info
@@ -137,7 +141,7 @@ const CoachMyClub = () => {
   // La fonction SECURITY DEFINER contourne la restriction RLS qui limite un coach
   // à ses équipes, tout en comptant uniquement les membres actifs/non archivés.
   const { data: dashboardStats, isLoading: loadingDashboardStats } = useQuery({
-    queryKey: ["coach-my-club-dashboard-stats", "v2", user?.id, clubId, currentRole?.id],
+    queryKey: ["coach-my-club-dashboard-stats", "v3", user?.id, clubId, currentRole?.id],
     queryFn: async () => {
       if (!clubId || !user?.id) return null;
       const { data, error } = await supabase.rpc("get_coach_my_club_dashboard_stats", {
