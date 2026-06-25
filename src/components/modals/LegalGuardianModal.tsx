@@ -6,7 +6,7 @@
  *         Supporters EXCLUS (policy RLS).
  */
 import { useEffect, useState } from "react";
-import { Mail, ShieldCheck, User } from "lucide-react";
+import { Loader2, Mail, Send, ShieldCheck, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LegalGuardianModalProps {
@@ -21,6 +23,11 @@ interface LegalGuardianModalProps {
   onOpenChange: (open: boolean) => void;
   playerId: string;
   playerName: string;
+  /**
+   * Si vrai, affiche le bouton "Renvoyer la demande de consentement".
+   * Réservé aux coachs et responsables club (jamais au joueur).
+   */
+  canResend?: boolean;
 }
 
 type GuardianDesignation = {
@@ -43,9 +50,37 @@ export function LegalGuardianModal({
   onOpenChange,
   playerId,
   playerName,
+  canResend = false,
 }: LegalGuardianModalProps) {
   const [loading, setLoading] = useState(false);
   const [guardians, setGuardians] = useState<GuardianDesignation[]>([]);
+  const [resending, setResending] = useState(false);
+
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "resend-guardian-consent",
+        { body: { playerId } },
+      );
+      if (error) {
+        const msg = (data as { error?: string } | null)?.error
+          || error.message
+          || "Échec de l'envoi.";
+        toast.error(msg);
+      } else if ((data as { error?: string } | null)?.error) {
+        toast.error((data as { error: string }).error);
+      } else {
+        toast.success("Demande de consentement renvoyée au représentant légal.");
+      }
+    } catch (e) {
+      toast.error((e as Error)?.message ?? "Échec de l'envoi.");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const hasPendingGuardian = guardians.some((g) => g.status !== "consented");
 
   useEffect(() => {
     if (!open) return;
@@ -155,6 +190,29 @@ export function LegalGuardianModal({
                 </div>
               );
             })}
+
+          {canResend && !loading && hasPendingGuardian && (
+            <div className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleResend}
+                disabled={resending}
+              >
+                {resending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Renvoyer la demande de consentement
+              </Button>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Un email de rappel sera envoyé au représentant légal avec un nouveau
+                lien sécurisé pour donner son consentement.
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
