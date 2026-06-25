@@ -539,6 +539,11 @@ const handler = async (req: Request): Promise<Response> => {
     let userId: string;
     let isNewUser = false;
     let inviteEmailError: EmailProviderError | null = null;
+    // Suivi de l'envoi de l'email de consentement au représentant légal
+    // (mineur < 15 ans). Surfacé dans la réponse pour que le frontend puisse
+    // afficher un avertissement explicite si l'email n'a pas pu partir.
+    let guardianEmailSent = false;
+    let guardianEmailError: string | null = null;
     // Un supporter peut suivre plusieurs joueurs d'un même club : si le rôle
     // supporter existe déjà, ce n'est pas un conflit, on saute juste sa recréation.
     let supporterRoleAlreadyExists = false;
@@ -862,6 +867,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           if (gLinkErr || !gLink?.properties?.action_link) {
             console.error("guardian generateLink failed", { masked: maskEmail(guardianEmailNorm), err: gLinkErr?.message });
+            guardianEmailError = gLinkErr?.message || "generateLink a échoué";
           } else if (resend) {
             const guardianLink = gLink.properties.action_link;
             const childName = [firstName, lastName].filter(Boolean).join(" ") || "votre enfant";
@@ -902,14 +908,18 @@ const handler = async (req: Request): Promise<Response> => {
             });
             if (gResult.error) {
               console.error("guardian email send failed", { masked: maskEmail(guardianEmailNorm), err: gResult.error });
+              guardianEmailError = (gResult.error as { message?: string })?.message || "Resend a refusé l'envoi";
             } else {
               console.log("guardian consent email sent", { recipient: maskEmail(guardianEmailNorm), messageId: gResult.data?.id });
+              guardianEmailSent = true;
             }
           } else {
             console.warn("RESEND non configuré — email guardian non envoyé");
+            guardianEmailError = "RESEND_API_KEY non configuré";
           }
         } catch (gErr) {
           console.error("guardian invitation flow error", (gErr as Error)?.message);
+          guardianEmailError = (gErr as Error)?.message || "Erreur inconnue";
         }
       }
     }
@@ -1047,6 +1057,9 @@ const handler = async (req: Request): Promise<Response> => {
           : "Rôle ajouté avec succès",
         userId,
         emailSent: !!resend && !inviteEmailError,
+        isMinorGuardianFlow: isMinorWithGuardian,
+        guardianEmailSent,
+        ...(guardianEmailError ? { guardianEmailError } : {}),
         ...(inviteEmailError
           ? {
               warning:

@@ -330,9 +330,27 @@ export const CreatePlayerModal = ({
         }
       }
 
-      toast.success(`Joueur invité avec succès !`, {
-        description: `Une invitation a été envoyée à ${data.email}`,
-      });
+      // Mineur < 15 ans : aucun email n'est envoyé à l'enfant — l'email part
+      // au représentant légal. On adapte le toast et on remonte un avertissement
+      // si Resend n'a pas pu joindre le titulaire de l'autorité parentale.
+      if (result?.isMinorGuardianFlow) {
+        if (result?.guardianEmailSent) {
+          toast.success("Joueur enregistré — consentement parental demandé", {
+            description: `Un email de demande de consentement a été envoyé à ${data.guardianEmail}.`,
+          });
+        } else {
+          toast.warning("Joueur enregistré mais email parental non envoyé", {
+            description: `L'email à ${data.guardianEmail} a échoué${
+              result?.guardianEmailError ? ` (${result.guardianEmailError})` : ""
+            }. Vous pourrez le renvoyer depuis la fiche du joueur (Responsable légal).`,
+            duration: 9000,
+          });
+        }
+      } else {
+        toast.success(`Joueur invité avec succès !`, {
+          description: `Une invitation a été envoyée à ${data.email}`,
+        });
+      }
       
       reset();
       setPhotoFile(null);
