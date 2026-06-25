@@ -24,6 +24,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+const RouteLoader = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
+  </div>
+);
+
 interface ProtectedRouteProps {
   children: ReactNode;
   allowedRoles?: Array<"admin" | "club_admin" | "coach" | "player" | "supporter">;
@@ -60,18 +66,13 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   // pour que la sidebar et l'UI s'alignent automatiquement.
   useEffect(() => {
     if (!allowedRoles || allowedRoles.length === 0) return;
-    if (!currentRole) return;
-    if (allowedRoles.includes(currentRole.role)) return;
+    if (currentRole && allowedRoles.includes(currentRole.role)) return;
     const compatible = roles.find((r) => allowedRoles.includes(r.role));
     if (compatible) setCurrentRole(compatible);
   }, [allowedRoles, currentRole, roles, setCurrentRole]);
 
   if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
-      </div>
-    );
+    return <RouteLoader />;
   }
 
   if (!user) {
@@ -97,9 +98,17 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasAccess = roles.some((r) => allowedRoles.includes(r.role));
-    if (!hasAccess) {
+    const compatibleRole = roles.find((r) => allowedRoles.includes(r.role));
+    if (!compatibleRole) {
       return <Navigate to="/dashboard" replace />;
+    }
+
+    // Multi-rôles : après un choix de profil, ne jamais rendre la page cible
+    // tant que currentRole n'est pas aligné. Cela évite les redirections en
+    // boucle / écrans blancs causés par les pages qui lisent currentRole dès
+    // leur premier render.
+    if (!currentRole || !allowedRoles.includes(currentRole.role)) {
+      return <RouteLoader />;
     }
   }
 
