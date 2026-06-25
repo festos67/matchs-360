@@ -110,52 +110,43 @@ const CoachMyClub = () => {
     enabled: teamIds.length > 0,
   });
 
-  // Count coaches in the club
-  const { data: coachCount, isLoading: loadingCoaches } = useQuery({
-    queryKey: ["coach-club-coach-count", clubId],
+  // Stats globales du club (RPC SECURITY DEFINER : contourne la restriction
+  // RLS qui limite la lecture de `teams` aux équipes du coach connecté).
+  const { data: clubStats, isLoading: loadingClubStats } = useQuery({
+    queryKey: ["coach-club-overview-stats", clubId],
     queryFn: async () => {
-      if (!clubId) return 0;
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("id", { count: "exact", head: true })
-        .eq("club_id", clubId)
-        .eq("role", "coach");
+      if (!clubId) return null;
+      const { data, error } = await supabase.rpc("get_club_overview_stats", {
+        p_club_id: clubId,
+      });
       if (error) throw error;
-      return data ?? 0;
+      return (Array.isArray(data) ? data[0] : data) as {
+        total_teams: number;
+        total_coaches: number;
+        total_players: number;
+        total_supporters: number;
+      } | null;
     },
     enabled: !!clubId,
   });
 
-  // Count coaches properly
-  const { data: coachesCount } = useQuery({
-    queryKey: ["coach-club-coaches-count", clubId],
+  // Stats personnelles du coach (ses équipes / joueurs / supporters).
+  const { data: myStats, isLoading: loadingMyStats } = useQuery({
+    queryKey: ["coach-personal-stats", user?.id, clubId],
     queryFn: async () => {
-      if (!clubId) return 0;
-      const { count, error } = await supabase
-        .from("user_roles")
-        .select("*", { count: "exact", head: true })
-        .eq("club_id", clubId)
-        .eq("role", "coach");
+      if (!clubId || !user?.id) return null;
+      const { data, error } = await supabase.rpc("get_coach_personal_stats", {
+        p_user_id: user.id,
+        p_club_id: clubId,
+      });
       if (error) throw error;
-      return count || 0;
+      return (Array.isArray(data) ? data[0] : data) as {
+        my_teams: number;
+        my_players: number;
+        my_supporters: number;
+      } | null;
     },
-    enabled: !!clubId,
-  });
-
-  // Count supporters
-  const { data: supportersCount } = useQuery({
-    queryKey: ["coach-club-supporters-count", clubId],
-    queryFn: async () => {
-      if (!clubId) return 0;
-      const { count, error } = await supabase
-        .from("user_roles")
-        .select("*", { count: "exact", head: true })
-        .eq("club_id", clubId)
-        .eq("role", "supporter");
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!clubId,
+    enabled: !!clubId && !!user?.id,
   });
 
   // Fetch club framework (active template) + themes for printing
@@ -192,8 +183,10 @@ const CoachMyClub = () => {
     documentTitle: clubFramework?.name || "Référentiel du Club",
   });
 
-  // Compute stats
-  const totalPlayers = allMembers?.filter((m) => m.member_type === "player").length || 0;
+  const isCoachRole = currentRole?.role === "coach";
+  const coachFirstName = (profile as any)?.first_name?.trim?.() || "";
+  const coachLastName = (profile as any)?.last_name?.trim?.() || "";
+  const coachFullName = `${coachFirstName} ${coachLastName}`.trim();
 
   // Build team info with referent coach and player count
   const teamsWithInfo = (clubTeams || []).map((team) => {
@@ -233,6 +226,11 @@ const CoachMyClub = () => {
               <Building2 className="w-7 h-7 text-primary" />
               {club?.name || "Mon Club"}
             </h1>
+            {isCoachRole && coachFullName && (
+              <p className="text-muted-foreground mt-2">
+                Bonjour {coachFullName}, voici un aperçu de votre activité.
+              </p>
+            )}
           </div>
           {club && (
             club.logo_url ? (
@@ -260,31 +258,60 @@ const CoachMyClub = () => {
           )}
         </div>
 
-        {/* KPI Cards */}
+        {/* Mon tableau de bord — chiffres personnels du coach */}
+        {isCoachRole && (
+          <div>
+            <h2 className="text-xl font-semibold text-foreground mb-3">
+              Mon tableau de bord
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <StatsCard
+                title="Mes équipes"
+                value={loadingMyStats ? "-" : String(myStats?.my_teams ?? 0)}
+                icon={Users}
+                iconClassName="bg-primary/10 text-primary"
+              />
+              <StatsCard
+                title="Mes joueurs"
+                value={loadingMyStats ? "-" : String(myStats?.my_players ?? 0)}
+                icon={UserCircle}
+                iconClassName="bg-green-500/10 text-green-500"
+              />
+              <StatsCard
+                title="Mes supporters"
+                value={loadingMyStats ? "-" : String(myStats?.my_supporters ?? 0)}
+                icon={Heart}
+                iconClassName="bg-pink-500/10 text-pink-500"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* KPI Cards — globales du club */}
         <div>
           <h2 className="text-xl font-semibold text-foreground mb-3">Vue d'ensemble du club</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatsCard
-              title="Coachs"
-              value={coachesCount != null ? String(coachesCount) : "-"}
-              icon={UserCog}
-              iconClassName="bg-orange-500/10 text-orange-500"
-            />
-            <StatsCard
               title="Équipes"
-              value={loadingTeams ? "-" : String(clubTeams?.length || 0)}
+              value={loadingClubStats ? "-" : String(clubStats?.total_teams ?? 0)}
               icon={Users}
               iconClassName="bg-primary/10 text-primary"
             />
             <StatsCard
+              title="Coachs"
+              value={loadingClubStats ? "-" : String(clubStats?.total_coaches ?? 0)}
+              icon={UserCog}
+              iconClassName="bg-orange-500/10 text-orange-500"
+            />
+            <StatsCard
               title="Joueurs"
-              value={loadingMembers ? "-" : String(totalPlayers)}
+              value={loadingClubStats ? "-" : String(clubStats?.total_players ?? 0)}
               icon={UserCircle}
               iconClassName="bg-green-500/10 text-green-500"
             />
             <StatsCard
               title="Supporters"
-              value={supportersCount != null ? String(supportersCount) : "-"}
+              value={loadingClubStats ? "-" : String(clubStats?.total_supporters ?? 0)}
               icon={Heart}
               iconClassName="bg-pink-500/10 text-pink-500"
             />
