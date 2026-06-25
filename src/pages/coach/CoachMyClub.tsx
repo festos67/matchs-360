@@ -99,13 +99,12 @@ const CoachMyClub = () => {
   });
 
   const clubId =
-    isCoachRole &&
-    rawClubId &&
-    activeCoachClubIds.length > 0 &&
-    !activeCoachClubIds.includes(rawClubId)
-      ? activeCoachClubIds[0]
+    isCoachRole && activeCoachClubIds.length > 0
+      ? rawClubId && activeCoachClubIds.includes(rawClubId)
+        ? rawClubId
+        : activeCoachClubIds[0]
       : rawClubId;
-  const waitingForCoachScope = isCoachRole && !!rawClubId && loadingCoachScope;
+  const waitingForCoachScope = isCoachRole && loadingCoachScope;
 
   // Fetch club info
   const { data: club } = useQuery({
