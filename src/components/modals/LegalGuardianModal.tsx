@@ -35,7 +35,7 @@ type GuardianDesignation = {
   guardian_first_name: string | null;
   guardian_last_name: string | null;
   relationship: "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
-  status: string;
+  status: "pending" | "consumed" | "cancelled";
 };
 
 const RELATIONSHIP_LABELS: Record<GuardianDesignation["relationship"], string> = {
@@ -80,7 +80,7 @@ export function LegalGuardianModal({
     }
   };
 
-  const hasPendingGuardian = guardians.some((g) => g.status !== "consented");
+  const hasPendingGuardian = guardians.some((g) => g.status === "pending");
 
   useEffect(() => {
     if (!open) return;
@@ -182,7 +182,7 @@ export function LegalGuardianModal({
                     </div>
                   </div>
 
-                  {g.status !== "consented" && (
+                  {g.status !== "consumed" && (
                     <p className="text-[11px] text-muted-foreground italic">
                       Statut de la désignation : {g.status}
                     </p>

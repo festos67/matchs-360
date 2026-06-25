@@ -113,7 +113,8 @@ const handler = async (req: Request): Promise<Response> => {
         .from("team_members")
         .select("team_id")
         .eq("user_id", playerId)
-        .eq("role", "player")
+        .eq("member_type", "player")
+        .eq("is_active", true)
         .is("deleted_at", null);
       const teamIds = (playerTeams ?? []).map((t) => t.team_id);
       if (teamIds.length > 0) {
@@ -121,7 +122,8 @@ const handler = async (req: Request): Promise<Response> => {
           .from("team_members")
           .select("id")
           .eq("user_id", callerId)
-          .eq("role", "coach")
+          .eq("member_type", "coach")
+          .eq("is_active", true)
           .is("deleted_at", null)
           .in("team_id", teamIds)
           .limit(1);
@@ -138,6 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("guardian_designations")
       .select("guardian_email, guardian_first_name, guardian_last_name, status")
       .eq("minor_profile_id", playerId)
+      .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(1);
     if (desigErr || !designations || designations.length === 0) {
@@ -147,13 +150,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
     const desig = designations[0];
-    if (desig.status === "consented") {
-      return jsonResp(
-        { error: "Le consentement a déjà été donné par le représentant légal." },
-        409,
-      );
-    }
-
     // 4. Récupère le club pour personnaliser l'email
     const { data: club } = await supabaseAdmin
       .from("clubs")
