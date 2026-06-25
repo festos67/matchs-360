@@ -639,6 +639,30 @@ export const CreatePlayerModal = ({
                         <p className="text-sm text-destructive">{errors.guardianEmail.message}</p>
                       )}
                     </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="guardianFirstName">Prénom du représentant légal</Label>
+                        <Input
+                          id="guardianFirstName"
+                          placeholder="Marie"
+                          {...register("guardianFirstName")}
+                        />
+                        {errors.guardianFirstName && (
+                          <p className="text-sm text-destructive">{errors.guardianFirstName.message}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="guardianLastName">Nom du représentant légal</Label>
+                        <Input
+                          id="guardianLastName"
+                          placeholder="Dupont"
+                          {...register("guardianLastName")}
+                        />
+                        {errors.guardianLastName && (
+                          <p className="text-sm text-destructive">{errors.guardianLastName.message}</p>
+                        )}
+                      </div>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="guardianRelationship">Lien avec l'enfant</Label>
                       <Select
