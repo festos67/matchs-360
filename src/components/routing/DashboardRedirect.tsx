@@ -21,6 +21,7 @@
  *  - Ordre menu cible : mem://navigation/role-based-sidebar-order
  */
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Shield, Building2, UserCog, UserCircle, Heart } from "lucide-react";
@@ -108,7 +109,9 @@ export const DashboardRedirect = () => {
   }, [user, loading, roles, currentRole, wantsSwitch, navigate, setCurrentRole]);
 
   const handleRoleSelect = (role: UserRole) => {
-    setCurrentRole(role);
+    flushSync(() => {
+      setCurrentRole(role);
+    });
     navigate(getDashboardPath(role.role), { replace: true });
   };
 

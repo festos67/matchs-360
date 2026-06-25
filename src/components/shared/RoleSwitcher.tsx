@@ -16,6 +16,7 @@
  *    Player (UserCircle vert) / Supporter (Heart rose)
  */
 import { useNavigate } from "react-router-dom";
+import { flushSync } from "react-dom";
 import { ChevronDown, Shield, Building2, UserCog, UserCircle, Heart, LayoutGrid } from "lucide-react";
 import {
   DropdownMenu,
@@ -89,7 +90,9 @@ export const RoleSwitcher = ({ roles, currentRole, onRoleChange }: RoleSwitcherP
   const Icon = config.icon;
 
   const handleRoleSwitch = (role: UserRole) => {
-    onRoleChange(role);
+    flushSync(() => {
+      onRoleChange(role);
+    });
     navigate(getDashboardPath(role.role));
   };
 
