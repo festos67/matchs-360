@@ -862,6 +862,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           if (gLinkErr || !gLink?.properties?.action_link) {
             console.error("guardian generateLink failed", { masked: maskEmail(guardianEmailNorm), err: gLinkErr?.message });
+            guardianEmailError = gLinkErr?.message || "generateLink a échoué";
           } else if (resend) {
             const guardianLink = gLink.properties.action_link;
             const childName = [firstName, lastName].filter(Boolean).join(" ") || "votre enfant";
@@ -902,14 +903,18 @@ const handler = async (req: Request): Promise<Response> => {
             });
             if (gResult.error) {
               console.error("guardian email send failed", { masked: maskEmail(guardianEmailNorm), err: gResult.error });
+              guardianEmailError = (gResult.error as { message?: string })?.message || "Resend a refusé l'envoi";
             } else {
               console.log("guardian consent email sent", { recipient: maskEmail(guardianEmailNorm), messageId: gResult.data?.id });
+              guardianEmailSent = true;
             }
           } else {
             console.warn("RESEND non configuré — email guardian non envoyé");
+            guardianEmailError = "RESEND_API_KEY non configuré";
           }
         } catch (gErr) {
           console.error("guardian invitation flow error", (gErr as Error)?.message);
+          guardianEmailError = (gErr as Error)?.message || "Erreur inconnue";
         }
       }
     }
