@@ -1057,6 +1057,9 @@ const handler = async (req: Request): Promise<Response> => {
           : "Rôle ajouté avec succès",
         userId,
         emailSent: !!resend && !inviteEmailError,
+        isMinorGuardianFlow: isMinorWithGuardian,
+        guardianEmailSent,
+        ...(guardianEmailError ? { guardianEmailError } : {}),
         ...(inviteEmailError
           ? {
               warning:
