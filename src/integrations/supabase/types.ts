@@ -506,6 +506,8 @@ export type Database = {
           created_by: string | null
           expires_at: string
           guardian_email: string
+          guardian_first_name: string | null
+          guardian_last_name: string | null
           id: string
           minor_profile_id: string
           relationship: Database["public"]["Enums"]["guardian_relationship"]
@@ -519,6 +521,8 @@ export type Database = {
           created_by?: string | null
           expires_at?: string
           guardian_email: string
+          guardian_first_name?: string | null
+          guardian_last_name?: string | null
           id?: string
           minor_profile_id: string
           relationship: Database["public"]["Enums"]["guardian_relationship"]
@@ -532,6 +536,8 @@ export type Database = {
           created_by?: string | null
           expires_at?: string
           guardian_email?: string
+          guardian_first_name?: string | null
+          guardian_last_name?: string | null
           id?: string
           minor_profile_id?: string
           relationship?: Database["public"]["Enums"]["guardian_relationship"]
