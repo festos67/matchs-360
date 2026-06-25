@@ -100,6 +100,8 @@ interface InvitationRequest {
   // sine qua non de l'enregistrement du consentement parental.
   guardianEmail?: string;
   guardianRelationship?: "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
+  guardianFirstName?: string;
+  guardianLastName?: string;
 }
 
 type EmailProviderError = {
