@@ -64,3 +64,13 @@ verify_jwt = false
 # auth applicative en code (getUser + verif que l'appelant a cree la demande pending).
 [functions.notify-self-evaluation-request]
 verify_jwt = false
+
+# Renvoi du mail de consentement au representant legal designe.
+# verify_jwt = false : auth applicative en code (getUser + verif des droits).
+[functions.resend-guardian-consent]
+verify_jwt = false
+
+# Changement de representant legal d'un joueur mineur (suspend l'acces du joueur
+# et envoie un mail au nouveau tuteur). verify_jwt = false : auth applicative en code.
+[functions.change-legal-guardian]
+verify_jwt = false
