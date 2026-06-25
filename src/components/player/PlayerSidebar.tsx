@@ -24,7 +24,7 @@
  */
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowLeft, ArrowRightLeft, Award, ClipboardList, Edit, Heart, Lock, Plus, Printer, Star, Trash2, Users } from "lucide-react";
+import { ArrowLeft, ArrowRightLeft, Award, ClipboardList, Edit, Heart, Lock, Plus, Printer, ShieldCheck, Star, Trash2, Users } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -38,6 +38,7 @@ import { usePlan } from "@/hooks/usePlan";
 import type { Player, TeamMembership, ReferentCoach, Evaluation } from "@/hooks/usePlayerData";
 import { getPlayerName } from "@/hooks/usePlayerData";
 import { ProfilePhoto } from "@/components/shared/ProfilePhoto";
+import { LegalGuardianModal } from "@/components/modals/LegalGuardianModal";
 
 interface PlayerSidebarProps {
   player: Player;
@@ -87,6 +88,7 @@ export function PlayerSidebar({
   onCreateCertificate,
 }: PlayerSidebarProps) {
   const navigate = useNavigate();
+  const [showGuardianModal, setShowGuardianModal] = useState(false);
   const teamColor = teamMembership?.team?.club?.primary_color || "hsl(var(--primary))";
   const playerName = getPlayerName(player);
   const coachEvalCount = evaluations.filter(e => e.type === "coach" && !e.deleted_at).length;
@@ -245,7 +247,7 @@ export function PlayerSidebar({
         </div>
       )}
 
-      {/* Gestion joueur */}
+      {/* Gestion joueur — staff (coach/club admin/admin) */}
       {!isPlayerViewingOwnProfile && (canMutate || canEvaluate || isAdmin) && (
         <div className="bg-card border border-border rounded-xl p-3 mb-3">
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Gestion</p>
@@ -263,6 +265,16 @@ export function PlayerSidebar({
             {canEvaluate && teamMembership && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground" onClick={onManageSupporters}>
                 <Users className="w-3.5 h-3.5 text-accent" />Invitation supporters
+              </Button>
+            )}
+            {(canEvaluate || canMutate) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground"
+                onClick={() => setShowGuardianModal(true)}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-accent" />Responsable légal
               </Button>
             )}
             {isAdmin && (
@@ -307,6 +319,23 @@ export function PlayerSidebar({
         </div>
       )}
 
+      {/* Bloc joueur : accéder à son propre représentant légal */}
+      {isPlayerViewingOwnProfile && (
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Mes informations</p>
+          <div className="flex flex-col gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground"
+              onClick={() => setShowGuardianModal(true)}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-accent" />Mon représentant légal
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Attestation de compétences (Coach / Club Admin uniquement) */}
       {!isPlayerViewingOwnProfile && (canEvaluate || canMutate) && onCreateCertificate && (
         <div className="mb-3 px-3">
@@ -322,6 +351,12 @@ export function PlayerSidebar({
         </div>
       )}
 
+      <LegalGuardianModal
+        open={showGuardianModal}
+        onOpenChange={setShowGuardianModal}
+        playerId={player.id}
+        playerName={playerName}
+      />
     </aside>
   );
 }
