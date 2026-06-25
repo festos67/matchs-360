@@ -58,54 +58,29 @@ const CoachMyClub = () => {
   const rawClubId = currentRole?.club_id;
 
   // Certains comptes historiques conservent un rôle "coach" sur un club où
-  // leurs affectations d'équipe ont depuis été archivées. Pour éviter un tableau
-  // de bord à 0, on résout d'abord le club où le coach est réellement actif.
-  const { data: activeCoachClubIds = [], isLoading: loadingCoachScope } = useQuery({
-    queryKey: ["coach-active-club-scope", user?.id],
+  // leurs affectations d'équipe ont depuis été archivées. La résolution se fait
+  // côté backend pour ne pas dépendre des règles de visibilité client.
+  const { data: effectiveCoachClubId, isLoading: loadingCoachScope } = useQuery({
+    queryKey: ["coach-effective-club-scope", "v1", user?.id, rawClubId],
     queryFn: async () => {
-      if (!user?.id) return [];
-
-      const { data: memberships, error: membershipsError } = await supabase
-        .from("team_members")
-        .select("team_id, coach_role")
-        .eq("user_id", user.id)
-        .eq("member_type", "coach")
-        .eq("is_active", true)
-        .is("deleted_at", null);
-
-      if (membershipsError) throw membershipsError;
-
-      const teamIds = Array.from(new Set((memberships || []).map((m) => m.team_id).filter(Boolean)));
-      if (teamIds.length === 0) return [];
-
-      const { data: teamsData, error: teamsError } = await supabase
-        .from("teams")
-        .select("id, club_id")
-        .in("id", teamIds)
-        .is("deleted_at", null);
-
-      if (teamsError) throw teamsError;
-
-      const clubIds: string[] = [];
-      (teamsData || []).forEach((team) => {
-        if (team.club_id && !clubIds.includes(team.club_id)) {
-          clubIds.push(team.club_id);
-        }
+      if (!user?.id) return null;
+      const { data, error } = await supabase.rpc("get_coach_effective_club_id", {
+        p_user_id: user.id,
+        p_preferred_club_id: rawClubId || undefined,
       });
-      return clubIds;
+      if (error) throw error;
+      return data || null;
     },
     enabled: isCoachRole && !!user?.id,
     staleTime: 5 * 60 * 1000,
   });
 
-  const clubId =
-    isCoachRole &&
-    rawClubId &&
-    activeCoachClubIds.length > 0 &&
-    !activeCoachClubIds.includes(rawClubId)
-      ? activeCoachClubIds[0]
-      : rawClubId;
-  const waitingForCoachScope = isCoachRole && !!rawClubId && loadingCoachScope;
+  const clubId = isCoachRole
+    ? loadingCoachScope
+      ? null
+      : effectiveCoachClubId || rawClubId
+    : rawClubId;
+  const waitingForCoachScope = isCoachRole && loadingCoachScope;
 
   // Fetch club info
   const { data: club } = useQuery({
@@ -166,7 +141,7 @@ const CoachMyClub = () => {
   // La fonction SECURITY DEFINER contourne la restriction RLS qui limite un coach
   // à ses équipes, tout en comptant uniquement les membres actifs/non archivés.
   const { data: dashboardStats, isLoading: loadingDashboardStats } = useQuery({
-    queryKey: ["coach-my-club-dashboard-stats", "v2", user?.id, clubId, currentRole?.id],
+    queryKey: ["coach-my-club-dashboard-stats", "v3", user?.id, clubId, currentRole?.id],
     queryFn: async () => {
       if (!clubId || !user?.id) return null;
       const { data, error } = await supabase.rpc("get_coach_my_club_dashboard_stats", {

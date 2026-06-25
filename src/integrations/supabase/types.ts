@@ -2070,6 +2070,10 @@ export type Database = {
         Args: { p_club_id: string }
         Returns: Database["public"]["Enums"]["subscription_plan"]
       }
+      get_coach_effective_club_id: {
+        Args: { p_preferred_club_id?: string; p_user_id: string }
+        Returns: string
+      }
       get_coach_my_club_dashboard_stats: {
         Args: { p_club_id: string; p_user_id: string }
         Returns: {
