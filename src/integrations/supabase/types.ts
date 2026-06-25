@@ -2070,6 +2070,18 @@ export type Database = {
         Args: { p_club_id: string }
         Returns: Database["public"]["Enums"]["subscription_plan"]
       }
+      get_coach_my_club_dashboard_stats: {
+        Args: { p_club_id: string; p_user_id: string }
+        Returns: {
+          my_players: number
+          my_supporters: number
+          my_teams: number
+          total_coaches: number
+          total_players: number
+          total_supporters: number
+          total_teams: number
+        }[]
+      }
       get_coach_personal_stats: {
         Args: { p_club_id: string; p_user_id: string }
         Returns: {
