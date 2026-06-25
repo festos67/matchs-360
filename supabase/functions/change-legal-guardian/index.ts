@@ -146,7 +146,8 @@ const handler = async (req: Request): Promise<Response> => {
         .from("team_members")
         .select("team_id")
         .eq("user_id", playerId)
-        .eq("role", "player")
+        .eq("member_type", "player")
+        .eq("is_active", true)
         .is("deleted_at", null);
       const teamIds = (playerTeams ?? []).map((t) => t.team_id);
       if (teamIds.length > 0) {
@@ -154,7 +155,8 @@ const handler = async (req: Request): Promise<Response> => {
           .from("team_members")
           .select("id")
           .eq("user_id", callerId)
-          .eq("role", "coach")
+          .eq("member_type", "coach")
+          .eq("is_active", true)
           .is("deleted_at", null)
           .in("team_id", teamIds)
           .limit(1);

@@ -398,7 +398,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
                           {currentGuardian.guardian_email}
                         </a>
                       </p>
-                      {currentGuardian.status !== "consented" && (
+                      {currentGuardian.status !== "consumed" && (
                         <p className="text-[11px] text-muted-foreground italic">
                           Statut : {currentGuardian.status}
                         </p>
