@@ -356,6 +356,7 @@ export function PlayerSidebar({
         onOpenChange={setShowGuardianModal}
         playerId={player.id}
         playerName={playerName}
+        canResend={!isPlayerViewingOwnProfile && (canEvaluate || canMutate || isAdmin)}
       />
     </aside>
   );
