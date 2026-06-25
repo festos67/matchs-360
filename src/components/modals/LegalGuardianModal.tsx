@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 
 interface LegalGuardianModalProps {
   open: boolean;
@@ -64,10 +65,8 @@ export function LegalGuardianModal({
         { body: { playerId } },
       );
       if (error) {
-        const msg = (data as { error?: string } | null)?.error
-          || error.message
-          || "Échec de l'envoi.";
-        toast.error(msg);
+        const info = await getEdgeFunctionErrorInfo(error);
+        toast.error(info.message, info.hint ? { description: info.hint } : undefined);
       } else if ((data as { error?: string } | null)?.error) {
         toast.error((data as { error: string }).error);
       } else {

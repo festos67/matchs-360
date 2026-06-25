@@ -49,6 +49,7 @@ import { AddRoleSection } from "@/components/shared/AddRoleSection";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { validateUpload, UploadValidationError } from "@/lib/upload-validation";
 import { uploadProfilePhotoForExistingUser } from "@/lib/photo-storage";
+import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 
 interface Player {
   id: string;
@@ -182,8 +183,13 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
         },
       });
       const payload = (data ?? {}) as { ok?: boolean; emailSent?: boolean; warning?: string; error?: string };
-      if (error || payload.error) {
-        toast.error(payload.error || error?.message || "Échec du changement de représentant légal.");
+      if (error) {
+        const info = await getEdgeFunctionErrorInfo(error);
+        toast.error(info.message, info.hint ? { description: info.hint } : undefined);
+        return;
+      }
+      if (payload.error) {
+        toast.error(payload.error);
         return;
       }
       if (payload.warning) {

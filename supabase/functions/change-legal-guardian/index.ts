@@ -64,7 +64,6 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     const authHeader = req.headers.get("Authorization");
@@ -75,16 +74,13 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
-    const supabaseUser = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await supabaseUser.auth.getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
+    const { data: callerData, error: callerErr } = await supabaseAdmin.auth.getUser(token);
+    if (callerErr || !callerData?.user?.id) {
       return jsonResp({ error: "Session invalide." }, 401);
     }
-    const callerId = claimsData.claims.sub as string;
+    const callerId = callerData.user.id;
 
     const body = await req.json().catch(() => ({}));
     const playerId = typeof body?.playerId === "string" ? body.playerId : null;
