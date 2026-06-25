@@ -865,6 +865,13 @@ const handler = async (req: Request): Promise<Response> => {
           } else if (resend) {
             const guardianLink = gLink.properties.action_link;
             const childName = [firstName, lastName].filter(Boolean).join(" ") || "votre enfant";
+            const guardianDisplayName = [guardianFirstName, guardianLastName]
+              .map((p) => p?.trim())
+              .filter(Boolean)
+              .join(" ");
+            const greeting = guardianDisplayName
+              ? `Bonjour ${escapeHtml(guardianDisplayName)},`
+              : "Bonjour,";
             const gResult = await resend.emails.send({
               from: getFromEmail(),
               to: [guardianEmailNorm],
@@ -877,7 +884,7 @@ const handler = async (req: Request): Promise<Response> => {
                     <h1 style="color:#18181b; font-size:24px; text-align:center; margin:0 0 8px;">MATCHS360</h1>
                     <h2 style="color:#18181b; font-size:18px; margin-top:24px;">Consentement parental requis</h2>
                     <p style="color:#3f3f46; line-height:1.6;">
-                      Bonjour,<br><br>
+                      ${greeting}<br><br>
                       <strong>${escapeHtml(childName)}</strong> a été inscrit(e) au club
                       <strong>${escapeHtml(club?.name || "MATCHS360")}</strong>. En tant que titulaire
                       de l'autorité parentale, votre consentement est nécessaire (RGPD art. 8) pour
