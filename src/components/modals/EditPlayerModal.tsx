@@ -14,7 +14,7 @@
  *  - Soft delete réservé Super Admin uniquement
  *  - Edit flow rôles : mem://features/user-role-management/edit-flow
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -52,10 +52,30 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
   const [firstName, setFirstName] = useState(player.first_name || "");
   const [lastName, setLastName] = useState(player.last_name || "");
   const [nickname, setNickname] = useState(player.nickname || "");
+  const [birthdate, setBirthdate] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(player.photo_url || null);
   const [removePhoto, setRemovePhoto] = useState(false);
+
+  // Charge la date de naissance actuelle à l'ouverture (non incluse dans la prop player).
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("birthdate")
+        .eq("id", player.id)
+        .maybeSingle();
+      if (!cancelled && !error && data) {
+        setBirthdate(data.birthdate ? String(data.birthdate).slice(0, 10) : "");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, player.id]);
 
   const getInitials = () => {
     const first = firstName?.charAt(0) || player.first_name?.charAt(0) || "";
@@ -89,6 +109,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
         first_name: firstName.trim() || null,
         last_name: lastName.trim() || null,
         nickname: nickname.trim() || null,
+        birthdate: birthdate ? birthdate : null,
       };
       if (uploaded === null) {
         updateData.photo_url = null;
@@ -187,6 +208,19 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
           <div className="space-y-2">
             <Label>Email</Label>
             <Input value={player.email} disabled className="bg-muted" />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-birthdate">Date de naissance</Label>
+            <Input
+              id="edit-birthdate"
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdate(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Permet de corriger une erreur de saisie. Détermine le statut majeur / mineur du joueur.
+            </p>
           </div>
 
           {player.club_id && (
