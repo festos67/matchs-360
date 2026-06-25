@@ -832,6 +832,8 @@ const handler = async (req: Request): Promise<Response> => {
               relationship: guardianRelationship,
               status: "pending",
               created_by: user.id,
+              guardian_first_name: guardianFirstName?.trim() || null,
+              guardian_last_name: guardianLastName?.trim() || null,
             });
           if (desigErr) {
             // Non bloquant pour l'invitation; logue pour audit.
