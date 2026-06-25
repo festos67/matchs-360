@@ -539,6 +539,11 @@ const handler = async (req: Request): Promise<Response> => {
     let userId: string;
     let isNewUser = false;
     let inviteEmailError: EmailProviderError | null = null;
+    // Suivi de l'envoi de l'email de consentement au représentant légal
+    // (mineur < 15 ans). Surfacé dans la réponse pour que le frontend puisse
+    // afficher un avertissement explicite si l'email n'a pas pu partir.
+    let guardianEmailSent = false;
+    let guardianEmailError: string | null = null;
     // Un supporter peut suivre plusieurs joueurs d'un même club : si le rôle
     // supporter existe déjà, ce n'est pas un conflit, on saute juste sa recréation.
     let supporterRoleAlreadyExists = false;
