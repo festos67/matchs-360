@@ -294,6 +294,8 @@ export const CreatePlayerModal = ({
             ? {
                 guardianEmail: data.guardianEmail,
                 guardianRelationship: data.guardianRelationship,
+                guardianFirstName: data.guardianFirstName || undefined,
+                guardianLastName: data.guardianLastName || undefined,
               }
             : {}),
         },
