@@ -100,6 +100,8 @@ interface InvitationRequest {
   // sine qua non de l'enregistrement du consentement parental.
   guardianEmail?: string;
   guardianRelationship?: "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
+  guardianFirstName?: string;
+  guardianLastName?: string;
 }
 
 type EmailProviderError = {
@@ -265,7 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
     const body: InvitationRequest = await req.json();
-    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship } = body;
+    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship, guardianFirstName, guardianLastName } = body;
 
     // ============================================================
     // BUG-AGE-002 / NB-02 — Routage de l'invitation pour mineur < 15
@@ -830,6 +832,8 @@ const handler = async (req: Request): Promise<Response> => {
               relationship: guardianRelationship,
               status: "pending",
               created_by: user.id,
+              guardian_first_name: guardianFirstName?.trim() || null,
+              guardian_last_name: guardianLastName?.trim() || null,
             });
           if (desigErr) {
             // Non bloquant pour l'invitation; logue pour audit.
@@ -861,6 +865,13 @@ const handler = async (req: Request): Promise<Response> => {
           } else if (resend) {
             const guardianLink = gLink.properties.action_link;
             const childName = [firstName, lastName].filter(Boolean).join(" ") || "votre enfant";
+            const guardianDisplayName = [guardianFirstName, guardianLastName]
+              .map((p) => p?.trim())
+              .filter(Boolean)
+              .join(" ");
+            const greeting = guardianDisplayName
+              ? `Bonjour ${escapeHtml(guardianDisplayName)},`
+              : "Bonjour,";
             const gResult = await resend.emails.send({
               from: getFromEmail(),
               to: [guardianEmailNorm],
@@ -873,7 +884,7 @@ const handler = async (req: Request): Promise<Response> => {
                     <h1 style="color:#18181b; font-size:24px; text-align:center; margin:0 0 8px;">MATCHS360</h1>
                     <h2 style="color:#18181b; font-size:18px; margin-top:24px;">Consentement parental requis</h2>
                     <p style="color:#3f3f46; line-height:1.6;">
-                      Bonjour,<br><br>
+                      ${greeting}<br><br>
                       <strong>${escapeHtml(childName)}</strong> a été inscrit(e) au club
                       <strong>${escapeHtml(club?.name || "MATCHS360")}</strong>. En tant que titulaire
                       de l'autorité parentale, votre consentement est nécessaire (RGPD art. 8) pour

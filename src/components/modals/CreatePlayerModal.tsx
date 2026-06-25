@@ -90,17 +90,24 @@ const playerSchema = z.object({
     .refine((s) => !Number.isNaN(new Date(s).getTime()), {
       message: "Date invalide",
     }),
+  guardianFirstName: z.string().max(50).optional().or(z.literal("")),
+  guardianLastName: z.string().max(50).optional().or(z.literal("")),
   guardianEmail: z.string().email("Email invalide").max(255).optional().or(z.literal("")),
   guardianRelationship: z.enum(["mere", "pere", "tuteur_legal", "autre_titulaire"]).optional(),
 }).refine(
   (d) => {
     if (requiresParentalConsent(d.birthdate)) {
-      return !!d.guardianEmail && !!d.guardianRelationship;
+      return (
+        !!d.guardianFirstName &&
+        !!d.guardianLastName &&
+        !!d.guardianEmail &&
+        !!d.guardianRelationship
+      );
     }
     return true;
   },
   {
-    message: "Email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
+    message: "Prénom, nom, email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
     path: ["guardianEmail"],
   },
 );
@@ -287,6 +294,8 @@ export const CreatePlayerModal = ({
             ? {
                 guardianEmail: data.guardianEmail,
                 guardianRelationship: data.guardianRelationship,
+                guardianFirstName: data.guardianFirstName || undefined,
+                guardianLastName: data.guardianLastName || undefined,
               }
             : {}),
         },
@@ -629,6 +638,30 @@ export const CreatePlayerModal = ({
                       {errors.guardianEmail && (
                         <p className="text-sm text-destructive">{errors.guardianEmail.message}</p>
                       )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="guardianFirstName">Prénom du représentant légal</Label>
+                        <Input
+                          id="guardianFirstName"
+                          placeholder="Marie"
+                          {...register("guardianFirstName")}
+                        />
+                        {errors.guardianFirstName && (
+                          <p className="text-sm text-destructive">{errors.guardianFirstName.message}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="guardianLastName">Nom du représentant légal</Label>
+                        <Input
+                          id="guardianLastName"
+                          placeholder="Dupont"
+                          {...register("guardianLastName")}
+                        />
+                        {errors.guardianLastName && (
+                          <p className="text-sm text-destructive">{errors.guardianLastName.message}</p>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="guardianRelationship">Lien avec l'enfant</Label>
