@@ -41,6 +41,7 @@ import {
 import { Loader2, BookOpen, Eye } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -282,7 +283,12 @@ export default function FrameworksList() {
                           })}
                         </TableCell>
                         <TableCell className="text-right">
-                          {openPath ? (
+                          {f.is_template ? (
+                            <TemplatePreviewDialog
+                              frameworkId={f.id}
+                              templateTitle={f.name}
+                            />
+                          ) : openPath ? (
                             <Button
                               asChild
                               size="sm"
