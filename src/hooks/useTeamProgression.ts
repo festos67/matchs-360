@@ -48,12 +48,12 @@ export function useTeamProgression(teamId: string | undefined, playerIds: string
           const [latestScores, previousScores] = await Promise.all([
             supabase
               .from("evaluation_scores")
-              .select("score, is_not_observed")
+              .select("score, is_not_observed, skill:skills(theme_id)")
               .eq("evaluation_id", latest.id)
               .is("deleted_at", null),
             supabase
               .from("evaluation_scores")
-              .select("score, is_not_observed")
+              .select("score, is_not_observed, skill:skills(theme_id)")
               .eq("evaluation_id", previous.id)
               .is("deleted_at", null),
           ]);
@@ -77,10 +77,35 @@ export function useTeamProgression(teamId: string | undefined, playerIds: string
   });
 }
 
+/**
+ * Moyenne globale alignée sur calculateOverallAverage :
+ * moyenne des moyennes de thèmes (et non moyenne à plat des compétences).
+ * Garantit la cohérence entre progression individuelle (fiche joueur)
+ * et progression d'équipe (onglet Performance).
+ */
 function calcAverage(
-  scores: Array<{ score: number | null; is_not_observed: boolean }>
+  scores: Array<{
+    score: number | null;
+    is_not_observed: boolean;
+    skill?: { theme_id: string | null } | null;
+  }>
 ): number | null {
-  const valid = scores.filter((s) => !s.is_not_observed && s.score !== null && s.score > 0);
+  const valid = scores.filter(
+    (s) => !s.is_not_observed && s.score !== null && s.score > 0 && s.skill?.theme_id
+  );
   if (valid.length === 0) return null;
-  return valid.reduce((acc, s) => acc + (s.score || 0), 0) / valid.length;
+
+  const byTheme = new Map<string, number[]>();
+  for (const s of valid) {
+    const themeId = s.skill!.theme_id as string;
+    const arr = byTheme.get(themeId) ?? [];
+    arr.push(s.score as number);
+    byTheme.set(themeId, arr);
+  }
+
+  const themeAverages = Array.from(byTheme.values()).map(
+    (arr) => arr.reduce((a, b) => a + b, 0) / arr.length
+  );
+  if (themeAverages.length === 0) return null;
+  return themeAverages.reduce((a, b) => a + b, 0) / themeAverages.length;
 }
