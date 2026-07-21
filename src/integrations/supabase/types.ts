@@ -2149,6 +2149,13 @@ export type Database = {
         Returns: string[]
       }
       get_teammate_user_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_template_stats: {
+        Args: { p_framework_id: string }
+        Returns: {
+          skills_count: number
+          themes_count: number
+        }[]
+      }
       get_user_club_admin_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_club_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_team_ids: { Args: { _user_id: string }; Returns: string[] }
