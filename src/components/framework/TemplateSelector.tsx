@@ -65,6 +65,29 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [academyStats, setAcademyStats] = useState<{ themes: number; skills: number } | null>(null);
   const [defaultName, setDefaultName] = useState("");
 
+  const fetchFrameworkStats = async (frameworkId: string) => {
+    const { data, error } = await supabase.rpc("get_template_stats", {
+      p_framework_id: frameworkId,
+    });
+
+    if (!error && data?.[0]) {
+      return {
+        themes: data[0].themes_count || 0,
+        skills: data[0].skills_count || 0,
+      };
+    }
+
+    const { data: themes } = await supabase
+      .from("themes")
+      .select("id, skills(count)")
+      .eq("framework_id", frameworkId);
+
+    if (!themes) return null;
+
+    const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
+    return { themes: themes.length, skills: totalSkills };
+  };
+
   useEffect(() => {
     fetchClubTemplates();
     fetchTeams();
@@ -117,59 +140,28 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   };
 
   const fetchStandardStats = async () => {
-    const { data: themes } = await supabase
-      .from("themes")
-      .select("id, skills(count)")
-      .eq("framework_id", STANDARD_TEMPLATE_ID);
-    
-    if (themes) {
-      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setStandardStats({ themes: themes.length, skills: totalSkills });
-    }
+    const stats = await fetchFrameworkStats(STANDARD_TEMPLATE_ID);
+    if (stats) setStandardStats(stats);
   };
 
   const fetchMatchsStats = async () => {
-    const { data: themes } = await supabase
-      .from("themes")
-      .select("id, skills(count)")
-      .eq("framework_id", MATCHS_TEMPLATE_ID);
-    if (themes) {
-      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setMatchsStats({ themes: themes.length, skills: totalSkills });
-    }
+    const stats = await fetchFrameworkStats(MATCHS_TEMPLATE_ID);
+    if (stats) setMatchsStats(stats);
   };
 
   const fetchCpsStats = async () => {
-    const { data: themes } = await supabase
-      .from("themes")
-      .select("id, skills(count)")
-      .eq("framework_id", CPS_TEMPLATE_ID);
-    if (themes) {
-      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setCpsStats({ themes: themes.length, skills: totalSkills });
-    }
+    const stats = await fetchFrameworkStats(CPS_TEMPLATE_ID);
+    if (stats) setCpsStats(stats);
   };
 
   const fetchChildStats = async () => {
-    const { data: themes } = await supabase
-      .from("themes")
-      .select("id, skills(count)")
-      .eq("framework_id", CHILD_TEMPLATE_ID);
-    if (themes) {
-      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setChildStats({ themes: themes.length, skills: totalSkills });
-    }
+    const stats = await fetchFrameworkStats(CHILD_TEMPLATE_ID);
+    if (stats) setChildStats(stats);
   };
 
   const fetchAcademyStats = async () => {
-    const { data: themes } = await supabase
-      .from("themes")
-      .select("id, skills(count)")
-      .eq("framework_id", ACADEMY_TEMPLATE_ID);
-    if (themes) {
-      const totalSkills = themes.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-      setAcademyStats({ themes: themes.length, skills: totalSkills });
-    }
+    const stats = await fetchFrameworkStats(ACADEMY_TEMPLATE_ID);
+    if (stats) setAcademyStats(stats);
   };
 
   const getDefaultName = () => {
