@@ -38,6 +38,7 @@ const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
 const MATCHS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000002";
 const CPS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000003";
 const CHILD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000004";
+const ACADEMY_TEMPLATE_ID = "00000000-0000-0000-0000-000000000005";
 
 export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTemplateSelectorProps) => {
   const [loading, setLoading] = useState(false);
@@ -48,11 +49,23 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
   const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [cpsStats, setCpsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [childStats, setChildStats] = useState<{ themes: number; skills: number } | null>(null);
+  const [academyStats, setAcademyStats] = useState<{ themes: number; skills: number } | null>(null);
   const [selectedTeamStats, setSelectedTeamStats] = useState<{ themes: number; skills: number } | null>(null);
   const [showNameModal, setShowNameModal] = useState(false);
   const [defaultName, setDefaultName] = useState("");
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
+    const { data, error } = await supabase.rpc("get_template_stats", {
+      p_framework_id: frameworkId,
+    });
+
+    if (!error && data?.[0]) {
+      return {
+        themes: data[0].themes_count || 0,
+        skills: data[0].skills_count || 0,
+      };
+    }
+
     const { data: themes } = await supabase
       .from("themes")
       .select("id, skills(count)")
@@ -110,6 +123,11 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     if (stats) setChildStats(stats);
   }, [fetchFrameworkStats]);
 
+  const fetchAcademyStats = useCallback(async () => {
+    const stats = await fetchFrameworkStats(ACADEMY_TEMPLATE_ID);
+    if (stats) setAcademyStats(stats);
+  }, [fetchFrameworkStats]);
+
   const fetchTeamStats = useCallback(async (teamId: string) => {
     const { data: framework } = await supabase
       .from("competence_frameworks")
@@ -132,7 +150,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     fetchMatchsStats();
     fetchCpsStats();
     fetchChildStats();
-  }, [fetchTeamsWithFrameworks, fetchStandardStats, fetchMatchsStats, fetchCpsStats, fetchChildStats]);
+    fetchAcademyStats();
+  }, [fetchTeamsWithFrameworks, fetchStandardStats, fetchMatchsStats, fetchCpsStats, fetchChildStats, fetchAcademyStats]);
 
   useEffect(() => {
     if (selectedTeamId) {
@@ -147,6 +166,7 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
     if (selectedOption === "standard") return "Référentiel Standard";
     if (selectedOption === "cps") return "Référentiel Compétences Psychosociales";
     if (selectedOption === "child") return "Référentiel Socio-Sport Enfant (6-12 ans)";
+    if (selectedOption === "academy") return "Référentiel Centre de formation";
     if (selectedOption === "team" && selectedTeamId) {
       const team = teams.find(t => t.id === selectedTeamId);
       return `Référentiel basé sur ${team?.name || "équipe"}`;
@@ -178,6 +198,8 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         sourceFrameworkId = CPS_TEMPLATE_ID;
       } else if (selectedOption === "child") {
         sourceFrameworkId = CHILD_TEMPLATE_ID;
+      } else if (selectedOption === "academy") {
+        sourceFrameworkId = ACADEMY_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
@@ -269,6 +291,17 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
       color: "text-primary",
       bgColor: "bg-primary/10",
       previewFrameworkId: CHILD_TEMPLATE_ID,
+    },
+    {
+      id: "academy",
+      icon: FileText,
+      title: "Modèle « Centre de formation »",
+      description: academyStats
+        ? `Évaluer les jeunes joueurs en centre de formation sur la performance, l'investissement, la compétition, la dimension humaine et la vie personnelle\n${academyStats.themes} thématiques et ${academyStats.skills} compétences`
+        : "Évaluer les jeunes joueurs en centre de formation sur la performance, l'investissement, la compétition, la dimension humaine et la vie personnelle.",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      previewFrameworkId: ACADEMY_TEMPLATE_ID,
     },
     {
       id: "team",
