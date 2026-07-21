@@ -2251,7 +2251,6 @@ export type Database = {
         Args: { _invitation_id: string; _new_expires_days?: number }
         Returns: Json
       }
-      restore_public_template_data: { Args: never; Returns: undefined }
       save_framework_atomic: {
         Args: { p_framework_id: string; p_name: string; p_themes: Json }
         Returns: Json
