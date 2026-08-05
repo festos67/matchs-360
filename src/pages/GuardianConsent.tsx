@@ -92,7 +92,9 @@ export default function GuardianConsent() {
           refreshToken &&
           (tokenType === "invite" || tokenType === "magiclink")
         ) {
-          await supabase.auth.signOut({ scope: "global" }).catch(() => {});
+          // Purge PUREMENT LOCALE : un signOut global révoquerait côté serveur le
+          // refresh token reçu dans le hash, rendant setSession impossible.
+          await supabase.auth.signOut({ scope: "local" }).catch(() => {});
           window.history.replaceState(
             null,
             "",
@@ -103,11 +105,17 @@ export default function GuardianConsent() {
             refresh_token: refreshToken,
           });
           if (sErr) {
-            if (!cancelled) {
-              setError("Impossible d'etablir la session. Lien expire ?");
-              setChecking(false);
+            // Le SDK (detectSessionInUrl) a peut-être déjà établi la session.
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            if (!session) {
+              if (!cancelled) {
+                setError("Impossible d'établir la session. Lien expiré ?");
+                setChecking(false);
+              }
+              return;
             }
-            return;
           }
         }
 
