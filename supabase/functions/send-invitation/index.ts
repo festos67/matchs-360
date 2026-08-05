@@ -335,6 +335,16 @@ const handler = async (req: Request): Promise<Response> => {
       .from("user_roles").select("id").eq("user_id", user.id).eq("role", "admin").maybeSingle();
     const callerIsAdmin = !!callerAdmin;
 
+    // BUG-AGE-002 fix: `club` doit être déclaré UNE SEULE FOIS dans le scope de
+    // la fonction. Auparavant il n'était déclaré que dans des blocs internes,
+    // ce qui provoquait une ReferenceError (avalée par un catch) dans le bloc
+    // d'envoi d'email au représentant légal.
+    const { data: club } = await supabaseAdmin
+      .from("clubs")
+      .select("name")
+      .eq("id", clubId)
+      .single();
+
     const { data: callerClubAdminRows } = await supabaseAdmin
       .from("user_roles").select("club_id")
       .eq("user_id", user.id).eq("role", "club_admin");
@@ -621,12 +631,6 @@ const handler = async (req: Request): Promise<Response> => {
       // et il devient impossible de relancer (USER_ALREADY_HAS_ROLE_IN_CLUB
       // sur un rôle qui n'existe pas / conflit auth.users sur réinvitation).
       // L'email est best-effort et son échec est remonté en warning à l'appelant.
-      const { data: club } = await supabaseAdmin
-        .from("clubs")
-        .select("name")
-        .eq("id", clubId)
-        .single();
-
       // Atomic upsert on primary key `id` to avoid race condition with the
       // handle_new_user trigger (it may create the profile before or after
       // we get here). ON CONFLICT (id) DO UPDATE keeps the operation
@@ -962,12 +966,6 @@ const handler = async (req: Request): Promise<Response> => {
     let notificationEmailError: string | null = null;
 
     if (!isNewUser && resend) {
-      const { data: club } = await supabaseAdmin
-        .from("clubs")
-        .select("name")
-        .eq("id", clubId)
-        .single();
-
       const roleLabels: Record<string, string> = {
         club_admin: "Administrateur de club",
         coach: "Coach",
