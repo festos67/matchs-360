@@ -6,10 +6,10 @@
  * parentale (parent / tuteur legal) pour un mineur.
  *
  * Pattern auth deterministe (R3 / F-303 / docs/auth-flows.md) :
- *  - lit le hash URL (type=invite, access_token, refresh_token)
- *  - signOut({ scope: "global" }) pour purger toute session pre-existante
- *  - nettoie le hash AVANT setSession
- *  - setSession explicite (pas de onAuthStateChange)
+ *  - laisse detectSessionInUrl établir prioritairement la session depuis le hash
+ *  - récupère cette session via getSession, sans aucun signOut
+ *  - utilise setSession uniquement en repli si le SDK n'a pas encore agi
+ *  - nettoie le hash APRÈS obtention de la session
  *  - consumedRef anti-double-execution (React StrictMode)
  *
  * Le `minor_id` est passe en query string (?minor=<uuid>) — temporaire tant
@@ -81,51 +81,39 @@ export default function GuardianConsent() {
           return;
         }
 
-        const tokenType = hp.get("type");
         const accessToken = hp.get("access_token");
         const refreshToken = hp.get("refresh_token");
 
-        // Cas A : lien magique (invite pour un nouveau tuteur, magiclink pour un
-        // tuteur ayant déjà un compte) → setSession déterministe.
-        if (
-          accessToken &&
-          refreshToken &&
-          (tokenType === "invite" || tokenType === "magiclink")
-        ) {
-          // Purge PUREMENT LOCALE : un signOut global révoquerait côté serveur le
-          // refresh token reçu dans le hash, rendant setSession impossible.
-          await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        // detectSessionInUrl peut avoir déjà établi la session et fait tourner le
+        // refresh token du hash. Toujours privilégier cette session existante.
+        let {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        // Repli uniquement si le SDK n'a pas encore consommé les jetons du hash.
+        // Le type n'est volontairement pas filtré : selon l'état du compte, le lien
+        // peut être invite, magiclink ou recovery.
+        if (!session && accessToken && refreshToken) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!sessionError) session = sessionData.session;
+        }
+
+        // Ne nettoyer le hash qu'après avoir laissé le SDK ou le repli établir la
+        // session, afin de ne jamais le priver prématurément des jetons.
+        if (accessToken || refreshToken) {
           window.history.replaceState(
             null,
             "",
             window.location.pathname + window.location.search,
           );
-          const { error: sErr } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (sErr) {
-            // Le SDK (detectSessionInUrl) a peut-être déjà établi la session.
-            const {
-              data: { session },
-            } = await supabase.auth.getSession();
-            if (!session) {
-              if (!cancelled) {
-                setError("Impossible d'établir la session. Lien expiré ?");
-                setChecking(false);
-              }
-              return;
-            }
-          }
         }
 
-        // Cas B : pas de hash → l'utilisateur doit deja etre authentifie.
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData?.user) {
+        if (!session) {
           if (!cancelled) {
-            setError(
-              "Vous devez ouvrir le lien recu par email pour acceder a cet ecran.",
-            );
+            setError("Impossible d'établir la session. Lien expiré ?");
             setChecking(false);
           }
           return;
