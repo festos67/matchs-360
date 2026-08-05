@@ -1,5 +1,6 @@
 -- Allow supporters to view evaluation_objectives for their linked players
 -- (mirrors the existing supporter SELECT policies on evaluations and evaluation_scores).
+DROP POLICY IF EXISTS "Supporters can view evaluation objectives for linked players" ON public.evaluation_objectives;
 CREATE POLICY "Supporters can view evaluation objectives for linked players"
 ON public.evaluation_objectives
 FOR SELECT

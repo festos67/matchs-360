@@ -45,8 +45,11 @@ BEGIN
 
   BEGIN
     PERFORM net.http_post(
-      url := 'https://aasihxqsasjpszqjlbid.supabase.co/functions/v1/notify-role-assigned',
-      headers := jsonb_build_object('Content-Type', 'application/json'),
+      url := 'https://zsossagpsxtjbloxxetq.supabase.co/functions/v1/notify-role-assigned',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'cron_auth_secret')
+      ),
       body := jsonb_build_object(
         'userId', NEW.user_id,
         'role', NEW.role::text,
