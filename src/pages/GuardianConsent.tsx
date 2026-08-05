@@ -85,8 +85,13 @@ export default function GuardianConsent() {
         const accessToken = hp.get("access_token");
         const refreshToken = hp.get("refresh_token");
 
-        // Cas A : utilisateur arrive avec lien magique invite → setSession.
-        if (tokenType === "invite" && accessToken && refreshToken) {
+        // Cas A : lien magique (invite pour un nouveau tuteur, magiclink pour un
+        // tuteur ayant déjà un compte) → setSession déterministe.
+        if (
+          accessToken &&
+          refreshToken &&
+          (tokenType === "invite" || tokenType === "magiclink")
+        ) {
           await supabase.auth.signOut({ scope: "global" }).catch(() => {});
           window.history.replaceState(
             null,
