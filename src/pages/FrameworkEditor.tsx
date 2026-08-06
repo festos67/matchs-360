@@ -69,6 +69,7 @@ import { TemplateSelector } from "@/components/framework/TemplateSelector";
 import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
 import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
 import { usePlan } from "@/hooks/usePlan";
+import { useQueryClient } from "@tanstack/react-query";
 import { saveFrameworkChanges } from "@/lib/framework-save";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
@@ -122,6 +123,8 @@ export default function FrameworkEditor() {
   const navigate = useNavigate();
   const { canDo, loading: planLoading } = usePlan();
   const canVersionFramework = planLoading ? true : canDo("can_version_framework");
+
+  const queryClient = useQueryClient();
 
   const [team, setTeam] = useState<Team | null>(null);
   const [framework, setFramework] = useState<Framework | null>(null);
@@ -372,6 +375,13 @@ export default function FrameworkEditor() {
 
   const handleTemplateSelected = async () => {
     toast.success("Référentiel importé avec succès");
+    // Le référentiel vient d'être créé côté serveur, mais TeamDetail le lit via
+    // useQuery(["team-framework", id]) — une donnée déjà en cache, et encore
+    // "fraîche" (staleTime global de 30 s). Sans invalidation, la fiche équipe
+    // réaffiche son instantané précédent (framework: null) : l'écran « Aucun
+    // référentiel configuré » apparaissait donc juste après le message de
+    // succès, et editFramework=true n'avait aucun référentiel à ouvrir.
+    await queryClient.invalidateQueries({ queryKey: ["team-framework", teamId] });
     // Redirect back to team detail and open the edit dialog for review
     navigate(`/teams/${teamId}?tab=indicateurs&editFramework=true`);
   };
