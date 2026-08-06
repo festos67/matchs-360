@@ -40,7 +40,12 @@ export const MobileSidebar = () => {
             <SheetTitle>Menu de navigation</SheetTitle>
           </VisuallyHidden>
           <div className="flex flex-col h-full">
-            <SidebarContent onNavigate={() => setOpen(false)} />
+            {/* `expanded` est indispensable : sans lui, SidebarContent applique
+                opacity-0 à tous les libellés (comportement du mode replié
+                desktop) et le tiroir n'affiche plus que les icônes. Ici le
+                Sheet fait déjà w-64, la largeur pleine : les libellés doivent
+                donc toujours être visibles. */}
+            <SidebarContent expanded onNavigate={() => setOpen(false)} />
           </div>
         </SheetContent>
       </Sheet>
