@@ -352,7 +352,10 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         </p>
       </div>
 
-      <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 mb-8">
+      {/* Pas de conteneur scrollable ici : la page défile déjà. Un second
+          niveau de scroll capturait la molette sur la grille et rendait la
+          barre d'actions (placée en dessous) difficile à atteindre. */}
+      <div className="mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {options.map((option) => (
           <Card
@@ -432,7 +435,9 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         </div>
       )}
 
-      <div className="flex justify-center gap-4">
+      {/* Barre d'actions collante : reste visible quelle que soit la position
+          de défilement, y compris avec une longue liste de modèles. */}
+      <div className="sticky bottom-0 z-10 flex justify-center gap-4 border-t border-border bg-background/95 py-4 backdrop-blur-sm">
         <Button variant="outline" onClick={onCancel}>
           Annuler
         </Button>
