@@ -24,6 +24,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { queryClient } from "@/lib/query-client";
 import { ProtectedRoute } from "@/components/routing/ProtectedRoute";
+import { AppErrorBoundary } from "@/components/routing/AppErrorBoundary";
 import { Loader2 } from "lucide-react";
 
 // Critical path — static imports
@@ -86,6 +87,10 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        {/* Filet de sécurité : sans lui, l'échec d'un import dynamique (chunk
+            supprimé par un déploiement) démonte tout l'arbre et laisse une
+            page blanche. */}
+        <AppErrorBoundary>
         <BrowserRouter>
           <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader2 className="animate-spin h-8 w-8 text-muted-foreground" /></div>}>
             <Routes>
@@ -160,6 +165,7 @@ const App = () => (
             </Routes>
           </Suspense>
         </BrowserRouter>
+        </AppErrorBoundary>
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>

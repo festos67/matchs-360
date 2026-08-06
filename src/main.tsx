@@ -14,7 +14,12 @@
  */
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { installChunkErrorRecovery } from "./components/routing/AppErrorBoundary.tsx";
 import "./index.css";
+
+// Récupération auto quand un chunk référencé par un onglet resté ouvert a été
+// supprimé par un déploiement (sinon : page blanche au clic sur un menu).
+installChunkErrorRecovery();
 
 // Apply persisted theme before render to avoid flash
 (() => {
