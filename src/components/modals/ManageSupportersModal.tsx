@@ -103,6 +103,9 @@ export const ManageSupportersModal = ({
   // Personne choisie dans la liste, en attente de confirmation. La liaison
   // envoie un email au supporter : on ne la déclenche pas sur un simple clic.
   const [pendingCandidate, setPendingCandidate] = useState<SupporterCandidate | null>(null);
+  // Supporter dont le retrait est en attente de confirmation. La suppression du
+  // lien est immédiate et définitive : elle ne doit pas tenir à un seul clic.
+  const [pendingRemoval, setPendingRemoval] = useState<Supporter | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -319,7 +322,7 @@ export const ManageSupportersModal = ({
                       variant="ghost"
                       size="icon"
                       className="shrink-0 text-destructive hover:text-destructive"
-                      onClick={() => handleRemoveSupporter(supporter)}
+                      onClick={() => setPendingRemoval(supporter)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -527,6 +530,44 @@ export const ManageSupportersModal = ({
               }}
             >
               Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirmation avant de retirer un supporter : la suppression du lien est
+          immédiate et définitive (DELETE sur supporters_link), et coupe l'accès
+          de la personne aux débriefs du joueur. */}
+      <AlertDialog
+        open={!!pendingRemoval}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setPendingRemoval(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Retirer ce supporter ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingRemoval && (
+                <>
+                  <strong>{getSupporterName(pendingRemoval)}</strong> n'aura plus accès aux
+                  débriefs de <strong>{playerName}</strong>. L'effet est immédiat ; il faudra
+                  le lier à nouveau pour rétablir cet accès.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                const supporter = pendingRemoval;
+                setPendingRemoval(null);
+                if (supporter) void handleRemoveSupporter(supporter);
+              }}
+            >
+              Retirer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
