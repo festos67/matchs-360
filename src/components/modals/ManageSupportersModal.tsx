@@ -30,6 +30,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toastInvitationError } from "@/lib/invitation-error-toast";
@@ -54,6 +64,19 @@ interface Supporter {
   email: string;
 }
 
+/** Personne déjà inscrite sur la plateforme, proposée à la liaison. */
+interface SupporterCandidate {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  nickname?: string | null;
+  email: string;
+}
+
+/** Libellé affiché pour un candidat (surnom > nom complet > email). */
+const candidateLabel = (c: SupporterCandidate) =>
+  c.nickname || [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email;
+
 interface ManageSupportersModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -77,6 +100,9 @@ export const ManageSupportersModal = ({
   const [activeTab, setActiveTab] = useState("list");
   const [existingSearch, setExistingSearch] = useState("");
   const [linkingId, setLinkingId] = useState<string | null>(null);
+  // Personne choisie dans la liste, en attente de confirmation. La liaison
+  // envoie un email au supporter : on ne la déclenche pas sur un simple clic.
+  const [pendingCandidate, setPendingCandidate] = useState<SupporterCandidate | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -162,12 +188,7 @@ export const ManageSupportersModal = ({
 
   const filteredExisting = existingSupporters;
 
-  const handleLinkExisting = async (candidate: {
-    id: string;
-    first_name: string | null;
-    last_name: string | null;
-    email: string;
-  }) => {
+  const handleLinkExisting = async (candidate: SupporterCandidate) => {
     setLinkingId(candidate.id);
     try {
       // Même chemin que l'invitation d'un nouveau supporter : send-invitation
@@ -354,7 +375,7 @@ export const ManageSupportersModal = ({
                           key={s.id}
                           type="button"
                           disabled={isLinking}
-                          onClick={() => handleLinkExisting(s)}
+                          onClick={() => setPendingCandidate(s)}
                           className={cn(
                             "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm transition-colors",
                             "hover:bg-muted disabled:opacity-50"
@@ -473,6 +494,43 @@ export const ManageSupportersModal = ({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Confirmation avant de lier un supporter : l'action notifie la personne
+          par email et lui ouvre l'accès aux débriefs du joueur. Un clic dans la
+          liste de recherche ne doit pas suffire. */}
+      <AlertDialog
+        open={!!pendingCandidate}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setPendingCandidate(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Lier ce supporter au joueur ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingCandidate && (
+                <>
+                  <strong>{candidateLabel(pendingCandidate)}</strong> ({pendingCandidate.email})
+                  pourra suivre les débriefs de <strong>{playerName}</strong> et recevra un
+                  email l'en informant. Vous pourrez retirer ce lien à tout moment.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const candidate = pendingCandidate;
+                setPendingCandidate(null);
+                if (candidate) void handleLinkExisting(candidate);
+              }}
+            >
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
