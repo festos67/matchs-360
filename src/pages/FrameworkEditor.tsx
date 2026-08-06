@@ -179,8 +179,7 @@ export default function FrameworkEditor() {
     setCanEdit(isAdmin || isClubAdmin || isReferent);
   };
 
-  /** @returns true si un référentiel actif a été chargé, false sinon. */
-  const fetchData = async (): Promise<boolean> => {
+  const fetchData = async () => {
     try {
       // Fetch team
       const { data: teamData, error: teamError } = await supabase
@@ -193,7 +192,7 @@ export default function FrameworkEditor() {
       if (!teamData) {
         toast.error("Équipe non trouvée");
         navigate("/clubs");
-        return false;
+        return;
       }
       setTeam(teamData);
 
@@ -222,15 +221,12 @@ export default function FrameworkEditor() {
           }));
           setThemes(sortedThemes);
         }
-        return true;
       } else {
         setShowTemplateSelector(true);
-        return false;
       }
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Erreur lors du chargement");
-      return false;
     } finally {
       setLoading(false);
     }
@@ -378,29 +374,16 @@ export default function FrameworkEditor() {
   };
 
   const handleTemplateSelected = async () => {
-    // Cette page EST l'éditeur direct du référentiel (drag & drop des thèmes et
-    // compétences). Après l'import, on y reste donc : le modèle fraîchement
-    // copié s'affiche immédiatement en édition, l'utilisateur l'ajuste, puis
-    // enregistre. L'ancien comportement redirigeait vers la fiche équipe pour y
-    // rouvrir un dialogue — un détour depuis la page d'édition elle-même, qui
-    // affichait « Aucun référentiel configuré » tant que le cache de la fiche
-    // n'était pas rafraîchi.
-    const loaded = await fetchData();
-
-    if (!loaded) {
-      // fetchData a déjà réaffiché le sélecteur : ne pas laisser une page vide.
-      toast.error("Le référentiel importé n'a pas pu être chargé — réessayez");
-      return;
-    }
-
-    setShowTemplateSelector(false);
-    // La fiche équipe lit le référentiel via useQuery(["team-framework", id]) ;
-    // sans invalidation elle resservirait son instantané d'avant l'import
-    // (framework: null) pendant tout le staleTime.
+    toast.success("Référentiel importé avec succès");
+    // Le référentiel vient d'être créé côté serveur, mais TeamDetail le lit via
+    // useQuery(["team-framework", id]) — une donnée déjà en cache, et encore
+    // "fraîche" (staleTime global de 30 s). Sans invalidation, la fiche équipe
+    // réaffiche son instantané précédent (framework: null) : l'écran « Aucun
+    // référentiel configuré » apparaissait donc juste après le message de
+    // succès, et editFramework=true n'avait aucun référentiel à ouvrir.
     await queryClient.invalidateQueries({ queryKey: ["team-framework", teamId] });
-    toast.success(
-      "Modèle importé — personnalisez-le si besoin, puis enregistrez",
-    );
+    // Redirect back to team detail and open the edit dialog for review
+    navigate(`/teams/${teamId}?tab=indicateurs&editFramework=true`);
   };
 
   const handlePrint = useReactToPrint({
