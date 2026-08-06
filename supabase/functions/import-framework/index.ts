@@ -77,12 +77,23 @@ const handler = async (req: Request): Promise<Response> => {
         .eq("user_id", callerId).eq("role", "club_admin");
       const myClubIds = (caClubs?.map(r => r.club_id).filter(Boolean) ?? []) as string[];
 
-      // Caller's referent-coach team ids
+      // Caller's referent-coach team ids (+ clubs de ces équipes)
       const { data: refTeams } = await supabaseAdmin
-        .from("team_members").select("team_id")
+        .from("team_members").select("team_id, team:teams(club_id)")
         .eq("user_id", callerId).eq("member_type", "coach")
         .eq("coach_role", "referent").eq("is_active", true).is("deleted_at", null);
       const myRefTeamIds = (refTeams?.map(r => r.team_id) ?? []) as string[];
+      // Clubs dont le caller encadre au moins une équipe en tant que référent.
+      // L'embed PostgREST peut renvoyer un objet ou un tableau selon le typage
+      // de la relation : on gère les deux formes.
+      type EmbeddedTeam = { club_id?: string | null };
+      const myRefClubIds = (refTeams ?? [])
+        .flatMap((r) => {
+          const team = (r as { team?: EmbeddedTeam | EmbeddedTeam[] | null }).team;
+          if (!team) return [];
+          return Array.isArray(team) ? team.map((t) => t?.club_id) : [team.club_id];
+        })
+        .filter(Boolean) as string[];
 
       // ---- READ check on source ----
       let srcSourceClubId: string | null = srcFw.club_id;
@@ -95,6 +106,15 @@ const handler = async (req: Request): Promise<Response> => {
         // Global templates (no club, no team, marked as template) are readable by any authenticated user
         (srcFw.is_template && !srcFw.club_id && !srcFw.team_id) ||
         (srcSourceClubId && myClubIds.includes(srcSourceClubId)) ||
+        // Un coach RÉFÉRENT peut partir du MODÈLE de son propre club.
+        // Sans cette branche, la lecture était réservée aux club_admin alors que
+        // la RLS expose déjà ces modèles à tout membre du club (policy « Team
+        // members view framework », qui commence par is_template = true) : le
+        // sélecteur affichait donc l'option « Modèle du Club » à un coach
+        // référent, mais l'import échouait ensuite en 403.
+        // Restreint volontairement à is_template : un référentiel d'équipe tiers
+        // reste hors de portée, seul le modèle du club est copiable.
+        (srcFw.is_template && srcSourceClubId && myRefClubIds.includes(srcSourceClubId)) ||
         (srcFw.team_id && myRefTeamIds.includes(srcFw.team_id));
       if (!canReadSource) return forbidden("Source framework outside your scope");
 
