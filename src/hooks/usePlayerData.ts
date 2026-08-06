@@ -21,7 +21,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { loadFrameworkThemes } from "@/lib/framework-loader";
+import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 
 // ---- Types ----
 
@@ -264,7 +264,7 @@ export function usePlayerData(playerId: string | undefined) {
     // Actions
     refetchAll,
     refetchEvaluations: () => evaluationsQuery.refetch(),
-    fetchThemesForFramework: loadFrameworkThemes,
+    fetchThemesForFramework: fetchFrameworkThemesCached,
   };
 }
 

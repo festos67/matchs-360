@@ -13,7 +13,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { loadFrameworkThemes, type FrameworkTheme } from "@/lib/framework-loader";
+import { type FrameworkTheme } from "@/lib/framework-loader";
+import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 
 interface Props {
   frameworkId: string;
@@ -30,7 +31,7 @@ export function TemplatePreviewDialog({ frameworkId, templateTitle }: Props) {
     setOpen(true);
     if (themes.length === 0) {
       setLoading(true);
-      const { themes: t } = await loadFrameworkThemes(frameworkId);
+      const { themes: t } = await fetchFrameworkThemesCached(frameworkId);
       setThemes(t);
       setLoading(false);
     }

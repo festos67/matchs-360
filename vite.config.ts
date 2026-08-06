@@ -66,7 +66,6 @@ function precompressAssets(): Plugin {
 
       const kb = (n: number) => `${(n / 1024).toFixed(1)} Ko`;
       const ratio = rawTotal > 0 ? Math.round((1 - gzTotal / rawTotal) * 100) : 0;
-      // eslint-disable-next-line no-console
       console.log(
         `\n[precompress] ${files} fichiers — ${kb(rawTotal)} → ${kb(gzTotal)} en gzip (-${ratio}%)`,
       );

@@ -27,7 +27,8 @@ import {
 import { EvaluationForm } from "@/components/evaluation/EvaluationForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { loadFrameworkThemes, type FrameworkTheme } from "@/lib/framework-loader";
+import { type FrameworkTheme } from "@/lib/framework-loader";
+import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 import { toast } from "sonner";
 
 interface EvaluationData {
@@ -129,7 +130,7 @@ export default function EvaluationDetail() {
       setAuthor(authorName);
 
       // Themes
-      const { themes: loadedThemes } = await loadFrameworkThemes(
+      const { themes: loadedThemes } = await fetchFrameworkThemesCached(
         data.framework_id
       );
       setThemes(loadedThemes);

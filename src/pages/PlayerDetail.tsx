@@ -69,7 +69,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useClubAdminScope } from "@/hooks/useClubAdminScope";
 import { toast } from "sonner";
-import { loadFrameworkThemes } from "@/lib/framework-loader";
+import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 import type { Evaluation, Theme } from "@/hooks/usePlayerData";
 
 export default function PlayerDetail() {
@@ -253,7 +253,7 @@ export default function PlayerDetail() {
         );
         setIsViewingHistory(requested.id !== latestCoachOnCurrentFw?.id);
         if (requested.framework_id && requested.framework_id !== frameworkId) {
-          loadFrameworkThemes(requested.framework_id).then(({ themes: loaded }) => {
+          fetchFrameworkThemesCached(requested.framework_id).then(({ themes: loaded }) => {
             setSelectedEvalThemes(loaded);
           });
         }
@@ -361,7 +361,7 @@ export default function PlayerDetail() {
   const handlePrintEvaluationFromHistory = useCallback(async (evaluation: Evaluation) => {
     let printThemes = themes;
     if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
-      const { themes: loaded } = await loadFrameworkThemes(evaluation.framework_id);
+      const { themes: loaded } = await fetchFrameworkThemesCached(evaluation.framework_id);
       printThemes = loaded;
     }
     setHistoryPrintThemes(printThemes);
@@ -393,7 +393,7 @@ export default function PlayerDetail() {
     const latestCoachOnCurrentFw = evaluations.find(e => e.type === "coach" && !e.deleted_at && e.framework_id === frameworkId);
     setIsViewingHistory(evaluation.id !== latestCoachOnCurrentFw?.id);
     if (evaluation.framework_id && evaluation.framework_id !== frameworkId) {
-      const { themes: loaded } = await loadFrameworkThemes(evaluation.framework_id);
+      const { themes: loaded } = await fetchFrameworkThemesCached(evaluation.framework_id);
       setSelectedEvalThemes(loaded);
     } else {
       setSelectedEvalThemes(themes);

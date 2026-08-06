@@ -18,7 +18,7 @@ import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { PlayerEvaluationTab } from "@/components/player/PlayerEvaluationTab";
 import { usePlayerData, getPlayerName, type Theme } from "@/hooks/usePlayerData";
 import { useAuth } from "@/hooks/useAuth";
-import { loadFrameworkThemes } from "@/lib/framework-loader";
+import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 
 export default function SupporterPlayerView() {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +61,7 @@ export default function SupporterPlayerView() {
       selectedEvaluation?.framework_id &&
       selectedEvaluation.framework_id !== frameworkId
     ) {
-      loadFrameworkThemes(selectedEvaluation.framework_id).then(({ themes: loaded }) => {
+      fetchFrameworkThemesCached(selectedEvaluation.framework_id).then(({ themes: loaded }) => {
         if (!cancelled) setSelectedEvalThemes(loaded as unknown as Theme[]);
       });
     } else {

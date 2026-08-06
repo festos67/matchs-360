@@ -26,7 +26,7 @@ import { ComparisonRadar } from "@/components/evaluation/ComparisonRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, getScoreLabel, type ThemeScores } from "@/lib/evaluation-utils";
 import { cn } from "@/lib/utils";
 import { getThemePaletteColor } from "@/lib/theme-palette";
-import { loadFrameworkThemes } from "@/lib/framework-loader";
+import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 import type { Player, TeamMembership, ReferentCoach, Evaluation, Theme } from "@/hooks/usePlayerData";
 import { usePlan } from "@/hooks/usePlan";
 import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
@@ -125,7 +125,7 @@ export function PlayerEvaluationTab({
       const entries = await Promise.all(
         missing.map(async (fid) => {
           try {
-            const { themes: loaded } = await loadFrameworkThemes(fid);
+            const { themes: loaded } = await fetchFrameworkThemesCached(fid);
             return [fid, loaded] as const;
           } catch {
             return [fid, [] as Theme[]] as const;
