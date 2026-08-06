@@ -15,6 +15,8 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
+import { Resend } from "https://esm.sh/resend@2.0.0";
+import { getFromEmail } from "../_shared/email-config.ts";
 
 type Relationship = "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
 
@@ -29,6 +31,22 @@ const ALLOWED_REL: Relationship[] = [
   "tuteur_legal",
   "autre_titulaire",
 ];
+
+const REL_LABELS: Record<Relationship, string> = {
+  mere: "Mère",
+  pere: "Père",
+  tuteur_legal: "Tuteur légal",
+  autre_titulaire: "Autre titulaire de l'autorité parentale",
+};
+
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function clientIp(req: Request): string | null {
   const fwd = req.headers.get("x-forwarded-for") || "";
@@ -243,6 +261,71 @@ const handler = async (req: Request): Promise<Response> => {
       ip_address: ip,
       user_agent: ua,
     });
+
+    // ================================================================
+    // Email de confirmation au representant legal (best-effort).
+    // Un echec d'envoi ne doit JAMAIS invalider le consentement deja
+    // enregistre en base.
+    // ================================================================
+    try {
+      const { data: minor } = await admin
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", body.minor_profile_id)
+        .maybeSingle();
+      const childName =
+        [minor?.first_name, minor?.last_name].filter(Boolean).join(" ") ||
+        "votre enfant";
+
+      const signedAtLabel = new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "long",
+        timeStyle: "short",
+        timeZone: "Europe/Paris",
+      }).format(new Date());
+
+      const relLabel = REL_LABELS[body.relationship];
+
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      if (resendApiKey) {
+        const resend = new Resend(resendApiKey);
+        const { error: mailErr } = await resend.emails.send({
+          from: getFromEmail(),
+          to: [guardianEmail],
+          subject: "Votre consentement parental a bien été enregistré",
+          html: `
+<div style="background:#f4f4f5;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
+  <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+    <h1 style="margin:0 0 8px;font-size:20px;color:#3B82F6;">MATCHS360</h1>
+    <h2 style="margin:0 0 16px;font-size:17px;color:#111827;">Consentement parental enregistré</h2>
+    <p style="font-size:14px;color:#374151;line-height:1.6;">
+      Bonjour, votre consentement concernant <strong>${escapeHtml(childName)}</strong>
+      a bien été enregistré.
+    </p>
+    <table style="width:100%;font-size:14px;color:#374151;border-collapse:collapse;margin:16px 0;">
+      <tr><td style="padding:6px 0;">Date de signature</td><td style="padding:6px 0;text-align:right;"><strong>${escapeHtml(signedAtLabel)}</strong></td></tr>
+      <tr><td style="padding:6px 0;">Lien de parenté déclaré</td><td style="padding:6px 0;text-align:right;"><strong>${escapeHtml(relLabel)}</strong></td></tr>
+    </table>
+    <p style="font-size:14px;color:#374151;line-height:1.6;">
+      Le compte de ${escapeHtml(childName)} est désormais <strong>actif</strong>.
+    </p>
+    <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+      Conformément au RGPD, ce consentement est <strong>révocable à tout moment</strong>
+      depuis votre espace « Mes consentements ».
+    </p>
+    <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+      Si vous n'êtes pas à l'origine de cette validation, merci de contacter le club
+      dans les plus brefs délais.
+    </p>
+  </div>
+</div>`,
+        });
+        if (mailErr) console.error("consent confirmation email failed", mailErr);
+      } else {
+        console.warn("RESEND_API_KEY absente — email de confirmation non envoyé");
+      }
+    } catch (e) {
+      console.error("consent confirmation email error", (e as Error)?.message);
+    }
 
     return json({ ok: true, consent_id: inserted.id }, 200, cors);
   } catch (e) {
