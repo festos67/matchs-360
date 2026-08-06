@@ -85,6 +85,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Garde l'identifiant de l'utilisateur actuellement chargé en state, pour
   // détecter une transition A → B et purger profile/roles immédiatement.
   const loadedUserIdRef = useRef<string | null>(null);
+  // Dernière liste de rôles RÉELLEMENT connue. Sert de garde anti-régression
+  // dans fetchRoles (voir le commentaire détaillé sur place) : la closure ne
+  // peut pas lire `roles` de façon fiable, d'où cette ref.
+  const rolesRef = useRef<UserRole[]>([]);
 
   const fetchProfile = async (userId: string, ticket: number) => {
     const { data } = await supabase
@@ -115,6 +119,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     
     const userRoles = (data || []) as UserRole[];
+
+    // GARDE ANTI-RÉGRESSION (instabilité du menu latéral et bascule de rôle).
+    //
+    // La policy « Users view own roles » filtre sur user_id = auth.uid(). Quand
+    // le JWT est expiré ou en cours de rafraîchissement, auth.uid() peut valoir
+    // NULL : PostgREST répond alors 200 avec un tableau VIDE, sans erreur. Le
+    // code ne pouvait pas distinguer ce cas d'un utilisateur réellement sans
+    // rôle, et le traitait comme une vérité :
+    //   - setRoles([])              -> le menu latéral tombait sur le cas par
+    //                                  défaut (une seule entrée « Dashboard ») ;
+    //   - setCurrentRoleState(null) -> perte du rôle actif ;
+    //   - removeItem(scopedKey)     -> destruction DÉFINITIVE du choix persisté.
+    // Un résultat partiel (1 rôle sur 2) était pire encore : la branche
+    // mono-rôle auto-sélectionnait le rôle restant et l'écrivait en
+    // localStorage, faisant basculer l'utilisateur sur un autre profil.
+    //
+    // On ignore donc tout résultat qui régresse par rapport à ce qu'on connaît
+    // déjà. Conséquence assumée : un rôle réellement retiré n'est plus reflété
+    // dans le menu avant le prochain chargement complet — sans risque, car
+    // l'autorisation réelle est portée par la RLS, pas par l'affichage.
+    const knownRoles = rolesRef.current;
+    if (knownRoles.length > 0 && userRoles.length < knownRoles.length) {
+      console.warn(
+        `fetchRoles: ${userRoles.length} rôle(s) reçu(s) alors que ${knownRoles.length} sont connus — résultat ignoré (JWT probablement en cours de rafraîchissement)`,
+      );
+      return;
+    }
+
+    rolesRef.current = userRoles;
     setRoles(userRoles);
 
     // Migration douce : ancienne clé globale → clé scopée par user
@@ -135,10 +168,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setCurrentRoleState(userRoles[0]);
       localStorage.setItem(scopedKey, userRoles[0].id);
     } else {
-      // Multi-rôles sans choix précédent → null, le chooser DashboardRedirect s'affichera
+      // Multi-rôles sans choix précédent → null, le chooser DashboardRedirect s'affichera.
+      // On NE supprime PLUS la clé persistée ici : si ce fetch était incomplet,
+      // l'effacer ferait perdre définitivement le rôle choisi. Une clé qui
+      // pointerait vers un rôle réellement disparu est inoffensive — `find`
+      // ne la résout pas et on repasse simplement par le chooser.
       setCurrentRoleState(null);
-      // Nettoyer une clé scopée qui pointerait vers un rôle qui n'existe plus
-      if (savedRoleId) localStorage.removeItem(scopedKey);
     }
   };
 
@@ -163,6 +198,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isUserSwitch) {
       setProfile(null);
       setRoles([]);
+      // Réinitialiser la garde : sans cela, un compte ayant MOINS de rôles que
+      // le précédent verrait son chargement rejeté comme une régression.
+      rolesRef.current = [];
       setCurrentRoleState(null);
       // Purger le cache TanStack Query (données scopées à l'ancien user)
       queryClient.clear();
@@ -208,6 +246,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadedUserIdRef.current = null;
     setProfile(null);
     setRoles([]);
+    // Déconnexion : la garde doit repartir de zéro pour la session suivante.
+    rolesRef.current = [];
     setCurrentRoleState(null);
     queryClient.clear();
   };
