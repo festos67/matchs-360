@@ -339,15 +339,54 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("id", designation.id)
       .eq("status", "pending");
 
-    // Cache : si un supporters_link existe, le marquer comme guardian.
-    await admin
+    // ================================================================
+    // Acces du representant legal a l'espace de son enfant.
+    //
+    // C'etait un UPDATE sur une ligne jamais creee : zero ligne affectee,
+    // aucune erreur remontee, et le parent se retrouvait sans lien ni role —
+    // donc avec le menu par defaut, sans aucun acces aux donnees de l'enfant.
+    // Constate en production sur les trois parents ayant consenti.
+    //
+    // Le role attribue est `supporter` : l'enum app_role n'a pas de valeur
+    // dediee au representant legal, et c'est ce role que les policies du
+    // parcours joueur reconnaissent deja (is_supporter_of_player). La qualite
+    // de titulaire de l'autorite parentale est portee par is_legal_guardian,
+    // qui distingue le parent d'un simple supporter.
+    // ================================================================
+    const { error: linkErr } = await admin
       .from("supporters_link")
-      .update({
-        is_legal_guardian: true,
-        relationship: body.relationship,
-      })
-      .eq("supporter_id", guardianId)
-      .eq("player_id", body.minor_profile_id);
+      .upsert(
+        {
+          supporter_id: guardianId,
+          player_id: body.minor_profile_id,
+          is_legal_guardian: true,
+          relationship: body.relationship,
+        },
+        { onConflict: "supporter_id,player_id" },
+      );
+    if (linkErr) console.error("supporters_link upsert failed", linkErr);
+
+    // Le role est rattache au club de l'enfant, comme tous les roles
+    // supporter existants.
+    const { data: minorClub } = await admin
+      .from("profiles")
+      .select("club_id")
+      .eq("id", body.minor_profile_id)
+      .maybeSingle();
+
+    if (minorClub?.club_id) {
+      const { error: roleErr } = await admin
+        .from("user_roles")
+        .upsert(
+          {
+            user_id: guardianId,
+            role: "supporter",
+            club_id: minorClub.club_id,
+          },
+          { onConflict: "user_id,role,club_id", ignoreDuplicates: true },
+        );
+      if (roleErr) console.error("guardian role upsert failed", roleErr);
+    }
 
     // Phase 6 GO-LIVE — Active explicitement le compte mineur (defense en
     // profondeur ; le trigger activate_minor_on_consent fait la meme chose
