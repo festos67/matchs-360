@@ -132,13 +132,57 @@ export default function SelfEvaluation() {
     enabled: !!user,
   });
 
-  const loading = authLoading || isLoading;
+  // Consentement parental a l'auto-evaluation. Ne concerne QUE les joueurs de
+  // moins de 15 ans : `can_self_evaluate` renvoie true pour tous les autres.
+  // Le verrou reel est le trigger trg_enforce_self_eval_consent cote base ;
+  // cette requete ne sert qu'a afficher un message comprehensible plutot que
+  // de laisser le joueur remplir un formulaire qui sera rejete a la sauvegarde.
+  const { data: selfEvalAllowed, isLoading: consentLoading } = useQuery({
+    queryKey: ["can-self-evaluate", user?.id],
+    queryFn: async () => {
+      if (!user) return true;
+      const { data, error } = await supabase.rpc(
+        "can_self_evaluate" as never,
+        { _profile_id: user.id } as never,
+      );
+      if (error) {
+        console.error("can_self_evaluate failed", error);
+        return true; // ne pas bloquer sur une erreur : le trigger tranchera
+      }
+      return data !== false;
+    },
+    enabled: !!user,
+  });
+
+  const loading = authLoading || isLoading || consentLoading;
 
   if (loading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center h-64">
           <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (selfEvalAllowed === false) {
+    return (
+      <AppLayout>
+        <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+        <div className="glass-card p-12 text-center">
+          <ClipboardList className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground">
+            Auto-évaluation non autorisée
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+            Ton représentant légal n'a pas autorisé l'auto-évaluation. Seules les
+            évaluations de l'encadrement sont recueillies. Il peut modifier ce choix
+            à tout moment depuis son espace « Mes consentements ».
+          </p>
         </div>
       </AppLayout>
     );

@@ -365,6 +365,16 @@ export const SelfEvaluationForm = ({
         setSaving(false);
         return;
       }
+      // Verrou base trg_enforce_self_eval_consent : le representant legal n'a
+      // pas coche l'auto-evaluation pour ce joueur de moins de 15 ans.
+      if (String(error?.message ?? "").includes("SELF_EVAL_CONSENT_MISSING")) {
+        toast.error("Auto-évaluation non autorisée", {
+          description:
+            "Le représentant légal n'a pas autorisé l'auto-évaluation pour ce joueur.",
+        });
+        setSaving(false);
+        return;
+      }
       toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);

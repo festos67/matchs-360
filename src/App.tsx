@@ -65,6 +65,8 @@ const InvitationsAdmin = lazy(() => import("./pages/InvitationsAdmin"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const GuardianConsent = lazy(() => import("./pages/GuardianConsent"));
 const MyConsents = lazy(() => import("./pages/MyConsents"));
+const ConsentAttestation = lazy(() => import("./pages/ConsentAttestation"));
+const ClubConsents = lazy(() => import("./pages/ClubConsents"));
 const ParentMyChildren = lazy(() => import("./pages/parent/MyChildren"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Stats = lazy(() => import("./pages/Stats"));
@@ -113,6 +115,7 @@ const App = () => (
               {/* Club admin routes */}
               <Route path="/club/redirect" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><ClubRedirectPage /></ProtectedRoute>} />
               <Route path="/club/users" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><ClubUsers /></ProtectedRoute>} />
+              <Route path="/club/consents" element={<ProtectedRoute allowedRoles={['admin', 'club_admin']}><ClubConsents /></ProtectedRoute>} />
 
               {/* Coach routes */}
               <Route path="/coach/dashboard" element={<ProtectedRoute allowedRoles={['admin', 'club_admin', 'coach']}><CoachMyClub /></ProtectedRoute>} />
@@ -157,6 +160,10 @@ const App = () => (
               <Route path="/stats" element={<ProtectedRoute><Stats /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/my-consents" element={<ProtectedRoute><MyConsents /></ProtectedRoute>} />
+              {/* Attestation : l'accès est porté par la RPC (parent signataire,
+                  coach de l'enfant, responsable du club, admin), pas par le rôle
+                  courant — un coach référent doit pouvoir ouvrir le lien reçu. */}
+              <Route path="/consent/:id/attestation" element={<ProtectedRoute><ConsentAttestation /></ProtectedRoute>} />
               <Route path="/parent/my-children" element={<ProtectedRoute><ParentMyChildren /></ProtectedRoute>} />
 
               <Route path="/pricing" element={<ProtectedRoute allowedRoles={['club_admin', 'admin']}><Pricing /></ProtectedRoute>} />

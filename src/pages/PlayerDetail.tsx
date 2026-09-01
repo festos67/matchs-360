@@ -335,6 +335,20 @@ export default function PlayerDetail() {
         );
         return;
       }
+      // 3. ...et dont le representant legal a autorise l'auto-evaluation.
+      // Inutile de solliciter un joueur dont la sauvegarde sera refusee par
+      // le verrou base (trg_enforce_self_eval_consent).
+      const { data: allowed } = await supabase.rpc(
+        "can_self_evaluate" as never,
+        { _profile_id: id } as never,
+      );
+      if (allowed === false) {
+        toast.error("Auto-évaluation non autorisée", {
+          description:
+            "Le représentant légal de ce joueur n'a pas coché l'autorisation d'auto-évaluation.",
+        });
+        return;
+      }
       const { error } = await supabase
         .from("self_evaluation_requests")
         .insert({ player_id: id, requested_by: user.id, status: "pending" });

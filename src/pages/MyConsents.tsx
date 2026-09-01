@@ -10,7 +10,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ShieldCheck, ShieldOff, Camera, CameraOff } from "lucide-react";
+import {
+  ShieldCheck,
+  ShieldOff,
+  Camera,
+  CameraOff,
+  ClipboardCheck,
+  ClipboardX,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 interface ConsentRow {
@@ -24,6 +31,7 @@ interface ConsentRow {
     last_name: string | null;
     image_rights_consent_at?: string | null;
     image_rights_consent_by?: string | null;
+    self_eval_consent_at?: string | null;
   } | null;
 }
 
@@ -66,7 +74,7 @@ export default function MyConsents() {
       const ids = Array.from(new Set(consents.map((c) => c.minor_profile_id)));
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, image_rights_consent_at, image_rights_consent_by")
+        .select("id, first_name, last_name, image_rights_consent_at, image_rights_consent_by, self_eval_consent_at")
         .in("id", ids);
       const map = new Map((profs ?? []).map((p) => [p.id, p]));
       consents.forEach((c) => {
@@ -120,58 +128,55 @@ export default function MyConsents() {
   };
 
   /**
-   * Phase 3 — Droit a l'image (art. 9 CC) : consentement PARENTAL specifique,
-   * distinct du consentement au traitement des donnees. Seul un titulaire
-   * legal (cf RLS via is_legal_guardian_of) peut le poser. Revocable a tout
-   * moment, la photo est immediatement masquee partout.
+   * Consentements OPTIONNELS (photographie art. 9 CC, auto-evaluation) :
+   * refusables et revocables a tout moment, independamment du socle.
+   *
+   * L'ecriture passe par la RPC `set_minor_optional_consents` et NON par un
+   * UPDATE direct sur `profiles` : le representant legal n'a aucune policy
+   * UPDATE sur le profil de son enfant, si bien que l'ancien UPDATE direct
+   * etait filtre par la RLS — 0 ligne modifiee, aucune erreur remontee, et
+   * un toast de succes trompeur. La RPC verifie is_legal_guardian_of() puis
+   * n'ecrit que les deux paires de colonnes de consentement.
    */
-  const toggleImageRights = async (
-    minorId: string,
+  const toggleOptionalConsent = async (
+    row: ConsentRow,
+    scope: "photo" | "self_eval",
     nextEnabled: boolean,
   ) => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u?.user) return;
     if (busy) return;
     setBusy(true);
     try {
-      const payload: {
-      image_rights_consent_at: string | null;
-      image_rights_consent_by: string | null;
-      image_rights_consent_ip: string | null;
-    } = nextEnabled
-      ? {
-          image_rights_consent_at: new Date().toISOString(),
-          image_rights_consent_by: u.user.id,
-          image_rights_consent_ip: null,
-        }
-      : {
-          image_rights_consent_at: null,
-          image_rights_consent_by: null,
-          image_rights_consent_ip: null,
-        };
-      const { error } = await supabase
-        .from("profiles")
-        .update(payload)
-        .eq("id", minorId);
+      const photo =
+        scope === "photo" ? nextEnabled : !!row.minor?.image_rights_consent_at;
+      const selfEval =
+        scope === "self_eval" ? nextEnabled : !!row.minor?.self_eval_consent_at;
+
+      const { error } = await supabase.rpc(
+        "set_minor_optional_consents" as never,
+        {
+          _minor_id: row.minor_profile_id,
+          _photo: photo,
+          _self_eval: selfEval,
+        } as never,
+      );
       if (error) {
         toast.error("Échec de la mise à jour", { description: error.message });
         return;
       }
-      await supabase.from("audit_log").insert({
-        actor_id: u.user.id,
-        actor_role: "guardian",
-        action: nextEnabled
-          ? "parental_consent_granted"
-          : "parental_consent_revoked",
-        table_name: "profiles",
-        record_id: minorId,
-        after_data: { scope: "image_rights" },
-      });
-      toast.success(
-        nextEnabled
-          ? "Diffusion de la photo autorisée"
-          : "Diffusion de la photo retirée — photo immédiatement masquée",
-      );
+
+      if (scope === "photo") {
+        toast.success(
+          nextEnabled
+            ? "Diffusion de la photo autorisée"
+            : "Diffusion de la photo retirée — photo immédiatement masquée",
+        );
+      } else {
+        toast.success(
+          nextEnabled
+            ? "Auto-évaluation autorisée"
+            : "Auto-évaluation retirée — seules les évaluations de l'encadrement seront recueillies",
+        );
+      }
       load();
     } finally {
       setBusy(false);
@@ -247,10 +252,35 @@ export default function MyConsents() {
                   <Switch
                     checked={!!c.minor?.image_rights_consent_at}
                     disabled={busy}
-                    onCheckedChange={(v) =>
-                      toggleImageRights(c.minor_profile_id, v)
-                    }
+                    onCheckedChange={(v) => toggleOptionalConsent(c, "photo", v)}
                     aria-label={`Autoriser la diffusion de la photo de ${name}`}
+                  />
+                </div>
+              )}
+              {!revoked && (
+                <div className="ml-9 mt-2 p-3 rounded-lg border bg-muted/30 flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2 flex-1">
+                    {c.minor?.self_eval_consent_at ? (
+                      <ClipboardCheck className="w-4 h-4 mt-0.5 text-primary" />
+                    ) : (
+                      <ClipboardX className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                    )}
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        Auto-évaluation par l'enfant
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Autorise l'enfant à renseigner sa propre perception de ses
+                        compétences, en complément de l'évaluation de l'encadrement.
+                        Si retiré, seule l'évaluation de l'encadrement est recueillie.
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={!!c.minor?.self_eval_consent_at}
+                    disabled={busy}
+                    onCheckedChange={(v) => toggleOptionalConsent(c, "self_eval", v)}
+                    aria-label={`Autoriser l'auto-évaluation de ${name}`}
                   />
                 </div>
               )}

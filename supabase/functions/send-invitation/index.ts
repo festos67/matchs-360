@@ -900,6 +900,10 @@ const handler = async (req: Request): Promise<Response> => {
                       de l'autorité parentale, votre consentement est nécessaire (RGPD art. 8) pour
                       activer son compte.
                     </p>
+                    <p style="color:#3f3f46; line-height:1.6;">
+                      La page vous demandera votre nom, votre lien de parenté, et vous permettra
+                      d'autoriser ou de refuser séparément la photographie et l'auto-évaluation.
+                    </p>
                     <a href="${guardianLink}" style="display:block; background:#2563eb; color:white; text-decoration:none; padding:14px 24px; border-radius:8px; text-align:center; font-weight:600; margin:24px 0;">
                       Donner mon consentement
                     </a>

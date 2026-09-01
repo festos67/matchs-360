@@ -38,6 +38,7 @@ import {
   Award,
   Mail,
   Star,
+  FileText,
   PanelLeft,
   PanelLeftClose
 } from "lucide-react";
@@ -80,6 +81,7 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: Heart, label: "Supporters", path: "/supporters" },
         { icon: Trophy, label: "Débriefs", path: "/evaluations" },
         { icon: Shield, label: "Utilisateurs", path: "/club/users" },
+        { icon: FileText, label: "Attestations", path: "/club/consents" },
         { icon: Mail, label: "Invitations", path: "/invitations" },
       ];
     case "coach":
