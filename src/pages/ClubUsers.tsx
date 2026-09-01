@@ -21,7 +21,7 @@
  * si l'UI les exposait par erreur — sécurité côté edge function.
  */
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,9 +52,13 @@ import {
   MailWarning,
   KeyRound,
   Users,
+  Clock,
+  AlertTriangle,
+  ShieldOff,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ADMIN_MIN_LENGTH, ADMIN_PASSWORD_HELP_TEXT, validateAdminPassword } from "@/lib/password-policy";
+import { PARENTAL_CONSENT_AGE_YEARS, requiresParentalConsent } from "@/lib/age-policy";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -104,7 +108,18 @@ interface AdminUser {
   roles: UserRole[];
   team_memberships: TeamMembership[];
   supporter_links: SupporterLink[];
+  /**
+   * Profil brut renvoyé par l'edge function admin-users (`select("*")`).
+   * La donnée arrivait déjà ; seul le type ne la déclarait pas. On n'expose
+   * ici que `birthdate`, nécessaire au filtre par âge.
+   */
+  profile?: { birthdate?: string | null } | null;
 }
+
+/** État du consentement parental, par identifiant de joueur mineur. */
+type GuardianStatus =
+  | { kind: "signed"; consentId: string; revokedAt: string | null; photo: boolean; selfEval: boolean }
+  | { kind: "pending" };
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive text-destructive-foreground",
@@ -120,6 +135,95 @@ const statusColors: Record<string, string> = {
   Suspendu: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
+/**
+ * Colonne « Responsable légal ».
+ *
+ * N'a de sens que pour un joueur soumis au consentement parental (< 15 ans).
+ * Pour les autres, un tiret : afficher « aucun représentant » sur un majeur
+ * ferait passer une situation normale pour une anomalie.
+ *
+ * Quatre états pour un mineur concerné : validé (cliquable → attestation),
+ * révoqué (cliquable, l'attestation porte la mention du retrait), en attente,
+ * et aucun représentant désigné — ce dernier étant une anomalie de conformité
+ * (compte créé sans que personne n'ait été sollicité).
+ */
+function GuardianCell({
+  birthdate,
+  status,
+  isPlayer,
+}: {
+  birthdate: string | null;
+  status: GuardianStatus | undefined;
+  isPlayer: boolean;
+}) {
+  if (!birthdate) {
+    // L'absence de date n'est signalée que sur un JOUEUR : c'est là qu'elle
+    // empêche de savoir si le consentement parental s'applique. Sur un coach
+    // ou un supporter, elle est sans conséquence — l'alerter noierait les
+    // vrais cas (la majorité des profils du club n'ont pas de date).
+    if (!isPlayer) return <span className="text-muted-foreground">—</span>;
+    return (
+      <span className="text-xs text-amber-600 dark:text-amber-500 whitespace-nowrap">
+        Date de naissance inconnue
+      </span>
+    );
+  }
+
+  if (!requiresParentalConsent(birthdate)) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  if (!status) {
+    return (
+      <Badge variant="destructive" className="font-normal whitespace-nowrap">
+        <AlertTriangle className="w-3 h-3 mr-1" />
+        Aucun représentant
+      </Badge>
+    );
+  }
+
+  if (status.kind === "pending") {
+    return (
+      <Badge
+        variant="secondary"
+        className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 font-normal whitespace-nowrap"
+      >
+        <Clock className="w-3 h-3 mr-1" />
+        En attente
+      </Badge>
+    );
+  }
+
+  return (
+    <Link
+      to={`/consent/${status.consentId}/attestation`}
+      className="inline-flex flex-col gap-1 group"
+      title="Ouvrir l'attestation"
+    >
+      {status.revokedAt ? (
+        <Badge variant="destructive" className="font-normal whitespace-nowrap w-fit">
+          <ShieldOff className="w-3 h-3 mr-1" />
+          Révoqué
+        </Badge>
+      ) : (
+        <Badge
+          variant="secondary"
+          className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-normal whitespace-nowrap w-fit group-hover:underline"
+        >
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Validé
+        </Badge>
+      )}
+      {!status.revokedAt && (
+        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+          Photo : {status.photo ? "oui" : "non"} · Auto-éval :{" "}
+          {status.selfEval ? "oui" : "non"}
+        </span>
+      )}
+    </Link>
+  );
+}
+
 export default function ClubUsers() {
   const { currentRole, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -133,8 +237,11 @@ export default function ClubUsers() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [teamFilter, setTeamFilter] = useState("all");
   const [roleTypeFilter, setRoleTypeFilter] = useState("all");
+  const [ageFilter, setAgeFilter] = useState("all");
+  const [guardianByPlayer, setGuardianByPlayer] = useState<Map<string, GuardianStatus>>(new Map());
 
   const isClubAdmin = currentRole?.role === "club_admin";
+  const clubId = currentRole?.club_id ?? null;
 
   useEffect(() => {
     if (!authLoading && !isClubAdmin) {
@@ -178,6 +285,62 @@ export default function ClubUsers() {
       fetchUsers();
     }
   }, [isClubAdmin]);
+
+  /**
+   * État du consentement parental pour tous les mineurs du club, en DEUX
+   * requêtes (pas une par ligne) :
+   *  - consentements signés via get_club_parental_consents (RLS : la table
+   *    parental_consents n'est lisible ni par le club ni par le coach)
+   *  - demandes encore en attente via guardian_designations, que la policy
+   *    « Staff and minor read guardian designation » ouvre au club_admin
+   * Un mineur absent des deux n'a AUCUN représentant désigné : anomalie de
+   * conformité que le club doit voir, d'où un troisième état explicite.
+   */
+  useEffect(() => {
+    if (!isClubAdmin || !clubId) return;
+    let cancelled = false;
+    (async () => {
+      const [consentsRes, desigRes] = await Promise.all([
+        supabase.rpc("get_club_parental_consents" as never, { _club_id: clubId } as never),
+        supabase
+          .from("guardian_designations")
+          .select("minor_profile_id, status")
+          .eq("status", "pending"),
+      ]);
+      if (cancelled) return;
+
+      const map = new Map<string, GuardianStatus>();
+
+      // Les demandes en attente d'abord : un consentement signé les écrase.
+      for (const d of (desigRes.data ?? []) as { minor_profile_id: string }[]) {
+        map.set(d.minor_profile_id, { kind: "pending" });
+      }
+
+      type ConsentRow = {
+        consent_id: string;
+        minor_id: string;
+        revoked_at: string | null;
+        photo_consent_at: string | null;
+        self_eval_consent_at: string | null;
+      };
+      for (const c of (consentsRes.data ?? []) as ConsentRow[]) {
+        map.set(c.minor_id, {
+          kind: "signed",
+          consentId: c.consent_id,
+          revokedAt: c.revoked_at,
+          photo: c.photo_consent_at !== null,
+          selfEval: c.self_eval_consent_at !== null,
+        });
+      }
+
+      if (consentsRes.error) console.error("club consents fetch failed", consentsRes.error);
+      if (desigRes.error) console.error("guardian designations fetch failed", desigRes.error);
+      setGuardianByPlayer(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isClubAdmin, clubId]);
 
   const callAdminAction = async (action: string, payload: Record<string, unknown>) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -313,8 +476,22 @@ export default function ClubUsers() {
       (roleTypeFilter === "player" && user.team_memberships.some(m => m.member_type === "player" && m.is_active)) ||
       (roleTypeFilter === "supporter" && user.roles.some(r => r.role === "supporter"));
 
-    return matchesSearch && matchesTeam && matchesRoleType;
+    // Âge. « missing » est une entrée à part entière et non un oubli : une
+    // part notable des profils n'a pas de date de naissance, et sans elle on
+    // ne peut pas savoir si le consentement parental s'applique. Les ranger
+    // silencieusement avec les majeurs ferait passer des mineurs sous le
+    // radar ; les masquer les rendrait introuvables.
+    const birthdate = user.profile?.birthdate ?? null;
+    const matchesAge =
+      ageFilter === "all" ||
+      (ageFilter === "minor" && !!birthdate && requiresParentalConsent(birthdate)) ||
+      (ageFilter === "adult" && !!birthdate && !requiresParentalConsent(birthdate)) ||
+      (ageFilter === "missing" && !birthdate);
+
+    return matchesSearch && matchesTeam && matchesRoleType && matchesAge;
   });
+
+  const missingBirthdateCount = users.filter((u) => !u.profile?.birthdate).length;
 
   if (authLoading || loading) {
     return (
@@ -394,6 +571,21 @@ export default function ClubUsers() {
               <SelectItem value="supporter">Supporter</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={ageFilter} onValueChange={setAgeFilter}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Tous les âges" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les âges</SelectItem>
+              <SelectItem value="minor">
+                Moins de {PARENTAL_CONSENT_AGE_YEARS} ans
+              </SelectItem>
+              <SelectItem value="adult">
+                {PARENTAL_CONSENT_AGE_YEARS} ans et plus
+              </SelectItem>
+              <SelectItem value="missing">Date de naissance manquante</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Stats */}
@@ -405,6 +597,18 @@ export default function ClubUsers() {
           <span>{users.filter((u) => u.status === "Invité").length} invités</span>
           <span>•</span>
           <span>{users.filter((u) => u.status === "Suspendu").length} suspendus</span>
+          {missingBirthdateCount > 0 && (
+            <>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => setAgeFilter("missing")}
+                className="text-amber-600 dark:text-amber-500 hover:underline"
+              >
+                {missingBirthdateCount} sans date de naissance
+              </button>
+            </>
+          )}
         </div>
 
         {/* Table */}
@@ -412,11 +616,12 @@ export default function ClubUsers() {
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[24%]">Identité</TableHead>
-                <TableHead className="w-[26%]">Rôles</TableHead>
-                <TableHead className="w-[12%]">Email</TableHead>
-                <TableHead className="w-[10%]">Statut</TableHead>
-                <TableHead className="text-right w-[28%]">Actions</TableHead>
+                <TableHead className="w-[21%]">Identité</TableHead>
+                <TableHead className="w-[21%]">Rôles</TableHead>
+                <TableHead className="w-[11%]">Email</TableHead>
+                <TableHead className="w-[15%]">Responsable légal</TableHead>
+                <TableHead className="w-[8%]">Statut</TableHead>
+                <TableHead className="text-right w-[24%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -489,6 +694,15 @@ export default function ClubUsers() {
                         En attente
                       </Badge>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <GuardianCell
+                      birthdate={user.profile?.birthdate ?? null}
+                      status={guardianByPlayer.get(user.id)}
+                      isPlayer={user.team_memberships.some(
+                        (m) => m.member_type === "player" && m.is_active,
+                      )}
+                    />
                   </TableCell>
                   <TableCell>
                     <Badge className={`${statusColors[user.status]} whitespace-nowrap`} variant="secondary">
@@ -569,7 +783,7 @@ export default function ClubUsers() {
               ))}
               {filteredUsers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <p className="text-muted-foreground">Aucun utilisateur trouvé</p>
                   </TableCell>
                 </TableRow>
