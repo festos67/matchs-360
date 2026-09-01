@@ -151,6 +151,11 @@ interface InvitationRequest {
   // sine qua non de l'enregistrement du consentement parental.
   guardianEmail?: string;
   guardianRelationship?: "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
+  /**
+   * Toutes les equipes cochees pour un coach. `teamId`/`coachRole` restent la
+   * PREMIERE d'entre elles, pour compatibilite avec les appelants existants.
+   */
+  teamAssignments?: Array<{ teamId: string; coachRole?: "referent" | "assistant" }>;
   guardianFirstName?: string;
   guardianLastName?: string;
 }
@@ -318,7 +323,7 @@ const handler = async (req: Request): Promise<Response> => {
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
     const body: InvitationRequest = await req.json();
-    const { email: providedEmail, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship, guardianFirstName, guardianLastName } = body;
+    const { email: providedEmail, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship, guardianFirstName, guardianLastName, teamAssignments: additionalAssignments } = body;
 
     // ============================================================
     // BUG-AGE-002 / NB-02 — Routage de l'invitation pour mineur < 15
@@ -888,6 +893,83 @@ const handler = async (req: Request): Promise<Response> => {
           member_type: "coach",
           coach_role: coachRole || "assistant",
         });
+
+      // ============================================================
+      // Equipes SUPPLEMENTAIRES.
+      //
+      // Le front envoie depuis toujours `teamAssignments` (toutes les equipes
+      // cochees) en plus de `teamId` (la premiere). Le serveur ne lisait que
+      // `teamId` : un coach coche sur trois equipes n'etait rattache qu'a une,
+      // pendant que l'interface affirmait « sera rattache a : A, B, C ».
+      //
+      // Chaque equipe est verifiee comme la premiere : elle doit appartenir au
+      // club cible, et un referent ne remplace jamais un referent en place.
+      // Un echec sur une equipe n'annule pas les autres — l'invitation et le
+      // role sont deja crees a ce stade, tout abandonner laisserait un compte
+      // sans aucun rattachement.
+      // ============================================================
+      const extraAssignments = Array.isArray(additionalAssignments)
+        ? additionalAssignments.filter(
+            (a) =>
+              a && typeof a.teamId === "string" && a.teamId && a.teamId !== teamId,
+          )
+        : [];
+
+      for (const assignment of extraAssignments) {
+        try {
+          const { data: extraTeam } = await supabaseAdmin
+            .from("teams")
+            .select("id, club_id")
+            .eq("id", assignment.teamId)
+            .maybeSingle();
+
+          if (!extraTeam || extraTeam.club_id !== clubId) {
+            console.warn("extra team outside target club, skipped", {
+              teamId: assignment.teamId,
+            });
+            continue;
+          }
+
+          const wantsReferent = assignment.coachRole === "referent";
+          if (wantsReferent) {
+            const { data: refs, error: refErr } = await supabaseAdmin
+              .from("team_members")
+              .select("id")
+              .eq("team_id", assignment.teamId)
+              .eq("member_type", "coach")
+              .eq("coach_role", "referent")
+              .eq("is_active", true)
+              .limit(1);
+            if (refErr) {
+              console.error("extra team referent check failed", refErr);
+              continue;
+            }
+            if (refs && refs.length > 0) {
+              console.warn("extra team already has a referent, added as assistant", {
+                teamId: assignment.teamId,
+              });
+            }
+            const { error: insErr } = await supabaseAdmin.from("team_members").insert({
+              team_id: assignment.teamId,
+              user_id: userId,
+              member_type: "coach",
+              coach_role: refs && refs.length > 0 ? "assistant" : "referent",
+            });
+            if (insErr) console.error("extra team membership insert failed", insErr);
+            continue;
+          }
+
+          const { error: insErr } = await supabaseAdmin.from("team_members").insert({
+            team_id: assignment.teamId,
+            user_id: userId,
+            member_type: "coach",
+            coach_role: "assistant",
+          });
+          if (insErr) console.error("extra team membership insert failed", insErr);
+        } catch (e) {
+          console.error("extra team assignment failed", (e as Error)?.message);
+        }
+      }
     }
 
     // If player, add to team_members

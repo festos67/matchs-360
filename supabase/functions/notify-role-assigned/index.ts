@@ -3,14 +3,18 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
+import { hasValidCronSecret } from "../_shared/cron-auth.ts";
 
 /**
  * Envoie un email de felicitations lorsqu'un nouveau role est attribue a un
  * utilisateur. Appelee automatiquement par le trigger SQL trg_user_role_assigned
  * (via pg_net) apres chaque INSERT sur public.user_roles.
  *
- * Anti-abus : la fonction verifie que la ligne user_roles existe reellement
- * avant d'envoyer un email. Aucun JWT requis (appel interne depuis la DB).
+ * AUTH : secret partage Vault (cron_auth_secret), comme
+ * dispatch-guardian-notifications. Aucun JWT — l'appelant est la base, pas un
+ * utilisateur. La verification de l'existence de la ligne user_roles reste en
+ * defense supplementaire, mais elle ne suffisait pas : sans secret, l'endpoint
+ * etait un relais d'e-mails et un oracle sur les roles.
  */
 
 function escapeHtml(input: unknown): string {
@@ -50,6 +54,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    // AUTH — secret partage base -> edge, verifie AVANT tout envoi.
+    //
+    // Cette fonction tourne en verify_jwt = false et n'avait aucun controle :
+    // n'importe qui pouvait declencher des e-mails « Felicitations » en
+    // boucle, et distinguer les trois reponses (409 / 404 / notified) suffisait
+    // a confirmer sans authentification qu'un UUID porte un role donne.
+    //
+    // Le declencheur trg_user_role_assigned place deja ce secret dans l'en-tete
+    // Authorization : rien a changer cote appelant.
+    if (!(await hasValidCronSecret(req, admin))) {
+      return json({ error: "forbidden" }, 403);
+    }
 
     const body = await req.json().catch(() => ({}));
     const userId = body?.userId as string | undefined;

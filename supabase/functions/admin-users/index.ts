@@ -207,12 +207,23 @@ Deno.serve(async (req) => {
 
       // Never allow operating on a Super Admin (role='admin' in user_roles
       // is the unique source of truth — no email comparison anymore).
-      const { data: targetAdminRole } = await supabaseAdmin
+      //
+      // FAIL-CLOSED : l'erreur doit etre lue. Sinon une lecture en echec —
+      // dont le cas « plusieurs lignes », que maybeSingle() signale par une
+      // erreur — donnait data = null, donc « la cible n'est pas super admin »,
+      // et le club_admin poursuivait sur un compte qu'il ne doit jamais viser.
+      // Un controle d'autorisation qui echoue doit refuser, pas laisser passer.
+      const { data: targetAdminRole, error: targetAdminErr } = await supabaseAdmin
         .from("user_roles")
         .select("id")
         .eq("user_id", targetUserId)
         .eq("role", "admin")
+        .limit(1)
         .maybeSingle();
+      if (targetAdminErr) {
+        console.error("super admin guard lookup failed", targetAdminErr);
+        return false;
+      }
       if (targetAdminRole) return false;
 
       const { data: prof } = await supabaseAdmin
@@ -484,13 +495,33 @@ Deno.serve(async (req) => {
           return forbidden("Player outside your scope");
         }
 
-        // Check if role already exists
-        const { data: existingRole } = await supabaseAdmin
+        // Le doublon se juge PAR CLUB : la contrainte est
+        // UNIQUE(user_id, role, club_id). Sans ce filtre, un coach deja coach
+        // d'un autre club voyait l'INSERT saute en silence — il se retrouvait
+        // dans l'equipe du nouveau club sans y avoir le role, donc rejete par
+        // toutes les policies indexees sur user_roles.club_id, avec une
+        // reponse success: true.
+        //
+        // maybeSingle() renvoie une ERREUR au-dela d'une ligne : sans ce
+        // filtre, un utilisateur portant le meme role dans deux clubs la
+        // declenchait, et l'erreur non lue laissait existingRole a null.
+        let roleQuery = supabaseAdmin
           .from("user_roles")
           .select("id")
           .eq("user_id", userId)
-          .eq("role", role)
-          .maybeSingle();
+          .eq("role", role);
+        roleQuery = clubId
+          ? roleQuery.eq("club_id", clubId)
+          : roleQuery.is("club_id", null);
+        const { data: existingRole, error: existingRoleErr } = await roleQuery.maybeSingle();
+
+        if (existingRoleErr) {
+          console.error("add-role: role lookup failed", existingRoleErr);
+          return new Response(
+            JSON.stringify({ error: "Impossible de verifier les roles existants." }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
 
         if (!existingRole) {
           const { error: roleError } = await supabaseAdmin
@@ -887,13 +918,49 @@ Deno.serve(async (req) => {
         if (!(await userInClubAdminScope(userId))) return forbidden();
         if (clubId && !clubInScope(clubId)) return forbidden("Club outside your scope");
 
+        // SECURITE — le controle de perimetre porte sur `userId`, mais le lien
+        // etait genere pour `email`, un champ INDEPENDANT du meme body. Rien
+        // ne verifiait qu'ils designaient la meme personne : un responsable
+        // club pouvait passer un userId de son club et une adresse arbitraire,
+        // faisant partir une invitation — et creer un compte — vers n'importe
+        // qui, depuis le domaine verifie du projet.
+        //
+        // L'adresse est desormais celle du compte cible, lue en base. Le champ
+        // `email` du body n'est plus qu'une confirmation : s'il diverge, on
+        // refuse plutot que de deviner laquelle des deux valeurs est la bonne.
+        const { data: targetAuthUser, error: targetLookupErr } =
+          await supabaseAdmin.auth.admin.getUserById(userId);
+        if (targetLookupErr || !targetAuthUser?.user?.email) {
+          return new Response(JSON.stringify({ error: "Utilisateur introuvable." }), {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const targetEmail = targetAuthUser.user.email.toLowerCase();
+
+        if (email.toLowerCase().trim() !== targetEmail) {
+          return forbidden("Email does not match the target account");
+        }
+
+        // Une adresse technique n'a pas de boite : l'envoi serait abandonne par
+        // le garde-fou, autant le dire ici plutot que d'annoncer un succes.
+        if (isTechnicalAddress(targetEmail)) {
+          return new Response(
+            JSON.stringify({
+              error:
+                "Ce compte n'a pas d'adresse e-mail. Attribuez-lui une adresse pour pouvoir l'inviter.",
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
         // SECURITY: validate Origin against whitelist (anti-phishing)
         const origin = getSafeOrigin(req);
-        
+
         // Generate new invite link
         const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
           type: 'invite',
-          email: email.toLowerCase(),
+          email: targetEmail,
           options: {
             redirectTo: `${origin}/invite/accept`,
           },
@@ -943,7 +1010,7 @@ Deno.serve(async (req) => {
           try {
             await sendEmail(resend, {
               from: getFromEmail(),
-              to: [email.toLowerCase()],
+              to: [targetEmail],
               subject: `Rappel: Invitation à rejoindre ${clubName}`,
               html: `
                 <!DOCTYPE html>
