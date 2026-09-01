@@ -459,6 +459,23 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
           </Button>
         </section>
 
+        {/* Fiche sportive. Depuis la phase 04, les politiques de sécurité
+            ouvrent au représentant légal le parcours de son enfant —
+            évaluations (auto-évaluations comprises), équipe, référentiel. */}
+        <section>
+          <h3 className="font-semibold flex items-center gap-2 mb-3">
+            <Eye className="h-4 w-4" />
+            Suivi sportif
+          </h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            Débriefs de l'encadrement, progression et référentiel de l'équipe de{" "}
+            {child.first_name ?? "votre enfant"}.
+          </p>
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/supporter/players/${minorId}`}>Voir les débriefs</Link>
+          </Button>
+        </section>
+
         {/* Accès de l'enfant à l'application. Sans adresse e-mail, aucun lien
             de connexion ne peut lui parvenir : c'est le représentant légal qui
             lui définit un mot de passe et le lui transmet. */}

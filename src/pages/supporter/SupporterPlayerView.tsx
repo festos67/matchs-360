@@ -9,6 +9,8 @@
  */
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, ClipboardList } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -35,15 +37,43 @@ export default function SupporterPlayerView() {
     loading,
   } = usePlayerData(id);
 
-  // Dernier débrief COACH (jamais d'auto-débrief : le RLS ne les renvoie pas au supporter)
+  /**
+   * Un supporter ordinaire ne voit jamais les auto-débriefs : la RLS ne les
+   * lui renvoie pas, et cet écran ne les demande pas non plus.
+   *
+   * Le REPRÉSENTANT LÉGAL fait exception. C'est lui qui autorise
+   * l'auto-évaluation de son enfant, et il répond de lui — la lui masquer
+   * n'aurait aucun sens. La règle vit dans la policy « Guardians view
+   * evaluations of their child » ; cette requête ne fait que refléter ce que
+   * la base accepte déjà de renvoyer.
+   */
+  const { data: isLegalGuardian } = useQuery({
+    queryKey: ["is-legal-guardian", user?.id, id],
+    queryFn: async () => {
+      if (!user || !id) return false;
+      const { data, error } = await supabase.rpc(
+        "has_guardian_access" as never,
+        { _guardian_id: user.id, _minor_id: id } as never,
+      );
+      if (error) {
+        console.error("has_guardian_access failed", error);
+        return false;
+      }
+      return data === true;
+    },
+    enabled: !!user && !!id,
+  });
+
   const selectedEvaluation = useMemo(() => {
-    const coachEvals = evaluations.filter((e) => e.type === "coach" && !e.deleted_at);
+    const visible = evaluations.filter(
+      (e) => !e.deleted_at && (e.type === "coach" || (isLegalGuardian && e.type === "self")),
+    );
     return (
-      coachEvals.find((e) => !frameworkId || e.framework_id === frameworkId) ||
-      coachEvals[0] ||
+      visible.find((e) => !frameworkId || e.framework_id === frameworkId) ||
+      visible[0] ||
       null
     );
-  }, [evaluations, frameworkId]);
+  }, [evaluations, frameworkId, isLegalGuardian]);
 
   // Comparaisons activées (ex: superposition du débrief supporter sur celui du coach)
   const [comparisonIds, setComparisonIds] = useState<string[]>([]);
