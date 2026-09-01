@@ -59,6 +59,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ADMIN_MIN_LENGTH, ADMIN_PASSWORD_HELP_TEXT, validateAdminPassword } from "@/lib/password-policy";
 import { PARENTAL_CONSENT_AGE_YEARS, requiresParentalConsent } from "@/lib/age-policy";
+import { displayLogin, isTechnicalAddress } from "@/lib/technical-identity";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -238,6 +239,8 @@ export default function ClubUsers() {
   const [teamFilter, setTeamFilter] = useState("all");
   const [roleTypeFilter, setRoleTypeFilter] = useState("all");
   const [ageFilter, setAgeFilter] = useState("all");
+  const [emailUser, setEmailUser] = useState<AdminUser | null>(null);
+  const [newEmailValue, setNewEmailValue] = useState("");
   const [guardianByPlayer, setGuardianByPlayer] = useState<Map<string, GuardianStatus>>(new Map());
 
   const isClubAdmin = currentRole?.role === "club_admin";
@@ -445,6 +448,32 @@ export default function ClubUsers() {
     }
   };
 
+  /**
+   * Attribue une vraie adresse à un compte créé sans e-mail.
+   *
+   * Le compte n'est pas recréé et rien n'est migré : tout est rattaché à
+   * l'identifiant du compte, que ce changement ne touche pas. Le serveur
+   * n'applique la nouvelle adresse qu'après validation par le joueur.
+   */
+  const handleUpdateEmail = async (targetUser: AdminUser) => {
+    const candidate = newEmailValue.trim().toLowerCase();
+    try {
+      setActionLoading(targetUser.id);
+      await callAdminAction("update-email", { userId: targetUser.id, newEmail: candidate });
+      toast.success("Lien de confirmation envoyé", {
+        description: `${getUserDisplayName(targetUser)} doit cliquer sur le lien reçu à ${candidate} pour que le changement prenne effet.`,
+        duration: 8000,
+      });
+      setEmailUser(null);
+      setNewEmailValue("");
+      fetchUsers();
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Erreur lors du changement d'adresse");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const getUserDisplayName = (user: AdminUser) => {
     if (user.nickname) return user.nickname;
     if (user.first_name || user.last_name) {
@@ -644,8 +673,11 @@ export default function ClubUsers() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-medium truncate max-w-[180px]">{getUserDisplayName(user)}</div>
+                        {/* Un compte sans adresse e-mail affiche son IDENTIFIANT :
+                            montrer l'adresse technique n'apprendrait rien et
+                            laisserait croire qu'on peut y écrire. */}
                         <div className="text-sm text-muted-foreground truncate max-w-[180px]">
-                          {user.email}
+                          {displayLogin(user.email)}
                         </div>
                       </div>
                     </div>
@@ -720,6 +752,21 @@ export default function ClubUsers() {
                       >
                         <Edit className="w-4 h-4 text-blue-500" />
                       </Button>
+                      {/* Uniquement pour un compte à identifiant : c'est le
+                          moment où le jeune obtient enfin sa propre adresse.
+                          Ne jamais RECRÉER un joueur pour cela — l'historique
+                          resterait orphelin sur l'ancien profil. */}
+                      {isTechnicalAddress(user.email) && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 shrink-0 text-emerald-600 hover:text-emerald-700"
+                          onClick={() => { setEmailUser(user); setNewEmailValue(""); }}
+                          title="Attribuer une adresse e-mail"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button
                         size="icon"
                         variant="ghost"
@@ -825,6 +872,58 @@ export default function ClubUsers() {
       </AlertDialog>
 
       {/* Reset Password Dialog */}
+      {/* Attribution d'une vraie adresse à un compte créé sans e-mail. */}
+      <AlertDialog
+        open={!!emailUser}
+        onOpenChange={(open) => { if (!open) { setEmailUser(null); setNewEmailValue(""); } }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-emerald-600" />
+              Attribuer une adresse e-mail
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  {emailUser ? getUserDisplayName(emailUser) : ""} se connecte aujourd'hui avec
+                  l'identifiant <span className="font-mono">{displayLogin(emailUser?.email)}</span>.
+                </p>
+                <p>
+                  Un lien de confirmation sera envoyé à la nouvelle adresse. Le changement ne
+                  prend effet qu'après validation par le joueur — <strong>ses débriefs, son
+                  équipe et son historique sont conservés</strong>.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="new-email">Nouvelle adresse e-mail</Label>
+            <Input
+              id="new-email"
+              type="email"
+              value={newEmailValue}
+              onChange={(e) => setNewEmailValue(e.target.value)}
+              placeholder="joueur@exemple.com"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading === emailUser?.id}>Annuler</AlertDialogCancel>
+            <Button
+              onClick={() => emailUser && handleUpdateEmail(emailUser)}
+              disabled={
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmailValue.trim()) ||
+                actionLoading === emailUser?.id
+              }
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Envoyer le lien
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!resetPasswordUser} onOpenChange={(open) => { if (!open) { setResetPasswordUser(null); setNewPassword(""); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>

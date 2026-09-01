@@ -3,6 +3,7 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
+import { isTechnicalAddress } from "../_shared/technical-identity.ts";
 
 /**
  * Politique mot de passe — miroir de src/lib/password-policy.ts.
@@ -663,6 +664,132 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+
+      // ============================================================
+      // Changement d'adresse e-mail d'un joueur.
+      //
+      // Cas d'usage : un enfant inscrit sans adresse (identifiant technique)
+      // obtient enfin la sienne. Rien n'est a migrer — tout est rattache a
+      // l'identifiant du compte, que ce changement ne touche pas. Evaluations,
+      // equipe, referentiel et historique restent en place.
+      //
+      // Le changement n'est PAS applique immediatement : un lien part vers la
+      // NOUVELLE adresse et c'est son titulaire qui valide. Sans cette etape,
+      // une faute de frappe rendrait le compte inaccessible a tout le monde,
+      // sans que personne s'en apercoive.
+      // ============================================================
+      if (action === "update-email") {
+        const { userId, newEmail } = body;
+
+        if (!(await userInClubAdminScope(userId))) return forbidden();
+
+        const candidate = typeof newEmail === "string" ? newEmail.trim().toLowerCase() : "";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate)) {
+          return new Response(
+            JSON.stringify({ error: "Adresse e-mail invalide." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        // On migre VERS une vraie adresse, jamais vers une adresse technique :
+        // celles-ci sont allouees par le serveur a l'inscription, jamais saisies.
+        if (isTechnicalAddress(candidate)) {
+          return new Response(
+            JSON.stringify({ error: "Cette adresse est reservee a l'usage interne." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        const { data: targetUser, error: targetErr } = await supabaseAdmin.auth.admin
+          .getUserById(userId);
+        if (targetErr || !targetUser?.user?.email) {
+          return new Response(
+            JSON.stringify({ error: "Utilisateur introuvable." }),
+            { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        const currentEmail = targetUser.user.email;
+
+        if (currentEmail.toLowerCase() === candidate) {
+          return new Response(
+            JSON.stringify({ error: "Cette adresse est deja celle du compte." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        // Anti-collision explicite : sans ce controle, generateLink echouerait
+        // avec un message technique peu exploitable pour l'utilisateur.
+        const { data: taken } = await supabaseAdmin
+          .rpc("admin_get_user_by_email", { p_email: candidate })
+          .maybeSingle();
+        if (taken) {
+          return new Response(
+            JSON.stringify({ error: "Un compte utilise deja cette adresse." }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        const origin = getSafeOrigin(req);
+        const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+          type: "email_change_new",
+          email: currentEmail,
+          newEmail: candidate,
+          options: { redirectTo: `${origin}/dashboard` },
+        });
+
+        if (linkErr || !linkData?.properties?.action_link) {
+          console.error("email change link failed", linkErr);
+          return new Response(
+            JSON.stringify({ error: "Impossible de generer le lien de confirmation." }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+
+        // Instance locale : la variable `resend` d'une autre action est
+        // declaree dans SON bloc et n'existe pas ici.
+        const resendApiKey = Deno.env.get("RESEND_API_KEY");
+        if (!resendApiKey) {
+          return new Response(
+            JSON.stringify({ error: "Service e-mail non configure." }),
+            { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+        const mailer = new Resend(resendApiKey);
+
+        const { error: mailErr } = await sendEmail(mailer, {
+          from: getFromEmail(),
+          to: [candidate],
+          subject: "Confirmez votre nouvelle adresse e-mail — MATCHS360",
+          html: `
+<div style="background:#f4f4f5;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;">
+  <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px;">
+    <h1 style="margin:0 0 8px;font-size:20px;color:#3B82F6;">MATCHS360</h1>
+    <h2 style="margin:0 0 16px;font-size:17px;color:#111827;">Confirmez votre nouvelle adresse</h2>
+    <p style="font-size:14px;color:#374151;line-height:1.6;">
+      Votre club a enregistre cette adresse pour votre compte MATCHS360.
+      Cliquez ci-dessous pour la confirmer : vous vous connecterez ensuite avec elle.
+    </p>
+    <a href="${linkData.properties.action_link}" style="display:block;background:#2563eb;color:white;text-decoration:none;padding:14px 24px;border-radius:8px;text-align:center;font-weight:600;margin:24px 0;">
+      Confirmer mon adresse
+    </a>
+    <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+      Vos donnees, vos debriefs et votre historique sont conserves : seule
+      l'adresse de connexion change. Tant que vous n'avez pas confirme, rien
+      n'est modifie.
+    </p>
+    <p style="font-size:13px;color:#6b7280;line-height:1.6;">
+      Si vous n'attendiez pas ce message, ignorez-le et prevenez votre club.
+    </p>
+  </div>
+</div>`,
+        });
+        if (mailErr) console.error("email change notification failed", mailErr);
+
+        return new Response(
+          JSON.stringify({ success: true, pendingConfirmation: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
 
       // Soft delete
