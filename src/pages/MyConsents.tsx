@@ -22,6 +22,16 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
+/** Colonnes de consentement lues sur le profil du mineur. */
+interface MinorConsentColumns {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  image_rights_consent_at?: string | null;
+  image_rights_consent_by?: string | null;
+  self_eval_consent_at?: string | null;
+}
+
 interface ConsentRow {
   id: string;
   minor_profile_id: string;
@@ -74,11 +84,18 @@ export default function MyConsents() {
     // Resolve minor display names (RLS-aware).
     if (consents.length > 0) {
       const ids = Array.from(new Set(consents.map((c) => c.minor_profile_id)));
-      const { data: profs } = await supabase
+      // `self_eval_consent_at` existe en base mais pas encore dans les types
+      // générés (src/integrations/supabase/types.ts), qui sont partagés avec
+      // l'autre projet Supabase et ne sont pas régénérés ici. Sans ce cast,
+      // PostgREST typerait toute la sélection en erreur — alors que la requête
+      // est correcte à l'exécution.
+      const { data: profs } = await (supabase as any)
         .from("profiles")
         .select("id, first_name, last_name, image_rights_consent_at, image_rights_consent_by, self_eval_consent_at")
         .in("id", ids);
-      const map = new Map((profs ?? []).map((p) => [p.id, p]));
+      const map = new Map(
+        ((profs ?? []) as MinorConsentColumns[]).map((p) => [p.id, p]),
+      );
       consents.forEach((c) => {
         c.minor = map.get(c.minor_profile_id) ?? null;
       });

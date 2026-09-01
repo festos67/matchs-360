@@ -33,9 +33,16 @@ async function allocateTechnicalEmail(
   for (let attempt = 0; attempt < 100; attempt++) {
     const identifier = attempt === 0 ? base : `${base}${attempt + 1}`;
     const address = technicalEmailFor(identifier);
-    const { data: taken } = await admin
+    const { data: taken, error } = await admin
       .rpc("admin_get_user_by_email", { p_email: address })
       .maybeSingle();
+    // Une erreur de lecture ne doit PAS etre lue comme « adresse libre » :
+    // on attribuerait un identifiant deja pris, et la creation du compte
+    // echouerait plus loin sur un message de duplicat incomprehensible.
+    if (error) {
+      console.error("identifier availability check failed", error);
+      throw new Error("IDENTIFIER_ALLOCATION_FAILED");
+    }
     if (!taken) return address;
   }
 
