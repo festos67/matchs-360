@@ -25,8 +25,12 @@ import {
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePhotoUrl } from "@/hooks/usePhotoUrl";
+import { identifierFromEmail } from "@/lib/technical-identity";
+import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, validateUserPassword } from "@/lib/password-policy";
 import {
   Loader2, Download, Trash2, Shield, History, FileText,
   AlertTriangle, Eye, Camera, KeyRound,
@@ -105,6 +109,125 @@ const MyChildren = () => {
   );
 };
 
+/**
+ * Definition du mot de passe de l'enfant par son representant legal.
+ *
+ * L'autorisation n'est PAS portee par cet ecran : l'edge function verifie
+ * is_legal_guardian_of() cote serveur. Ici on ne fait que la saisie et le
+ * retour utilisateur.
+ */
+const ChildPasswordDialog = ({ childId, childName }: { childId: string; childName: string }) => {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const policyError = password ? validateUserPassword(password) : null;
+  const mismatch = confirmation.length > 0 && password !== confirmation;
+  const canSubmit = !policyError && !mismatch && password.length > 0 && confirmation.length > 0;
+
+  const submit = async () => {
+    if (!canSubmit || saving) return;
+    setSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("set-child-password", {
+        body: { child_id: childId, password },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) {
+        throw new Error((data as { error: string }).error);
+      }
+      toast({
+        title: "Mot de passe défini",
+        description: `Communiquez-le à ${childName} : aucun e-mail ne lui est envoyé.`,
+      });
+      setPassword("");
+      setConfirmation("");
+      setOpen(false);
+    } catch (e) {
+      toast({
+        title: "Échec de la définition du mot de passe",
+        description: (e as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setPassword("");
+          setConfirmation("");
+        }
+      }}
+    >
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <KeyRound className="h-4 w-4 mr-2" />
+          Définir un mot de passe
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Mot de passe de {childName}</AlertDialogTitle>
+          <AlertDialogDescription>
+            Choisissez un mot de passe et transmettez-le à {childName}. Vous pourrez le
+            modifier à tout moment depuis cet écran.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="child-password">Mot de passe</Label>
+            <Input
+              id="child-password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              minLength={USER_MIN_LENGTH}
+            />
+            <p className="text-xs text-muted-foreground">{PASSWORD_HELP_TEXT}</p>
+            {policyError && <p className="text-xs text-destructive">{policyError}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="child-password-confirm">Confirmation</Label>
+            <Input
+              id="child-password-confirm"
+              type="password"
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+              autoComplete="new-password"
+            />
+            {mismatch && (
+              <p className="text-xs text-destructive">Les deux saisies ne correspondent pas.</p>
+            )}
+          </div>
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={saving}>Annuler</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              submit();
+            }}
+            disabled={!canSubmit || saving}
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Enregistrer"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 const ChildCard = ({ minorId }: { minorId: string }) => {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -122,6 +245,10 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
   });
 
   const photoUrl = usePhotoUrl(child ?? null);
+
+  // Non nul uniquement si l'enfant a été inscrit sans adresse e-mail : son
+  // compte porte alors un identifiant, pas une adresse relevable.
+  const childIdentifier = identifierFromEmail(child?.email);
 
   // Pending erasure for this minor (if any)
   const { data: pendingErasure } = useQuery({
@@ -330,6 +457,36 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
           <Button asChild variant="link" size="sm" className="px-0 mt-2">
             <Link to="/my-consents">Gérer mes consentements →</Link>
           </Button>
+        </section>
+
+        {/* Accès de l'enfant à l'application. Sans adresse e-mail, aucun lien
+            de connexion ne peut lui parvenir : c'est le représentant légal qui
+            lui définit un mot de passe et le lui transmet. */}
+        <section>
+          <h3 className="font-semibold flex items-center gap-2 mb-3">
+            <KeyRound className="h-4 w-4" />
+            Accès de {child.first_name ?? "l'enfant"}
+          </h3>
+          {childIdentifier ? (
+            <div className="space-y-3">
+              <div className="text-sm">
+                <span className="text-muted-foreground">Identifiant de connexion : </span>
+                <span className="font-mono font-medium">{childIdentifier}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {child.first_name ?? "L'enfant"} se connecte avec cet identifiant et le mot
+                de passe que vous définissez ici. Aucun e-mail ne lui est envoyé : c'est à
+                vous de le lui communiquer.
+              </p>
+              <ChildPasswordDialog childId={minorId} childName={child.first_name ?? "l'enfant"} />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {child.first_name ?? "L'enfant"} possède sa propre adresse e-mail
+              (<span className="font-mono text-xs">{child.email}</span>) et gère son mot de
+              passe depuis l'écran de connexion.
+            </p>
+          )}
         </section>
 
         <section>
