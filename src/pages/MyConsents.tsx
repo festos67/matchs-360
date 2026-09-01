@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import {
   ShieldCheck,
   ShieldOff,
@@ -17,6 +18,7 @@ import {
   CameraOff,
   ClipboardCheck,
   ClipboardX,
+  FileText,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
@@ -224,6 +226,12 @@ export default function MyConsents() {
                         : ""}
                     </p>
                   </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/consent/${c.id}/attestation`}>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Attestation
+                    </Link>
+                  </Button>
                   {!revoked && (
                     <Button variant="outline" size="sm" disabled={busy} onClick={() => revoke(c.id)}>
                       Révoquer

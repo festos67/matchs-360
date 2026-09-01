@@ -6,7 +6,8 @@
  *         Supporters EXCLUS (policy RLS).
  */
 import { useEffect, useState } from "react";
-import { Loader2, Mail, Send, ShieldCheck, User } from "lucide-react";
+import { Link } from "react-router-dom";
+import { FileText, Loader2, Mail, Send, ShieldCheck, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,16 @@ type GuardianDesignation = {
   status: "pending" | "consumed" | "cancelled";
 };
 
+/**
+ * Consentement effectivement SIGNE (a distinguer de la designation, qui
+ * n'est qu'une demande adressee au representant legal).
+ */
+type ConsentSummary = {
+  consent_id: string;
+  signed_at: string;
+  revoked_at: string | null;
+};
+
 const RELATIONSHIP_LABELS: Record<GuardianDesignation["relationship"], string> = {
   mere: "Mère",
   pere: "Père",
@@ -56,6 +67,7 @@ export function LegalGuardianModal({
   const [loading, setLoading] = useState(false);
   const [guardians, setGuardians] = useState<GuardianDesignation[]>([]);
   const [resending, setResending] = useState(false);
+  const [consent, setConsent] = useState<ConsentSummary | null>(null);
 
   const handleResend = async () => {
     setResending(true);
@@ -97,6 +109,22 @@ export function LegalGuardianModal({
         setGuardians([]);
       } else {
         setGuardians((data ?? []) as GuardianDesignation[]);
+      }
+
+      // Attestation : passe par une RPC et non par un SELECT sur
+      // parental_consents, dont la RLS est reservee au signataire et au
+      // super-admin — un coach y lit 0 ligne. La RPC applique le meme
+      // controle que la page d'attestation (coach du joueur, responsable
+      // club, representant legal signataire, enfant concerne, admin).
+      const { data: consentData, error: consentError } = await supabase
+        .rpc("get_player_consent_summary" as never, { _player_id: playerId } as never)
+        .maybeSingle();
+      if (cancelled) return;
+      if (consentError) {
+        console.error("consent summary fetch error", consentError);
+        setConsent(null);
+      } else {
+        setConsent((consentData as ConsentSummary | null) ?? null);
       }
       setLoading(false);
     })();
@@ -189,6 +217,24 @@ export function LegalGuardianModal({
                 </div>
               );
             })}
+
+          {/* L'attestation n'existe qu'une fois le consentement SIGNE : tant
+              que la designation est 'pending', seul le rappel a du sens. */}
+          {!loading && consent && (
+            <div className="pt-1">
+              <Button asChild variant="outline" className="w-full">
+                <Link to={`/consent/${consent.consent_id}/attestation`}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Consulter l'attestation
+                </Link>
+              </Button>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {consent.revoked_at
+                  ? "Consentement révoqué : l'attestation reste consultable et porte la mention du retrait."
+                  : `Consentement signé le ${new Date(consent.signed_at).toLocaleDateString("fr-FR")}.`}
+              </p>
+            </div>
+          )}
 
           {canResend && !loading && hasPendingGuardian && (
             <div className="pt-2">

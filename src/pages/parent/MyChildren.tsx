@@ -308,10 +308,18 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
           {activeConsents && activeConsents.length > 0 ? (
             <ul className="space-y-1 text-sm">
               {activeConsents.map((c: any) => (
-                <li key={c.id} className="flex justify-between">
+                <li key={c.id} className="flex justify-between items-center gap-3">
                   <span className="capitalize">{c.relationship.replace("_", " ")}</span>
-                  <span className="text-muted-foreground">
-                    Signé le {format(new Date(c.signed_at), "dd/MM/yyyy", { locale: fr })}
+                  <span className="flex items-center gap-3">
+                    <span className="text-muted-foreground">
+                      Signé le {format(new Date(c.signed_at), "dd/MM/yyyy", { locale: fr })}
+                    </span>
+                    <Link
+                      to={`/consent/${c.id}/attestation`}
+                      className="text-primary hover:underline whitespace-nowrap"
+                    >
+                      Attestation
+                    </Link>
                   </span>
                 </li>
               ))}
