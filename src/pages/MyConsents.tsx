@@ -165,17 +165,20 @@ export default function MyConsents() {
     if (busy) return;
     setBusy(true);
     try {
-      const photo =
-        scope === "photo" ? nextEnabled : !!row.minor?.image_rights_consent_at;
-      const selfEval =
-        scope === "self_eval" ? nextEnabled : !!row.minor?.self_eval_consent_at;
-
+      // On n'envoie QUE le consentement modifié ; l'autre part à null, ce que
+      // la RPC interprète comme « ne pas toucher ».
+      //
+      // La version précédente reconstruisait l'état non modifié depuis les
+      // données déjà chargées : si cette lecture avait échoué, les deux
+      // valeurs retombaient à false et basculer un consentement révoquait
+      // silencieusement l'autre. Ne rien envoyer est le seul moyen de ne rien
+      // révoquer par inadvertance.
       const { error } = await supabase.rpc(
         "set_minor_optional_consents" as never,
         {
           _minor_id: row.minor_profile_id,
-          _photo: photo,
-          _self_eval: selfEval,
+          _photo: scope === "photo" ? nextEnabled : null,
+          _self_eval: scope === "self_eval" ? nextEnabled : null,
         } as never,
       );
       if (error) {
