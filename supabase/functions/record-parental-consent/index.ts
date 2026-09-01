@@ -367,26 +367,40 @@ const handler = async (req: Request): Promise<Response> => {
       );
     if (linkErr) console.error("supporters_link upsert failed", linkErr);
 
-    // Le role est rattache au club de l'enfant, comme tous les roles
-    // supporter existants.
-    const { data: minorClub } = await admin
-      .from("profiles")
-      .select("club_id")
-      .eq("id", body.minor_profile_id)
+    // Le role est cree SANS club_id, volontairement.
+    //
+    // Le rattacher au club de l'enfant — ce que faisait la premiere version,
+    // « par coherence avec les supporters existants » — ouvrait au parent la
+    // portee du CLUB ENTIER : get_user_club_ids() renvoie tous les club_id de
+    // user_roles SANS filtrer le role, et cette liste gouverne profiles_safe,
+    // la branche « pairs » de profiles, et subscriptions. Mesure faite en
+    // production : un parent representant legal d'UN enfant voyait 24 lignes
+    // d'annuaire (mineurs compris), 15 fiches completes et l'abonnement du
+    // club. Apres retrait : 2, 2 et 0.
+    //
+    // Le role sert uniquement au menu et a la route /supporter/players/:id.
+    // L'acces du parent aux donnees de son enfant ne passe pas par lui, mais
+    // par les policies « Guardians ... » adossees au consentement parental.
+    //
+    // Lecture prealable plutot qu'un upsert : avec club_id NULL, la contrainte
+    // UNIQUE(user_id, role, club_id) ne dedoublonne PAS (en SQL, NULL est
+    // distinct de NULL), donc un ON CONFLICT ne rattraperait rien et chaque
+    // consentement ajouterait une ligne.
+    const { data: existingRole, error: roleLookupErr } = await admin
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", guardianId)
+      .eq("role", "supporter")
+      .is("club_id", null)
       .maybeSingle();
 
-    if (minorClub?.club_id) {
+    if (roleLookupErr) {
+      console.error("guardian role lookup failed", roleLookupErr);
+    } else if (!existingRole) {
       const { error: roleErr } = await admin
         .from("user_roles")
-        .upsert(
-          {
-            user_id: guardianId,
-            role: "supporter",
-            club_id: minorClub.club_id,
-          },
-          { onConflict: "user_id,role,club_id", ignoreDuplicates: true },
-        );
-      if (roleErr) console.error("guardian role upsert failed", roleErr);
+        .insert({ user_id: guardianId, role: "supporter", club_id: null });
+      if (roleErr) console.error("guardian role insert failed", roleErr);
     }
 
     // Phase 6 GO-LIVE — Active explicitement le compte mineur (defense en

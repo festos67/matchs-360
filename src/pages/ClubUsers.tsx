@@ -373,7 +373,7 @@ export default function ClubUsers() {
     try {
       setActionLoading(user.id);
       await callAdminAction("force-validate", { userId: user.id });
-      toast.success(`Email validé pour ${user.email}`);
+      toast.success(`Email validé pour ${displayLogin(user.email)}`);
       fetchUsers();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la validation");
@@ -386,7 +386,7 @@ export default function ClubUsers() {
     try {
       setActionLoading(user.id);
       await callAdminAction("soft-delete", { userId: user.id });
-      toast.success(`Utilisateur ${user.email} suspendu`);
+      toast.success(`Utilisateur ${displayLogin(user.email)} suspendu`);
       setDeleteConfirm(null);
       fetchUsers();
     } catch (error: unknown) {
@@ -400,7 +400,7 @@ export default function ClubUsers() {
     try {
       setActionLoading(user.id);
       await callAdminAction("restore", { userId: user.id });
-      toast.success(`Utilisateur ${user.email} réactivé`);
+      toast.success(`Utilisateur ${displayLogin(user.email)} réactivé`);
       fetchUsers();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de la réactivation");
@@ -418,7 +418,7 @@ export default function ClubUsers() {
         clubId: user.club_id 
       });
       if (result.emailSent) {
-        toast.success(`Invitation renvoyée à ${user.email}`);
+        toast.success(`Invitation renvoyée à ${displayLogin(user.email)}`);
       } else {
         toast.warning("Invitation générée mais l'email n'a pas pu être envoyé");
       }
@@ -778,7 +778,13 @@ export default function ClubUsers() {
                       >
                         <KeyRound className="w-4 h-4" />
                       </Button>
-                      {user.status === "Invité" && (
+                      {/* Un compte à identifiant technique reste « Invité » à
+                          vie : il ne confirmera jamais une adresse que
+                          personne ne relève. Lui proposer un renvoi d'invitation
+                          annoncerait un envoi qui ne part pas (le garde-fou
+                          l'abandonne) — c'est « Attribuer une adresse e-mail »
+                          qu'il faut lui offrir, bouton déjà présent ci-dessus. */}
+                      {user.status === "Invité" && !isTechnicalAddress(user.email) && (
                         <>
                           <Button
                             size="icon"
@@ -856,7 +862,7 @@ export default function ClubUsers() {
           <AlertDialogHeader>
             <AlertDialogTitle>Suspendre cet utilisateur ?</AlertDialogTitle>
             <AlertDialogDescription>
-              L'utilisateur <strong>{deleteConfirm?.email}</strong> sera suspendu et
+              L'utilisateur <strong>{displayLogin(deleteConfirm?.email)}</strong> sera suspendu et
               ne pourra plus accéder à la plateforme. Cette action est réversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -935,7 +941,7 @@ export default function ClubUsers() {
             <AlertDialogDescription asChild>
               <div className="space-y-4">
                 <p>
-                  Définir un nouveau mot de passe pour <strong>{resetPasswordUser ? getUserDisplayName(resetPasswordUser) : ""}</strong> ({resetPasswordUser?.email})
+                  Définir un nouveau mot de passe pour <strong>{resetPasswordUser ? getUserDisplayName(resetPasswordUser) : ""}</strong> ({displayLogin(resetPasswordUser?.email)})
                 </p>
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-2">
