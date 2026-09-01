@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight, isAllowedOrigin } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * Notifie par email un utilisateur EXISTANT qu'un role/rattachement vient de lui
@@ -90,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     let fromEmail: string;
     try { fromEmail = getFromEmail(); } catch (_e) { return json({ error: "invalid sender config" }, 500); }
 
-    const sendResult = await resend.emails.send({
+    const sendResult = await sendEmail(resend, {
       from: fromEmail,
       to: [toEmail],
       subject: `Nouveau rôle ajouté - ${clubName}`,

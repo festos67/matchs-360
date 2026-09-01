@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight, isAllowedOrigin } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * Notifie un JOUEUR qu'un coach/responsable lui demande un auto-débrief.
@@ -81,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
       try { fromEmail = getFromEmail(); } catch (_e) { return json({ notified, sent: false, reason: "invalid sender config" }); }
       const resend = new Resend(resendApiKey);
       const emailLink = `${appBase}${link}`;
-      const { error: sendErr } = await resend.emails.send({
+      const { error: sendErr } = await sendEmail(resend, {
         from: fromEmail,
         to: [toEmail],
         subject: "Auto-débrief demandé — MATCHS360",

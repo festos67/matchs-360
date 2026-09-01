@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * SECURITY: HTML entity escape to prevent XSS / phishing injection
@@ -673,7 +674,7 @@ const handler = async (req: Request): Promise<Response> => {
       // BUG-AGE-002 — Pour un mineur < 15, NE PAS envoyer d'email à
       // l'enfant. L'email part au guardian plus bas (après création de
       // la guardian_designation).
-      const emailResult = (resend && !isMinorWithGuardian) ? await resend.emails.send({
+      const emailResult = (resend && !isMinorWithGuardian) ? await sendEmail(resend, {
         from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: `Invitation à rejoindre ${club?.name || "MATCHS360"}`,
@@ -882,7 +883,7 @@ const handler = async (req: Request): Promise<Response> => {
             const greeting = guardianDisplayName
               ? `Bonjour ${escapeHtml(guardianDisplayName)},`
               : "Bonjour,";
-            const gResult = await resend.emails.send({
+            const gResult = await sendEmail(resend, {
               from: getFromEmail(),
               to: [guardianEmailNorm],
               subject: `Consentement parental requis — ${escapeHtml(club?.name || "MATCHS360")}`,
@@ -999,7 +1000,7 @@ const handler = async (req: Request): Promise<Response> => {
         ? `Vous avez été ajouté(e) comme <strong>supporter</strong> de <strong>${escapeHtml(supporterPlayersLabel)}</strong> au sein de <strong>${escapeHtml(club?.name || "MATCHS360")}</strong>. Vous pouvez désormais suivre ses évaluations.`
         : `Vous avez été ajouté(e) à <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.`;
 
-      const notificationResult = await resend.emails.send({
+      const notificationResult = await sendEmail(resend, {
         from: getFromEmail(),
         to: [email.toLowerCase()],
         subject: notifSubject,

@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * resend-guardian-consent
@@ -191,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
       : "Bonjour,";
     const guardianLink = gLink.properties.action_link;
 
-    const result = await resend.emails.send({
+    const result = await sendEmail(resend, {
       from: getFromEmail(),
       to: [guardianEmailNorm],
       subject: `Rappel — Consentement parental requis — ${escapeHtml(club?.name || "MATCHS360")}`,

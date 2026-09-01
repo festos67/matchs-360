@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * Politique mot de passe — miroir de src/lib/password-policy.ts.
@@ -813,7 +814,7 @@ Deno.serve(async (req) => {
             : "";
 
           try {
-            await resend.emails.send({
+            await sendEmail(resend, {
               from: getFromEmail(),
               to: [email.toLowerCase()],
               subject: `Rappel: Invitation à rejoindre ${clubName}`,

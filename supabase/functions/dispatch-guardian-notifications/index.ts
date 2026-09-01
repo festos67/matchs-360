@@ -8,6 +8,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { Resend } from 'https://esm.sh/resend@2.0.0'
 import { buildCorsHeaders, handleCorsPreflight } from '../_shared/cors.ts'
 import { getFromEmail } from '../_shared/email-config.ts'
+import { sendEmail } from "../_shared/send-email.ts";
 
 const EVENT_LABELS: Record<string, string> = {
   evaluation_insert: 'Un nouveau debrief a ete cree pour votre enfant.',
@@ -138,7 +139,7 @@ Deno.serve(async (req) => {
 Pour gerer ou revoquer votre consentement, connectez-vous a MATCHS360 puis ouvrez "Mes consentements".</p>
 </body></html>`
 
-      const { error: sendErr } = await resend.emails.send({
+      const { error: sendErr } = await sendEmail(resend, {
         from: fromEmail,
         to: [(recipient as any).email],
         subject,

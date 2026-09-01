@@ -25,6 +25,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 type Relationship = "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
 
@@ -469,7 +470,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       // ---- 1. Attestation au representant legal -------------------
       if (resend) {
-        const { error: mailErr } = await resend.emails.send({
+        const { error: mailErr } = await sendEmail(resend, {
           from: getFromEmail(),
           to: [guardianEmail],
           subject: `Attestation de consentement parental — ${clubName}`,
@@ -558,7 +559,7 @@ const handler = async (req: Request): Promise<Response> => {
             for (const ref of refProfiles ?? []) {
               if (!ref.email) continue;
               const hello = ref.first_name ? `Bonjour ${escapeHtml(ref.first_name)},` : "Bonjour,";
-              const { error: refMailErr } = await resend.emails.send({
+              const { error: refMailErr } = await sendEmail(resend, {
                 from: getFromEmail(),
                 to: [ref.email],
                 subject: `Consentement parental reçu — ${childName}`,

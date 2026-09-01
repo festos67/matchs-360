@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * Envoie un email de felicitations lorsqu'un nouveau role est attribue a un
@@ -91,7 +92,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       ? ` au sein de <strong>${escapeHtml(clubName)}</strong>`
       : "";
 
-    const sendResult = await resend.emails.send({
+    const sendResult = await sendEmail(resend, {
       from: fromEmail,
       to: [toEmail],
       subject: `🎉 Félicitations, nouveau rôle : ${roleLabel}`,

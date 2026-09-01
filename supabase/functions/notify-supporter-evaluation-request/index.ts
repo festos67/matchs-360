@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight, isAllowedOrigin } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * Notifie par email les SUPPORTERS invites a evaluer un joueur. Couvre les
@@ -74,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
       const toEmail = (sup as any)?.email as string | undefined;
       if (!toEmail) { skipped++; continue; }
 
-      const { error: sendErr } = await resend.emails.send({
+      const { error: sendErr } = await sendEmail(resend, {
         from: fromEmail,
         to: [toEmail],
         subject: `Évaluation demandée — ${playerName}`,

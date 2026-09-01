@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
+import { sendEmail } from "../_shared/send-email.ts";
 
 /**
  * Cron-triggered function that sends J-3 and J-1 reminders for
@@ -171,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
             ? "Votre invitation expire dans moins de 24 heures."
             : "Votre invitation expire dans 3 jours.";
 
-        const sendResult = await resend.emails.send({
+        const sendResult = await sendEmail(resend, {
           from: getFromEmail(),
           to: [inv.email],
           subject,
