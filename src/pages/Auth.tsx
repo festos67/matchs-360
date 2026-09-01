@@ -40,6 +40,24 @@ import { cn } from "@/lib/utils";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, userPasswordSchema } from "@/lib/password-policy";
 import { BRAND_TAGLINE, BRAND_SUBTITLE } from "@/lib/brand";
+import { isIdentifier, resolveLoginEmail } from "@/lib/technical-identity";
+
+/**
+ * À la connexion, la saisie peut être une adresse e-mail OU un identifiant de
+ * joueur mineur (`lucas.martin`), que `resolveLoginEmail` complète ensuite.
+ * L'inscription publique, elle, exige toujours une vraie adresse : un compte
+ * à identifiant est créé par le club, jamais en libre-service.
+ */
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email ou identifiant requis")
+    .refine(
+      (v) => (isIdentifier(v) ? /^[a-z0-9._-]+$/i.test(v.trim()) : z.string().email().safeParse(v).success),
+      "Email ou identifiant invalide",
+    ),
+  password: userPasswordSchema,
+});
 
 const authSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -108,6 +126,18 @@ export default function Auth() {
       return;
     }
 
+    // Un identifiant de joueur mineur n'a pas de boîte à relever : la demande
+    // partirait dans le vide et produirait un rebond. Le mot de passe est
+    // redéfini par le représentant légal depuis son espace, ou par le club.
+    if (isIdentifier(email)) {
+      toast.info("Demande à ton représentant légal ou à ton club", {
+        description:
+          "Ton identifiant n'est pas rattaché à une adresse e-mail : ils peuvent te redéfinir un mot de passe.",
+        duration: 8000,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // F-302: Anti-énumération — on déclenche la demande mais on n'expose
@@ -142,16 +172,22 @@ export default function Auth() {
     try {
       if (isLogin) {
         // Validate login
-        authSchema.parse({ email, password });
+        loginSchema.parse({ email, password });
 
+        // Un identifiant de joueur mineur est complété par le domaine
+        // technique ; une adresse passe telle quelle.
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: resolveLoginEmail(email),
           password,
         });
 
         if (error) {
           if (error.message === "Invalid login credentials") {
-            toast.error("Email ou mot de passe incorrect");
+            toast.error(
+              isIdentifier(email)
+                ? "Identifiant ou mot de passe incorrect"
+                : "Email ou mot de passe incorrect",
+            );
           } else {
             toast.error(error.message);
           }
@@ -376,13 +412,17 @@ export default function Auth() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{isLogin ? "Email ou identifiant" : "Email"}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="vous@exemple.com"
+                  // `type="email"` déclencherait la validation native du
+                  // navigateur, qui refuserait un identifiant sans @.
+                  type={isLogin ? "text" : "email"}
+                  inputMode="email"
+                  autoComplete={isLogin ? "username" : "email"}
+                  placeholder={isLogin ? "vous@exemple.com ou prenom.nom" : "vous@exemple.com"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"

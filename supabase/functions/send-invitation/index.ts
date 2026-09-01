@@ -3,6 +3,44 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
+import {
+  buildIdentifierBase,
+  isTechnicalAddress,
+  technicalEmailFor,
+} from "../_shared/technical-identity.ts";
+
+/**
+ * Alloue une adresse technique unique pour un joueur mineur sans e-mail.
+ *
+ * Le suffixe numerique ne desambiguise que les homonymes REELS : le premier
+ * « lucas.martin » du systeme garde son identifiant nu, le suivant devient
+ * « lucas.martin2 ». Un identifiant numerote d'office serait inutilement
+ * penible a dicter a un enfant.
+ *
+ * La recherche passe par admin_get_user_by_email, qui interroge auth.users —
+ * l'unicite y est imposee par un index, donc c'est bien la seule source de
+ * verite. La borne de 100 evite une boucle infinie si cette RPC se mettait a
+ * repondre de travers ; au-dela, on bascule sur un suffixe aleatoire plutot
+ * que d'echouer l'inscription.
+ */
+async function allocateTechnicalEmail(
+  admin: ReturnType<typeof createClient>,
+  firstName: string,
+  lastName: string,
+): Promise<string> {
+  const base = buildIdentifierBase(firstName, lastName);
+
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const identifier = attempt === 0 ? base : `${base}${attempt + 1}`;
+    const address = technicalEmailFor(identifier);
+    const { data: taken } = await admin
+      .rpc("admin_get_user_by_email", { p_email: address })
+      .maybeSingle();
+    if (!taken) return address;
+  }
+
+  return technicalEmailFor(`${base}${crypto.randomUUID().slice(0, 6)}`);
+}
 
 /**
  * SECURITY: HTML entity escape to prevent XSS / phishing injection
@@ -88,7 +126,12 @@ function getSafeOrigin(req: Request): string {
 }
 
 interface InvitationRequest {
-  email: string;
+  /**
+   * Facultatif POUR UN MINEUR < 15 ANS avec representant legal : dans ce cas
+   * seulement, le serveur alloue une adresse technique. Pour tout autre
+   * profil, l'absence d'adresse est rejetee par la validation.
+   */
+  email?: string;
   firstName?: string;
   lastName?: string;
   clubId: string;
@@ -268,7 +311,7 @@ const handler = async (req: Request): Promise<Response> => {
     const user = { id: claimsData.claims.sub, email: claimsData.claims.email };
 
     const body: InvitationRequest = await req.json();
-    const { email, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship, guardianFirstName, guardianLastName } = body;
+    const { email: providedEmail, firstName, lastName, clubId, intendedRole, teamId, coachRole, playerIds, guardianEmail, guardianRelationship, guardianFirstName, guardianLastName } = body;
 
     // ============================================================
     // BUG-AGE-002 / NB-02 — Routage de l'invitation pour mineur < 15
@@ -294,6 +337,26 @@ const handler = async (req: Request): Promise<Response> => {
       !!guardianRelationship &&
       emailRegex.test(guardianEmail) &&
       (ALLOWED_GUARDIAN_REL as readonly string[]).includes(guardianRelationship);
+
+    // ============================================================
+    // Adresse effective du joueur.
+    //
+    // Un enfant de 12 ans n'a pas d'adresse e-mail, mais `profiles.id`
+    // reference `auth.users(id)` et `profiles.email` est NOT NULL : le compte
+    // est obligatoire, donc une adresse aussi. On en alloue une, technique et
+    // invisible pour la famille, et l'enfant se connectera avec l'IDENTIFIANT
+    // seul (la partie avant le @).
+    //
+    // Uniquement pour un mineur < 15 ans avec representant legal : pour tout
+    // autre profil, une adresse reste exigee et la validation ci-dessous la
+    // reclame. Resolue ICI pour que tout le flux en aval — recherche de compte
+    // existant, upsert du profil, envois — travaille sur une seule valeur.
+    // ============================================================
+    const trimmedProvidedEmail = (providedEmail ?? "").trim();
+    const email =
+      !trimmedProvidedEmail && isMinorWithGuardian
+        ? await allocateTechnicalEmail(supabaseAdmin, firstName, lastName)
+        : trimmedProvidedEmail;
 
     // ============================================================
     // F-601 — Strict whitelist of intendedRole.
@@ -591,40 +654,73 @@ const handler = async (req: Request): Promise<Response> => {
         .is("club_id", null);
     } else {
       isNewUser = true;
-      
-      // Generate invite link for new user
-      const redirectTo = `${origin}/invite/accept`;
-      console.log("Generating invite link with redirectTo:", redirectTo);
-      
-      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'invite',
-        email: email.toLowerCase(),
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
+
+      // Déclaré AVANT la bifurcation : le corps de l'email plus bas s'en sert,
+      // et une const enfermée dans une branche produirait un ReferenceError à
+      // l'exécution que `npm run typecheck` ne verrait pas (il ne couvre pas
+      // supabase/functions).
+      let inviteLink = "";
+
+      if (isTechnicalAddress(email)) {
+        // Joueur mineur sans adresse e-mail : aucun lien d'invitation n'aurait
+        // de sens, personne ne relève cette boîte. Le compte est créé
+        // CONFIRMÉ — sans quoi la connexion par identifiant serait refusée,
+        // ce qui est exactement ce qui rend aujourd'hui 8 mineurs sur 9
+        // inaccessibles. Le mot de passe est posé ensuite par le
+        // représentant légal depuis son espace.
+        const { data: created, error: createError } =
+          await supabaseAdmin.auth.admin.createUser({
+            email: email.toLowerCase(),
+            email_confirm: true,
+            user_metadata: { first_name: firstName, last_name: lastName },
+          });
+
+        if (createError || !created?.user) {
+          console.error("Technical account creation failed:", createError);
+          throw new InvitationDomainError({
+            message: "La création du compte joueur a échoué.",
+            code: "INTERNAL_ERROR",
+            status: 500,
+          });
+        }
+
+        userId = created.user.id;
+        console.log("Technical account created", { userId, confirmed: true });
+      } else {
+        // Generate invite link for new user
+        const redirectTo = `${origin}/invite/accept`;
+        console.log("Generating invite link with redirectTo:", redirectTo);
+
+        const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.generateLink({
+          type: 'invite',
+          email: email.toLowerCase(),
+          options: {
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+            },
+            redirectTo,
           },
-          redirectTo,
-        },
-      });
-
-      if (inviteError) {
-        console.error("Generate link error:", inviteError);
-        throw new InvitationDomainError({
-          message: `Génération du lien d'invitation échouée : ${inviteError.message}`,
-          code: "INTERNAL_ERROR",
-          status: 500,
         });
+
+        if (inviteError) {
+          console.error("Generate link error:", inviteError);
+          throw new InvitationDomainError({
+            message: `Génération du lien d'invitation échouée : ${inviteError.message}`,
+            code: "INTERNAL_ERROR",
+            status: 500,
+          });
+        }
+
+        userId = inviteData.user.id;
+
+        // Build the proper invite link that redirects through Supabase auth
+        // The action_link from generateLink goes through /auth/v1/verify which redirects to our app
+        inviteLink = inviteData.properties.action_link;
+        // SECURITY: never log the full action_link — it contains the invitation
+        // token_hash which can be used to hijack the invitation. Log only metadata.
+        console.log("Invite link generated", { userId, hasLink: !!inviteLink });
       }
-
-      userId = inviteData.user.id;
-
-      // Build the proper invite link that redirects through Supabase auth
-      // The action_link from generateLink goes through /auth/v1/verify which redirects to our app
-      const inviteLink = inviteData.properties.action_link;
-      // SECURITY: never log the full action_link — it contains the invitation
-      // token_hash which can be used to hijack the invitation. Log only metadata.
-      console.log("Invite link generated", { userId, hasLink: !!inviteLink });
 
       // ⚠️ ORDRE CRITIQUE : on persiste profil + rôle AVANT d'envoyer l'email.
       // Sinon, si Resend rate-limit/bounce/échoue, l'utilisateur est créé dans

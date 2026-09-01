@@ -82,7 +82,11 @@ const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
   lastName: z.string().min(1, "Nom requis").max(50),
   nickname: z.string().max(50).optional(),
-  email: z.string().email("Email invalide").max(255),
+  // Facultatif pour un joueur de moins de 15 ans : à cet âge, l'enfant n'a
+  // souvent pas d'adresse. Le serveur lui alloue alors un identifiant, et
+  // c'est le représentant légal qui reçoit tout. Le `.refine` plus bas rend
+  // l'adresse obligatoire dans tous les autres cas.
+  email: z.string().max(255).optional().or(z.literal("")),
   teamId: z.string().min(1, "Équipe requise"),
   birthdate: z
     .string()
@@ -109,6 +113,21 @@ const playerSchema = z.object({
   {
     message: "Prénom, nom, email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
     path: ["guardianEmail"],
+  },
+).refine(
+  (d) => {
+    const email = d.email?.trim() ?? "";
+    // Moins de 15 ans : l'adresse est facultative, mais si elle est fournie
+    // elle doit être valide — une faute de frappe rendrait le compte
+    // inaccessible sans que personne s'en aperçoive.
+    if (requiresParentalConsent(d.birthdate)) {
+      return email === "" || z.string().email().safeParse(email).success;
+    }
+    return z.string().email().safeParse(email).success;
+  },
+  {
+    message: "Email invalide",
+    path: ["email"],
   },
 );
 
@@ -178,6 +197,11 @@ export const CreatePlayerModal = ({
       teamId: defaultTeamId || "",
     },
   });
+
+  // L'adresse n'est facultative que pour un joueur soumis au consentement
+  // parental : à cet âge, l'enfant n'en a souvent pas, et c'est le
+  // représentant légal qui reçoit toutes les communications.
+  const emailIsOptional = requiresParentalConsent(watch("birthdate"));
 
   useEffect(() => {
     if (!propTeams && open && clubId) {
@@ -281,7 +305,10 @@ export const CreatePlayerModal = ({
     try {
       const { data: result, error } = await supabase.functions.invoke("send-invitation", {
         body: {
-          email: data.email,
+          // Vide pour un moins de 15 ans sans adresse : le serveur alloue
+          // l'identifiant technique. Ne jamais envoyer "" — le serveur
+          // distingue « absente » de « invalide ».
+          email: data.email?.trim() || undefined,
           firstName: data.firstName,
           lastName: data.lastName,
           clubId,
@@ -604,18 +631,25 @@ export const CreatePlayerModal = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">
+                    Email
+                    {emailIsOptional && (
+                      <span className="font-normal text-muted-foreground"> (facultatif)</span>
+                    )}
+                  </Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="joueur@exemple.com"
+                    placeholder={emailIsOptional ? "Laisser vide si l'enfant n'en a pas" : "joueur@exemple.com"}
                     {...register("email")}
                   />
                   {errors.email && (
                     <p className="text-sm text-destructive">{errors.email.message}</p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Le joueur recevra une invitation pour créer son compte
+                    {emailIsOptional
+                      ? "Sans adresse, un identifiant de connexion sera créé pour l'enfant. Son représentant légal lui définira un mot de passe depuis son espace."
+                      : "Le joueur recevra une invitation pour créer son compte"}
                   </p>
                 </div>
 
