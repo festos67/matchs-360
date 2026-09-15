@@ -6,10 +6,12 @@
  *              elle couvre tous les rôles et tous les âges.
  *
  *              Ce n'est pas un consentement : c'est la preuve que l'information
- *              a été délivrée. En cas d'erreur de lecture, la page n'est pas
- *              bloquée (la fenêtre réapparaîtra à la prochaine vérification).
+ *              a été délivrée. En cas d'erreur de lecture (après 2 nouvelles
+ *              tentatives), la page n'est pas bloquée et rien n'est mis en
+ *              cache : la vérification repart à l'affichage suivant d'une page
+ *              protégée. À l'ouverture, le focus est placé dans la fenêtre.
  */
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -32,6 +34,7 @@ export function PrivacyNoticeGate({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const checkboxRef = useRef<HTMLButtonElement>(null);
 
   const queryKey = ["privacy-notice-ack", user?.id, PRIVACY_NOTICE_VERSION];
 
@@ -42,14 +45,17 @@ export function PrivacyNoticeGate({ children }: { children: ReactNode }) {
         "has_acknowledged_privacy_notice" as never,
         { _version: PRIVACY_NOTICE_VERSION } as never,
       );
-      if (error) {
-        console.error("has_acknowledged_privacy_notice failed", error);
-        return true;
-      }
+      // Une erreur est levée, jamais convertie en « déjà lu » : la mettre en
+      // cache (staleTime infini) masquerait la notice pour toute la session.
+      if (error) throw error;
       return data === true;
     },
     enabled: !!user,
+    // Seul un résultat réussi est gardé pour la session. En erreur, rien
+    // n'est mis en cache : la vérification repart au prochain affichage
+    // d'une page protégée.
     staleTime: Infinity,
+    retry: 2,
   });
 
   const handleAcknowledge = async () => {
@@ -76,7 +82,16 @@ export function PrivacyNoticeGate({ children }: { children: ReactNode }) {
     <>
       {children}
       <AlertDialog open={!!user && acknowledged === false}>
-        <AlertDialogContent className="flex max-h-[90dvh] max-w-2xl flex-col">
+        <AlertDialogContent
+          className="flex max-h-[90dvh] max-w-2xl flex-col"
+          // Sans bouton « Annuler », Radix ne place le focus nulle part : on
+          // l'envoie sur la case à cocher pour la navigation au clavier et les
+          // lecteurs d'écran.
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            checkboxRef.current?.focus();
+          }}
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>Vos données sur MATCHS360</AlertDialogTitle>
             <AlertDialogDescription>
@@ -84,12 +99,18 @@ export function PrivacyNoticeGate({ children }: { children: ReactNode }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-muted/20 p-4">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Information sur l'utilisation de vos données"
+            className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-muted/20 p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <PrivacyNoticeContent />
           </div>
 
           <label className="flex cursor-pointer items-start gap-3 text-sm">
             <Checkbox
+              ref={checkboxRef}
               checked={checked}
               onCheckedChange={(v) => setChecked(v === true)}
               className="mt-0.5"
