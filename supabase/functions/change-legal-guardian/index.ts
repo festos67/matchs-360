@@ -95,9 +95,8 @@ const handler = async (req: Request): Promise<Response> => {
     if (!(ALLOWED_REL as readonly string[]).includes(guardianRelationship)) {
       return jsonResp({ error: "Lien avec l'enfant invalide." }, 400);
     }
-    if (!guardianFirstName || !guardianLastName) {
-      return jsonResp({ error: "Prénom et nom du représentant légal requis." }, 400);
-    }
+    // Prénom et nom facultatifs : le représentant légal les déclare lui-même,
+    // obligatoirement, sur la page de consentement (record-parental-consent).
 
     const guardianEmailNorm = guardianEmailRaw.toLowerCase().trim();
 
@@ -181,8 +180,8 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         minor_profile_id: playerId,
         guardian_email: guardianEmailNorm,
-        guardian_first_name: guardianFirstName,
-        guardian_last_name: guardianLastName,
+        guardian_first_name: guardianFirstName.slice(0, 50) || null,
+        guardian_last_name: guardianLastName.slice(0, 50) || null,
         relationship: guardianRelationship,
         created_by: callerId,
       })
@@ -254,10 +253,8 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("id", child.club_id)
       .maybeSingle();
     const childName = [child.first_name, child.last_name].filter(Boolean).join(" ") || "votre enfant";
-    const guardianDisplayName = [guardianFirstName, guardianLastName].filter(Boolean).join(" ");
-    const greeting = guardianDisplayName
-      ? `Bonjour ${escapeHtml(guardianDisplayName)},`
-      : "Bonjour,";
+    // Jamais de nom dans la formule d'appel : voir send-invitation.
+    const greeting = "Bonjour,";
     const guardianLink = gLink.properties.action_link;
 
     const result = await sendEmail(resend, {

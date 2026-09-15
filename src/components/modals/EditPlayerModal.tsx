@@ -156,9 +156,9 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     };
   }, [open, player.id]);
 
+  // Prénom et nom facultatifs : le représentant légal les déclare lui-même
+  // sur la page de consentement.
   const guardianFormValid =
-    gFirstName.trim().length > 0 &&
-    gLastName.trim().length > 0 &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gEmail.trim()) &&
     !!gRelationship;
 
@@ -439,7 +439,9 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label htmlFor="g-first-name">Prénom</Label>
+                      <Label htmlFor="g-first-name">
+                        Prénom <span className="font-normal text-muted-foreground">(facultatif)</span>
+                      </Label>
                       <Input
                         id="g-first-name"
                         value={gFirstName}
@@ -448,7 +450,9 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="g-last-name">Nom</Label>
+                      <Label htmlFor="g-last-name">
+                        Nom <span className="font-normal text-muted-foreground">(facultatif)</span>
+                      </Label>
                       <Input
                         id="g-last-name"
                         value={gLastName}

@@ -101,17 +101,15 @@ const playerSchema = z.object({
 }).refine(
   (d) => {
     if (requiresParentalConsent(d.birthdate)) {
-      return (
-        !!d.guardianFirstName &&
-        !!d.guardianLastName &&
-        !!d.guardianEmail &&
-        !!d.guardianRelationship
-      );
+      // Prénom et nom facultatifs : le coach ne les connaît pas toujours (un
+      // éducateur, par exemple). Le représentant légal les déclare lui-même,
+      // obligatoirement, sur la page de consentement.
+      return !!d.guardianEmail && !!d.guardianRelationship;
     }
     return true;
   },
   {
-    message: "Prénom, nom, email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
+    message: "Email et lien du titulaire de l'autorité parentale requis pour un mineur de moins de 15 ans.",
     path: ["guardianEmail"],
   },
 ).refine(
@@ -693,7 +691,10 @@ export const CreatePlayerModal = ({
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="guardianFirstName">Prénom du représentant légal</Label>
+                        <Label htmlFor="guardianFirstName">
+                          Prénom du représentant légal{" "}
+                          <span className="font-normal text-muted-foreground">(facultatif)</span>
+                        </Label>
                         <Input
                           id="guardianFirstName"
                           placeholder="Marie"
@@ -704,7 +705,10 @@ export const CreatePlayerModal = ({
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="guardianLastName">Nom du représentant légal</Label>
+                        <Label htmlFor="guardianLastName">
+                          Nom du représentant légal{" "}
+                          <span className="font-normal text-muted-foreground">(facultatif)</span>
+                        </Label>
                         <Input
                           id="guardianLastName"
                           placeholder="Dupont"

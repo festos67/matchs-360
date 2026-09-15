@@ -135,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
     // 3. Récupère la désignation guardian active
     const { data: designations, error: desigErr } = await supabaseAdmin
       .from("guardian_designations")
-      .select("guardian_email, guardian_first_name, guardian_last_name, status")
+      .select("guardian_email, status")
       .eq("minor_profile_id", playerId)
       .eq("status", "pending")
       .order("created_at", { ascending: false })
@@ -183,13 +183,9 @@ const handler = async (req: Request): Promise<Response> => {
     const resend = new Resend(resendApiKey);
 
     const childName = [child.first_name, child.last_name].filter(Boolean).join(" ") || "votre enfant";
-    const guardianDisplayName = [desig.guardian_first_name, desig.guardian_last_name]
-      .map((p) => p?.trim())
-      .filter(Boolean)
-      .join(" ");
-    const greeting = guardianDisplayName
-      ? `Bonjour ${escapeHtml(guardianDisplayName)},`
-      : "Bonjour,";
+    // Jamais de nom dans la formule d'appel (nom saisi par le club facultatif
+    // et non vérifié) : le représentant légal le déclare au consentement.
+    const greeting = "Bonjour,";
     const guardianLink = gLink.properties.action_link;
 
     const result = await sendEmail(resend, {

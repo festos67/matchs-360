@@ -71,6 +71,7 @@ export default function GuardianConsent() {
   const [minor, setMinor] = useState<MinorInfo | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [relationship, setRelationship] = useState<Relationship | "">("");
   const [accepted, setAccepted] = useState(false);
   const [consentPhoto, setConsentPhoto] = useState(false);
@@ -174,6 +175,7 @@ export default function GuardianConsent() {
 
         if (!cancelled) {
           setMinor(resolved ?? { id: minorId, first_name: null, last_name: null });
+          setAccountEmail(session.user.email ?? null);
           if (me?.first_name) setFirstName(me.first_name);
           if (me?.last_name) setLastName(me.last_name);
           setChecking(false);
@@ -334,10 +336,21 @@ export default function GuardianConsent() {
 
           {/* ---- Identité du déclarant ------------------------------- */}
           <div className="space-y-3">
-            <p className="text-sm font-medium">Votre identité</p>
+            <div>
+              <p className="text-sm font-medium">Votre identité</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Obligatoire. Votre nom et votre prénom seront associés à votre
+                adresse{accountEmail ? (
+                  <> <span className="font-medium text-foreground break-all">{accountEmail}</span></>
+                ) : " email"}{" "}
+                et figureront sur l'attestation de consentement.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="guardianLastName">Nom</Label>
+                <Label htmlFor="guardianLastName">
+                  Nom <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="guardianLastName"
                   value={lastName}
@@ -347,7 +360,9 @@ export default function GuardianConsent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="guardianFirstName">Prénom</Label>
+                <Label htmlFor="guardianFirstName">
+                  Prénom <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="guardianFirstName"
                   value={firstName}

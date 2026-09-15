@@ -1119,13 +1119,10 @@ const handler = async (req: Request): Promise<Response> => {
           } else if (resend) {
             const guardianLink = gLink.properties.action_link;
             const childName = [firstName, lastName].filter(Boolean).join(" ") || "votre enfant";
-            const guardianDisplayName = [guardianFirstName, guardianLastName]
-              .map((p) => p?.trim())
-              .filter(Boolean)
-              .join(" ");
-            const greeting = guardianDisplayName
-              ? `Bonjour ${escapeHtml(guardianDisplayName)},`
-              : "Bonjour,";
+            // Jamais de nom dans la formule d'appel : celui saisi par le club
+            // est facultatif et peut être inexact. Le représentant légal
+            // déclare lui-même son identité sur la page de consentement.
+            const greeting = "Bonjour,";
             const gResult = await sendEmail(resend, {
               from: getFromEmail(),
               to: [guardianEmailNorm],
