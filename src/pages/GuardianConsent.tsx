@@ -23,8 +23,8 @@
  *    le consentement est un acte positif clair)
  *
  * Apres enregistrement : ecran de remerciement (attestation envoyee par
- * email, « vous pouvez fermer cette fenetre »), puis redirection vers la
- * page de connexion au bout de REDIRECT_SECONDS.
+ * email, « vous pouvez fermer cette fenetre »), affiche sans limite de
+ * temps et sans aucune redirection.
  *
  * Le `minor_id` est passe en query string (?minor=<uuid>) — temporaire tant
  * que la Phase 0 bloque la creation des mineurs en prod (mode dormant).
@@ -65,8 +65,6 @@ interface MinorInfo {
   club_name?: string | null;
 }
 
-const REDIRECT_SECONDS = 5;
-
 export default function GuardianConsent() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -84,7 +82,6 @@ export default function GuardianConsent() {
   const [consentSelfEval, setConsentSelfEval] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const [redirectIn, setRedirectIn] = useState(REDIRECT_SECONDS);
   const consumedRef = useRef(false);
 
   useEffect(() => {
@@ -201,19 +198,6 @@ export default function GuardianConsent() {
     };
   }, [minorId]);
 
-  // Après consentement : décompte visible puis redirection vers la connexion.
-  useEffect(() => {
-    if (!done) return;
-    const tick = window.setInterval(() => {
-      setRedirectIn((s) => Math.max(0, s - 1));
-    }, 1000);
-    const redirect = window.setTimeout(() => navigate("/auth", { replace: true }), REDIRECT_SECONDS * 1000);
-    return () => {
-      window.clearInterval(tick);
-      window.clearTimeout(redirect);
-    };
-  }, [done, navigate]);
-
   const identityComplete = firstName.trim().length > 0 && lastName.trim().length > 0;
   const canSubmit = !!minorId && !!relationship && identityComplete && accepted && !submitting;
 
@@ -285,9 +269,6 @@ export default function GuardianConsent() {
           </p>
           <p className="mt-6 text-sm font-medium text-foreground">
             Vous pouvez fermer cette fenêtre.
-          </p>
-          <p className="mt-2 text-xs text-muted-foreground tabular-nums" aria-live="polite">
-            Redirection vers la page de connexion dans {redirectIn} s…
           </p>
         </div>
       </div>
