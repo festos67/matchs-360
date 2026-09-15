@@ -6,6 +6,10 @@
  * @access Coach Référent, Responsable Club, Super Admin (action depuis fiche joueur)
  * @features
  *  - Modes "Nouveau" / "Existant" pour éviter doublons (mem://features/user-role-management/promotion-mode)
+ *  - « Membre existant » inclut les personnes DÉJÀ supporters d'autres joueurs :
+ *    on leur ajoute simplement de nouveaux joueurs suivis
+ *  - Joueurs proposés : tout le club pour un responsable club / admin, les
+ *    seules équipes encadrées pour un coach (même règle que send-invitation)
  *  - Lien automatique avec le joueur concerné via supporters_link
  *  - Upload photo de profil avec recadrage circulaire
  *  - Vérification limite plan (max_supporters_per_team)
@@ -53,6 +57,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { uploadProfilePhoto } from "@/lib/photo-storage";
 import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
@@ -84,6 +89,8 @@ interface ClubMember {
   nickname: string | null;
   email: string;
   role_label: string;
+  /** A déjà le rôle supporter dans ce club (suit au moins un autre joueur). */
+  already_supporter: boolean;
 }
 
 interface CreateSupporterModalProps {
@@ -101,6 +108,13 @@ export const CreateSupporterModal = ({
 }: CreateSupporterModalProps) => {
   const [loading, setLoading] = useState(false);
   const { handle: handlePlanLimit, dialog: planLimitDialog } = usePlanLimitHandler();
+  const { user, hasAdminRole, roles } = useAuth();
+  // Même règle que send-invitation : administrateur et responsable DE CE CLUB
+  // peuvent rattacher un supporter à n'importe quel joueur du club ; un coach,
+  // seulement aux joueurs des équipes qu'il encadre. Proposer davantage
+  // mènerait à un refus du serveur.
+  const canPickAnyClubPlayer =
+    hasAdminRole || roles.some((r) => r.role === "club_admin" && r.club_id === clubId);
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
@@ -149,25 +163,60 @@ export const CreateSupporterModal = ({
   }, [open, reset]);
 
   const fetchPlayers = async () => {
-    const { data } = await supabase
+    // La liste n'était filtrée ni par club ni par équipe : elle reflétait tout
+    // ce que la personne pouvait LIRE. Depuis qu'un coach consulte en lecture
+    // seule toutes les équipes du club, elle lui proposait des joueurs qu'il
+    // n'encadre pas.
+    let coachedTeamIds: string[] | null = null;
+    if (!canPickAnyClubPlayer) {
+      if (!user) {
+        setPlayers([]);
+        return;
+      }
+      const { data: coachRows } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", user.id)
+        .eq("member_type", "coach")
+        .eq("is_active", true)
+        .is("deleted_at", null);
+      coachedTeamIds = (coachRows ?? []).map((r) => r.team_id);
+      if (coachedTeamIds.length === 0) {
+        setPlayers([]);
+        return;
+      }
+    }
+
+    let query = supabase
       .from("team_members")
       .select(`
         user_id,
+        team_id,
         profile:profiles(id, first_name, last_name, nickname),
-        team:teams(name)
+        team:teams!inner(name, club_id)
       `)
       .eq("member_type", "player")
-      .eq("is_active", true);
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .eq("team.club_id", clubId);
+    if (coachedTeamIds) query = query.in("team_id", coachedTeamIds);
+
+    const { data } = await query;
 
     if (data) {
-      const formattedPlayers: Player[] = data.map((item: any) => ({
-        id: item.profile.id,
-        first_name: item.profile.first_name,
-        last_name: item.profile.last_name,
-        nickname: item.profile.nickname,
-        team_name: item.team?.name,
-      }));
-      setPlayers(formattedPlayers);
+      // Un joueur inscrit dans deux équipes ne doit apparaître qu'une fois.
+      const byId = new Map<string, Player>();
+      for (const item of data as any[]) {
+        if (!item.profile || byId.has(item.profile.id)) continue;
+        byId.set(item.profile.id, {
+          id: item.profile.id,
+          first_name: item.profile.first_name,
+          last_name: item.profile.last_name,
+          nickname: item.profile.nickname,
+          team_name: item.team?.name,
+        });
+      }
+      setPlayers(Array.from(byId.values()));
     }
   };
 
@@ -215,16 +264,25 @@ export const CreateSupporterModal = ({
       }
     }
 
-    const members: ClubMember[] = profiles
-      .filter((p: any) => !supporterIds.has(p.id))
-      .map((p: any) => ({
+    // Les personnes déjà supporters ne sont PLUS écartées : un supporter peut
+    // suivre plusieurs joueurs, et c'est précisément le cas où l'on veut lui
+    // en ajouter un. Le serveur réutilise son rôle existant et ne crée que les
+    // liens manquants.
+    const members: ClubMember[] = profiles.map((p: any) => {
+      const mainRole = labelMap[byUser.get(p.id) || ""];
+      const alreadySupporter = supporterIds.has(p.id);
+      return {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
         nickname: p.nickname,
         email: p.email,
-        role_label: labelMap[byUser.get(p.id) || ""] || "Membre",
-      }));
+        role_label: mainRole
+          ? alreadySupporter ? `${mainRole} · déjà supporter` : mainRole
+          : alreadySupporter ? "Supporter" : "Membre",
+        already_supporter: alreadySupporter,
+      };
+    });
 
     members.sort((a, b) => {
       const an = `${a.first_name || ""} ${a.last_name || ""}`.trim().toLowerCase();
@@ -325,8 +383,11 @@ export const CreateSupporterModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
-      toast.success("Rôle supporter ajouté !", {
-        description: `${selectedExisting.first_name || ""} ${selectedExisting.last_name || ""} est maintenant supporter.`,
+      const who = `${selectedExisting.first_name || ""} ${selectedExisting.last_name || ""}`.trim();
+      toast.success(selectedExisting.already_supporter ? "Joueurs suivis ajoutés !" : "Rôle supporter ajouté !", {
+        description: selectedExisting.already_supporter
+          ? `${who} suit désormais ${existingPlayerIds.length > 1 ? "les joueurs sélectionnés" : "le joueur sélectionné"}.`
+          : `${who} est maintenant supporter.`,
       });
       onOpenChange(false);
       onSuccess?.();
@@ -533,7 +594,7 @@ export const CreateSupporterModal = ({
                   </PopoverContent>
                 </Popover>
                 <p className="text-xs text-muted-foreground">
-                  Coachs et responsables du club déjà inscrits, qui n'ont pas encore le rôle supporter.
+                  Membres du club déjà inscrits, y compris les supporters qui suivent déjà d'autres joueurs.
                 </p>
               </div>
 

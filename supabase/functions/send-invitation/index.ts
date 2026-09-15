@@ -599,6 +599,64 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // ============================================================
+    // Coach : rattacher un supporter uniquement aux joueurs des équipes qu'il
+    // ENCADRE (référent ou assistant).
+    //
+    // Le contrôle ci-dessus ne vérifiait que l'appartenance au club. Tant qu'un
+    // coach ne lisait que ses propres équipes, l'écran ne lui proposait de toute
+    // façon que ses joueurs ; depuis qu'il consulte en lecture seule toutes les
+    // équipes du club, la liste lui en proposait d'autres — et le serveur
+    // acceptait. Aligné sur la règle en base « Coaches manage supporters for
+    // their players » (get_coach_player_ids).
+    //
+    // Administrateur et responsable du club ne sont pas concernés.
+    // ============================================================
+    if (
+      intendedRole === "supporter" && playerIds && playerIds.length > 0 &&
+      !callerIsAdmin && !callerIsClubAdminOfTarget
+    ) {
+      const { data: coachTeamRows, error: coachTeamsErr } = await supabaseAdmin
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", user.id)
+        .eq("member_type", "coach")
+        .eq("is_active", true)
+        .is("deleted_at", null);
+      const { data: playerTeamRows, error: playerTeamsErr } = await supabaseAdmin
+        .from("team_members")
+        .select("user_id, team_id")
+        .in("user_id", playerIds)
+        .eq("member_type", "player")
+        .eq("is_active", true)
+        .is("deleted_at", null);
+
+      // Fail-closed : une lecture en échec ne vaut pas autorisation.
+      if (coachTeamsErr || playerTeamsErr) {
+        console.error("coach player scope check failed", coachTeamsErr ?? playerTeamsErr);
+        throw new InvitationDomainError({
+          message: "Impossible de vérifier vos équipes. Réessayez dans un instant.",
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
+      }
+
+      const coachedTeamIds = new Set((coachTeamRows ?? []).map((r: { team_id: string }) => r.team_id));
+      const allCoached = playerIds.every((pid) =>
+        (playerTeamRows ?? []).some(
+          (m: { user_id: string; team_id: string }) => m.user_id === pid && coachedTeamIds.has(m.team_id),
+        ),
+      );
+      if (!allCoached) {
+        throw new InvitationDomainError({
+          message:
+            "Vous ne pouvez rattacher un supporter qu'aux joueurs des équipes que vous encadrez.",
+          code: "AUTH_TEAM_OUT_OF_SCOPE",
+          status: 403,
+        });
+      }
+    }
+
     // SECURITY: validate Origin/Referer against whitelist to prevent phishing
     // via forged headers in the generated invitation link.
     const origin = getSafeOrigin(req);
