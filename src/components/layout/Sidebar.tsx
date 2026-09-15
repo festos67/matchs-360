@@ -338,6 +338,15 @@ export const SidebarContent = ({ onNavigate, pinned = false, expanded = false, o
           <Settings className="w-4 h-4" />
           <span className={labelCls}>Mon profil</span>
         </Link>
+        <Link
+          to="/confidentialite"
+          onClick={handleLinkClick}
+          title="Confidentialité"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] font-medium transition-all text-sidebar-foreground/85 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+        >
+          <Shield className="w-4 h-4" />
+          <span className={labelCls}>Confidentialité</span>
+        </Link>
         <button
           onClick={handleLogout}
           title="Déconnexion"

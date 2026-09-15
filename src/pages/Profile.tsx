@@ -72,6 +72,7 @@ import { validateUserPassword, USER_MIN_LENGTH, PASSWORD_HELP_TEXT } from "@/lib
 import { uploadProfilePhoto } from "@/lib/photo-storage";
 import { Switch } from "@/components/ui/switch";
 import { ShieldCheck } from "lucide-react";
+import { isMinorPhase0, requiresParentalConsent } from "@/lib/age-policy";
 
 const roleConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   admin: { label: "Administrateur", icon: Shield, color: "bg-destructive text-destructive-foreground" },
@@ -107,6 +108,13 @@ export default function Profile() {
   // Phase 3 RGPD art. 9 CC — droit a l'image (self pour adultes).
   const [imageRightsConsent, setImageRightsConsent] = useState(false);
   const [savingImageRights, setSavingImageRights] = useState(false);
+  // Droit à l'image : un mineur ne peut pas s'autoriser lui-même (verrou base
+  // guard_minor_image_consent). < 15 ans : représentant légal en ligne ;
+  // 15-17 ans : autorisation écrite d'un parent enregistrée par le club.
+  const selfBirthdate = (profile?.birthdate as string | null) ?? null;
+  const selfIsUnder15 = requiresParentalConsent(selfBirthdate);
+  const selfIsMinor = isMinorPhase0(selfBirthdate);
+  const selfImageConsentAt = (profile?.image_rights_consent_at as string | null) ?? null;
 
   // RG2-001 / RG2-002 — droits RGPD adultes (export / effacement self).
   const [erasureReason, setErasureReason] = useState("");
@@ -533,24 +541,39 @@ export default function Profile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-card">
-              <div className="flex-1 space-y-1">
+            {selfIsMinor ? (
+              <div className="space-y-2 p-3 rounded-lg border bg-card">
                 <p className="font-medium text-sm">
-                  J'autorise la diffusion de ma photo au sein du club
+                  {selfImageConsentAt
+                    ? `Affichage de votre photo autorisé depuis le ${new Date(selfImageConsentAt).toLocaleDateString("fr-FR")}`
+                    : "Votre photo est masquée"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Consentement spécifique et révocable à tout moment (RGPD art. 7 §3).
-                  Tant que cette option est désactivée, votre photo est masquée
-                  partout dans l'application.
+                  {selfIsUnder15
+                    ? "Tant que vous avez moins de 15 ans, seul votre représentant légal peut autoriser l'affichage de votre photo, depuis son espace parent."
+                    : "Tant que vous êtes mineur, l'affichage de votre photo doit être autorisé par l'un de vos parents. Remettez son autorisation écrite à votre coach ou au responsable de votre club, qui l'enregistrera."}
                 </p>
               </div>
-              <Switch
-                checked={imageRightsConsent}
-                disabled={savingImageRights}
-                onCheckedChange={handleToggleImageRights}
-                aria-label="Autoriser la diffusion de ma photo"
-              />
-            </div>
+            ) : (
+              <div className="flex items-start justify-between gap-4 p-3 rounded-lg border bg-card">
+                <div className="flex-1 space-y-1">
+                  <p className="font-medium text-sm">
+                    J'autorise la diffusion de ma photo au sein du club
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Consentement spécifique et révocable à tout moment (RGPD art. 7 §3).
+                    Tant que cette option est désactivée, votre photo est masquée
+                    partout dans l'application.
+                  </p>
+                </div>
+                <Switch
+                  checked={imageRightsConsent}
+                  disabled={savingImageRights}
+                  onCheckedChange={handleToggleImageRights}
+                  aria-label="Autoriser la diffusion de ma photo"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -558,6 +581,9 @@ export default function Profile() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Mes données personnelles (RGPD)</CardTitle>
+            <a href="/confidentialite" className="text-xs text-primary hover:underline">
+              Comment mes données sont-elles utilisées ?
+            </a>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Export */}

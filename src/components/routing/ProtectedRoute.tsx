@@ -23,6 +23,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { PrivacyNoticeGate } from "@/components/legal/PrivacyNoticeGate";
 
 const RouteLoader = () => (
   <div className="flex h-screen items-center justify-center">
@@ -112,5 +113,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     }
   }
 
-  return <>{children}</>;
+  // Notice d'information : accusé de lecture requis une fois par version,
+  // pour tous les rôles et tous les âges.
+  return <PrivacyNoticeGate>{children}</PrivacyNoticeGate>;
 };

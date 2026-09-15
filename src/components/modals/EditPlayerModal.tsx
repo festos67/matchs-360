@@ -44,7 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ShieldCheck, AlertTriangle } from "lucide-react";
-import { requiresParentalConsent } from "@/lib/age-policy";
+import { isMinorPhase0, requiresParentalConsent } from "@/lib/age-policy";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { validateUpload, UploadValidationError } from "@/lib/upload-validation";
@@ -107,6 +107,45 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
 
   const isMinorForConsent = requiresParentalConsent(birthdate);
 
+  // ===== Droit à l'image (mineur de 15 à 17 ans) =====
+  // Aucun parcours en ligne pour un parent à cet âge : le staff enregistre
+  // l'autorisation écrite reçue (RPC record_paper_image_consent, tracée).
+  const isMinor15to17 = isMinorPhase0(birthdate) && !isMinorForConsent;
+  const [imageConsentAt, setImageConsentAt] = useState<string | null>(null);
+  const [paperReceivedOn, setPaperReceivedOn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [savingImageConsent, setSavingImageConsent] = useState(false);
+
+  const saveImageConsent = async (granted: boolean) => {
+    setSavingImageConsent(true);
+    try {
+      const { error } = await supabase.rpc(
+        "record_paper_image_consent" as never,
+        { _player_id: player.id, _granted: granted, _received_on: paperReceivedOn } as never,
+      );
+      if (error) throw error;
+      setImageConsentAt(granted ? paperReceivedOn : null);
+      toast.success(
+        granted
+          ? "Autorisation parentale enregistrée : la photo est visible"
+          : "Autorisation retirée : la photo est masquée",
+      );
+      onSuccess();
+    } catch (e) {
+      const msg = String((e as { message?: string })?.message ?? "");
+      if (msg.includes("PAPER_IMAGE_CONSENT_15_17_ONLY")) {
+        toast.error("Réservé aux joueurs de 15 à 17 ans");
+      } else if (msg.includes("INVALID_RECEIVED_ON")) {
+        toast.error("La date de réception ne peut pas être dans le futur");
+      } else if (msg.includes("NOT_AUTHORIZED")) {
+        toast.error("Action non autorisée");
+      } else {
+        toast.error("Impossible d'enregistrer l'autorisation");
+      }
+    } finally {
+      setSavingImageConsent(false);
+    }
+  };
+
   // Charge la date de naissance actuelle à l'ouverture (non incluse dans la prop player).
   useEffect(() => {
     if (!open) return;
@@ -114,11 +153,12 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     (async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("birthdate")
+        .select("birthdate, image_rights_consent_at")
         .eq("id", player.id)
         .maybeSingle();
       if (!cancelled && !error && data) {
         setBirthdate(data.birthdate ? String(data.birthdate).slice(0, 10) : "");
+        setImageConsentAt(data.image_rights_consent_at ?? null);
       }
     })();
     return () => {
@@ -368,6 +408,59 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
               currentRole="player"
               onRoleAdded={onSuccess}
             />
+          )}
+
+          {isMinor15to17 && (
+            <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Droit à l'image</h3>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Joueur de 15 à 17 ans : sa photo n'est affichée qu'avec l'autorisation écrite
+                d'un de ses parents. Conservez le document reçu.
+              </p>
+              {imageConsentAt ? (
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm">
+                    Autorisation enregistrée le{" "}
+                    <span className="font-medium">
+                      {new Date(imageConsentAt).toLocaleDateString("fr-FR")}
+                    </span>
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={savingImageConsent}
+                    onClick={() => saveImageConsent(false)}
+                  >
+                    Retirer l'autorisation
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="paper-received-on">Autorisation reçue le</Label>
+                    <Input
+                      id="paper-received-on"
+                      type="date"
+                      value={paperReceivedOn}
+                      max={new Date().toISOString().slice(0, 10)}
+                      onChange={(e) => setPaperReceivedOn(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={savingImageConsent || !paperReceivedOn}
+                    onClick={() => saveImageConsent(true)}
+                  >
+                    Enregistrer l'autorisation parentale
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
 
           {isMinorForConsent && (

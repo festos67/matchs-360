@@ -80,6 +80,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Supporters = lazy(() => import("./pages/Supporters"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const LogoDemo = lazy(() => import("./pages/LogoDemo"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 export { queryClient };
 
@@ -103,6 +104,7 @@ const App = () => (
               <Route path="/guardian/consent" element={<GuardianConsent />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/logo-demo" element={<LogoDemo />} />
+              <Route path="/confidentialite" element={<Privacy />} />
 
               {/* Dashboard redirect */}
               <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
