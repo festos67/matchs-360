@@ -22,9 +22,10 @@
  * - Tous les chiffres viennent de la fonction serveur
  *   get_coach_my_club_dashboard_stats : les règles d'accès limitent un coach à
  *   ses propres équipes, un comptage côté navigateur serait donc faux.
- * - La galerie d'équipes, elle, reste soumise à ces règles : un coach n'y voit
- *   que ses équipes tant que l'aperçu en lecture seule des autres équipes n'est
- *   pas livré.
+ * - La galerie montre TOUTES les équipes du club : les règles d'accès ouvrent
+ *   aux coachs du club la lecture des équipes qu'ils n'encadrent pas
+ *   (migration club_coaches_read_only_team_view). La fiche équipe s'ouvre
+ *   alors en lecture seule — TeamDetail, isClubCoachViewing.
  */
 import { useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";

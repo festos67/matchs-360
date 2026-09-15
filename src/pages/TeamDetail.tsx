@@ -232,13 +232,37 @@ export default function TeamDetail() {
   const isClubAdmin = team ? roles.some(r => r.role === "club_admin" && r.club_id === team.club_id) : false;
   const isCoachOfTeam = members.some(m => m.member_type === "coach" && m.profile.id === user?.id);
   const isReferentCoach = members.some(m => m.member_type === "coach" && m.profile.id === user?.id && m.coach_role === "referent");
-  const isPlayerViewing = !isAdmin && !isClubAdmin && !isCoachOfTeam && members.some(m => m.member_type === "player" && m.profile.id === user?.id);
-  const isSupporterViewing = roles.some(r => r.role === "supporter") && !isAdmin && !isClubAdmin && !isCoachOfTeam && !isPlayerViewing;
+
+  // Coach du club qui n'encadre PAS cette équipe : il voit la même page que le
+  // coach de l'équipe, en lecture seule. La lecture est ouverte par les règles
+  // d'accès (migration club_coaches_read_only_team_view) ; aucune écriture ne
+  // l'est. Ce drapeau ne sert qu'à l'affichage — masquer les actions, montrer
+  // les onglets que le coach de l'équipe voit.
+  const { data: isClubCoachOfTeam = false } = useQuery({
+    queryKey: ["is-club-coach-of-team", user?.id, id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc(
+        "is_club_coach_of_team" as never,
+        { _user_id: user!.id, _team_id: id! } as never,
+      );
+      if (error) {
+        console.error("is_club_coach_of_team failed", error);
+        return false;
+      }
+      return data === true;
+    },
+    enabled: !!user && !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+  const isClubCoachViewing = isClubCoachOfTeam && !isCoachOfTeam && !isAdmin && !isClubAdmin;
+
+  const isPlayerViewing = !isAdmin && !isClubAdmin && !isCoachOfTeam && !isClubCoachViewing && members.some(m => m.member_type === "player" && m.profile.id === user?.id);
+  const isSupporterViewing = roles.some(r => r.role === "supporter") && !isAdmin && !isClubAdmin && !isCoachOfTeam && !isClubCoachViewing && !isPlayerViewing;
   const canManageTeam = isAdmin || isClubAdmin || isCoachOfTeam;
   const canEditFramework = isAdmin || isClubAdmin || isReferentCoach;
   const canMutatePlayers = isAdmin || isClubAdmin;
   const canEditObjectives = isAdmin || isClubAdmin || isReferentCoach;
-  const canViewObjectives = canEditObjectives || isCoachOfTeam || isPlayerViewing;
+  const canViewObjectives = canEditObjectives || isCoachOfTeam || isClubCoachViewing || isPlayerViewing;
 
   const coaches = members.filter(m => m.member_type === "coach");
   const players = members.filter(m => m.member_type === "player");
@@ -364,7 +388,21 @@ export default function TeamDetail() {
   return (
     <AppLayout>
       {!isPlayerViewing && !isSupporterViewing && (
-        <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate(`/clubs/${team.club_id}`)}><ArrowLeft className="w-4 h-4 mr-2" />Retour au club</Button>
+        // Un coach revient à SA page « Mon club », pas à la fiche club du
+        // responsable, qui ne lui propose rien.
+        <Button
+          variant="ghost"
+          className="mb-3 -ml-2"
+          onClick={() =>
+            navigate(
+              !isAdmin && !isClubAdmin && (isCoachOfTeam || isClubCoachViewing)
+                ? "/coach/my-club"
+                : `/clubs/${team.club_id}`,
+            )
+          }
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />Retour au club
+        </Button>
       )}
       {isSupporterViewing && (
         <Button variant="ghost" className="mb-3 -ml-2" onClick={() => navigate("/supporter/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Retour à mes joueurs</Button>
@@ -384,6 +422,15 @@ export default function TeamDetail() {
               <span className="flex items-center gap-1.5">• {players.length} joueur{players.length > 1 ? "s" : ""}</span>
               <span className="flex items-center gap-1.5">• {supporterCount} supporter{supporterCount > 1 ? "s" : ""}</span>
               {team.season && <Badge variant="secondary">{team.season}</Badge>}
+              {isClubCoachViewing && (
+                <Badge
+                  variant="outline"
+                  className="border-orange-500/50 text-orange-600 dark:text-orange-400"
+                  title="Vous n'encadrez pas cette équipe : consultation uniquement"
+                >
+                  Lecture seule
+                </Badge>
+              )}
             </div>
             </div>
           </div>
@@ -618,7 +665,9 @@ export default function TeamDetail() {
                             Modifier
                           </Button>
                         )}
-                        {!isSupporterViewing && (
+                        {/* L'historique permet de RESTAURER une version : il n'a
+                            pas sa place en lecture seule. */}
+                        {!isSupporterViewing && !isClubCoachViewing && (
                           <ProFeatureLock
                             locked={!canVersionFramework}
                             label="Historique des versions réservé au plan Pro"
