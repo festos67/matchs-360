@@ -32,7 +32,8 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { AlertCircle, Check, ShieldCheck } from "lucide-react";
+import { AlertCircle, Check, KeyRound, ShieldCheck } from "lucide-react";
+import { identifierFromEmail } from "@/lib/technical-identity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,6 +77,9 @@ export default function GuardianConsent() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  // Identifiant de l'enfant inscrit sans adresse : après le consentement, le
+  // parent doit lui définir un mot de passe (aucun e-mail ne lui parvient).
+  const [childIdentifier, setChildIdentifier] = useState<string | null>(null);
   const [relationship, setRelationship] = useState<Relationship | "">("");
   const [accepted, setAccepted] = useState(false);
   const [consentPhoto, setConsentPhoto] = useState(false);
@@ -222,6 +226,19 @@ export default function GuardianConsent() {
       if ((data as { error?: string })?.error) {
         throw new Error((data as { error: string }).error);
       }
+      // Le consentement donne désormais accès à la fiche de l'enfant : on y lit
+      // son identifiant s'il n'a pas d'adresse. Sans incidence en cas d'échec.
+      try {
+        const { data: childRecord } = await supabase.rpc(
+          "get_minor_record" as never,
+          { _minor_id: minorId } as never,
+        );
+        setChildIdentifier(
+          identifierFromEmail((childRecord as { email?: string | null } | null)?.email),
+        );
+      } catch (identifierErr) {
+        console.warn("child identifier lookup failed", identifierErr);
+      }
       setDone(true);
     } catch (e) {
       console.error("record-parental-consent failed:", e);
@@ -258,6 +275,7 @@ export default function GuardianConsent() {
   }
 
   if (done) {
+    const childFirstName = minor?.first_name?.trim() || "votre enfant";
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md bg-card border rounded-xl p-8 text-center">
@@ -267,8 +285,29 @@ export default function GuardianConsent() {
             Votre consentement a bien été enregistré. Une attestation récapitulant
             les autorisations que vous avez données vous a été envoyée par email.
           </p>
+          {childIdentifier && (
+            <div className="mt-6 space-y-2 rounded-lg border border-primary/30 bg-primary/5 p-4 text-left">
+              <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                <KeyRound className="h-4 w-4 shrink-0 text-primary" />
+                Prochaine étape : le mot de passe de {childFirstName}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Identifiant de connexion :{" "}
+                <span className="font-mono font-medium text-foreground">{childIdentifier}</span>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {childFirstName} n'a pas d'adresse e-mail : aucun message ne lui est envoyé.
+                Définissez son mot de passe, puis transmettez-le-lui avec son identifiant.
+              </p>
+              <Button className="w-full" onClick={() => navigate("/parent/my-children")}>
+                Définir le mot de passe
+              </Button>
+            </div>
+          )}
           <p className="mt-6 text-sm font-medium text-foreground">
-            Vous pouvez fermer cette fenêtre.
+            {childIdentifier
+              ? "Vous pourrez aussi le faire plus tard depuis votre espace « Mes enfants ». Vous pouvez fermer cette fenêtre."
+              : "Vous pouvez fermer cette fenêtre."}
           </p>
         </div>
       </div>

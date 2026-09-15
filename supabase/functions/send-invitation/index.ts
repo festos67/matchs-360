@@ -5,6 +5,7 @@ import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
 import {
   buildIdentifierBase,
+  identifierFromEmail,
   isTechnicalAddress,
   technicalEmailFor,
 } from "../_shared/technical-identity.ts";
@@ -1325,6 +1326,9 @@ const handler = async (req: Request): Promise<Response> => {
         userId,
         emailSent: !!resend && !inviteEmailError,
         isMinorGuardianFlow: isMinorWithGuardian,
+        // Identifiant de connexion d'un enfant inscrit sans adresse (null
+        // sinon) : le club peut le noter, le parent définira le mot de passe.
+        loginIdentifier: identifierFromEmail(email),
         guardianEmailSent,
         ...(guardianEmailError ? { guardianEmailError } : {}),
         ...(inviteEmailError

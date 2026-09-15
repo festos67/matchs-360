@@ -359,16 +359,39 @@ export const CreatePlayerModal = ({
       // au représentant légal. On adapte le toast et on remonte un avertissement
       // si Resend n'a pas pu joindre le titulaire de l'autorité parentale.
       if (result?.isMinorGuardianFlow) {
+        // Enfant inscrit sans adresse : il n'aura accès qu'après le
+        // consentement, avec le mot de passe défini par son représentant légal.
+        // L'identifiant vient du serveur ; s'il manque (fonction pas encore
+        // redéployée), le message reste juste sans lui. Le message reste
+        // affiché jusqu'à « Compris » pour laisser le temps de le noter.
+        const noChildEmail = !data.email?.trim();
+        const loginIdentifier: string | null = result?.loginIdentifier ?? null;
+        const accessNote = noChildEmail
+          ? `${
+              loginIdentifier
+                ? `Identifiant de connexion de l'enfant : ${loginIdentifier}.`
+                : "Un identifiant de connexion a été créé pour l'enfant."
+            } Le compte sera utilisable dès que le représentant légal aura donné son consentement : il définira alors le mot de passe depuis son espace et le transmettra à l'enfant.`
+          : "";
+        const stickyOptions = noChildEmail
+          ? { duration: Infinity, action: { label: "Compris", onClick: () => {} } }
+          : {};
         if (result?.guardianEmailSent) {
           toast.success("Joueur enregistré — consentement parental demandé", {
-            description: `Un email de demande de consentement a été envoyé à ${data.guardianEmail}.`,
+            description: `Un email de demande de consentement a été envoyé à ${data.guardianEmail}.${
+              accessNote ? ` ${accessNote}` : ""
+            }`,
+            ...stickyOptions,
           });
         } else {
           toast.warning("Joueur enregistré mais email parental non envoyé", {
             description: `L'email à ${data.guardianEmail} a échoué${
               result?.guardianEmailError ? ` (${result.guardianEmailError})` : ""
-            }. Vous pourrez le renvoyer depuis la fiche du joueur (Responsable légal).`,
+            }. Vous pourrez le renvoyer depuis la fiche du joueur (Responsable légal).${
+              accessNote ? ` ${accessNote}` : ""
+            }`,
             duration: 9000,
+            ...stickyOptions,
           });
         }
       } else {

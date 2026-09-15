@@ -26,6 +26,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
+import { identifierFromEmail } from "../_shared/technical-identity.ts";
 
 type Relationship = "mere" | "pere" | "tuteur_legal" | "autre_titulaire";
 
@@ -440,7 +441,7 @@ const handler = async (req: Request): Promise<Response> => {
     try {
       const { data: minor } = await admin
         .from("profiles")
-        .select("first_name, last_name, club_id")
+        .select("first_name, last_name, club_id, email")
         .eq("id", body.minor_profile_id)
         .maybeSingle();
       const childName =
@@ -468,6 +469,30 @@ const handler = async (req: Request): Promise<Response> => {
       const guardianDisplayName = `${guardianFirstName} ${guardianLastName}`;
       const origin = getSafeOrigin(req);
       const attestationUrl = `${origin}/consent/${inserted.id}/attestation`;
+      // Enfant inscrit sans adresse : aucun e-mail ne peut lui parvenir. Le
+      // parent doit maintenant lui définir un mot de passe depuis son espace.
+      const childIdentifier = identifierFromEmail(minor?.email);
+      const myChildrenUrl = `${origin}/parent/my-children`;
+      const passwordStepBlock = childIdentifier
+        ? `
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin:16px 0;">
+      <p style="margin:0 0 8px;font-size:14px;color:#1e3a8a;font-weight:bold;">
+        Prochaine étape : le mot de passe de ${escapeHtml(minor?.first_name || childName)}
+      </p>
+      <p style="margin:0 0 8px;font-size:14px;color:#374151;line-height:1.6;">
+        Identifiant de connexion :
+        <strong style="font-family:monospace;">${escapeHtml(childIdentifier)}</strong>
+      </p>
+      <p style="margin:0 0 12px;font-size:14px;color:#374151;line-height:1.6;">
+        ${escapeHtml(childName)} n'a pas d'adresse e-mail : aucun message ne lui est envoyé.
+        Définissez son mot de passe depuis votre espace « Mes enfants », puis
+        transmettez-le-lui avec son identifiant.
+      </p>
+      <a href="${myChildrenUrl}" style="display:inline-block;background:#2563eb;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;">
+        Définir le mot de passe
+      </a>
+    </div>`
+        : "";
 
       const decisionsTable = `
         <table style="width:100%;font-size:14px;color:#374151;border-collapse:collapse;margin:16px 0;">
@@ -505,6 +530,7 @@ const handler = async (req: Request): Promise<Response> => {
     <p style="font-size:14px;color:#374151;line-height:1.6;">
       Le compte de ${escapeHtml(childName)} est désormais <strong>actif</strong>.
     </p>
+    ${passwordStepBlock}
     <a href="${attestationUrl}" style="display:block;background:#2563eb;color:white;text-decoration:none;padding:14px 24px;border-radius:8px;text-align:center;font-weight:600;margin:24px 0;">
       Consulter et imprimer l'attestation
     </a>
