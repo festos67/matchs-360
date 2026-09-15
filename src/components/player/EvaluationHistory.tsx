@@ -67,6 +67,7 @@ interface Evaluation {
   framework_id: string;
   type: "coach" | "self" | "supporter";
   evaluator_id?: string | null;
+  player_id?: string;
   coach: { first_name: string | null; last_name: string | null };
   scores: Array<{
     skill_id: string;
@@ -321,9 +322,14 @@ export function EvaluationHistory({
                )}
             </div>
             <p className="text-sm text-muted-foreground">
-              {isCoachType 
+              {isCoachType
                 ? `Par ${[evaluation.coach?.first_name, evaluation.coach?.last_name].filter(Boolean).join(" ") || "Coach"} • `
-                : ""}
+                : evaluation.type === "self" &&
+                    evaluation.player_id &&
+                    evaluation.evaluator_id &&
+                    evaluation.evaluator_id !== evaluation.player_id
+                  ? "Rempli avec le représentant légal • "
+                  : ""}
               {format(new Date(evaluation.date), "d MMMM yyyy", { locale: fr })}
             </p>
           </div>

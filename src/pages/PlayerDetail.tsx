@@ -40,10 +40,11 @@
  */
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams, Navigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, RotateCcw, BookOpen, ClipboardList, Download, Plus, Target, Save, Trash2, ChevronUp, Star, ArrowLeft, Pencil, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useReactToPrint } from "react-to-print";
-import { isMinorPhase0 } from "@/lib/age-policy";
+import { isMinorPhase0, requiresParentalConsent } from "@/lib/age-policy";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +77,24 @@ export default function PlayerDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading: authLoading, roles, currentRole } = useAuth();
   const isSupporterViewer = currentRole?.role === "supporter";
+  // Représentant légal (enfant mineur, consentement actif) : il consulte la
+  // fiche comme son enfant, en lecture seule. Ce qu'il voit dépend de l'âge ;
+  // la base applique la même règle (policies « Guardians … »).
+  const { data: isGuardianViewer = false } = useQuery({
+    queryKey: ["is-legal-guardian", user?.id, id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc(
+        "has_guardian_access" as never,
+        { _guardian_id: user!.id, _minor_id: id! } as never,
+      );
+      if (error) {
+        console.error("has_guardian_access failed", error);
+        return false;
+      }
+      return data === true;
+    },
+    enabled: !!user && !!id,
+  });
   const { isSuperAdmin, myAdminClubIds } = useClubAdminScope();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -90,11 +109,22 @@ export default function PlayerDetail() {
     loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
 
+  // Parent : moins de 15 ans → tout le suivi ; 15-17 ans → débriefs du coach
+  // (et ce qu'il a lui-même rempli). Vue « comme le joueur », sans action,
+  // sauf s'il a aussi un rôle d'encadrement sur ce joueur.
+  const guardianChildUnder15 = requiresParentalConsent(player?.birthdate);
+  const viewAsPlayer = isPlayerViewingOwnProfile || (isGuardianViewer && !canEvaluate && !canMutate);
+  const hideSupporterLayer = isGuardianViewer ? !guardianChildUnder15 : isPlayerViewingOwnProfile;
+
   // Supporter visibility rules (privacy with the coach):
   //  - Only the 2 most recent coach debriefs are visible (older ones hidden)
   //  - Self-debriefs from the player are never visible
   //  - Only the supporter's own supporter debriefs are visible
   const evaluations = useMemo(() => {
+    if (isGuardianViewer) {
+      if (guardianChildUnder15) return rawEvaluations;
+      return rawEvaluations.filter((e) => e.type === "coach" || e.evaluator_id === user?.id);
+    }
     if (!isSupporterViewer) return rawEvaluations;
     const recentCoachIds = new Set(
       rawEvaluations
@@ -112,7 +142,7 @@ export default function PlayerDetail() {
       if (e.type === "coach") return recentCoachIds.has(e.id);
       return true;
     });
-  }, [rawEvaluations, isSupporterViewer, user?.id]);
+  }, [rawEvaluations, isSupporterViewer, isGuardianViewer, guardianChildUnder15, user?.id]);
 
   // Local UI state
   const [selectedEvaluation, setSelectedEvaluation] = useState<Evaluation | null>(null);
@@ -506,7 +536,7 @@ export default function PlayerDetail() {
         datasets.push({ label: "Auto-éval", data: calculateRadarData(ts), color: "#F59E0B", themeScores: ts });
       }
     }
-    if (showSupporterLayer && !isPlayerViewingOwnProfile) {
+    if (showSupporterLayer && !hideSupporterLayer) {
       const supEval = evaluations.find(e => e.type === "supporter" && !e.deleted_at && e.framework_id === frameworkId);
       if (supEval && supEval.id !== selectedEvaluation?.id) {
         const ts = getRadarDataFromEvaluation(supEval);
@@ -563,7 +593,9 @@ export default function PlayerDetail() {
           canMutate={canMutate}
           consentPending={consentPending}
           isAdmin={isAdmin}
-          isPlayerViewingOwnProfile={isPlayerViewingOwnProfile}
+          isPlayerViewingOwnProfile={viewAsPlayer}
+          isGuardianViewer={isGuardianViewer}
+          guardianChildUnder15={guardianChildUnder15}
           isViewingHistory={isViewingHistory}
           hasDraftEvaluation={hasDraftEvaluation}
           hasSelectedEvaluation={!!selectedEvaluation}
@@ -685,7 +717,7 @@ export default function PlayerDetail() {
             comparisonIds={comparisonIds}
             onReturnToCurrent={handleReturnToCurrent}
             onToggleComparison={toggleComparison}
-            hideSupporterLayer={isPlayerViewingOwnProfile}
+            hideSupporterLayer={hideSupporterLayer}
             showSelfEvalLayer={showSelfEvalLayer}
             showSupporterLayer={showSupporterLayer}
             onToggleSelfEvalLayer={setShowSelfEvalLayer}
@@ -817,9 +849,11 @@ export default function PlayerDetail() {
             onToggleComparison={toggleComparison}
             onRefresh={refetchAll}
             onPrintEvaluation={handlePrintEvaluationFromHistory}
-            hideSupporterSection={isPlayerViewingOwnProfile && !isSupporterViewer}
-            hideSelfSection={isSupporterViewer}
-            hideSelfPrint={isPlayerViewingOwnProfile}
+            hideSupporterSection={
+              isGuardianViewer ? !guardianChildUnder15 : isPlayerViewingOwnProfile && !isSupporterViewer
+            }
+            hideSelfSection={isGuardianViewer ? false : isSupporterViewer}
+            hideSelfPrint={viewAsPlayer}
             editableSupporterEvaluatorId={isSupporterViewer ? user?.id : undefined}
             onEditSupporterEvaluation={
               isSupporterViewer
@@ -849,9 +883,18 @@ export default function PlayerDetail() {
                   <Button variant="outline" size="sm" className="gap-2" onClick={() => handlePrintFramework()}>
                     <Download className="w-4 h-4" />Imprimer
                   </Button>
-                  {isPlayerViewingOwnProfile && (
+                  {currentRole?.role === "player" && user?.id === id && (
                     <Button size="sm" className="gap-2" onClick={() => navigate("/player/self-evaluation")}>
                       <Star className="w-4 h-4" />M'auto-débriefer
+                    </Button>
+                  )}
+                  {isGuardianViewer && guardianChildUnder15 && (
+                    <Button
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => navigate(`/parent/children/${id}/self-evaluation`)}
+                    >
+                      <Star className="w-4 h-4" />Auto-débrief avec {player.first_name || "mon enfant"}
                     </Button>
                   )}
                 </div>

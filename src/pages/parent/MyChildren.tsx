@@ -30,6 +30,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { usePhotoUrl } from "@/hooks/usePhotoUrl";
 import { identifierFromEmail } from "@/lib/technical-identity";
+import { requiresParentalConsent } from "@/lib/age-policy";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { USER_MIN_LENGTH, PASSWORD_HELP_TEXT, validateUserPassword } from "@/lib/password-policy";
 import {
   Loader2, Download, Trash2, Shield, History, FileText,
@@ -64,7 +66,8 @@ const MyChildren = () => {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
+    <AppLayout>
+    <div className="mx-auto w-full max-w-5xl">
       <header className="mb-8">
         <h1 className="text-3xl font-display font-bold flex items-center gap-3">
           <Shield className="h-7 w-7 text-pink-500" />
@@ -106,6 +109,7 @@ const MyChildren = () => {
         de votre enfant (RGPD art. 15). Vous pouvez le consulter ci-dessus.
       </p>
     </div>
+    </AppLayout>
   );
 };
 
@@ -468,12 +472,24 @@ const ChildCard = ({ minorId }: { minorId: string }) => {
             Suivi sportif
           </h3>
           <p className="text-sm text-muted-foreground mb-3">
-            Débriefs de l'encadrement, progression et référentiel de l'équipe de{" "}
-            {child.first_name ?? "votre enfant"}.
+            {requiresParentalConsent(child.birthdate)
+              ? `Consultez la fiche de ${child.first_name ?? "votre enfant"} comme il la voit : débriefs, auto-débriefs, avis des supporters, objectifs et référentiel de l'équipe.`
+              : `Depuis ses 15 ans, ${child.first_name ?? "votre enfant"} gère ses données : vous consultez les débriefs du coach et ses objectifs.`}
           </p>
-          <Button asChild variant="outline" size="sm">
-            <Link to={`/supporter/players/${minorId}`}>Voir les débriefs</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/players/${minorId}`}>
+                Voir la fiche de {child.first_name ?? "mon enfant"}
+              </Link>
+            </Button>
+            {requiresParentalConsent(child.birthdate) && (
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/parent/children/${minorId}/self-evaluation`}>
+                  Auto-débrief avec {child.first_name ?? "mon enfant"}
+                </Link>
+              </Button>
+            )}
+          </div>
         </section>
 
         {/* Accès de l'enfant à l'application. Sans adresse e-mail, aucun lien

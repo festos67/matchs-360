@@ -34,6 +34,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, Check, KeyRound, ShieldCheck } from "lucide-react";
 import { identifierFromEmail } from "@/lib/technical-identity";
+import { PASSWORD_HELP_TEXT, USER_MIN_LENGTH, validateUserPassword } from "@/lib/password-policy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,6 +81,11 @@ export default function GuardianConsent() {
   // Identifiant de l'enfant inscrit sans adresse : après le consentement, le
   // parent doit lui définir un mot de passe (aucun e-mail ne lui parvient).
   const [childIdentifier, setChildIdentifier] = useState<string | null>(null);
+  // Compte créé par le lien d'invitation : pas encore de mot de passe. Le
+  // parent le choisit ici pour pouvoir revenir dans son espace parent.
+  const [needsPassword, setNeedsPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [relationship, setRelationship] = useState<Relationship | "">("");
   const [accepted, setAccepted] = useState(false);
   const [consentPhoto, setConsentPhoto] = useState(false);
@@ -174,6 +180,10 @@ export default function GuardianConsent() {
           resolved = minorRow as MinorInfo | null;
         }
 
+        // Le parent a-t-il déjà un mot de passe ? En cas d'erreur, on ne le
+        // lui redemande pas (il pourra passer par « Mot de passe oublié »).
+        const { data: hasPassword } = await supabase.rpc("current_user_has_password" as never);
+
         // Pré-remplissage de l'identité si le profil du parent la porte déjà.
         const { data: me } = await supabase
           .from("profiles")
@@ -184,6 +194,7 @@ export default function GuardianConsent() {
         if (!cancelled) {
           setMinor(resolved ?? { id: minorId, first_name: null, last_name: null });
           setAccountEmail(session.user.email ?? null);
+          setNeedsPassword(hasPassword === false);
           if (me?.first_name) setFirstName(me.first_name);
           if (me?.last_name) setLastName(me.last_name);
           setChecking(false);
@@ -203,12 +214,24 @@ export default function GuardianConsent() {
   }, [minorId]);
 
   const identityComplete = firstName.trim().length > 0 && lastName.trim().length > 0;
-  const canSubmit = !!minorId && !!relationship && identityComplete && accepted && !submitting;
+  const passwordError = needsPassword
+    ? validateUserPassword(password) ??
+      (password !== passwordConfirm ? "Les deux mots de passe ne correspondent pas." : null)
+    : null;
+  const canSubmit =
+    !!minorId && !!relationship && identityComplete && accepted && !passwordError && !submitting;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setSubmitting(true);
     try {
+      // Mot de passe du parent d'abord : s'il échoue, rien n'est enregistré
+      // et le parent peut corriger avant de consentir.
+      if (needsPassword) {
+        const { error: pwErr } = await supabase.auth.updateUser({ password });
+        if (pwErr) throw pwErr;
+        setNeedsPassword(false);
+      }
       const { data, error: fnErr } = await supabase.functions.invoke(
         "record-parental-consent",
         {
@@ -436,6 +459,50 @@ export default function GuardianConsent() {
               </Select>
             </div>
           </div>
+
+          {/* ---- Mot de passe du parent (compte sans mot de passe) ---- */}
+          {needsPassword && (
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-medium">Votre mot de passe</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choisissez un mot de passe pour revenir plus tard dans votre espace
+                  parent, avec votre adresse{accountEmail ? ` ${accountEmail}` : " e-mail"}.{" "}
+                  {PASSWORD_HELP_TEXT}
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="guardianPassword">
+                    Mot de passe <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="guardianPassword"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={USER_MIN_LENGTH}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="guardianPasswordConfirm">
+                    Confirmation <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="guardianPasswordConfirm"
+                    type="password"
+                    autoComplete="new-password"
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                  />
+                </div>
+              </div>
+              {password.length > 0 && passwordError && (
+                <p className="text-xs text-destructive">{passwordError}</p>
+              )}
+            </div>
+          )}
 
           {/* ---- Attestation (socle, obligatoire) -------------------- */}
           <div className="space-y-2">

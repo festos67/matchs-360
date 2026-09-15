@@ -52,6 +52,10 @@ interface PlayerSidebarProps {
   consentPending?: boolean;
   isAdmin: boolean;
   isPlayerViewingOwnProfile: boolean;
+  /** Représentant légal consultant la fiche de son enfant (lecture seule). */
+  isGuardianViewer?: boolean;
+  /** Enfant de moins de 15 ans : le parent voit tout et peut remplir l'auto-débrief avec lui. */
+  guardianChildUnder15?: boolean;
   isViewingHistory: boolean;
   hasDraftEvaluation: boolean;
   hasSelectedEvaluation: boolean;
@@ -77,6 +81,8 @@ export function PlayerSidebar({
   consentPending = false,
   isAdmin,
   isPlayerViewingOwnProfile,
+  isGuardianViewer = false,
+  guardianChildUnder15 = false,
   isViewingHistory,
   hasDraftEvaluation,
   hasSelectedEvaluation,
@@ -340,8 +346,40 @@ export function PlayerSidebar({
         </div>
       )}
 
+      {/* Espace parent : le représentant légal consulte la fiche de son enfant */}
+      {isGuardianViewer && isPlayerViewingOwnProfile && (
+        <div className="bg-card border border-border rounded-xl p-3 mb-3">
+          <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Espace parent</p>
+          <p className="text-[11px] leading-snug text-muted-foreground mb-2">
+            {guardianChildUnder15
+              ? `Vous consultez la fiche de ${player.first_name || "votre enfant"} en lecture seule.`
+              : `Depuis ses 15 ans, ${player.first_name || "votre enfant"} gère ses données : seuls les débriefs du coach et les objectifs vous sont affichés.`}
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {guardianChildUnder15 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground"
+                onClick={() => navigate(`/parent/children/${player.id}/self-evaluation`)}
+              >
+                <Star className="w-3.5 h-3.5 text-accent" />Auto-débrief avec {player.first_name || "mon enfant"}
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground"
+              onClick={() => navigate("/parent/my-children")}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-accent" />Mes enfants
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Bloc joueur : accéder à son propre représentant légal */}
-      {isPlayerViewingOwnProfile && (
+      {isPlayerViewingOwnProfile && !isGuardianViewer && (
         <div className="bg-card border border-border rounded-xl p-3 mb-3">
           <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wide">Mes informations</p>
           <div className="flex flex-col gap-1.5">

@@ -68,6 +68,7 @@ const MyConsents = lazy(() => import("./pages/MyConsents"));
 const ConsentAttestation = lazy(() => import("./pages/ConsentAttestation"));
 const ClubConsents = lazy(() => import("./pages/ClubConsents"));
 const ParentMyChildren = lazy(() => import("./pages/parent/MyChildren"));
+const ChildSelfEvaluation = lazy(() => import("./pages/parent/ChildSelfEvaluation"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Stats = lazy(() => import("./pages/Stats"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
@@ -167,6 +168,7 @@ const App = () => (
                   courant — un coach référent doit pouvoir ouvrir le lien reçu. */}
               <Route path="/consent/:id/attestation" element={<ProtectedRoute><ConsentAttestation /></ProtectedRoute>} />
               <Route path="/parent/my-children" element={<ProtectedRoute><ParentMyChildren /></ProtectedRoute>} />
+              <Route path="/parent/children/:id/self-evaluation" element={<ProtectedRoute><ChildSelfEvaluation /></ProtectedRoute>} />
 
               <Route path="/pricing" element={<ProtectedRoute allowedRoles={['club_admin', 'admin']}><Pricing /></ProtectedRoute>} />
 

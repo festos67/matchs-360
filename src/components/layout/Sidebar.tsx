@@ -46,6 +46,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlan } from "@/hooks/usePlan";
+import { useMyChildren } from "@/hooks/useMyChildren";
 import { Crown } from "lucide-react";
 import { RadarPulseLogo } from "@/components/shared/RadarPulseLogo";
 import { Badge } from "@/components/ui/badge";
@@ -126,7 +127,14 @@ export const SidebarContent = ({ onNavigate, pinned = false, expanded = false, o
   const [showCreateEval, setShowCreateEval] = useState(false);
   const [showCertificatePicker, setShowCertificatePicker] = useState(false);
 
-  const navItems = getNavItems(currentRole?.role, isAdmin, currentRole?.club_id);
+  // Représentant légal : « Mes enfants » quel que soit le profil actif (un
+  // parent est souvent aussi coach ou supporter dans le club).
+  const { data: myChildren } = useMyChildren();
+  const hasChildren = !isAdmin && (myChildren?.length ?? 0) > 0;
+  const navItems = [
+    ...getNavItems(currentRole?.role, isAdmin, currentRole?.club_id),
+    ...(hasChildren ? [{ icon: Shield, label: "Mes enfants", path: "/parent/my-children" }] : []),
+  ];
 
   const labelCls = cn(
     "transition-opacity duration-200 whitespace-nowrap",
