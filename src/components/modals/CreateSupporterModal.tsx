@@ -57,6 +57,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PlayerSelector } from "./PlayerSelector";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConsentPendingPlayerIds } from "@/lib/minor-consent";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { uploadProfilePhoto } from "@/lib/photo-storage";
@@ -204,10 +205,16 @@ export const CreateSupporterModal = ({
     const { data } = await query;
 
     if (data) {
+      // Consentement parental en attente : pas de supporter (verrou base).
+      const pendingIds = await fetchConsentPendingPlayerIds(
+        (data as Array<{ profile: { id: string } | null }>)
+          .map((item) => item.profile?.id ?? "")
+          .filter(Boolean),
+      );
       // Un joueur inscrit dans deux équipes ne doit apparaître qu'une fois.
       const byId = new Map<string, Player>();
       for (const item of data as any[]) {
-        if (!item.profile || byId.has(item.profile.id)) continue;
+        if (!item.profile || byId.has(item.profile.id) || pendingIds.has(item.profile.id)) continue;
         byId.set(item.profile.id, {
           id: item.profile.id,
           first_name: item.profile.first_name,

@@ -48,6 +48,8 @@ interface PlayerSidebarProps {
   evaluations: Evaluation[];
   canEvaluate: boolean;
   canMutate: boolean;
+  /** Moins de 15 ans sans consentement parental valide : aucune action. */
+  consentPending?: boolean;
   isAdmin: boolean;
   isPlayerViewingOwnProfile: boolean;
   isViewingHistory: boolean;
@@ -72,6 +74,7 @@ export function PlayerSidebar({
   evaluations,
   canEvaluate,
   canMutate,
+  consentPending = false,
   isAdmin,
   isPlayerViewingOwnProfile,
   isViewingHistory,
@@ -163,6 +166,22 @@ export function PlayerSidebar({
           </div>
         </div>
       </div>
+
+      {/* Consentement parental en attente : actions sur le joueur bloquées */}
+      {!isPlayerViewingOwnProfile && consentPending && canMutate && (
+        <div
+          role="status"
+          className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 mb-3"
+        >
+          <p className="text-[11px] font-bold text-amber-900 dark:text-amber-100">
+            Consentement parental en attente
+          </p>
+          <p className="text-[11px] leading-snug text-amber-900/90 dark:text-amber-100/90 mt-1">
+            Débriefs, objectifs, supporters et demandes d'avis seront disponibles
+            dès que le représentant légal aura donné son consentement.
+          </p>
+        </div>
+      )}
 
       {/* Débriefs bloc */}
       {!isPlayerViewingOwnProfile && canEvaluate && teamMembership && (
@@ -262,7 +281,9 @@ export function PlayerSidebar({
                 <ArrowRightLeft className="w-3.5 h-3.5 text-accent" />Transférer joueur
               </Button>
             )}
-            {canEvaluate && teamMembership && (
+            {/* canMutate et non canEvaluate : consentement en attente, on garde
+                l'accès pour RETIRER des supporters (l'ajout est masqué). */}
+            {canMutate && teamMembership && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground" onClick={onManageSupporters}>
                 <Users className="w-3.5 h-3.5 text-accent" />Invitation supporters
               </Button>

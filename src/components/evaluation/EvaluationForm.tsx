@@ -58,6 +58,11 @@ import {
   type SkillScore,
 } from "@/lib/evaluation-utils";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  isMinorConsentPendingError,
+  MINOR_CONSENT_PENDING_MESSAGE,
+  MINOR_CONSENT_PENDING_TITLE,
+} from "@/lib/minor-consent";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { MinorEvaluationBanner } from "./MinorEvaluationBanner";
@@ -468,6 +473,8 @@ export const EvaluationForm = forwardRef<EvaluationFormHandle, EvaluationFormPro
         toast.error("Un débrief existe déjà pour ce joueur aujourd'hui", {
           description: "Ouvrez le débrief existant pour le modifier.",
         });
+      } else if (isMinorConsentPendingError(error)) {
+        toast.error(MINOR_CONSENT_PENDING_TITLE, { description: MINOR_CONSENT_PENDING_MESSAGE });
       } else {
         toast.error("Erreur lors de la sauvegarde");
       }

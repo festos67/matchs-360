@@ -181,6 +181,7 @@ type ErrorCode =
   | "INPUT_TEAM_NOT_IN_CLUB"
   | "INPUT_PLAYERS_OUT_OF_CLUB"
   // Business
+  | "MINOR_CONSENT_PENDING"
   | "USER_ALREADY_HAS_ROLE_IN_CLUB"
   | "PLAYER_ALREADY_IN_TEAM"
   | "TEAM_ALREADY_HAS_REFERENT"
@@ -595,6 +596,29 @@ const handler = async (req: Request): Promise<Response> => {
           message: "Un ou plusieurs joueurs sélectionnés n'appartiennent pas au club cible.",
           code: "INPUT_PLAYERS_OUT_OF_CLUB",
           status: 400,
+        });
+      }
+
+      // Consentement parental : aucun supporter ne peut être rattaché à un
+      // joueur de moins de 15 ans tant que son représentant légal n'a pas
+      // signé. Vérifié AVANT toute création de compte ; la base porte le même
+      // verrou (trigger guard_minor_consent_pending sur supporters_link).
+      const pendingChecks = await Promise.all(
+        playerIds.map((pid) => supabaseAdmin.rpc("minor_consent_pending", { _player_id: pid })),
+      );
+      if (pendingChecks.some((c) => c.error)) {
+        throw new InvitationDomainError({
+          message: "Vérification du consentement parental impossible.",
+          code: "INTERNAL_ERROR",
+          status: 500,
+        });
+      }
+      if (pendingChecks.some((c) => c.data === true)) {
+        throw new InvitationDomainError({
+          message:
+            "Le représentant légal n'a pas encore donné son consentement : impossible de rattacher un supporter à ce joueur.",
+          code: "MINOR_CONSENT_PENDING",
+          status: 409,
         });
       }
     }

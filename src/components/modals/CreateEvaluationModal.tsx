@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConsentPendingPlayerIds } from "@/lib/minor-consent";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
@@ -188,7 +189,10 @@ export const CreateEvaluationModal = ({
       }
     }
 
-    const playersList = (profiles || []).flatMap((profile) => {
+    // Consentement parental en attente : pas de débrief possible (verrou base).
+    const pendingIds = await fetchConsentPendingPlayerIds((profiles || []).map((p) => p.id));
+
+    const playersList = (profiles || []).filter((p) => !pendingIds.has(p.id)).flatMap((profile) => {
       const memberEntries = relevantPlayerMembers.filter((tm) => tm.user_id === profile.id && tm.teams);
       return memberEntries.map((tm) => {
         const team = tm.teams as any;

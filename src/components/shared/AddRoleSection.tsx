@@ -19,6 +19,12 @@
  */
 import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  fetchConsentPendingPlayerIds,
+  isMinorConsentPendingError,
+  MINOR_CONSENT_PENDING_MESSAGE,
+  MINOR_CONSENT_PENDING_TITLE,
+} from "@/lib/minor-consent";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -241,8 +247,10 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
         name: tm.profiles.nickname || `${tm.profiles.first_name || ""} ${tm.profiles.last_name || ""}`.trim() || "Joueur",
       }));
 
+    // Consentement parental en attente : pas de supporter (verrou base).
+    const pendingIds = await fetchConsentPendingPlayerIds(playerList.map((p) => p.id));
     const unique = playerList.filter(
-      (p, i, self) => self.findIndex((x) => x.id === p.id) === i
+      (p, i, self) => self.findIndex((x) => x.id === p.id) === i && !pendingIds.has(p.id)
     );
     setPlayers(unique);
   };
@@ -330,6 +338,10 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
       onRoleAdded?.();
     } catch (error: any) {
       console.error("Error adding role:", error);
+      if (isMinorConsentPendingError(error)) {
+        toast.error(MINOR_CONSENT_PENDING_TITLE, { description: MINOR_CONSENT_PENDING_MESSAGE });
+        return;
+      }
       const raw = String(error?.message || "");
       const isPermission =
         error?.code === "42501" ||

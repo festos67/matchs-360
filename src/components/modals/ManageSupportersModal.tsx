@@ -78,6 +78,8 @@ const candidateLabel = (c: SupporterCandidate) =>
   c.nickname || [c.first_name, c.last_name].filter(Boolean).join(" ") || c.email;
 
 interface ManageSupportersModalProps {
+  /** Consentement parental en attente : ajout et demandes d'avis masqués. */
+  consentPending?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   playerId: string;
@@ -95,6 +97,7 @@ export const ManageSupportersModal = ({
   clubId,
   onSuccess,
   onViewEvaluation,
+  consentPending = false,
 }: ManageSupportersModalProps) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("list");
@@ -285,21 +288,32 @@ export const ManageSupportersModal = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex min-h-0 flex-1 flex-col">
-          <TabsList className="grid w-full grid-cols-3 shrink-0">
+          <TabsList className={`grid w-full shrink-0 ${consentPending ? "grid-cols-1" : "grid-cols-3"}`}>
             <TabsTrigger value="list">
               Supporters ({supporters.length})
             </TabsTrigger>
-            <TabsTrigger value="add">
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter
-            </TabsTrigger>
-            <TabsTrigger value="invitations">
-              <Mail className="w-4 h-4 mr-2" />
-              Invitations
-            </TabsTrigger>
+            {!consentPending && (
+              <TabsTrigger value="add">
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter
+              </TabsTrigger>
+            )}
+            {!consentPending && (
+              <TabsTrigger value="invitations">
+                <Mail className="w-4 h-4 mr-2" />
+                Invitations
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="list" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+            {consentPending && (
+              <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-xs text-amber-900 dark:text-amber-100">
+                Consentement parental en attente : aucun supporter ne peut être
+                ajouté tant que le représentant légal n'a pas signé. Vous pouvez
+                seulement retirer des supporters existants.
+              </p>
+            )}
             {supporters.length > 0 ? (
               <div className="space-y-2">
                 {supporters.map((supporter) => (

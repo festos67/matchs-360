@@ -32,6 +32,11 @@ import { ThemeAccordion } from "./ThemeAccordion";
 import { EvaluationRadar } from "./EvaluationRadar";
 import { calculateRadarData, calculateOverallAverage, formatAverage, type ThemeScores, type SkillScore } from "@/lib/evaluation-utils";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  isMinorConsentPendingError,
+  MINOR_CONSENT_PENDING_MESSAGE,
+  MINOR_CONSENT_PENDING_TITLE,
+} from "@/lib/minor-consent";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
@@ -280,7 +285,11 @@ export function SupporterEvaluationForm({
       setShowSuccess(true);
     } catch (error: any) {
       console.error("Error saving supporter evaluation:", error);
-      toast.error("Erreur lors de l'enregistrement");
+      if (isMinorConsentPendingError(error)) {
+        toast.error(MINOR_CONSENT_PENDING_TITLE, { description: MINOR_CONSENT_PENDING_MESSAGE });
+      } else {
+        toast.error("Erreur lors de l'enregistrement");
+      }
     } finally {
       setIsSaving(false);
       savingRef.current = false;

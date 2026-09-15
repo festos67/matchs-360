@@ -86,7 +86,7 @@ export default function PlayerDetail() {
   const {
     player, teamMembership, referentCoach,
     frameworkId, frameworkName, themes, evaluations: rawEvaluations,
-    canEvaluate, canMutate, isAdmin, isPlayerViewingOwnProfile,
+    canEvaluate, canMutate, consentPending, isAdmin, isPlayerViewingOwnProfile,
     loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
 
@@ -561,6 +561,7 @@ export default function PlayerDetail() {
           evaluations={evaluations}
           canEvaluate={canEvaluate}
           canMutate={canMutate}
+          consentPending={consentPending}
           isAdmin={isAdmin}
           isPlayerViewingOwnProfile={isPlayerViewingOwnProfile}
           isViewingHistory={isViewingHistory}
@@ -600,6 +601,7 @@ export default function PlayerDetail() {
       {player && teamMembership && (
         <ManageSupportersModal
           open={showSupportersModal} onOpenChange={setShowSupportersModal} playerId={id!} playerName={playerName} clubId={teamMembership.team.club_id} onSuccess={refetchAll}
+          consentPending={consentPending}
           onViewEvaluation={(evaluationId) => {
             const evaluation = evaluations.find(e => e.id === evaluationId);
             if (evaluation) { setShowSupportersModal(false); handleViewEvaluation(evaluation); }

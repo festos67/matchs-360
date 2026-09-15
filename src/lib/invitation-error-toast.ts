@@ -57,6 +57,13 @@ export async function toastInvitationError(error: unknown): Promise<void> {
       toast.warning("Conflit", { description: info.message, duration: 6000 });
       return;
 
+    case "MINOR_CONSENT_PENDING":
+      toast.error("Consentement parental en attente", {
+        description: info.message,
+        duration: 8000,
+      });
+      return;
+
     case "INPUT_INVALID_EMAIL":
     case "INPUT_MISSING_CLUB":
     case "INPUT_TEAM_NOT_IN_CLUB":

@@ -20,6 +20,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchConsentPendingPlayerIds } from "@/lib/minor-consent";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchFrameworkThemesCached } from "@/hooks/useFrameworkThemes";
 
@@ -176,6 +177,15 @@ export function usePlayerData(playerId: string | undefined) {
     enabled: !!teamMembership && !!user,
   });
 
+  // 4 bis. Consentement parental en attente (< 15 ans, non signé ou révoqué) :
+  // aucune action sur le joueur. Verrou réel en base (guard_minor_consent_pending).
+  const consentQuery = useQuery({
+    queryKey: ["player-consent-pending", playerId, user?.id],
+    queryFn: async () => (await fetchConsentPendingPlayerIds([playerId!])).has(playerId!),
+    enabled: !!playerId && !!user,
+  });
+  const consentPending = consentQuery.data ?? false;
+
   // 5. Framework + themes
   const frameworkQuery = useQuery({
     queryKey: ["player-framework", teamMembership?.team_id],
@@ -237,6 +247,7 @@ export function usePlayerData(playerId: string | undefined) {
     membershipQuery.refetch();
     referentCoachQuery.refetch();
     permissionsQuery.refetch();
+    consentQuery.refetch();
     frameworkQuery.refetch();
     evaluationsQuery.refetch();
   };
@@ -252,8 +263,12 @@ export function usePlayerData(playerId: string | undefined) {
     evaluations: evaluationsQuery.data ?? [],
 
     // Permissions
-    canEvaluate: permissionsQuery.data?.canEvaluate ?? false,
+    // canEvaluate couvre débriefs, objectifs et demandes d'avis : coupé tant
+    // que le consentement parental est en attente. canMutate (modifier,
+    // transférer, gérer le représentant légal) reste disponible.
+    canEvaluate: (permissionsQuery.data?.canEvaluate ?? false) && !consentPending,
     canMutate: permissionsQuery.data?.canMutate ?? false,
+    consentPending,
     isAdmin,
     isPlayerViewingOwnProfile,
 

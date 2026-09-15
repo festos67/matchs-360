@@ -495,6 +495,27 @@ Deno.serve(async (req) => {
           return forbidden("Player outside your scope");
         }
 
+        // Consentement parental : pas de supporter pour un joueur de moins de
+        // 15 ans tant que son représentant légal n'a pas signé (même verrou en
+        // base : trigger guard_minor_consent_pending sur supporters_link).
+        if (role === "supporter" && playerId) {
+          const { data: consentPending, error: consentErr } = await supabaseAdmin.rpc(
+            "minor_consent_pending",
+            { _player_id: playerId },
+          );
+          if (consentErr) throw consentErr;
+          if (consentPending === true) {
+            return new Response(
+              JSON.stringify({
+                error:
+                  "Le représentant légal n'a pas encore donné son consentement : impossible de rattacher un supporter à ce joueur.",
+                code: "MINOR_CONSENT_PENDING",
+              }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
+        }
+
         // Le doublon se juge PAR CLUB : la contrainte est
         // UNIQUE(user_id, role, club_id). Sans ce filtre, un coach deja coach
         // d'un autre club voyait l'INSERT saute en silence — il se retrouvait
