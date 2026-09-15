@@ -101,6 +101,9 @@ export const ManageSupportersModal = ({
 }: ManageSupportersModalProps) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("list");
+  // Consentement parental en attente : seul l'onglet « Supporters » existe,
+  // même si « Ajouter » était ouvert avant (retrait possible, ajout impossible).
+  const effectiveTab = consentPending ? "list" : activeTab;
   const [existingSearch, setExistingSearch] = useState("");
   const [linkingId, setLinkingId] = useState<string | null>(null);
   // Personne choisie dans la liste, en attente de confirmation. La liaison
@@ -189,7 +192,7 @@ export const ManageSupportersModal = ({
       if (profError) throw profError;
       return (profs || []).filter((p) => !linkedIds.includes(p.id) && p.id !== playerId);
     },
-    enabled: open && activeTab === "add" && trimmedSearch.length >= 2,
+    enabled: open && effectiveTab === "add" && trimmedSearch.length >= 2,
   });
 
   const filteredExisting = existingSupporters;
@@ -287,7 +290,7 @@ export const ManageSupportersModal = ({
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4 flex min-h-0 flex-1 flex-col">
+        <Tabs value={effectiveTab} onValueChange={setActiveTab} className="mt-4 flex min-h-0 flex-1 flex-col">
           <TabsList className={`grid w-full shrink-0 ${consentPending ? "grid-cols-1" : "grid-cols-3"}`}>
             <TabsTrigger value="list">
               Supporters ({supporters.length})
@@ -349,18 +352,21 @@ export const ManageSupportersModal = ({
                 <p className="text-muted-foreground">
                   Aucun supporter associé à ce joueur
                 </p>
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => setActiveTab("add")}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ajouter un supporter
-                </Button>
+                {!consentPending && (
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => setActiveTab("add")}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter un supporter
+                  </Button>
+                )}
               </div>
             )}
           </TabsContent>
 
+          {!consentPending && (
           <TabsContent value="add" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             {/* Section : sélection d'un supporter déjà inscrit */}
             <div className="space-y-3 pb-4 mb-4 border-b border-border">
@@ -501,14 +507,17 @@ export const ManageSupportersModal = ({
               </div>
             </form>
           </TabsContent>
+          )}
 
-          <TabsContent value="invitations" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
-            <SupporterRequestsPanel
-              playerId={playerId}
-              playerName={playerName}
-              onViewEvaluation={onViewEvaluation}
-            />
-          </TabsContent>
+          {!consentPending && (
+            <TabsContent value="invitations" className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+              <SupporterRequestsPanel
+                playerId={playerId}
+                playerName={playerName}
+                onViewEvaluation={onViewEvaluation}
+              />
+            </TabsContent>
+          )}
         </Tabs>
       </DialogContent>
 
