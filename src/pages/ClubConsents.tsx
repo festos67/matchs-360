@@ -135,6 +135,12 @@ export default function ClubConsents() {
     <AppLayout>
       <div className="space-y-6">
         <div>
+          <Link
+            to="/club/users"
+            className="mb-2 inline-block text-sm text-primary hover:underline"
+          >
+            ← Utilisateurs du club
+          </Link>
           <h1 className="text-2xl font-display font-bold flex items-center gap-2">
             <FileText className="w-6 h-6 text-primary" />
             Attestations parentales

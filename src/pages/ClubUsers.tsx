@@ -10,7 +10,13 @@
  * au club du Club Admin courant. Filtrage côté client par équipe et type d'utilisateur.
  *
  * @features
- * - Filtres : équipe, rôle, recherche full-text
+ * - Filtres : équipe, rôle, âge, statut (actif / invité / suspendu),
+ *   consentement parental (validé / en attente / révoqué / aucun représentant),
+ *   recherche full-text
+ * - Regroupe les anciennes entrées de menu « Invitations » (date et auteur de
+ *   l'invitation sous le statut « Invité ») et « Attestations » (représentant
+ *   légal et date de signature dans la colonne dédiée, bouton « Registre des
+ *   attestations » vers /club/consents)
  * - Édition utilisateur (EditUserModal)
  * - Actions Super Admin masquées (promotion, reset password)
  *
@@ -56,6 +62,7 @@ import {
   Clock,
   AlertTriangle,
   ShieldOff,
+  FileText,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ADMIN_MIN_LENGTH, ADMIN_PASSWORD_HELP_TEXT, validateAdminPassword } from "@/lib/password-policy";
@@ -120,8 +127,34 @@ interface AdminUser {
 
 /** État du consentement parental, par identifiant de joueur mineur. */
 type GuardianStatus =
-  | { kind: "signed"; consentId: string; revokedAt: string | null; photo: boolean; selfEval: boolean }
+  | {
+      kind: "signed";
+      consentId: string;
+      revokedAt: string | null;
+      photo: boolean;
+      selfEval: boolean;
+      guardianName: string | null;
+      signedAt: string;
+    }
   | { kind: "pending" };
+
+/** État de consentement d'un utilisateur, pour le filtre (na = non concerné). */
+type ConsentState = "na" | "signed" | "pending" | "revoked" | "none";
+
+function consentStateOf(birthdate: string | null, status: GuardianStatus | undefined): ConsentState {
+  if (!birthdate || !requiresParentalConsent(birthdate)) return "na";
+  if (!status) return "none";
+  if (status.kind === "pending") return "pending";
+  return status.revokedAt ? "revoked" : "signed";
+}
+
+/** Dernière invitation envoyée à une adresse (date et auteur). */
+interface InvitationInfo {
+  createdAt: string;
+  inviterName: string | null;
+}
+
+const formatShortDate = (iso: string) => new Date(iso).toLocaleDateString("fr-FR");
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive text-destructive-foreground",
@@ -205,7 +238,7 @@ function GuardianCell({
       {status.revokedAt ? (
         <Badge variant="destructive" className="font-normal whitespace-nowrap w-fit">
           <ShieldOff className="w-3 h-3 mr-1" />
-          Révoqué
+          Révoqué le {formatShortDate(status.revokedAt)}
         </Badge>
       ) : (
         <Badge
@@ -213,8 +246,11 @@ function GuardianCell({
           className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-normal whitespace-nowrap w-fit group-hover:underline"
         >
           <CheckCircle className="w-3 h-3 mr-1" />
-          Validé
+          Validé le {formatShortDate(status.signedAt)}
         </Badge>
+      )}
+      {status.guardianName && (
+        <span className="text-xs text-foreground truncate max-w-[180px]">{status.guardianName}</span>
       )}
       {!status.revokedAt && (
         <span className="text-[10px] text-muted-foreground whitespace-nowrap">
@@ -243,6 +279,9 @@ export default function ClubUsers() {
   const [emailUser, setEmailUser] = useState<AdminUser | null>(null);
   const [newEmailValue, setNewEmailValue] = useState("");
   const [guardianByPlayer, setGuardianByPlayer] = useState<Map<string, GuardianStatus>>(new Map());
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [consentFilter, setConsentFilter] = useState("all");
+  const [invitationByEmail, setInvitationByEmail] = useState<Map<string, InvitationInfo>>(new Map());
 
   const isClubAdmin = currentRole?.role === "club_admin";
   const clubId = currentRole?.club_id ?? null;
@@ -323,6 +362,9 @@ export default function ClubUsers() {
       type ConsentRow = {
         consent_id: string;
         minor_id: string;
+        guardian_first_name: string | null;
+        guardian_last_name: string | null;
+        signed_at: string;
         revoked_at: string | null;
         photo_consent_at: string | null;
         self_eval_consent_at: string | null;
@@ -334,12 +376,56 @@ export default function ClubUsers() {
           revokedAt: c.revoked_at,
           photo: c.photo_consent_at !== null,
           selfEval: c.self_eval_consent_at !== null,
+          guardianName:
+            [c.guardian_first_name, c.guardian_last_name].filter(Boolean).join(" ") || null,
+          signedAt: c.signed_at,
         });
       }
 
       if (consentsRes.error) console.error("club consents fetch failed", consentsRes.error);
       if (desigRes.error) console.error("guardian designations fetch failed", desigRes.error);
       setGuardianByPlayer(map);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isClubAdmin, clubId]);
+
+  /**
+   * Date et auteur de la dernière invitation, par adresse : remplace la page
+   * « Invitations » pour le club. Chaque invitation crée le compte dès l'envoi,
+   * elle apparaît donc déjà ici avec le statut « Invité ».
+   */
+  useEffect(() => {
+    if (!isClubAdmin || !clubId) return;
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("invitations")
+        .select("email, created_at, inviter:profiles!invitations_invited_by_fkey(first_name, last_name)")
+        .eq("club_id", clubId)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      if (error) {
+        console.error("club invitations fetch failed", error);
+        return;
+      }
+      type InvitationRow = {
+        email: string;
+        created_at: string;
+        inviter: { first_name: string | null; last_name: string | null } | null;
+      };
+      const map = new Map<string, InvitationInfo>();
+      for (const inv of (data ?? []) as unknown as InvitationRow[]) {
+        const key = inv.email.toLowerCase();
+        if (map.has(key)) continue; // tri décroissant : la première est la plus récente
+        map.set(key, {
+          createdAt: inv.created_at,
+          inviterName:
+            [inv.inviter?.first_name, inv.inviter?.last_name].filter(Boolean).join(" ") || null,
+        });
+      }
+      setInvitationByEmail(map);
     })();
     return () => {
       cancelled = true;
@@ -518,8 +604,18 @@ export default function ClubUsers() {
       (ageFilter === "adult" && !!birthdate && !requiresParentalConsent(birthdate)) ||
       (ageFilter === "missing" && !birthdate);
 
-    return matchesSearch && matchesTeam && matchesRoleType && matchesAge;
+    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+
+    const matchesConsent =
+      consentFilter === "all" ||
+      consentStateOf(birthdate, guardianByPlayer.get(user.id)) === consentFilter;
+
+    return matchesSearch && matchesTeam && matchesRoleType && matchesAge && matchesStatus && matchesConsent;
   });
+
+  const noGuardianCount = users.filter(
+    (u) => consentStateOf(u.profile?.birthdate ?? null, guardianByPlayer.get(u.id)) === "none",
+  ).length;
 
   const missingBirthdateCount = users.filter((u) => !u.profile?.birthdate).length;
 
@@ -561,10 +657,18 @@ export default function ClubUsers() {
               </p>
             </div>
           </div>
-          <Button onClick={fetchUsers} variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Actualiser
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/club/consents">
+                <FileText className="w-4 h-4 mr-2" />
+                Registre des attestations
+              </Link>
+            </Button>
+            <Button onClick={fetchUsers} variant="outline" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Actualiser
+            </Button>
+          </div>
         </div>
 
         {/* Search & Filters */}
@@ -616,6 +720,29 @@ export default function ClubUsers() {
               <SelectItem value="missing">Date de naissance manquante</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="Tous les statuts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="Actif">Actifs</SelectItem>
+              <SelectItem value="Invité">Invités</SelectItem>
+              <SelectItem value="Suspendu">Suspendus</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={consentFilter} onValueChange={setConsentFilter}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Tous les consentements" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les consentements</SelectItem>
+              <SelectItem value="signed">Consentement validé</SelectItem>
+              <SelectItem value="pending">Consentement en attente</SelectItem>
+              <SelectItem value="revoked">Consentement révoqué</SelectItem>
+              <SelectItem value="none">Aucun représentant</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Stats */}
@@ -624,7 +751,13 @@ export default function ClubUsers() {
           <span>•</span>
           <span>{users.filter((u) => u.status === "Actif").length} actifs</span>
           <span>•</span>
-          <span>{users.filter((u) => u.status === "Invité").length} invités</span>
+          <button
+            type="button"
+            onClick={() => setStatusFilter("Invité")}
+            className="hover:text-foreground hover:underline"
+          >
+            {users.filter((u) => u.status === "Invité").length} invités
+          </button>
           <span>•</span>
           <span>{users.filter((u) => u.status === "Suspendu").length} suspendus</span>
           {missingBirthdateCount > 0 && (
@@ -639,6 +772,18 @@ export default function ClubUsers() {
               </button>
             </>
           )}
+          {noGuardianCount > 0 && (
+            <>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => setConsentFilter("none")}
+                className="text-destructive hover:underline"
+              >
+                {noGuardianCount} mineur{noGuardianCount > 1 ? "s" : ""} sans représentant
+              </button>
+            </>
+          )}
         </div>
 
         {/* Table */}
@@ -646,12 +791,12 @@ export default function ClubUsers() {
           <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[21%]">Identité</TableHead>
-                <TableHead className="w-[21%]">Rôles</TableHead>
-                <TableHead className="w-[11%]">Email</TableHead>
-                <TableHead className="w-[15%]">Responsable légal</TableHead>
-                <TableHead className="w-[8%]">Statut</TableHead>
-                <TableHead className="text-right w-[24%]">Actions</TableHead>
+                <TableHead className="w-[19%]">Identité</TableHead>
+                <TableHead className="w-[19%]">Rôles</TableHead>
+                <TableHead className="w-[10%]">Email</TableHead>
+                <TableHead className="w-[17%]">Responsable légal</TableHead>
+                <TableHead className="w-[12%]">Statut</TableHead>
+                <TableHead className="text-right w-[23%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -741,6 +886,16 @@ export default function ClubUsers() {
                     <Badge className={`${statusColors[user.status]} whitespace-nowrap`} variant="secondary">
                       {user.status}
                     </Badge>
+                    {user.status === "Invité" && (() => {
+                      const inv = invitationByEmail.get(user.email.toLowerCase());
+                      if (!inv) return null;
+                      return (
+                        <div className="mt-1 text-[10px] leading-tight text-muted-foreground">
+                          Invité le {formatShortDate(inv.createdAt)}
+                          {inv.inviterName && <> par {inv.inviterName}</>}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end items-center gap-1 flex-nowrap">

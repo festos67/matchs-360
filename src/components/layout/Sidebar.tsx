@@ -38,7 +38,6 @@ import {
   Award,
   Mail,
   Star,
-  FileText,
   PanelLeft,
   PanelLeftClose
 } from "lucide-react";
@@ -80,9 +79,10 @@ const getNavItems = (role: string | undefined, isAdmin: boolean, clubId?: string
         { icon: UserCircle, label: "Joueurs", path: "/players" },
         { icon: Heart, label: "Supporters", path: "/supporters" },
         { icon: Trophy, label: "Débriefs", path: "/evaluations" },
+        // Invitations et attestations sont regroupées dans « Utilisateurs »
+        // (statut invité, représentant légal, bouton « Registre des
+        // attestations ») ; les pages restent accessibles par lien direct.
         { icon: Shield, label: "Utilisateurs", path: "/club/users" },
-        { icon: FileText, label: "Attestations", path: "/club/consents" },
-        { icon: Mail, label: "Invitations", path: "/invitations" },
       ];
     case "coach":
       return [
