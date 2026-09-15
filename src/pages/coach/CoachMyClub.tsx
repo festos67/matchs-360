@@ -2,39 +2,67 @@
  * @page CoachMyClub
  * @route /coach/my-club
  *
- * Vue d'ensemble du club pour le Coach (KPI + galerie d'équipes).
+ * Page d'accueil « Mon club » du Coach.
  * (mem://features/coach/club-overview-dashboard)
  *
  * @description
- * Première entrée du menu coach. Présente l'organisation globale du club
- * (équipes, coachs, joueurs) sans permettre l'édition. Sert de hub de
- * navigation visuelle vers les fiches équipes/joueurs.
+ * Première entrée du menu coach. Reprend, de haut en bas, la structure de la
+ * page « Mon club » du responsable club, pour que les deux rôles retrouvent
+ * la même lecture :
+ *   1. Titre « Bonjour <prénom nom> » (même police que le responsable club)
+ *   2. Sous-titre
+ *   3. Encart du club : logo + équipes, coachs, joueurs, supporters, utilisateurs
+ *   4. Mon tableau de bord : mes équipes, mes joueurs, mes supporters
+ *   5. Référentiel du club (lecture seule)
+ *   6. Équipes du club
  *
- * @sections
- * - KPI : nombre d'équipes, joueurs, débriefs du mois
- * - Mes Coachs : liste de tous les coachs du club avec leur rôle
- *   (mem://logic/club-coach-scope)
- * - Galerie d'équipes : cartes cliquables vers TeamDetail
- *
- * @access Coach (Référent ou Assistant)
+ * @access Coach (Référent ou Assistant). Aucune édition possible ici.
  *
  * @maintenance
- * Affiche aussi le logo du club pré-chargé en base64 pour les exports PDF
- * éventuels.
+ * - Tous les chiffres viennent de la fonction serveur
+ *   get_coach_my_club_dashboard_stats : les règles d'accès limitent un coach à
+ *   ses propres équipes, un comptage côté navigateur serait donc faux.
+ * - La galerie d'équipes, elle, reste soumise à ces règles : un coach n'y voit
+ *   que ses équipes tant que l'aperçu en lecture seule des autres équipes n'est
+ *   pas livré.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
-import { CircleAvatar } from "@/components/shared/CircleAvatar";
-import { Users, UserCog, UserCircle, Heart, Building2, BookOpen, Printer } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Users,
+  UserCog,
+  UserCircle,
+  Heart,
+  Building2,
+  BookOpen,
+  Printer,
+  Shield,
+  Eye,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { PrintableFramework } from "@/components/framework/PrintableFramework";
 import { useReactToPrint } from "react-to-print";
+
+type CoachClubStats = {
+  my_teams: number;
+  my_players: number;
+  my_supporters: number;
+  total_teams: number;
+  total_coaches: number;
+  total_players: number;
+  total_supporters: number;
+  total_users: number;
+};
+
+const plural = (n: number, singular: string, pluralForm = `${singular}s`) =>
+  `${n} ${n > 1 ? pluralForm : singular}`;
 
 const CoachMyClub = () => {
   const navigate = useNavigate();
@@ -141,7 +169,7 @@ const CoachMyClub = () => {
   // La fonction SECURITY DEFINER contourne la restriction RLS qui limite un coach
   // à ses équipes, tout en comptant uniquement les membres actifs/non archivés.
   const { data: dashboardStats, isLoading: loadingDashboardStats } = useQuery({
-    queryKey: ["coach-my-club-dashboard-stats", "v3", user?.id, clubId, currentRole?.id],
+    queryKey: ["coach-my-club-dashboard-stats", "v4", user?.id, clubId, currentRole?.id],
     queryFn: async () => {
       if (!clubId || !user?.id) return null;
       const { data, error } = await supabase.rpc("get_coach_my_club_dashboard_stats", {
@@ -149,22 +177,14 @@ const CoachMyClub = () => {
         p_club_id: clubId,
       });
       if (error) throw error;
-      return (Array.isArray(data) ? data[0] : data) as {
-        my_teams: number;
-        my_players: number;
-        my_supporters: number;
-        total_teams: number;
-        total_coaches: number;
-        total_players: number;
-        total_supporters: number;
-      } | null;
+      return (Array.isArray(data) ? data[0] : data) as unknown as CoachClubStats | null;
     },
     enabled: !!clubId && !!user?.id && !waitingForCoachScope,
     staleTime: 5 * 60 * 1000,
   });
 
   // Fetch club framework (active template) + themes for printing
-  const { data: clubFramework } = useQuery({
+  const { data: clubFramework, isLoading: loadingFramework } = useQuery({
     queryKey: ["coach-club-framework", clubId],
     queryFn: async () => {
       if (!clubId) return null;
@@ -200,7 +220,7 @@ const CoachMyClub = () => {
   const isStatsLoading = waitingForCoachScope || loadingDashboardStats;
   const coachFirstName = (profile as any)?.first_name?.trim?.() || "";
   const coachLastName = (profile as any)?.last_name?.trim?.() || "";
-  const coachFullName = `${coachFirstName} ${coachLastName}`.trim();
+  const coachFullName = `${coachFirstName} ${coachLastName}`.trim() || user?.email?.split("@")[0] || "";
 
   // Build team info with referent coach and player count
   const teamsWithInfo = (clubTeams || []).map((team) => {
@@ -230,196 +250,238 @@ const CoachMyClub = () => {
     );
   }
 
+  // Ligne d'effectifs de l'encart club, au même format que la page du
+  // responsable club (« Référent : … · 3 équipes · 4 coachs · … »).
+  const clubFigures = isStatsLoading || !dashboardStats
+    ? null
+    : [
+        plural(dashboardStats.total_teams, "équipe"),
+        plural(dashboardStats.total_coaches, "coach"),
+        plural(dashboardStats.total_players, "joueur"),
+        plural(dashboardStats.total_supporters, "supporter"),
+        plural(dashboardStats.total_users, "utilisateur"),
+      ].join(" · ");
+
   return (
     <AppLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
-              <Building2 className="w-7 h-7 text-primary" />
-              {club?.name || "Mon Club"}
-            </h1>
-            {isCoachRole && coachFullName && (
-              <p className="text-muted-foreground mt-2">
-                Bonjour {coachFullName}, voici un aperçu de votre activité.
-              </p>
-            )}
-          </div>
-          {club && (
-            club.logo_url ? (
-              <img
-                src={club.logo_url}
-                alt={club.name}
-                className="w-16 h-16 rounded-xl object-contain border border-border bg-card flex-shrink-0"
-              />
-            ) : (
-              <div
-                className="w-16 h-16 rounded-xl flex items-center justify-center font-display font-bold text-white text-lg flex-shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${club.primary_color || "#3B82F6"} 0%, ${club.primary_color || "#3B82F6"}88 100%)`,
-                }}
-              >
-                {club.short_name ||
-                  club.name
-                    .split(" ")
-                    .map((n: string) => n[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
-              </div>
-            )
-          )}
-        </div>
+      {/* 1-2. Titre et sous-titre — même police que « Mon club » du responsable club */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-display font-bold text-foreground flex items-center gap-3">
+          Bonjour {coachFullName}
+          {currentRole?.role === "admin" && <Shield className="w-7 h-7 text-destructive" />}
+          {currentRole?.role === "club_admin" && <Building2 className="w-7 h-7 text-primary" />}
+          {isCoachRole && <UserCog className="w-7 h-7 text-orange-500" />}
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Gérer vos équipes, vos joueurs et leurs supporters
+        </p>
+      </div>
 
-        {/* Mon tableau de bord — chiffres personnels du coach */}
-        {isCoachRole && (
-          <div>
-            <h2 className="text-xl font-semibold text-foreground mb-3">
-              Mon tableau de bord
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatsCard
-                title="Mes équipes"
-                value={isStatsLoading ? "-" : String(dashboardStats?.my_teams ?? 0)}
-                icon={Users}
-                iconClassName="bg-primary/10 text-primary"
-              />
-              <StatsCard
-                title="Mes joueurs"
-                value={isStatsLoading ? "-" : String(dashboardStats?.my_players ?? 0)}
-                icon={UserCircle}
-                iconClassName="bg-green-500/10 text-green-500"
-              />
-              <StatsCard
-                title="Mes supporters"
-                value={isStatsLoading ? "-" : String(dashboardStats?.my_supporters ?? 0)}
-                icon={Heart}
-                iconClassName="bg-pink-500/10 text-pink-500"
-              />
+      {/* 3. Encart du club */}
+      <Card className="bg-card border border-border rounded-2xl p-5 mb-8 flex flex-wrap items-center gap-5">
+        {club ? (
+          <>
+            <div
+              className="relative rounded-2xl overflow-hidden flex-shrink-0 flex items-center justify-center"
+              style={{
+                width: "8.5rem",
+                height: "8.5rem",
+                backgroundColor: club.logo_url
+                  ? "hsl(var(--secondary))"
+                  : club.primary_color || "hsl(var(--secondary))",
+              }}
+            >
+              {club.logo_url ? (
+                <img
+                  src={club.logo_url}
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <span className="font-display text-5xl font-extrabold text-white">
+                  {club.short_name || club.name.slice(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-[200px] flex flex-col justify-center">
+              <h2 className="font-display text-[25px] leading-tight font-extrabold text-foreground tracking-tight truncate">
+                {club.name}
+              </h2>
+              <p className="text-[14px] text-muted-foreground mt-1">
+                {club.referent_name && <>Référent : {club.referent_name} · </>}
+                {clubFigures ?? "Chargement des effectifs…"}
+              </p>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-5 w-full">
+            <Skeleton className="w-[8.5rem] h-[8.5rem] rounded-2xl" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-7 w-48" />
+              <Skeleton className="h-4 w-80 max-w-full" />
             </div>
           </div>
         )}
+      </Card>
 
-        {/* KPI Cards — globales du club */}
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-3">Vue d'ensemble du club</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* 4. Mon tableau de bord — chiffres personnels du coach */}
+      {isCoachRole && (
+        <div className="mb-8">
+          <h2 className="text-xl font-display font-semibold text-foreground mb-4">
+            Mon tableau de bord
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatsCard
-              title="Équipes"
-              value={isStatsLoading ? "-" : String(dashboardStats?.total_teams ?? 0)}
+              title="Mes équipes"
+              value={isStatsLoading ? "-" : String(dashboardStats?.my_teams ?? 0)}
               icon={Users}
               iconClassName="bg-primary/10 text-primary"
             />
             <StatsCard
-              title="Coachs"
-              value={isStatsLoading ? "-" : String(dashboardStats?.total_coaches ?? 0)}
-              icon={UserCog}
-              iconClassName="bg-orange-500/10 text-orange-500"
-            />
-            <StatsCard
-              title="Joueurs"
-              value={isStatsLoading ? "-" : String(dashboardStats?.total_players ?? 0)}
+              title="Mes joueurs"
+              value={isStatsLoading ? "-" : String(dashboardStats?.my_players ?? 0)}
               icon={UserCircle}
               iconClassName="bg-green-500/10 text-green-500"
             />
             <StatsCard
-              title="Supporters"
-              value={isStatsLoading ? "-" : String(dashboardStats?.total_supporters ?? 0)}
+              title="Mes supporters"
+              value={isStatsLoading ? "-" : String(dashboardStats?.my_supporters ?? 0)}
               icon={Heart}
               iconClassName="bg-pink-500/10 text-pink-500"
             />
           </div>
         </div>
+      )}
 
-        {/* Référentiel du club */}
-        {clubFramework && clubId && (
-          <div>
-            <h2 className="text-xl font-semibold text-foreground mb-3">Référentiel du club</h2>
-          <button
-            type="button"
-            onClick={() => navigate(`/clubs/${clubId}/framework`)}
-            className="w-full text-left bg-card rounded-xl border border-border p-4 hover:border-primary/50 hover:shadow-sm transition-all flex items-center gap-4"
-          >
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground truncate">{clubFramework.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePrint();
-              }}
+      {/* 5. Référentiel du club — lecture seule pour le coach */}
+      {clubId && (
+        <div className="mb-8">
+          <h2 className="text-xl font-display font-semibold text-foreground mb-4">
+            Référentiel du Club
+          </h2>
+
+          {loadingFramework ? (
+            <Skeleton className="h-20 w-full rounded-xl" />
+          ) : clubFramework ? (
+            <Card
+              className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
+              onClick={() => navigate(`/clubs/${clubId}/framework`)}
             >
-              <Printer className="w-4 h-4 mr-2 text-orange-500" />
-              Imprimer
-            </Button>
-          </button>
-          </div>
-        )}
-
-        {/* Teams circles */}
-        <div>
-          <h2 className="text-xl font-semibold text-foreground mb-6">Équipes du club</h2>
-
-          {loadingTeams || loadingMembers ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <Skeleton className="w-full aspect-square max-w-[7rem] rounded-2xl" />
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-              ))}
-            </div>
-          ) : teamsWithInfo.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-              {teamsWithInfo.map((team) => (
-                <Link key={team.id} to={`/teams/${team.id}`} className="group">
-                  <div className="flex flex-col items-center text-center">
-                    <div
-                      className="w-full aspect-square max-w-[7rem] rounded-2xl flex items-center justify-center font-display font-bold text-white text-[clamp(1rem,4vw,1.75rem)] transition-transform group-hover:-translate-y-0.5 group-hover:shadow-lg"
-                      style={{
-                        background: `linear-gradient(135deg, ${team.color || "#3B82F6"} 0%, ${team.color || "#3B82F6"}88 100%)`,
+              <CardHeader className="py-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <CardTitle className="text-base truncate">{clubFramework.name}</CardTitle>
+                      <CardDescription className="truncate">
+                        {plural(clubFramework.themes_count, "thématique")} • {plural(clubFramework.skills_count, "compétence")}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/clubs/${clubId}/framework`);
                       }}
                     >
-                      {team.short_name ||
-                        team.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                    </div>
-                    <p className="font-semibold text-foreground mt-2 group-hover:text-primary transition-colors text-sm">
-                      {team.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {team.short_name || ""}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Coach : {team.referentCoachName}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {team.playerCount} joueur{team.playerCount > 1 ? "s" : ""}
-                    </p>
+                      <Eye className="w-4 h-4 mr-2 text-accent" />
+                      Consulter
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrint();
+                      }}
+                    >
+                      <Printer className="w-4 h-4 mr-2 text-accent" />
+                      Imprimer
+                    </Button>
                   </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              </CardHeader>
+            </Card>
           ) : (
-            <p className="text-muted-foreground text-center py-8">
-              Aucune équipe dans ce club
-            </p>
+            // Le cadre reste visible même sans référentiel : le coach sait ainsi
+            // qu'il existe, et à qui s'adresser. Pas de bouton de création — c'est
+            // une prérogative du responsable club.
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4">
+                  <BookOpen className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium mb-1">Aucun référentiel</h3>
+                <p className="text-sm text-muted-foreground">
+                  Le responsable du club n'a pas encore configuré le référentiel de compétences.
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
+      )}
+
+      {/* 6. Équipes du club */}
+      <div>
+        <h2 className="text-xl font-display font-semibold text-foreground mb-6">Équipes du club</h2>
+
+        {loadingTeams || loadingMembers ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <Skeleton className="w-full aspect-square max-w-[7rem] rounded-2xl" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            ))}
+          </div>
+        ) : teamsWithInfo.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {teamsWithInfo.map((team) => (
+              <Link key={team.id} to={`/teams/${team.id}`} className="group">
+                <div className="flex flex-col items-center text-center">
+                  <div
+                    className="w-full aspect-square max-w-[7rem] rounded-2xl flex items-center justify-center font-display font-bold text-white text-[clamp(1rem,4vw,1.75rem)] transition-transform group-hover:-translate-y-0.5 group-hover:shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, ${team.color || "#3B82F6"} 0%, ${team.color || "#3B82F6"}88 100%)`,
+                    }}
+                  >
+                    {team.short_name ||
+                      team.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                  </div>
+                  <p className="font-semibold text-foreground mt-2 group-hover:text-primary transition-colors text-sm">
+                    {team.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {team.short_name || ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Coach : {team.referentCoachName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {plural(team.playerCount, "joueur")}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground text-center py-8">
+            Aucune équipe dans ce club
+          </p>
+        )}
       </div>
 
       {/* Hidden printable */}
