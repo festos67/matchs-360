@@ -7,14 +7,15 @@
  * @features
  *  - Listener supabase.auth.onAuthStateChange (rafraîchissement automatique)
  *  - Chargement parallèle profiles + user_roles à chaque session
- *  - Détermination du rôle actif (persistance localStorage par utilisateur)
+ *  - Détermination du rôle actif (mémorisé pour la visite : sessionStorage ;
+ *    un utilisateur multi-profils choisit son profil à chaque entrée)
  *  - Détection compte soft-deleted (deleted_at) → signOut auto
  *  - Méthodes : signIn, signOut, switchRole, refreshProfile
  *  - Déduplication appels via état loading
  * @maintenance
- *  - Le rôle ACTIF (currentRole) est persisté localStorage uniquement comme
+ *  - Le rôle ACTIF (currentRole) est mémorisé en sessionStorage uniquement comme
  *    préférence UI (clé `matchs360_current_role:<user_id>`). Toute vérification
- *    d'autorisation reste serveur via RLS / has_role(). Le contenu localStorage
+ *    d'autorisation reste serveur via RLS / has_role(). Le contenu stocké
  *    n'octroie aucun privilège — modifié par un attaquant, l'unique conséquence
  *    serait l'affichage d'un menu inadapté ; les RLS bloquent tout accès non autorisé.
  *  - Soft delete : mem://technical/soft-delete-strategy
@@ -68,6 +69,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LEGACY_CURRENT_ROLE_KEY = "matchs360_current_role";
 const buildCurrentRoleKey = (userId: string) => `matchs360_current_role:${userId}`;
+
+/**
+ * Le profil actif est mémorisé pour la VISITE seulement (sessionStorage) :
+ * conservé au rechargement de la page, oublié à la fermeture de l'onglet ou
+ * du navigateur. Un utilisateur qui a plusieurs profils choisit donc son
+ * profil à chaque entrée dans l'application (DashboardRedirect).
+ * Accès protégés : sessionStorage peut être indisponible (navigation privée
+ * stricte) — on retombe alors sur un choix à chaque chargement.
+ */
+const roleStore = {
+  get(key: string): string | null {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set(key: string, value: string) {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      /* stockage indisponible */
+    }
+  },
+  remove(key: string) {
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      /* stockage indisponible */
+    }
+  },
+};
+
+/** Anciennes versions : le choix était gardé durablement (localStorage). */
+const purgeLegacyRoleKeys = (userId?: string | null) => {
+  try {
+    localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
+    if (userId) localStorage.removeItem(buildCurrentRoleKey(userId));
+  } catch {
+    /* stockage indisponible */
+  }
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -150,25 +193,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     rolesRef.current = userRoles;
     setRoles(userRoles);
 
-    // Migration douce : ancienne clé globale → clé scopée par user
+    // Le choix durable des anciennes versions est abandonné : il empêchait de
+    // redemander le profil à chaque entrée.
+    purgeLegacyRoleKeys(userId);
     const scopedKey = buildCurrentRoleKey(userId);
-    const legacyValue = localStorage.getItem(LEGACY_CURRENT_ROLE_KEY);
-    if (legacyValue && !localStorage.getItem(scopedKey)) {
-      localStorage.setItem(scopedKey, legacyValue);
-    }
-    // Toujours nettoyer la legacy key (qu'elle ait été migrée ou pas pour cet user)
-    if (legacyValue) localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
 
-    const savedRoleId = localStorage.getItem(scopedKey);
+    const savedRoleId = roleStore.get(scopedKey);
     const savedRole = userRoles.find(r => r.id === savedRoleId);
     if (savedRole) {
+      // Choix fait plus tôt dans CETTE visite (rechargement de page).
       setCurrentRoleState(savedRole);
     } else if (userRoles.length === 1) {
       // Mono-rôle : auto-select et persiste
       setCurrentRoleState(userRoles[0]);
-      localStorage.setItem(scopedKey, userRoles[0].id);
+      roleStore.set(scopedKey, userRoles[0].id);
     } else {
-      // Multi-rôles sans choix précédent → null, le chooser DashboardRedirect s'affichera.
+      // Multi-rôles sans choix dans cette visite → null : DashboardRedirect
+      // affiche le sélecteur, et ProtectedRoute y renvoie toute autre page.
       // On NE supprime PLUS la clé persistée ici : si ce fetch était incomplet,
       // l'effacer ferait perdre définitivement le rôle choisi. Une clé qui
       // pointerait vers un rôle réellement disparu est inoffensive — `find`
@@ -180,7 +221,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setCurrentRole = (role: UserRole) => {
     setCurrentRoleState(role);
     if (user) {
-      localStorage.setItem(buildCurrentRoleKey(user.id), role.id);
+      roleStore.set(buildCurrentRoleKey(user.id), role.id);
     }
   };
 
@@ -289,9 +330,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Logout via auth event : nettoyer la clé scopée de l'user qui se déconnecte
           const previousUserId = loadedUserIdRef.current;
           if (previousUserId) {
-            localStorage.removeItem(buildCurrentRoleKey(previousUserId));
+            roleStore.remove(buildCurrentRoleKey(previousUserId));
           }
-          localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
+          purgeLegacyRoleKeys(previousUserId);
           clearUserContext();
           setLoading(false);
         }
@@ -332,9 +373,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRoles([]);
     setCurrentRoleState(null);
     if (previousUserId) {
-      localStorage.removeItem(buildCurrentRoleKey(previousUserId));
+      roleStore.remove(buildCurrentRoleKey(previousUserId));
     }
-    localStorage.removeItem(LEGACY_CURRENT_ROLE_KEY);
+    purgeLegacyRoleKeys(previousUserId);
     // Clear cached queries to prevent cross-user data leakage on the same tab
     queryClient.clear();
   };

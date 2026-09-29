@@ -12,8 +12,11 @@
  *      coach → /coach/dashboard
  *      player → /player/dashboard
  *      supporter → /supporter/dashboard
- *  - Sélecteur visuel multi-rôles (cartes avec icônes role-branded)
- *  - Persistance du choix via switchRole (useAuth)
+ *  - Sélecteur visuel multi-rôles (cartes avec icônes role-branded), affiché à
+ *    CHAQUE entrée dans l'application : le choix n'est mémorisé que pour la
+ *    visite (sessionStorage, useAuth)
+ *  - ?next=<chemin> : page demandée avant le choix (ProtectedRoute), rejointe
+ *    après sélection
  *  - Loader Loader2 pendant la résolution
  * @maintenance
  *  - Bascule de rôle : mem://auth/role-switching-logic
@@ -61,6 +64,13 @@ export const DashboardRedirect = () => {
   const [showRoleSelector, setShowRoleSelector] = useState(false);
 
   const wantsSwitch = searchParams.get("switch") === "1";
+  // Page demandée avant le choix du profil (ProtectedRoute) : on y retourne
+  // après. Chemin interne uniquement (jamais « //hote » ni URL absolue).
+  const rawNext = searchParams.get("next");
+  const next =
+    rawNext && rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/dashboard")
+      ? rawNext
+      : null;
 
   // Fetch club names for display
   useEffect(() => {
@@ -93,26 +103,27 @@ export const DashboardRedirect = () => {
     // If only one role, auto-redirect
     if (roles.length === 1) {
       setCurrentRole(roles[0]);
-      navigate(getDashboardPath(roles[0].role), { replace: true });
+      navigate(next ?? getDashboardPath(roles[0].role), { replace: true });
       return;
     }
 
-    // Multi-rôles + currentRole déjà choisi (restauré depuis localStorage)
-    // + pas de demande explicite de switch → redirection directe
+    // Multi-rôles + profil déjà choisi DANS CETTE VISITE (rechargement de
+    // page) + pas de demande explicite de changement → redirection directe.
     if (currentRole && !wantsSwitch) {
-      navigate(getDashboardPath(currentRole.role), { replace: true });
+      navigate(next ?? getDashboardPath(currentRole.role), { replace: true });
       return;
     }
 
-    // Multi-rôles + (1ère connexion OU switch explicite) → afficher chooser
+    // Multi-rôles + (nouvelle entrée dans l'application OU changement demandé)
+    // → le sélecteur s'affiche systématiquement.
     setShowRoleSelector(true);
-  }, [user, loading, roles, currentRole, wantsSwitch, navigate, setCurrentRole]);
+  }, [user, loading, roles, currentRole, wantsSwitch, next, navigate, setCurrentRole]);
 
   const handleRoleSelect = (role: UserRole) => {
     flushSync(() => {
       setCurrentRole(role);
     });
-    navigate(getDashboardPath(role.role), { replace: true });
+    navigate(next ?? getDashboardPath(role.role), { replace: true });
   };
 
   if (loading) {

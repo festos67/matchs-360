@@ -19,7 +19,7 @@
  *  - Pour route publique : NE PAS encapsuler dans ProtectedRoute
  */
 import { ReactNode, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -38,6 +38,11 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, profile, roles, currentRole, loading, setCurrentRole } = useAuth();
+  const location = useLocation();
+  // Plusieurs profils et aucun choisi dans cette visite : le choix passe
+  // avant toute page (lien reçu par e-mail, favori, nouvel onglet…).
+  const mustChooseRole =
+    roles.length > 1 && !currentRole && location.pathname !== "/dashboard";
 
   // F-???: Garde-fou anti-takeover. Un utilisateur dont l'email n'a pas été
   // confirmé ne doit JAMAIS pouvoir accéder à une route protégée — même si
@@ -67,7 +72,11 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   // pour que la sidebar et l'UI s'alignent automatiquement.
   useEffect(() => {
     if (!allowedRoles || allowedRoles.length === 0) return;
-    if (currentRole && allowedRoles.includes(currentRole.role)) return;
+    // Pas d'alignement automatique avant le choix du profil : il le court-
+    // circuiterait. L'alignement ne sert qu'à suivre une navigation une fois
+    // le profil choisi.
+    if (!currentRole) return;
+    if (allowedRoles.includes(currentRole.role)) return;
     const compatible = roles.find((r) => allowedRoles.includes(r.role));
     if (compatible) setCurrentRole(compatible);
   }, [allowedRoles, currentRole, roles, setCurrentRole]);
@@ -96,6 +105,11 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   // lu is_active explicitement.
   if (profile && profile.is_active === false) {
     return <Navigate to="/pending-minor-consent" replace />;
+  }
+
+  if (mustChooseRole) {
+    const next = `${location.pathname}${location.search}`;
+    return <Navigate to={`/dashboard?next=${encodeURIComponent(next)}`} replace />;
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
