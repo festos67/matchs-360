@@ -414,7 +414,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
           // privé, droits restreints). Message clair plutôt que l'erreur brute.
           toast.error("Photo non enregistrée", {
             description:
-              "Vous n'avez pas le droit d'ajouter une photo pour ce joueur. Pour un joueur mineur, la photo peut être ajoutée par son coach ou son représentant légal.",
+              "Vous n'avez pas le droit d'ajouter une photo pour ce joueur. Pour un joueur mineur, la photo peut être ajoutée par son coach, le responsable de son club ou son représentant légal.",
           });
         } else {
           toast.error("Erreur lors de la mise à jour", {
