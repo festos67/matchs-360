@@ -28,10 +28,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { DEFAULT_COMPETENCES, type DefaultCompetence } from "@/lib/default-competences";
 import { PrintableCertificate, type CertificateCompetence } from "./PrintableCertificate";
+import { ZoomablePagePreview } from "./ZoomablePagePreview";
 import type { ThemeScores } from "@/lib/evaluation-utils";
 
 const MAX_COMPETENCES = 3;
@@ -467,15 +467,14 @@ export function CompetenceCertificateModal({
 
       {/* Preview */}
       <Dialog open={showPreview} onOpenChange={(v) => { if (!v) setShowPreview(false); }}>
-        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+        <DialogContent className="flex h-[92dvh] max-h-[92dvh] w-[calc(100vw-1rem)] max-w-6xl flex-col gap-0 overflow-hidden p-0">
+          <DialogHeader className="border-b px-4 pb-3 pt-4 pr-12 sm:px-6 sm:pt-6">
             <DialogTitle className="flex items-center gap-2">
               <Award className="w-5 h-5 text-green-600" /> Prévisualisation de l'attestation
             </DialogTitle>
             <DialogDescription>Vérifiez le rendu avant impression ou enregistrement PDF.</DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 min-h-0 bg-muted/40 p-4">
-            <div className="mx-auto bg-white shadow-lg" style={{ width: "297mm", transform: "scale(0.6)", transformOrigin: "top center" }}>
+          <ZoomablePagePreview widthMm={297} heightMm={210}>
               <PrintableCertificate
                 ref={printRef}
                 playerName={playerName}
@@ -490,9 +489,8 @@ export function CompetenceCertificateModal({
                 radarLabel={includeRadar && selectedRadar ? selectedRadar.label : null}
                 isMinor={isMinor}
               />
-            </div>
-          </ScrollArea>
-          <DialogFooter className="px-6 py-3 border-t bg-muted/30">
+          </ZoomablePagePreview>
+          <DialogFooter className="gap-2 border-t bg-muted/30 px-4 py-3 sm:px-6">
             <Button type="button" variant="outline" onClick={() => setAskEditAfter(true)}>
               Souhaitez-vous modifier ?
             </Button>
