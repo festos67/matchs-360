@@ -172,15 +172,30 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     // Check for club_admin role
-    const { data: clubAdminRoles } = await supabaseAdmin
+    const { data: rawClubAdminRoles } = await supabaseAdmin
       .from("user_roles")
-      .select("id, club_id")
+      .select("id, club_id, delegation_id, club_admin_delegations(starts_at, ends_at, revoked_at)")
       .eq("user_id", user.id)
       .eq("role", "club_admin");
 
+    // Délégation de droits : une ligne déléguée ne compte que pendant la
+    // période (la tâche planifiée la retire au plus tard 10 min après).
+    const nowIso = new Date().toISOString();
+    const clubAdminRoles = (rawClubAdminRoles ?? []).filter((r: any) => {
+      if (!r.delegation_id) return true;
+      const d = r.club_admin_delegations;
+      return !!d && !d.revoked_at && d.starts_at <= nowIso && d.ends_at > nowIso;
+    });
+
     const isAdmin = !!adminRole;
-    const isClubAdmin = (clubAdminRoles && clubAdminRoles.length > 0) || false;
-    const clubAdminClubIds = clubAdminRoles?.map(r => r.club_id).filter(Boolean) as string[] || [];
+    const isClubAdmin = clubAdminRoles.length > 0;
+    const clubAdminClubIds = clubAdminRoles.map((r: any) => r.club_id).filter(Boolean) as string[];
+    // Responsable titulaire (hors délégation) : seul habilité à nommer ou
+    // retirer un responsable de club.
+    const titularClubAdminClubIds = clubAdminRoles
+      .filter((r: any) => !r.delegation_id)
+      .map((r: any) => r.club_id)
+      .filter(Boolean) as string[];
 
     if (!isAdmin && !isClubAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden: Admin access required" }), {
@@ -481,6 +496,11 @@ Deno.serve(async (req) => {
               "Only super admin or existing club admin of the same club can grant club_admin",
             );
           }
+          if (!isAdmin && !titularClubAdminClubIds.includes(clubId)) {
+            return forbidden(
+              "Un responsable par délégation ne peut pas nommer de responsable de club",
+            );
+          }
         }
 
         // Target user must be within caller's scope
@@ -641,9 +661,15 @@ Deno.serve(async (req) => {
         if (!isAdmin) {
           if (roleId) {
             const { data: r } = await supabaseAdmin
-              .from("user_roles").select("user_id, club_id, role").eq("id", roleId).maybeSingle();
+              .from("user_roles").select("user_id, club_id, role, delegation_id").eq("id", roleId).maybeSingle();
             if (!r) return forbidden();
             if (r.role === "admin") return forbidden("Cannot remove admin role");
+            if (r.role === "club_admin" && !titularClubAdminClubIds.includes(r.club_id)) {
+              return forbidden("Seul un responsable titulaire peut retirer ce rôle");
+            }
+            if (r.delegation_id) {
+              return forbidden("Rôle délégué : retirez la délégation depuis la page Utilisateurs");
+            }
             if (!clubInScope(r.club_id) && !(await userInClubAdminScope(r.user_id))) return forbidden();
           }
           if (teamMembershipId) {
@@ -659,6 +685,16 @@ Deno.serve(async (req) => {
         }
 
         if (roleId) {
+          // Rôle délégué retiré par un administrateur : on clôt la délégation,
+          // sinon la tâche planifiée recréerait la ligne.
+          const { data: delegated } = await supabaseAdmin
+            .from("user_roles").select("delegation_id").eq("id", roleId).maybeSingle();
+          if (delegated?.delegation_id) {
+            await supabaseAdmin.from("club_admin_delegations")
+              .update({ revoked_at: new Date().toISOString(), revoked_by: user.id })
+              .eq("id", delegated.delegation_id)
+              .is("revoked_at", null);
+          }
           await supabaseAdmin.from("user_roles").delete().eq("id", roleId);
         }
         if (teamMembershipId) {

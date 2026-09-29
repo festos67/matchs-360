@@ -423,11 +423,22 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("id", clubId)
       .single();
 
-    const { data: callerClubAdminRows } = await supabaseAdmin
-      .from("user_roles").select("club_id")
+    const { data: rawCallerClubAdminRows } = await supabaseAdmin
+      .from("user_roles").select("club_id, delegation_id, club_admin_delegations(starts_at, ends_at, revoked_at)")
       .eq("user_id", user.id).eq("role", "club_admin");
-    const callerClubAdminIds = (callerClubAdminRows?.map(r => r.club_id).filter(Boolean) ?? []) as string[];
+    // Délégation de droits : une ligne déléguée ne compte que pendant la période.
+    const nowIso = new Date().toISOString();
+    // deno-lint-ignore no-explicit-any
+    const callerClubAdminRows = (rawCallerClubAdminRows ?? []).filter((r: any) => {
+      if (!r.delegation_id) return true;
+      const d = r.club_admin_delegations;
+      return !!d && !d.revoked_at && d.starts_at <= nowIso && d.ends_at > nowIso;
+    });
+    // deno-lint-ignore no-explicit-any
+    const callerClubAdminIds = callerClubAdminRows.map((r: any) => r.club_id).filter(Boolean) as string[];
     const callerIsClubAdminOfTarget = callerClubAdminIds.includes(clubId);
+    // deno-lint-ignore no-explicit-any
+    const callerIsTitularClubAdminOfTarget = callerClubAdminRows.some((r: any) => !r.delegation_id && r.club_id === clubId);
 
     // Coach (referent) of any team in target club?
     const { data: callerRefTeams } = await supabaseAdmin
@@ -462,6 +473,16 @@ const handler = async (req: Request): Promise<Response> => {
         message: `Vous ne pouvez pas attribuer le rôle « ${
           intendedRole === "club_admin" ? "Admin Club" : "Coach"
         } ». Cette action est réservée aux administrateurs et admins de club.`,
+        code: "AUTH_CANNOT_GRANT_ROLE",
+        status: 403,
+      });
+    }
+
+    // Un responsable par délégation ne nomme pas de responsable de club.
+    if (intendedRole === "club_admin" && !callerIsAdmin && !callerIsTitularClubAdminOfTarget) {
+      throw new InvitationDomainError({
+        message:
+          "Vous exercez les droits de responsable par délégation : seul le responsable titulaire peut nommer un responsable de club.",
         code: "AUTH_CANNOT_GRANT_ROLE",
         status: 403,
       });

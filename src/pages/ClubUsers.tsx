@@ -47,6 +47,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
 import { EditUserModal } from "@/components/modals/EditUserModal";
+import { ClubAdminDelegationPanel } from "@/components/club/ClubAdminDelegationPanel";
 import {
   Shield,
   Search,
@@ -263,7 +264,7 @@ function GuardianCell({
 }
 
 export default function ClubUsers() {
-  const { currentRole, loading: authLoading } = useAuth();
+  const { currentRole, user: authUser, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -670,6 +671,10 @@ export default function ClubUsers() {
             </Button>
           </div>
         </div>
+
+        {clubId && (
+          <ClubAdminDelegationPanel clubId={clubId} currentUserId={authUser?.id ?? null} users={users} />
+        )}
 
         {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
