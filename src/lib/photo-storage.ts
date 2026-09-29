@@ -78,6 +78,29 @@ export async function uploadProfilePhoto(
 }
 
 /**
+ * Supprime le fichier d'une photo rangée dans le bucket PUBLIC (photo d'un
+ * profil considéré comme adulte). Sert quand une date de naissance corrigée
+ * fait passer le joueur sous 15 ans : la base retire la photo du profil
+ * (trigger cleanup_on_birthdate_under_15), mais le fichier resterait
+ * accessible à son adresse publique. Sans effet sur un chemin du bucket
+ * privé des mineurs. Renvoie false si la suppression a échoué.
+ */
+export async function removePublicProfilePhoto(photoUrl: string | null | undefined): Promise<boolean> {
+  if (!photoUrl) return true;
+  const marker = `/object/public/${PUBLIC_PHOTO_BUCKET}/`;
+  const at = photoUrl.indexOf(marker);
+  if (at === -1) return true; // pas une photo du bucket public
+  const path = decodeURIComponent(photoUrl.slice(at + marker.length).split("?")[0]);
+  if (!path) return true;
+  const { error } = await supabase.storage.from(PUBLIC_PHOTO_BUCKET).remove([path]);
+  if (error) {
+    console.error("removePublicProfilePhoto failed", error);
+    return false;
+  }
+  return true;
+}
+
+/**
  * RG7-001 — Wrapper pour les flux staff (Create/Edit modals) qui éditent
  * un profil EXISTANT. Récupère la birthdate depuis `profiles` puis route
  * via `uploadProfilePhoto` (mineur → bucket privé). Évite que chaque

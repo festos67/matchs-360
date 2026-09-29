@@ -48,7 +48,11 @@ import { isMinorPhase0, requiresParentalConsent } from "@/lib/age-policy";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
 import { validateUpload, UploadValidationError } from "@/lib/upload-validation";
-import { uploadProfilePhotoForExistingUser } from "@/lib/photo-storage";
+import {
+  removePublicProfilePhoto,
+  uploadProfilePhoto,
+  uploadProfilePhotoForExistingUser,
+} from "@/lib/photo-storage";
 import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 
 interface Player {
@@ -107,6 +111,15 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
 
   const isMinorForConsent = requiresParentalConsent(birthdate);
 
+  // ===== Date corrigée qui fait passer le joueur sous 15 ans =====
+  // Date et photo telles qu'enregistrées à l'ouverture de la fenêtre.
+  const [originalBirthdate, setOriginalBirthdate] = useState<string>("");
+  const [originalPhoto, setOriginalPhoto] = useState<{ url: string | null; isMinor: boolean }>({
+    url: null,
+    isMinor: false,
+  });
+  const crossesUnder15 = isMinorForConsent && !requiresParentalConsent(originalBirthdate);
+
   // ===== Droit à l'image (mineur de 15 à 17 ans) =====
   // Aucun parcours en ligne pour un parent à cet âge : le staff enregistre
   // l'autorisation écrite reçue (RPC record_paper_image_consent, tracée).
@@ -153,11 +166,14 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     (async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("birthdate, image_rights_consent_at")
+        .select("birthdate, image_rights_consent_at, photo_url, photo_is_minor")
         .eq("id", player.id)
         .maybeSingle();
       if (!cancelled && !error && data) {
-        setBirthdate(data.birthdate ? String(data.birthdate).slice(0, 10) : "");
+        const loadedBirthdate = data.birthdate ? String(data.birthdate).slice(0, 10) : "";
+        setBirthdate(loadedBirthdate);
+        setOriginalBirthdate(loadedBirthdate);
+        setOriginalPhoto({ url: data.photo_url ?? null, isMinor: data.photo_is_minor === true });
         setImageConsentAt(data.image_rights_consent_at ?? null);
       }
     })();
@@ -201,6 +217,16 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
   const guardianFormValid =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gEmail.trim()) &&
     !!gRelationship;
+
+  // Passage sous 15 ans sans demande de consentement en cours : le
+  // représentant légal devient obligatoire, et il est enregistré avec la date
+  // (bouton « Enregistrer » de la fenêtre), jamais avant — le serveur lit la
+  // date enregistrée.
+  const needsGuardianWithBirthdate = crossesUnder15 && currentGuardian?.status !== "pending";
+
+  useEffect(() => {
+    if (needsGuardianWithBirthdate) setEditingGuardian(true);
+  }, [needsGuardianWithBirthdate]);
 
   const guardianChanged =
     !currentGuardian ||
@@ -268,11 +294,25 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     if (!photoFile) return null;
     // Pre-validate (cohérent avec UploadValidationError catch en handleSave)
     validateUpload(photoFile, "image");
-    const res = await uploadProfilePhotoForExistingUser(player.id, photoFile);
+    // Date modifiée dans cette fenêtre : la photo est rangée selon la NOUVELLE
+    // date (enregistrée dans la même requête), sinon celle d'un joueur qui
+    // passe sous 15 ans partirait dans le bucket public.
+    const res =
+      birthdate !== originalBirthdate
+        ? await uploadProfilePhoto(player.id, photoFile, birthdate || null)
+        : await uploadProfilePhotoForExistingUser(player.id, photoFile);
     return { photo_url: res.photo_url, photo_is_minor: res.photo_is_minor };
   };
 
   const handleSave = async () => {
+    if (needsGuardianWithBirthdate && !guardianFormValid) {
+      setEditingGuardian(true);
+      toast.error("Représentant légal requis", {
+        description:
+          "Avec cette date de naissance, le joueur a moins de 15 ans : indiquez l'adresse de son représentant légal et son lien avec l'enfant.",
+      });
+      return;
+    }
     try {
       setSaving(true);
 
@@ -303,6 +343,56 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
         .eq("id", player.id);
 
       if (error) throw error;
+
+      if (crossesUnder15) {
+        // La base a retiré la photo du profil ; le fichier public est supprimé
+        // ici (droits de suppression du coach / responsable sur ce bucket).
+        if (originalPhoto.url && !originalPhoto.isMinor) {
+          const removed = await removePublicProfilePhoto(originalPhoto.url);
+          if (!removed) {
+            toast.warning("Photo retirée du profil, mais le fichier n'a pas pu être supprimé", {
+              description: "Signalez-le à un administrateur.",
+            });
+          }
+        }
+
+        if (needsGuardianWithBirthdate) {
+          const { data: gData, error: gError } = await supabase.functions.invoke("change-legal-guardian", {
+            body: {
+              playerId: player.id,
+              guardianFirstName: gFirstName.trim(),
+              guardianLastName: gLastName.trim(),
+              guardianEmail: gEmail.trim(),
+              guardianRelationship: gRelationship,
+            },
+          });
+          const gPayload = (gData ?? {}) as { warning?: string; error?: string };
+          if (gError || gPayload.error) {
+            const message = gError ? (await getEdgeFunctionErrorInfo(gError)).message : gPayload.error!;
+            toast.error("Date enregistrée, mais le représentant légal n'a pas pu être désigné", {
+              description: `${message} Réessayez depuis « Modifier joueur » : le compte reste suspendu d'ici là.`,
+              duration: 10000,
+            });
+            onSuccess();
+            onOpenChange(false);
+            return;
+          }
+          toast.success("Date corrigée : consentement parental demandé", {
+            description: gPayload.warning
+              ? gPayload.warning
+              : `Un e-mail a été envoyé à ${gEmail.trim()}. Le compte du joueur est suspendu jusqu'à sa signature.`,
+            duration: 10000,
+          });
+        } else {
+          toast.success("Date corrigée", {
+            description:
+              "Le joueur a moins de 15 ans : son compte est suspendu jusqu'au consentement de son représentant légal (demande déjà envoyée).",
+          });
+        }
+        onSuccess();
+        onOpenChange(false);
+        return;
+      }
 
       toast.success("Profil mis à jour");
       onSuccess();
@@ -523,11 +613,21 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
                 <div className="space-y-3">
                   <div className="flex items-start gap-2 rounded-md bg-amber-500/10 border border-amber-500/30 p-3">
                     <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                    <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
-                      Modifier le représentant légal annulera la désignation en cours et
-                      <strong> suspendra l'accès du joueur à l'application</strong> tant que le
-                      nouveau titulaire n'aura pas donné son consentement par email.
-                    </p>
+                    {needsGuardianWithBirthdate ? (
+                      <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                        Avec cette date de naissance, le joueur a <strong>moins de 15 ans</strong>.
+                        Indiquez son représentant légal : à l'enregistrement, il recevra la
+                        demande de consentement par e-mail, et{" "}
+                        <strong>l'accès du joueur sera suspendu</strong> jusqu'à sa signature.
+                        Une photo publique éventuelle sera retirée.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                        Modifier le représentant légal annulera la désignation en cours et
+                        <strong> suspendra l'accès du joueur à l'application</strong> tant que le
+                        nouveau titulaire n'aura pas donné son consentement par email.
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -583,6 +683,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
                     </Select>
                   </div>
 
+                  {!needsGuardianWithBirthdate && (
                   <div className="flex justify-end gap-2 pt-1">
                     <Button
                       type="button"
@@ -610,6 +711,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
                       Enregistrer le nouveau représentant
                     </Button>
                   </div>
+                  )}
                 </div>
               )}
             </div>

@@ -12,7 +12,9 @@
  * @access Tout user connecté avec profiles.is_active = false
  * @maintenance I8-003 — gate is_active enforcé via RLS (couche 1) + écran (couche 2)
  */
+import { useQuery } from "@tanstack/react-query";
 import { Clock, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +26,20 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 
 export default function PendingMinorConsent() {
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, user } = useAuth();
+
+  // Une demande de consentement est-elle vraiment partie ? Sans représentant
+  // désigné (ex. date de naissance corrigée), aucun e-mail n'a été envoyé :
+  // c'est au club d'agir.
+  const { data: requestStatus } = useQuery({
+    queryKey: ["my-guardian-request-status", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_guardian_request_status" as never);
+      if (error) return "unknown";
+      return (data as string | null) ?? "unknown";
+    },
+    enabled: !!user,
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -47,11 +62,19 @@ export default function PendingMinorConsent() {
             15 ans doivent obtenir le consentement d'un parent ou tuteur
             légal pour utiliser MATCHS360.
           </p>
-          <p className="text-sm text-muted-foreground">
-            Un email a été (ou sera) envoyé à ton tuteur. Dès que ce
-            dernier aura validé le consentement, ton compte sera activé
-            automatiquement et tu pourras accéder à l'application.
-          </p>
+          {requestStatus === "none" ? (
+            <p className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/30 p-3 text-sm text-amber-900 dark:text-amber-100">
+              Ton club n'a pas encore indiqué l'adresse de ton représentant légal :
+              aucune demande ne lui a été envoyée. Parles-en à ton coach, qui
+              pourra la renseigner.
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Un e-mail a été envoyé à ton représentant légal. Dès qu'il aura
+              validé le consentement, ton compte sera activé automatiquement et
+              tu pourras accéder à l'application.
+            </p>
+          )}
           <p className="text-xs text-muted-foreground">
             Si ton tuteur a déjà validé puis révoqué le consentement, tu
             peux le contacter pour qu'il le redonne via l'écran « Mes
