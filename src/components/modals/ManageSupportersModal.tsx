@@ -265,7 +265,14 @@ export const ManageSupportersModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
-      toast.success(`Invitation envoyée à ${data.email}`);
+      // Adresse déjà connue : compte existant rattaché, aucune invitation.
+      if (result?.message === "Rôle ajouté avec succès") {
+        toast.success("Supporter rattaché", {
+          description: `${data.email} avait déjà un compte : il suit désormais ${playerName}.`,
+        });
+      } else {
+        toast.success(`Invitation envoyée à ${data.email}`);
+      }
       reset();
       setActiveTab("list");
       queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
@@ -431,9 +438,11 @@ export const ManageSupportersModal = ({
             </div>
 
             <div className="mb-3">
-              <Label>Ou inviter un nouveau supporter</Label>
+              <Label>Ou saisir son adresse e-mail</Label>
               <p className="text-xs text-muted-foreground mt-1">
-                Une invitation par email sera envoyée pour qu'il crée son compte.
+                Fonctionne pour tout le monde : si la personne a déjà un compte (par
+                exemple supporter d'un autre joueur), elle est simplement rattachée à ce
+                joueur ; sinon, elle reçoit une invitation par e-mail.
               </p>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

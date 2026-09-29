@@ -230,13 +230,50 @@ export const CreateSupporterModal = ({
   const fetchClubMembers = async () => {
     // Fetch all profiles attached to this club (covers players, coaches, club admins).
     // RLS on user_roles hides 'player' rows from coaches, so we cannot rely on user_roles to list members.
-    const { data: profiles } = await supabase
+    const { data: clubProfiles } = await supabase
       .from("profiles")
       .select("id, first_name, last_name, nickname, email")
       .eq("club_id", clubId)
       .is("deleted_at", null);
 
-    if (!profiles || profiles.length === 0) {
+    // Supporters déjà rattachés à des joueurs du club. Un supporter n'est pas
+    // membre du club : sa fiche peut n'avoir aucun club (ex. parent devenu
+    // supporter de son enfant au consentement) — il n'apparaissait donc pas,
+    // alors que c'est le cas typique (parent d'un frère ou d'une sœur).
+    const { data: clubPlayerRows } = await supabase
+      .from("team_members")
+      .select("user_id, team:teams!inner(club_id)")
+      .eq("member_type", "player")
+      .eq("is_active", true)
+      .is("deleted_at", null)
+      .eq("team.club_id", clubId);
+    const clubPlayerIds = [
+      ...new Set(((clubPlayerRows ?? []) as Array<{ user_id: string }>).map((r) => r.user_id)),
+    ];
+    let linkedSupporterIds = new Set<string>();
+    if (clubPlayerIds.length > 0) {
+      const { data: links } = await supabase
+        .from("supporters_link")
+        .select("supporter_id")
+        .in("player_id", clubPlayerIds);
+      linkedSupporterIds = new Set(
+        ((links ?? []) as Array<{ supporter_id: string }>).map((l) => l.supporter_id),
+      );
+    }
+    const knownIds = new Set(((clubProfiles ?? []) as Array<{ id: string }>).map((p) => p.id));
+    const missingSupporterIds = [...linkedSupporterIds].filter((id) => !knownIds.has(id));
+    let supporterProfiles: typeof clubProfiles = [];
+    if (missingSupporterIds.length > 0) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, nickname, email")
+        .in("id", missingSupporterIds)
+        .is("deleted_at", null);
+      supporterProfiles = data ?? [];
+    }
+    const profiles = [...(clubProfiles ?? []), ...(supporterProfiles ?? [])];
+
+    if (profiles.length === 0) {
       setClubMembers([]);
       return;
     }
@@ -247,11 +284,12 @@ export const CreateSupporterModal = ({
       .select("user_id, role, club_id")
       .in("user_id", userIds);
 
-    const supporterIds = new Set(
-      (roles || [])
+    const supporterIds = new Set([
+      ...linkedSupporterIds,
+      ...(roles || [])
         .filter((r: any) => r.role === "supporter" && r.club_id === clubId)
         .map((r: any) => r.user_id),
-    );
+    ]);
 
     const labelMap: Record<string, string> = {
       admin: "Super Admin",
@@ -350,9 +388,18 @@ export const CreateSupporterModal = ({
         }
       }
 
-      toast.success(`Supporter invité avec succès !`, {
-        description: `Une invitation a été envoyée à ${data.email}`,
-      });
+      // Adresse déjà connue : compte existant rattaché, aucune invitation.
+      if (result?.message === "Rôle ajouté avec succès") {
+        toast.success("Supporter rattaché", {
+          description: `${data.email} avait déjà un compte : il suit désormais ${
+            data.playerIds.length > 1 ? "les joueurs sélectionnés" : "le joueur sélectionné"
+          }.`,
+        });
+      } else {
+        toast.success(`Supporter invité avec succès !`, {
+          description: `Une invitation a été envoyée à ${data.email}`,
+        });
+      }
 
       reset();
       setSelectedPlayers([]);
@@ -437,7 +484,7 @@ export const CreateSupporterModal = ({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="new" className="gap-2">
               <UserPlus className="w-4 h-4" />
-              Nouveau supporter
+              Par adresse e-mail
             </TabsTrigger>
             <TabsTrigger value="existing" className="gap-2">
               <Search className="w-4 h-4" />
@@ -446,6 +493,11 @@ export const CreateSupporterModal = ({
           </TabsList>
 
           <TabsContent value="new" className="mt-4">
+        <p className="mb-4 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
+          Fonctionne pour tout le monde : si la personne a déjà un compte (par exemple
+          supporter d'un autre joueur), elle est simplement rattachée aux joueurs
+          choisis ; sinon, elle reçoit une invitation par e-mail.
+        </p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Photo */}
           <UserPhotoUpload
