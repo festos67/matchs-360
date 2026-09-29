@@ -117,7 +117,7 @@ const Players = () => {
 
   const isCoach = currentRole?.role === "coach";
   const isClubAdmin = currentRole?.role === "club_admin";
-  // Raccourci « Modifier le joueur » : le coach ne voit ici que les joueurs de
+  // Raccourci « Profil Joueur » : le coach ne voit ici que les joueurs de
   // ses équipes, qu'il peut déjà modifier depuis leur fiche (même fenêtre).
   const canEditPlayers = isAdmin || isClubAdmin || isCoach;
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
@@ -478,11 +478,6 @@ const Players = () => {
           </div>
         </div>
       </TableCell>
-      <TableCell>
-        <span className="text-sm text-muted-foreground">
-          {player.nickname || "—"}
-        </span>
-      </TableCell>
       {showTeams && (
         <TableCell>
           <div className="flex flex-wrap gap-1.5">
@@ -518,13 +513,13 @@ const Players = () => {
                   e.stopPropagation();
                   setEditingPlayer(player);
                 }}
-                aria-label="Modifier le joueur"
+                aria-label="Profil Joueur"
               >
                 <Pencil className="w-4 h-4" />
-                <span className="sr-only">Modifier le joueur</span>
+                <span className="sr-only">Profil Joueur</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Modifier le joueur</TooltipContent>
+            <TooltipContent>Profil Joueur</TooltipContent>
           </Tooltip>
         </TableCell>
       )}
@@ -671,7 +666,6 @@ const Players = () => {
                               <TableHeader>
                                 <TableRow>
                                   <TableHead>Joueur</TableHead>
-                                  <TableHead>Surnom</TableHead>
                                   {canEditPlayers && (
                                     <TableHead className="text-right">Actions</TableHead>
                                   )}
@@ -695,7 +689,6 @@ const Players = () => {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Joueur</TableHead>
-                            <TableHead>Surnom</TableHead>
                             {canEditPlayers && (
                               <TableHead className="text-right">Actions</TableHead>
                             )}

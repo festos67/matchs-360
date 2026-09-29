@@ -1013,6 +1013,7 @@ export default function ClubUsers() {
           user={editingUser}
           onClose={() => setEditingUser(null)}
           onUpdate={fetchUsers}
+          showNickname={false}
         />
       )}
 

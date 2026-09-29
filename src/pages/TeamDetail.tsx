@@ -264,7 +264,10 @@ export default function TeamDetail() {
   const canEditObjectives = isAdmin || isClubAdmin || isReferentCoach;
   const canViewObjectives = canEditObjectives || isCoachOfTeam || isClubCoachViewing || isPlayerViewing;
 
-  const coaches = members.filter(m => m.member_type === "coach");
+  // Coach référent toujours en premier (à gauche), puis les assistants.
+  const coaches = members
+    .filter(m => m.member_type === "coach")
+    .sort((a, b) => Number(b.coach_role === "referent") - Number(a.coach_role === "referent"));
   const players = members.filter(m => m.member_type === "player");
   const playerIds = players.map(p => p.profile.id);
   const { data: progression, isLoading: loadingProgression } = useTeamProgression(id, playerIds);

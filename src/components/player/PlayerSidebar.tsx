@@ -40,6 +40,7 @@ import { getPlayerName } from "@/hooks/usePlayerData";
 import { ProfilePhoto } from "@/components/shared/ProfilePhoto";
 import { LegalGuardianModal } from "@/components/modals/LegalGuardianModal";
 import { ChildAccessPanel } from "@/components/player/ChildAccessPanel";
+import { PendingInvitationNote } from "@/components/player/PendingInvitationNote";
 import { identifierFromEmail } from "@/lib/technical-identity";
 
 interface PlayerSidebarProps {
@@ -194,6 +195,11 @@ export function PlayerSidebar({
         </div>
       )}
 
+      {/* Invitation ou consentement restés sans suite : relance unique */}
+      {!isPlayerViewingOwnProfile && (canMutate || canEvaluate) && (
+        <PendingInvitationNote playerId={player.id} />
+      )}
+
       {/* Débriefs bloc */}
       {!isPlayerViewingOwnProfile && canEvaluate && teamMembership && (
         <div className="bg-card border border-border rounded-xl p-3 mb-3">
@@ -284,7 +290,7 @@ export function PlayerSidebar({
           <div className="flex flex-col gap-1.5">
             {canMutate && (
               <Button variant="outline" size="sm" className="w-full gap-1.5 justify-start text-[11px] h-9 px-2.5 font-semibold text-foreground" onClick={onEditPlayer}>
-                <Edit className="w-3.5 h-3.5 text-accent" />Modifier joueur
+                <Edit className="w-3.5 h-3.5 text-accent" />Profil Joueur
               </Button>
             )}
             {canMutate && teamMembership && (

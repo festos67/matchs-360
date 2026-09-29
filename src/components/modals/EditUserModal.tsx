@@ -98,6 +98,8 @@ interface EditUserModalProps {
   user: AdminUser;
   onClose: () => void;
   onUpdate: () => void;
+  /** Champ « Surnom » : masqué pour le responsable de club. */
+  showNickname?: boolean;
 }
 
 const roleLabels: Record<string, string> = {
@@ -116,7 +118,7 @@ const roleColors: Record<string, string> = {
   supporter: "bg-purple-500 text-white",
 };
 
-export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
+export function EditUserModal({ user, onClose, onUpdate, showNickname = true }: EditUserModalProps) {
   const [firstName, setFirstName] = useState(user.first_name || "");
   const [lastName, setLastName] = useState(user.last_name || "");
   const [nickname, setNickname] = useState(user.nickname || "");
@@ -259,7 +261,8 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
         userId: user.id,
         firstName,
         lastName,
-        nickname,
+        // Champ masqué : ne pas toucher au surnom existant.
+        ...(showNickname ? { nickname } : {}),
       };
       if (uploaded === null) {
         payload.photoUrl = null;
@@ -487,14 +490,16 @@ export function EditUserModal({ user, onClose, onUpdate }: EditUserModalProps) {
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="nickname">Surnom</Label>
-              <Input
-                id="nickname"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-              />
-            </div>
+            {showNickname && (
+              <div className="space-y-2">
+                <Label htmlFor="nickname">Surnom</Label>
+                <Input
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                />
+              </div>
+            )}
             <Button onClick={handleSaveProfile} disabled={saving}>
               Enregistrer le profil
             </Button>

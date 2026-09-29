@@ -16,7 +16,7 @@
  *  - Débriefs consultatifs en overlay : mem://features/consultative-debrief-types
  */
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ClipboardList, Heart, MessageSquare, Sparkles, Star, UserCircle } from "lucide-react";
+import { ClipboardList, Eye, Heart, MessageSquare, Sparkles, Star, UserCircle } from "lucide-react";
 import { RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +55,8 @@ interface PlayerEvaluationTabProps {
    * dernier débrief supporter réalisé par cet utilisateur.
    */
   currentUserId?: string;
+  /** Joueur sur sa propre fiche : rappel de qui voit ses résultats. */
+  showAudienceNote?: boolean;
 }
 
 const COMPARISON_COLORS = ["#6B7280", "#F97316", "#06B6D4", "#8B5CF6"];
@@ -79,6 +81,7 @@ export function PlayerEvaluationTab({
   onToggleSelfEvalLayer,
   onToggleSupporterLayer,
   currentUserId,
+  showAudienceNote = false,
 }: PlayerEvaluationTabProps) {
   const { canDo, loading: planLoading } = usePlan();
   const canCompareMultiSource = planLoading ? true : canDo("can_compare_multi_source");
@@ -358,6 +361,16 @@ export function PlayerEvaluationTab({
                    );
                 })() : "Aucune évaluation"}
               </p>
+              {showAudienceNote && (
+                <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5">
+                  <Eye className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                  <span>
+                    Qui voit ces résultats ? Tes coachs, le responsable de ton club et tes
+                    supporters (ton auto-débrief n'est pas visible par tes supporters). Si tu es
+                    mineur, ton représentant légal peut aussi les consulter.
+                  </span>
+                </p>
+              )}
             </div>
               <div className="flex items-center gap-x-4 gap-y-2 flex-wrap xl:justify-end xl:shrink-0 xl:self-start">
                 {previousCoachEvaluation && (

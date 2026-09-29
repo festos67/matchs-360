@@ -1,7 +1,7 @@
 /**
  * @modal EditPlayerModal
  * @description Modale légère d'édition des informations d'un joueur : prénom,
- *              nom, surnom, photo. Permet aussi d'ajouter des rôles cumulés via
+ *              nom, photo. Permet aussi d'ajouter des rôles cumulés via
  *              AddRoleSection (ex: joueur + coach assistant).
  * @access Super Admin, Responsable Club, Coach Référent (édition partielle)
  * @features
@@ -92,7 +92,6 @@ type CurrentGuardian = {
 export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditPlayerModalProps) {
   const [firstName, setFirstName] = useState(player.first_name || "");
   const [lastName, setLastName] = useState(player.last_name || "");
-  const [nickname, setNickname] = useState(player.nickname || "");
   const [birthdate, setBirthdate] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -326,7 +325,6 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
       const updateData: Record<string, unknown> = {
         first_name: firstName.trim() || null,
         last_name: lastName.trim() || null,
-        nickname: nickname.trim() || null,
         birthdate: birthdate ? birthdate : null,
       };
       if (uploaded === null) {
@@ -370,7 +368,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
           if (gError || gPayload.error) {
             const message = gError ? (await getEdgeFunctionErrorInfo(gError)).message : gPayload.error!;
             toast.error("Date enregistrée, mais le représentant légal n'a pas pu être désigné", {
-              description: `${message} Réessayez depuis « Modifier joueur » : le compte reste suspendu d'ici là.`,
+              description: `${message} Réessayez depuis « Profil Joueur » : le compte reste suspendu d'ici là.`,
               duration: 10000,
             });
             onSuccess();
@@ -403,13 +401,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
         toast.error(error.message);
       } else {
         const raw = error instanceof Error ? error.message : "";
-        // Trigger Postgres : surnom d'un mineur protege.
-        if (/NICKNAME_PROTECTED/i.test(raw)) {
-          toast.error("Surnom protégé", {
-            description:
-              "Le surnom d'un mineur ne peut être modifié que par lui-même, son représentant légal ou un administrateur.",
-          });
-        } else if (photoFile && /row-level security|violates|Unauthorized|403/i.test(raw)) {
+        if (photoFile && /row-level security|violates|Unauthorized|403/i.test(raw)) {
           // Envoi refusé par l'espace de stockage (photos de mineurs : espace
           // privé, droits restreints). Message clair plutôt que l'erreur brute.
           toast.error("Photo non enregistrée", {
@@ -431,7 +423,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Modifier le joueur</DialogTitle>
+          <DialogTitle>Profil Joueur</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -470,15 +462,6 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
                 placeholder="Nom"
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="nickname">Surnom</Label>
-            <Input
-              id="nickname"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="Surnom (optionnel)"
-            />
           </div>
           <div className="space-y-2">
             <Label>Email</Label>

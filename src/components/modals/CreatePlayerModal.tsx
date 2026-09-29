@@ -5,7 +5,7 @@
  *              d'un utilisateur existant déjà présent dans la base.
  * @access Coach Référent (équipe), Responsable Club, Super Admin
  * @features
- *  - Mode "Nouveau" : formulaire complet (prénom, nom, surnom, email, photo)
+ *  - Mode "Nouveau" : formulaire complet (prénom, nom, email, photo)
  *  - Mode "Existant" : recherche d'un utilisateur via Combobox + ajout du rôle player
  *  - Workflow de mutation si le joueur appartient déjà à une autre équipe (transfert atomique)
  *  - Upload photo via flow local→create user→upload→update profile
@@ -81,7 +81,6 @@ import {
 const playerSchema = z.object({
   firstName: z.string().min(1, "Prénom requis").max(50),
   lastName: z.string().min(1, "Nom requis").max(50),
-  nickname: z.string().max(50).optional(),
   // Facultatif pour un joueur de moins de 15 ans : à cet âge, l'enfant n'a
   // souvent pas d'adresse. Le serveur lui alloue alors un identifiant, et
   // c'est le représentant légal qui reçoit tout. Le `.refine` plus bas rend
@@ -643,15 +642,6 @@ export const CreatePlayerModal = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="nickname">Surnom (optionnel)</Label>
-                  <Input
-                    id="nickname"
-                    placeholder="Tom"
-                    {...register("nickname")}
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="email">
                     Email
                     {emailIsOptional && (
@@ -817,7 +807,7 @@ export const CreatePlayerModal = ({
                     </div>
                     <div>
                       <p className="font-medium">
-                        {watch("nickname") || `${watch("firstName")} ${watch("lastName")}`}
+                        {`${watch("firstName")} ${watch("lastName")}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {currentTeam?.name || selectedTeam?.name || "Équipe non sélectionnée"}

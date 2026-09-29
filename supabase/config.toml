@@ -89,3 +89,8 @@ verify_jwt = false
 # code. L'action « generate » vérifie la session et les droits en code.
 [functions.child-access]
 verify_jwt = false
+
+# Relance unique (joueur / représentant légal) depuis la fiche joueur.
+# verify_jwt = false : auth applicative en code (getUser + vérif des droits).
+[functions.remind-pending-invitation]
+verify_jwt = false
