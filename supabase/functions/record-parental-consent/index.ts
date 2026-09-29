@@ -583,9 +583,15 @@ const handler = async (req: Request): Promise<Response> => {
               user_id: uid,
               title: `Consentement parental reçu — ${childName}`,
               message:
-                `${guardianDisplayName} (${relLabel}) a validé le consentement. ${summary}`,
+                `${guardianDisplayName} (${relLabel}) a validé le consentement. ${summary}` +
+                (childIdentifier
+                  ? ` Identifiant de connexion : ${childIdentifier}. Générez son accès depuis sa fiche.`
+                  : ""),
               type: "success",
-              link: `/consent/${inserted.id}/attestation`,
+              // Enfant sans adresse : la fiche joueur porte le bouton « Générer l'accès ».
+              link: childIdentifier
+                ? `/players/${body.minor_profile_id}`
+                : `/consent/${inserted.id}/attestation`,
             })),
           );
           if (notifErr) console.error("referent notifications insert failed", notifErr);
@@ -615,6 +621,22 @@ const handler = async (req: Request): Promise<Response> => {
       ${escapeHtml(signedAtLabel)}. Le compte de l'enfant est désormais actif.
     </p>
     ${decisionsTable}
+    ${
+                  childIdentifier
+                    ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin:16px 0;">
+      <p style="margin:0 0 8px;font-size:14px;color:#1e3a8a;font-weight:bold;">Accès de ${escapeHtml(childName)}</p>
+      <p style="margin:0 0 12px;font-size:14px;color:#374151;line-height:1.6;">
+        ${escapeHtml(childName)} n'a pas d'adresse e-mail. Identifiant de connexion :
+        <strong style="font-family:monospace;">${escapeHtml(childIdentifier)}</strong>.
+        Depuis sa fiche, « Générer l'accès » crée un code à usage unique à lui remettre ;
+        il choisira ensuite son propre mot de passe.
+      </p>
+      <a href="${origin}/players/${body.minor_profile_id}" style="display:inline-block;background:#2563eb;color:white;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:600;">
+        Ouvrir la fiche du joueur
+      </a>
+    </div>`
+                    : ""
+                }
     <p style="font-size:13px;color:#6b7280;line-height:1.6;">
       Merci de respecter ces choix : une autorisation refusée ne peut pas être
       contournée dans l'application, et le représentant légal peut la modifier

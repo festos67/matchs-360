@@ -120,6 +120,21 @@ const handler = async (req: Request): Promise<Response> => {
       return json({ error: "UPDATE_FAILED" }, 500);
     }
 
+    // Le parent vient de redefinir l'acces : un code d'acces remis par le club
+    // et encore inutilise ne doit plus pouvoir le remplacer (child-access).
+    const nowIso = new Date().toISOString();
+    await admin
+      .from("child_access_codes")
+      .update({ revoked_at: nowIso })
+      .eq("child_id", childId)
+      .is("used_at", null)
+      .is("revoked_at", null);
+    await admin
+      .from("child_access_requests")
+      .update({ resolved_at: nowIso })
+      .eq("child_id", childId)
+      .is("resolved_at", null);
+
     // Trace sans jamais consigner le mot de passe lui-meme.
     await admin.from("audit_log").insert({
       actor_id: guardianId,

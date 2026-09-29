@@ -105,7 +105,7 @@ export default function PlayerDetail() {
   const {
     player, teamMembership, referentCoach,
     frameworkId, frameworkName, themes, evaluations: rawEvaluations,
-    canEvaluate, canMutate, consentPending, isAdmin, isPlayerViewingOwnProfile,
+    canEvaluate, canMutate, canManageChildAccess, consentPending, isAdmin, isPlayerViewingOwnProfile,
     loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
 
@@ -591,6 +591,7 @@ export default function PlayerDetail() {
           evaluations={evaluations}
           canEvaluate={canEvaluate}
           canMutate={canMutate}
+          canManageChildAccess={canManageChildAccess}
           consentPending={consentPending}
           isAdmin={isAdmin}
           isPlayerViewingOwnProfile={viewAsPlayer}

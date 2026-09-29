@@ -157,7 +157,7 @@ export function usePlayerData(playerId: string | undefined) {
   const permissionsQuery = useQuery({
     queryKey: ["player-permissions", playerId, teamMembership?.team_id, user?.id],
     queryFn: async () => {
-      if (!teamMembership) return { canEvaluate: false, canMutate: false };
+      if (!teamMembership) return { canEvaluate: false, canMutate: false, canManageChildAccess: false };
 
       const { data: coachMembership } = await supabase
         .from("team_members")
@@ -173,8 +173,11 @@ export function usePlayerData(playerId: string | undefined) {
       const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === clubId);
       const canEvaluate = isAdmin || isClubAdmin || !!coachMembership;
       const canMutate = isAdmin || isClubAdmin || !!coachMembership;
+      // Codes d'accès (joueur sans adresse) : coach RÉFÉRENT, responsable du
+      // club ou administrateur — même règle que la fonction child-access.
+      const canManageChildAccess = isAdmin || isClubAdmin || coachMembership?.coach_role === "referent";
 
-      return { canEvaluate, canMutate };
+      return { canEvaluate, canMutate, canManageChildAccess };
     },
     enabled: !!teamMembership && !!user,
   });
@@ -270,6 +273,7 @@ export function usePlayerData(playerId: string | undefined) {
     // transférer, gérer le représentant légal) reste disponible.
     canEvaluate: (permissionsQuery.data?.canEvaluate ?? false) && !consentPending,
     canMutate: permissionsQuery.data?.canMutate ?? false,
+    canManageChildAccess: permissionsQuery.data?.canManageChildAccess ?? false,
     consentPending,
     isAdmin,
     isPlayerViewingOwnProfile,

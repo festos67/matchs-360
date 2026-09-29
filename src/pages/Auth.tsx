@@ -126,15 +126,27 @@ export default function Auth() {
       return;
     }
 
-    // Un identifiant de joueur mineur n'a pas de boîte à relever : la demande
-    // partirait dans le vide et produirait un rebond. Le mot de passe est
-    // redéfini par le représentant légal depuis son espace, ou par le club.
+    // Un identifiant de joueur n'a pas de boîte à relever. La demande prévient
+    // son coach référent et son représentant légal (child-access, anti-spam,
+    // réponse identique que l'identifiant existe ou non). Le mot de passe
+    // actuel n'est pas touché : s'il le retrouve, il reste valable.
     if (isIdentifier(email)) {
-      toast.info("Demande à ton représentant légal ou à ton club", {
+      setLoading(true);
+      try {
+        await supabase.functions.invoke("child-access", {
+          body: { action: "request", identifier: email.trim() },
+        });
+      } catch {
+        /* réponse identique en cas d'erreur */
+      } finally {
+        setLoading(false);
+      }
+      toast.info("Demande transmise", {
         description:
-          "Ton identifiant n'est pas rattaché à une adresse e-mail : ils peuvent te redéfinir un mot de passe.",
-        duration: 8000,
+          "Ton coach et ton représentant légal sont prévenus : ils te donneront un code d'accès. Utilise-le avec « J'ai un code d'accès ». Si tu retrouves ton mot de passe, il reste valable.",
+        duration: 10000,
       });
+      setIsForgotPassword(false);
       return;
     }
 
@@ -488,6 +500,15 @@ export default function Auth() {
                 </>
               )}
             </Button>
+
+            {isLogin && (
+              <p className="text-center text-xs text-muted-foreground">
+                Ton coach t'a donné un code ?{" "}
+                <a href="/code-acces" className="text-primary hover:underline">
+                  J'ai un code d'accès
+                </a>
+              </p>
+            )}
           </form>
           )}
 

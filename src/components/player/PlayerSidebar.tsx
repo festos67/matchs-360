@@ -39,6 +39,8 @@ import type { Player, TeamMembership, ReferentCoach, Evaluation } from "@/hooks/
 import { getPlayerName } from "@/hooks/usePlayerData";
 import { ProfilePhoto } from "@/components/shared/ProfilePhoto";
 import { LegalGuardianModal } from "@/components/modals/LegalGuardianModal";
+import { ChildAccessPanel } from "@/components/player/ChildAccessPanel";
+import { identifierFromEmail } from "@/lib/technical-identity";
 
 interface PlayerSidebarProps {
   player: Player;
@@ -48,6 +50,8 @@ interface PlayerSidebarProps {
   evaluations: Evaluation[];
   canEvaluate: boolean;
   canMutate: boolean;
+  /** Coach référent, responsable du club ou admin : codes d'accès (joueur sans adresse). */
+  canManageChildAccess?: boolean;
   /** Moins de 15 ans sans consentement parental valide : aucune action. */
   consentPending?: boolean;
   isAdmin: boolean;
@@ -78,6 +82,7 @@ export function PlayerSidebar({
   evaluations,
   canEvaluate,
   canMutate,
+  canManageChildAccess = false,
   consentPending = false,
   isAdmin,
   isPlayerViewingOwnProfile,
@@ -344,6 +349,16 @@ export function PlayerSidebar({
             )}
           </div>
         </div>
+      )}
+
+      {/* Accès d'un joueur sans adresse e-mail : code d'accès remis par le club */}
+      {!isPlayerViewingOwnProfile && canManageChildAccess && !consentPending && identifierFromEmail(player.email) && (
+        <ChildAccessPanel
+          childId={player.id}
+          identifier={identifierFromEmail(player.email)!}
+          childFirstName={player.first_name || displayName}
+          clubName={teamMembership?.team?.club?.name}
+        />
       )}
 
       {/* Espace parent : le représentant légal consulte la fiche de son enfant */}
