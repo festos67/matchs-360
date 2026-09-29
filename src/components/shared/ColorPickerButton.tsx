@@ -69,6 +69,10 @@ export function ColorPickerButton({ value, onChange, id }: ColorPickerButtonProp
   return (
     <Popover
       open={open}
+      // modal : ouvert dans une fenêtre (création d'équipe, de club…), le
+      // sélecteur doit pouvoir défiler — sinon la fenêtre parente bloque le
+      // défilement de ce contenu affiché hors d'elle.
+      modal
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
         if (nextOpen) setTempRgb(hexToRgb(value));
@@ -83,14 +87,22 @@ export function ColorPickerButton({ value, onChange, id }: ColorPickerButtonProp
           style={{ backgroundColor: value }}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-[290px] p-3" align="start" side="bottom">
-        <div className="space-y-3">
+      {/* Tient toujours dans l'écran : placé au-dessus ou en dessous selon la
+          place, hauteur limitée à l'espace disponible, contenu qui défile et
+          bouton « Valider » fixé en bas, toujours visible. */}
+      <PopoverContent
+        className="flex w-[290px] max-w-[calc(100vw-1.5rem)] flex-col p-0 max-h-[var(--radix-popover-content-available-height)]"
+        align="start"
+        side="bottom"
+        collisionPadding={12}
+      >
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3">
           <p className="text-xs text-muted-foreground font-medium">Sélectionner une couleur</p>
           <div className="rounded-md border border-border p-2 bg-background/60">
             <RgbColorPicker
               color={tempRgb}
               onChange={setTempRgb}
-              className="!w-full !h-[188px]"
+              className="!w-full !h-[min(188px,28dvh)]"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -145,7 +157,7 @@ export function ColorPickerButton({ value, onChange, id }: ColorPickerButtonProp
             </div>
           </div>
         </div>
-        <div className="w-full pt-3 mt-1 border-t border-border">
+        <div className="w-full shrink-0 border-t border-border p-3">
           <Button type="button" size="sm" onClick={handleValidate} className="gap-1.5 w-full">
             <Check className="w-4 h-4" />
             Valider
