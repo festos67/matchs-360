@@ -145,8 +145,9 @@ export default function Evaluations() {
       fetchTeams();
       fetchEvaluations();
     }
+    // Rechargement au changement de profil actif : la liste en dépend.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, myAdminClubIds.join(",")]);
+  }, [user, myAdminClubIds.join(","), currentRole?.id]);
 
   useEffect(() => {
     if (teamId) {
@@ -178,37 +179,78 @@ export default function Evaluations() {
     }
   };
 
+  /** Joueurs actifs des équipes données. */
+  const playersOfTeams = async (teamIds: string[]): Promise<string[]> => {
+    if (teamIds.length === 0) return [];
+    const { data: pm } = await supabase
+      .from("team_members")
+      .select("user_id")
+      .in("team_id", teamIds)
+      .eq("member_type", "player")
+      .eq("is_active", true)
+      .is("deleted_at", null);
+    return [...new Set((pm || []).map((m: { user_id: string }) => m.user_id))];
+  };
+
+  /**
+   * Joueurs dont les débriefs s'affichent, selon le PROFIL ACTIF — et non
+   * selon tout ce que la base autorise pour le compte. Un compte à plusieurs
+   * profils (joueur + supporter, coach + joueur, responsable + joueur…) lit
+   * davantage de débriefs qu'il ne doit en voir dans le profil choisi.
+   *  - joueur     : ses propres débriefs uniquement ;
+   *  - supporter  : les joueurs qu'il suit ;
+   *  - coach      : les joueurs des équipes qu'il encadre ;
+   *  - responsable: les joueurs du club du profil actif ;
+   *  - admin      : tous (null = pas de filtre).
+   */
+  const scopedPlayerIdsForRole = async (): Promise<string[] | null> => {
+    if (!user) return [];
+    switch (currentRole?.role) {
+      case "admin":
+        return null;
+      case "player":
+        return [user.id];
+      case "supporter": {
+        const { data } = await supabase
+          .from("supporters_link")
+          .select("player_id")
+          .eq("supporter_id", user.id);
+        return [...new Set((data || []).map((l: { player_id: string }) => l.player_id))];
+      }
+      case "coach": {
+        const { data } = await supabase
+          .from("team_members")
+          .select("team_id")
+          .eq("user_id", user.id)
+          .eq("member_type", "coach")
+          .eq("is_active", true)
+          .is("deleted_at", null);
+        return playersOfTeams((data || []).map((t: { team_id: string }) => t.team_id));
+      }
+      case "club_admin": {
+        const clubIds = currentRole.club_id ? [currentRole.club_id] : myAdminClubIds;
+        if (clubIds.length === 0) return [];
+        const { data } = await supabase
+          .from("teams")
+          .select("id")
+          .in("club_id", clubIds)
+          .is("deleted_at", null);
+        return playersOfTeams((data || []).map((t: { id: string }) => t.id));
+      }
+      default:
+        return [];
+    }
+  };
+
   const fetchEvaluations = async () => {
     setLoading(true);
 
-    // Compute scoped player IDs for club admins
-    let scopedPlayerIds: string[] | null = null;
-    if (!isSuperAdmin && myAdminClubIds.length > 0) {
-      const { data: scopedTeams } = await supabase
-        .from("teams")
-        .select("id")
-        .in("club_id", myAdminClubIds)
-        .is("deleted_at", null);
-      const teamIds = (scopedTeams || []).map((t: any) => t.id);
-      if (teamIds.length === 0) {
-        setEvaluations([]);
-        setPlayerTeams({});
-        setLoading(false);
-        return;
-      }
-      const { data: pm } = await supabase
-        .from("team_members")
-        .select("user_id")
-        .in("team_id", teamIds)
-        .eq("member_type", "player")
-        .eq("is_active", true);
-      scopedPlayerIds = [...new Set((pm || []).map((m: any) => m.user_id))];
-      if (scopedPlayerIds.length === 0) {
-        setEvaluations([]);
-        setPlayerTeams({});
-        setLoading(false);
-        return;
-      }
+    const scopedPlayerIds = await scopedPlayerIdsForRole();
+    if (scopedPlayerIds && scopedPlayerIds.length === 0) {
+      setEvaluations([]);
+      setPlayerTeams({});
+      setLoading(false);
+      return;
     }
 
     let query = supabase
