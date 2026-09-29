@@ -166,6 +166,7 @@ export default function Clubs() {
                 name={club.name}
                 subtitle={`${club.teams_count || 0} équipe${(club.teams_count || 0) > 1 ? "s" : ""}`}
                 imageUrl={club.logo_url}
+                imageFit="contain"
                 color={club.primary_color}
                 size="lg"
                 onClick={() => navigate(`/clubs/${club.id}`)}

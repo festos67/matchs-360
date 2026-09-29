@@ -297,7 +297,8 @@ const CoachMyClub = () => {
                   src={club.logo_url}
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover"
+                  // Mise à l'échelle seule : logo entier, jamais rogné ni déformé.
+                  className="absolute inset-0 h-full w-full object-contain p-2"
                 />
               ) : (
                 <span className="font-display text-5xl font-extrabold text-white">

@@ -40,6 +40,12 @@ interface CircleAvatarProps {
   className?: string;
   showName?: boolean;
   shape?: "circle" | "square";
+  /**
+   * « cover » (défaut) : l'image remplit la forme — photos de personnes.
+   * « contain » : simple mise à l'échelle, image entière et non déformée,
+   * avec une marge — logos de club (sinon rognés).
+   */
+  imageFit?: "cover" | "contain";
 }
 
 const sizeClasses = {
@@ -77,6 +83,7 @@ export const CircleAvatar = ({
   className,
   showName = true,
   shape = "circle",
+  imageFit = "cover",
 }: CircleAvatarProps) => {
   // Si un `profile` est fourni, on l'utilise prioritairement (chemin protégé).
   // Sinon `imageUrl` (logos club / cas hérités).
@@ -105,9 +112,24 @@ export const CircleAvatar = ({
           shape === "circle" ? "!rounded-full" : "!rounded-2xl"
         )}
         style={{
-          background: finalImageUrl
-            ? `url(${finalImageUrl}) center/cover`
-            : `linear-gradient(135deg, ${color} 0%, ${color}88 100%)`,
+          ...(finalImageUrl && imageFit === "contain"
+            ? {
+                // Mise à l'échelle seule, dans une marge intérieure : l'image
+                // n'est ni rognée ni déformée, et les coins arrondis ne la
+                // coupent pas.
+                backgroundImage: `url(${finalImageUrl})`,
+                backgroundPosition: "center",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundOrigin: "content-box",
+                backgroundColor: "hsl(var(--secondary))",
+                padding: "10%",
+              }
+            : {
+                background: finalImageUrl
+                  ? `url(${finalImageUrl}) center/cover`
+                  : `linear-gradient(135deg, ${color} 0%, ${color}88 100%)`,
+              }),
           boxShadow: `0 4px 24px -4px ${color}40`,
         }}
       >
