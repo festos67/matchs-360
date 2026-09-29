@@ -275,6 +275,13 @@ export function usePlayerData(playerId: string | undefined) {
     canMutate: permissionsQuery.data?.canMutate ?? false,
     canManageChildAccess: permissionsQuery.data?.canManageChildAccess ?? false,
     consentPending,
+    // Droits définitivement connus (équipe, droits et consentement chargés).
+    // Avant, canEvaluate vaut false par défaut : une action déclenchée par
+    // l'adresse (?new=1) ne doit pas conclure trop tôt à un refus.
+    permissionsReady:
+      !membershipQuery.isLoading &&
+      (!teamMembership || permissionsQuery.isFetched) &&
+      consentQuery.isFetched,
     isAdmin,
     isPlayerViewingOwnProfile,
 

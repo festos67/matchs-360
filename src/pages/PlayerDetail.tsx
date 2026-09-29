@@ -105,7 +105,7 @@ export default function PlayerDetail() {
   const {
     player, teamMembership, referentCoach,
     frameworkId, frameworkName, themes, evaluations: rawEvaluations,
-    canEvaluate, canMutate, canManageChildAccess, consentPending, isAdmin, isPlayerViewingOwnProfile,
+    canEvaluate, canMutate, canManageChildAccess, consentPending, permissionsReady, isAdmin, isPlayerViewingOwnProfile,
     loading, refetchAll, refetchEvaluations,
   } = usePlayerData(id);
 
@@ -308,8 +308,11 @@ export default function PlayerDetail() {
   }, [selectedEvaluation?.id, isViewingHistory]);
 
   // Auto-trigger "Nouveau débrief" flow when arriving with ?new=1
+  // (menu latéral « + Nouveau débrief »). On attend que les droits soient
+  // connus : avant, canEvaluate valait false le temps du chargement, le
+  // paramètre était effacé et l'on restait sur la fiche sans formulaire.
   useEffect(() => {
-    if (!requestedNew) return;
+    if (!requestedNew || !permissionsReady) return;
     if (!canEvaluate) {
       setSearchParams((sp) => { sp.delete("new"); return sp; }, { replace: true });
       return;
@@ -320,18 +323,18 @@ export default function PlayerDetail() {
     setActiveTab("evaluation");
     scrollToSkillsSection();
     setSearchParams((sp) => { sp.delete("new"); return sp; }, { replace: true });
-  }, [requestedNew, canEvaluate, scrollToSkillsSection, setSearchParams]);
+  }, [requestedNew, permissionsReady, canEvaluate, scrollToSkillsSection, setSearchParams]);
 
   // Auto-open certificate modal when arriving with ?certificate=1
   useEffect(() => {
-    if (!requestedCertificate) return;
+    if (!requestedCertificate || !permissionsReady) return;
     if (!canEvaluate && !canMutate) {
       setSearchParams((sp) => { sp.delete("certificate"); return sp; }, { replace: true });
       return;
     }
     setShowCertificateModal(true);
     setSearchParams((sp) => { sp.delete("certificate"); return sp; }, { replace: true });
-  }, [requestedCertificate, canEvaluate, canMutate, setSearchParams]);
+  }, [requestedCertificate, permissionsReady, canEvaluate, canMutate, setSearchParams]);
 
   // Print handlers
   const handlePrint = useReactToPrint({ contentRef: printRef, documentTitle: `Fiche_${player?.first_name || "Joueur"}_${new Date().toLocaleDateString("fr-FR")}` });

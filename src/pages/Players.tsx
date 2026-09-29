@@ -117,6 +117,9 @@ const Players = () => {
 
   const isCoach = currentRole?.role === "coach";
   const isClubAdmin = currentRole?.role === "club_admin";
+  // Raccourci « Modifier le joueur » : le coach ne voit ici que les joueurs de
+  // ses équipes, qu'il peut déjà modifier depuis leur fiche (même fenêtre).
+  const canEditPlayers = isAdmin || isClubAdmin || isCoach;
   const pageTitle = isCoach ? "Mes Joueurs" : "Joueurs";
   const pageSubtitle = isAdmin
     && currentRole?.role === "admin"
@@ -504,7 +507,7 @@ const Players = () => {
           </div>
         </TableCell>
       )}
-      {(isAdmin || currentRole?.role === "club_admin") && (
+      {canEditPlayers && (
         <TableCell className="text-right">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -669,7 +672,7 @@ const Players = () => {
                                 <TableRow>
                                   <TableHead>Joueur</TableHead>
                                   <TableHead>Surnom</TableHead>
-                                  {(isAdmin || currentRole?.role === "club_admin") && (
+                                  {canEditPlayers && (
                                     <TableHead className="text-right">Actions</TableHead>
                                   )}
                                 </TableRow>
@@ -693,7 +696,7 @@ const Players = () => {
                           <TableRow>
                             <TableHead>Joueur</TableHead>
                             <TableHead>Surnom</TableHead>
-                            {(isAdmin || currentRole?.role === "club_admin") && (
+                            {canEditPlayers && (
                               <TableHead className="text-right">Actions</TableHead>
                             )}
                           </TableRow>
