@@ -51,8 +51,12 @@ export function UserPhotoUpload({
       toast.error("Format non supporté. Utilisez JPEG, PNG ou WEBP");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La photo ne doit pas dépasser 5 Mo");
+    // La photo est recadrée puis réduite (1024 px, JPEG) avant l'envoi : la
+    // limite de 5 Mo de l'envoi s'applique au résultat, pas à l'original.
+    // Refuser ici tout original de plus de 5 Mo bloquait la plupart des
+    // photos de téléphone récent. On ne garde qu'un garde-fou mémoire.
+    if (file.size > 30 * 1024 * 1024) {
+      toast.error("Photo trop lourde (plus de 30 Mo). Choisissez une image plus petite.");
       return;
     }
     const reader = new FileReader();

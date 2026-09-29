@@ -409,6 +409,13 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
             description:
               "Le surnom d'un mineur ne peut être modifié que par lui-même, son représentant légal ou un administrateur.",
           });
+        } else if (photoFile && /row-level security|violates|Unauthorized|403/i.test(raw)) {
+          // Envoi refusé par l'espace de stockage (photos de mineurs : espace
+          // privé, droits restreints). Message clair plutôt que l'erreur brute.
+          toast.error("Photo non enregistrée", {
+            description:
+              "Vous n'avez pas le droit d'ajouter une photo pour ce joueur. Pour un joueur mineur, la photo peut être ajoutée par son coach ou son représentant légal.",
+          });
         } else {
           toast.error("Erreur lors de la mise à jour", {
             description: raw || "Une erreur est survenue. Vérifiez vos droits sur ce profil.",

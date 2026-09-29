@@ -49,13 +49,24 @@ function createImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
+/**
+ * Côté maximal de la photo recadrée. Une photo de profil n'a pas besoin de
+ * plus : sans ce plafond, la photo d'un téléphone récent (50 Mpx) restait
+ * à pleine résolution et dépassait la limite d'envoi de 5 Mo.
+ */
+const MAX_OUTPUT_SIDE = 1024;
+
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
 
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
+  // Réduction proportionnelle (jamais d'agrandissement ni de déformation).
+  const scale = Math.min(1, MAX_OUTPUT_SIDE / Math.max(pixelCrop.width, pixelCrop.height));
+  canvas.width = Math.round(pixelCrop.width * scale);
+  canvas.height = Math.round(pixelCrop.height * scale);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
 
   ctx.drawImage(
     image,
@@ -65,8 +76,8 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
     pixelCrop.height,
     0,
     0,
-    pixelCrop.width,
-    pixelCrop.height
+    canvas.width,
+    canvas.height
   );
 
   return new Promise((resolve, reject) => {
