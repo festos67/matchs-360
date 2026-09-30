@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
+import { audienceForAgeCategory, audienceLabel } from "@/lib/framework-audience";
 
 
 interface Template {
@@ -29,6 +30,7 @@ interface Template {
   is_template: boolean;
   team_id: string | null;
   club_id: string | null;
+  audience?: string | null;
   themes_count?: number;
   skills_count?: number;
 }
@@ -55,6 +57,9 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   const [loading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [clubTemplates, setClubTemplates] = useState<Template[]>([]);
+  // Un club peut avoir plusieurs modèles (adultes, jeunes…) : celui qui
+  // correspond à la catégorie d'âge de l'équipe est proposé d'office.
+  const [selectedClubTemplateId, setSelectedClubTemplateId] = useState<string>("");
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamsWithFramework, setTeamsWithFramework] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
@@ -99,23 +104,36 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
   }, [clubId]);
 
   const fetchClubTemplates = async () => {
-    const { data } = await supabase
-      .from("competence_frameworks")
-      .select("*, themes:themes(id, skills(count))")
-      .eq("club_id", clubId)
-      .eq("is_template", true)
-      .eq("is_archived", false)
-      .order("updated_at", { ascending: false })
-      .limit(1);
-    
+    const [{ data }, { data: team }] = await Promise.all([
+      supabase
+        .from("competence_frameworks")
+        .select("*, themes:themes(id, skills(count))")
+        .eq("club_id", clubId)
+        .is("team_id", null)
+        .eq("is_template", true)
+        .eq("is_archived", false)
+        .order("created_at", { ascending: true }),
+      supabase.from("teams").select("age_category").eq("id", teamId).maybeSingle(),
+    ]);
+
     if (data) {
-      setClubTemplates(data.map((t: any) => {
+      const templates: Template[] = data.map((t: any) => {
         const themes = t.themes || [];
         const skillsCount = themes.reduce((sum: number, th: any) => sum + (th.skills?.[0]?.count || 0), 0);
         return { ...t, themes_count: themes.length, skills_count: skillsCount };
-      }));
+      });
+      setClubTemplates(templates);
+      const wanted = audienceForAgeCategory(team?.age_category);
+      const match =
+        (wanted && templates.find((t) => t.audience === wanted)) ||
+        templates.find((t) => !t.audience) ||
+        templates[0];
+      setSelectedClubTemplateId(match?.id ?? "");
     }
   };
+
+  const selectedClubTemplate =
+    clubTemplates.find((t) => t.id === selectedClubTemplateId) ?? clubTemplates[0];
 
   const fetchTeams = async () => {
     const { data } = await supabase
@@ -170,7 +188,7 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     if (selectedOption === "cps") return "Référentiel Compétences Psychosociales";
     if (selectedOption === "child") return "Référentiel Socio-Sport Enfant (6-12 ans)";
     if (selectedOption === "academy") return "Référentiel Centre de formation";
-    if (selectedOption === "club" && clubTemplates.length > 0) return clubTemplates[0].name;
+    if (selectedOption === "club" && selectedClubTemplate) return selectedClubTemplate.name;
     if (selectedOption === "team" && selectedTeamId) {
       const team = teams.find(t => t.id === selectedTeamId);
       return `Référentiel basé sur ${team?.name || "équipe"}`;
@@ -203,14 +221,18 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
         sourceFrameworkId = CHILD_TEMPLATE_ID;
       } else if (selectedOption === "academy") {
         sourceFrameworkId = ACADEMY_TEMPLATE_ID;
-      } else if (selectedOption === "club" && clubTemplates.length > 0) {
-        sourceFrameworkId = clubTemplates[0].id;
+      } else if (selectedOption === "club" && selectedClubTemplate) {
+        sourceFrameworkId = selectedClubTemplate.id;
       } else if (selectedOption === "team" && selectedTeamId) {
-        // Get the framework from the selected team
+        // Version active de l'équipe choisie (ses versions archivées faisaient
+        // échouer maybeSingle()).
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
           .select("id")
           .eq("team_id", selectedTeamId)
+          .eq("is_archived", false)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
         
         if (teamFramework) {
@@ -310,14 +332,14 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
     {
       id: "club",
       icon: Building2,
-      title: "Modèle du Club",
-      description: clubTemplates.length > 0 
-        ? `Utiliser le référentiel du club\n${clubTemplates[0].themes_count} thématiques et ${clubTemplates[0].skills_count} compétences` 
+      title: clubTemplates.length > 1 ? "Modèles du Club" : "Modèle du Club",
+      description: selectedClubTemplate
+        ? `${selectedClubTemplate.name} (${audienceLabel(selectedClubTemplate.audience).toLowerCase()})\n${selectedClubTemplate.themes_count} thématiques et ${selectedClubTemplate.skills_count} compétences`
         : "Aucun modèle de club disponible",
       color: "text-success",
       bgColor: "bg-success/10",
       disabled: clubTemplates.length === 0,
-      previewFrameworkId: clubTemplates[0]?.id,
+      previewFrameworkId: selectedClubTemplate?.id,
     },
     {
       id: "team",
@@ -420,14 +442,14 @@ export const TemplateSelector = ({ teamId, clubId, onSelected, onCancel }: Templ
           <label className="text-sm font-medium mb-2 block">
             Sélectionner le modèle
           </label>
-          <Select>
+          <Select value={selectedClubTemplateId} onValueChange={setSelectedClubTemplateId}>
             <SelectTrigger>
               <SelectValue placeholder="Choisir un modèle..." />
             </SelectTrigger>
             <SelectContent>
               {clubTemplates.map((template) => (
                 <SelectItem key={template.id} value={template.id}>
-                  {template.name} ({template.themes_count} thématiques)
+                  {template.name} — {audienceLabel(template.audience)} ({template.themes_count} thématiques)
                 </SelectItem>
               ))}
             </SelectContent>

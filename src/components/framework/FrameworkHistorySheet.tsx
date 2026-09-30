@@ -43,6 +43,8 @@ interface FrameworkHistorySheetProps {
   activeFrameworkId: string | null;
   /** Called after a successful restore */
   onRestored: () => void;
+  /** Club : limite l'historique à un modèle (un club peut en avoir plusieurs). */
+  modelKey?: string | null;
 }
 
 export function FrameworkHistorySheet({
@@ -52,6 +54,7 @@ export function FrameworkHistorySheet({
   entityType,
   activeFrameworkId,
   onRestored,
+  modelKey,
 }: FrameworkHistorySheetProps) {
   const [archived, setArchived] = useState<ArchivedFramework[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,18 +63,19 @@ export function FrameworkHistorySheet({
 
   useEffect(() => {
     if (open) fetchArchived();
-  }, [open, entityId]);
+  }, [open, entityId, modelKey]);
 
   const fetchArchived = async () => {
     setLoading(true);
     try {
       const col = entityType === "club" ? "club_id" : "team_id";
-      const { data, error } = await supabase
+      let query = supabase
         .from("competence_frameworks")
         .select("id, name, archived_at, created_at")
         .eq(col, entityId)
-        .eq("is_archived", true)
-        .order("archived_at", { ascending: false });
+        .eq("is_archived", true);
+      if (modelKey) query = query.eq("model_key", modelKey);
+      const { data, error } = await query.order("archived_at", { ascending: false });
 
       if (error) throw error;
 

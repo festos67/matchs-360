@@ -27,7 +27,7 @@
  *   (migration club_coaches_read_only_team_view). La fiche équipe s'ouvre
  *   alors en lecture seule — TeamDetail, isClubCoachViewing.
  */
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,14 +42,12 @@ import {
   Heart,
   Building2,
   BookOpen,
-  Printer,
   Shield,
   Eye,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { PrintableFramework } from "@/components/framework/PrintableFramework";
-import { useReactToPrint } from "react-to-print";
+import { audienceLabel } from "@/lib/framework-audience";
 
 type CoachClubStats = {
   my_teams: number;
@@ -184,38 +182,33 @@ const CoachMyClub = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch club framework (active template) + themes for printing
-  const { data: clubFramework, isLoading: loadingFramework } = useQuery({
-    queryKey: ["coach-club-framework", clubId],
+  // Modèles de référentiel du club (un club peut en avoir plusieurs :
+  // adultes, jeunes…). Consultation et impression depuis la page du modèle.
+  const { data: clubModels, isLoading: loadingFramework } = useQuery({
+    queryKey: ["coach-club-framework-models", clubId],
     queryFn: async () => {
-      if (!clubId) return null;
-      const { data: fw } = await supabase
+      if (!clubId) return [];
+      const { data } = await supabase
         .from("competence_frameworks")
-        .select("id, name")
+        .select("id, name, model_key, audience, themes:themes(id, skills(count))")
         .eq("club_id", clubId)
+        .is("team_id", null)
         .eq("is_template", true)
         .eq("is_archived", false)
-        .maybeSingle();
-      if (!fw) return null;
-      const { data: themes } = await supabase
-        .from("themes")
-        .select("*, skills(*)")
-        .eq("framework_id", fw.id)
-        .order("order_index");
-      const themesArr = (themes || []).map((t: any) => ({
-        ...t,
-        skills: (t.skills || []).sort((a: any, b: any) => a.order_index - b.order_index),
-      }));
-      const skillsTotal = themesArr.reduce((s: number, t: any) => s + (t.skills?.length || 0), 0);
-      return { id: fw.id, name: fw.name, themes: themesArr, themes_count: themesArr.length, skills_count: skillsTotal };
+        .order("created_at", { ascending: true });
+      return (data ?? []).map((m) => {
+        const themesArr = (m.themes as unknown as { skills?: { count: number }[] }[]) || [];
+        return {
+          id: m.id,
+          name: m.name,
+          model_key: m.model_key,
+          audience: m.audience,
+          themes_count: themesArr.length,
+          skills_count: themesArr.reduce((sum, t) => sum + (t.skills?.[0]?.count || 0), 0),
+        };
+      });
     },
     enabled: !!clubId,
-  });
-
-  const printRef = useRef<HTMLDivElement>(null);
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: clubFramework?.name || "Référentiel du Club",
   });
 
   const isStatsLoading = waitingForCoachScope || loadingDashboardStats;
@@ -361,56 +354,36 @@ const CoachMyClub = () => {
       {clubId && (
         <div className="mb-8">
           <h2 className="text-xl font-display font-semibold text-foreground mb-4">
-            Référentiel du Club
+            {clubModels && clubModels.length > 1 ? "Référentiels du Club" : "Référentiel du Club"}
           </h2>
 
           {loadingFramework ? (
             <Skeleton className="h-20 w-full rounded-xl" />
-          ) : clubFramework ? (
-            <Card
-              className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
-              onClick={() => navigate(`/clubs/${clubId}/framework`)}
-            >
-              <CardHeader className="py-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-primary" />
+          ) : clubModels && clubModels.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {clubModels.map((m) => (
+                <Card
+                  key={m.id}
+                  className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
+                  onClick={() => navigate(`/clubs/${clubId}/framework?model=${m.model_key}`)}
+                >
+                  <CardHeader className="py-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base truncate">{m.name}</CardTitle>
+                        <CardDescription className="truncate">
+                          {audienceLabel(m.audience)} • {plural(m.themes_count, "thématique")} • {plural(m.skills_count, "compétence")}
+                        </CardDescription>
+                      </div>
+                      <Eye className="w-4 h-4 text-accent shrink-0" aria-hidden="true" />
                     </div>
-                    <div className="min-w-0">
-                      <CardTitle className="text-base truncate">{clubFramework.name}</CardTitle>
-                      <CardDescription className="truncate">
-                        {plural(clubFramework.themes_count, "thématique")} • {plural(clubFramework.skills_count, "compétence")}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/clubs/${clubId}/framework`);
-                      }}
-                    >
-                      <Eye className="w-4 h-4 mr-2 text-accent" />
-                      Consulter
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePrint();
-                      }}
-                    >
-                      <Printer className="w-4 h-4 mr-2 text-accent" />
-                      Imprimer
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
           ) : (
             // Le cadre reste visible même sans référentiel : le coach sait ainsi
             // qu'il existe, et à qui s'adresser. Pas de bouton de création — c'est
@@ -485,20 +458,6 @@ const CoachMyClub = () => {
           </p>
         )}
       </div>
-
-      {/* Hidden printable */}
-      {clubFramework && (
-        <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
-          <PrintableFramework
-            ref={printRef}
-            frameworkName={clubFramework.name}
-            teamName="Modèle du club"
-            clubName={club?.name || ""}
-            clubLogoUrl={club?.logo_url}
-            themes={clubFramework.themes}
-          />
-        </div>
-      )}
     </AppLayout>
   );
 };

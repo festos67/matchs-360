@@ -26,7 +26,7 @@
  * (mem://technical/framework-snapshot-system).
  */
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   BookOpen,
   FileQuestion,
@@ -34,7 +34,17 @@ import {
   RotateCcw,
   Printer,
   Pencil,
+  Plus,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  AUDIENCE_OPTIONS,
+  audienceFromSelect,
+  audienceLabel,
+  audienceToSelect,
+  type FrameworkAudience,
+} from "@/lib/framework-audience";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,6 +94,14 @@ interface Framework {
   name: string;
   club_id: string | null;
   is_template: boolean;
+  model_key: string;
+  audience: string | null;
+}
+
+/** Ouverture du sélecteur de source : nouveau modèle ou réinitialisation. */
+interface SelectorState {
+  targetModelKey?: string;
+  audience: FrameworkAudience;
 }
 
 interface Club {
@@ -100,13 +118,17 @@ export default function ClubFrameworkEditor() {
   const { canDo, loading: planLoading } = usePlan();
   const canVersionFramework = planLoading ? true : canDo("can_version_framework");
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedModelKey = searchParams.get("model");
   const [club, setClub] = useState<Club | null>(null);
+  // Un club peut avoir plusieurs modèles (adultes, jeunes…) : version active de chacun.
+  const [models, setModels] = useState<Framework[]>([]);
   const [framework, setFramework] = useState<Framework | null>(null);
+  const [selector, setSelector] = useState<SelectorState | null>(null);
   const [themes, setThemes] = useState<Theme[]>([]);
   const [frameworkName, setFrameworkName] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -132,7 +154,14 @@ export default function ClubFrameworkEditor() {
 
   useEffect(() => {
     if (user && clubId) fetchData();
-  }, [user, clubId]);
+  }, [user, clubId, selectedModelKey]);
+
+  const selectModel = (modelKey: string | null) => {
+    const next = new URLSearchParams(searchParams);
+    if (modelKey) next.set("model", modelKey);
+    else next.delete("model");
+    setSearchParams(next, { replace: true });
+  };
 
   const fetchData = async () => {
     try {
@@ -150,13 +179,20 @@ export default function ClubFrameworkEditor() {
       }
       setClub(clubData);
 
-      const { data: frameworkData } = await supabase
+      const { data: modelsData, error: modelsError } = await supabase
         .from("competence_frameworks")
-        .select("*")
+        .select("id, name, club_id, is_template, model_key, audience")
         .eq("club_id", clubId)
+        .is("team_id", null)
         .eq("is_template", true)
         .eq("is_archived", false)
-        .maybeSingle();
+        .order("created_at", { ascending: true });
+      if (modelsError) throw modelsError;
+      const activeModels = (modelsData ?? []) as Framework[];
+      setModels(activeModels);
+
+      const frameworkData =
+        activeModels.find((m) => m.model_key === selectedModelKey) ?? activeModels[0] ?? null;
 
       if (frameworkData) {
         setFramework(frameworkData);
@@ -175,7 +211,9 @@ export default function ClubFrameworkEditor() {
           setThemes(sortedThemes);
         }
       } else {
-        setShowTemplateSelector(true);
+        setFramework(null);
+        setThemes([]);
+        setSelector({ audience: null });
       }
     } catch (error: unknown) {
       console.error("Error fetching data:", error);
@@ -223,7 +261,10 @@ export default function ClubFrameworkEditor() {
       setPendingEditThemes(null);
       if (saved) {
         const { themes: savedThemes, ...savedFramework } = saved;
-        setFramework(savedFramework as typeof framework);
+        const savedModel = savedFramework as unknown as Framework;
+        setFramework(savedModel);
+        // Nouvelle version active du même modèle : nouvel id dans la liste.
+        setModels((prev) => prev.map((m) => (m.model_key === savedModel.model_key ? savedModel : m)));
         setFrameworkName(savedFramework.name);
         setThemes(savedThemes as Theme[]);
       } else {
@@ -239,21 +280,6 @@ export default function ClubFrameworkEditor() {
     }
   };
 
-  const handleReset = async () => {
-    if (framework) {
-      const { error } = await supabase
-        .from("competence_frameworks")
-        .update({ is_archived: true, archived_at: new Date().toISOString() })
-        .eq("id", framework.id);
-      if (error) {
-        toast.error("Échec de la réinitialisation du référentiel");
-        return;
-      }
-      toast.success("Référentiel actuel archivé — choisissez un nouveau modèle");
-    }
-    setShowTemplateSelector(true);
-  };
-
   const handleDeleteFramework = async () => {
     if (!framework) return;
     try {
@@ -264,22 +290,53 @@ export default function ClubFrameworkEditor() {
 
       if (error) throw error;
 
-      setFramework(null);
-      setThemes([]);
-      setShowTemplateSelector(true);
-      toast.success("Référentiel archivé — récupérable via l'historique");
+      toast.success("Modèle archivé — récupérable via l'historique");
+      const remaining = models.filter((m) => m.id !== framework.id);
+      if (remaining.length > 0) {
+        // Un autre modèle reste actif : on l'affiche.
+        selectModel(remaining[0].model_key);
+        if (remaining[0].model_key === selectedModelKey) await fetchData();
+      } else {
+        setFramework(null);
+        setThemes([]);
+        setModels([]);
+        setSelector({ audience: null });
+      }
     } catch (error: unknown) {
       console.error("Error archiving framework:", error);
       toast.error("Erreur lors de la suppression");
     }
   };
 
-  const handleTemplateSelected = async () => {
-    setShowTemplateSelector(false);
+  const handleAudienceChange = async (value: string) => {
+    if (!framework) return;
+    const audience = audienceFromSelect(value);
+    const { error } = await supabase
+      .from("competence_frameworks")
+      .update({ audience })
+      .eq("id", framework.id);
+    if (error) {
+      toast.error("Le public visé n'a pas pu être enregistré");
+      return;
+    }
+    setFramework({ ...framework, audience });
+    setModels((prev) => prev.map((m) => (m.id === framework.id ? { ...m, audience } : m)));
+  };
+
+  const handleTemplateSelected = async (frameworkId?: string) => {
+    setSelector(null);
     toast.success("Référentiel importé avec succès");
-    await fetchData();
-    // Prevent fetchData from re-showing the selector if data isn't ready yet
-    setShowTemplateSelector(false);
+    let key: string | null = null;
+    if (frameworkId) {
+      const { data } = await supabase
+        .from("competence_frameworks")
+        .select("model_key")
+        .eq("id", frameworkId)
+        .maybeSingle();
+      key = data?.model_key ?? null;
+    }
+    if (key && key !== selectedModelKey) selectModel(key);
+    else await fetchData();
   };
 
   if (authLoading || loading) {
@@ -294,13 +351,16 @@ export default function ClubFrameworkEditor() {
 
   if (!club) return null;
 
-  if (showTemplateSelector) {
+  if (selector && canEdit) {
     return (
       <AppLayout>
         <ClubTemplateSelector
           clubId={clubId!}
           onSelected={handleTemplateSelected}
-          onCancel={() => framework ? setShowTemplateSelector(false) : navigate(`/clubs/${clubId}`)}
+          onCancel={() => (framework ? setSelector(null) : navigate(`/clubs/${clubId}`))}
+          targetModelKey={selector.targetModelKey}
+          initialAudience={selector.audience}
+          hasOtherModels={models.length > 0}
         />
       </AppLayout>
     );
@@ -318,7 +378,8 @@ export default function ClubFrameworkEditor() {
             <div className="flex-1 min-w-0">
               <h1 className="!text-2xl font-display font-bold truncate">{frameworkName || "Référentiel du Club"}</h1>
               <p className="text-muted-foreground mt-1 text-sm">
-                {club.name} • Modèle du club • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
+                {club.name} • Modèle du club
+                {framework ? ` (${audienceLabel(framework.audience).toLowerCase()})` : ""} • {themes.length} thématique{themes.length > 1 ? "s" : ""} • {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence{themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
               </p>
             </div>
             {framework && (
@@ -328,6 +389,50 @@ export default function ClubFrameworkEditor() {
               </Button>
             )}
           </div>
+
+          {/* Modèles du club : un par public (adultes, jeunes…) */}
+          {(models.length > 1 || canEdit) && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {models.map((m) => (
+                <Button
+                  key={m.id}
+                  variant={m.id === framework?.id ? "default" : "outline"}
+                  size="sm"
+                  className="max-w-full"
+                  onClick={() => selectModel(m.model_key)}
+                >
+                  <span className="truncate">{m.name}</span>
+                  <Badge variant="secondary" className="ml-2 shrink-0">
+                    {audienceLabel(m.audience)}
+                  </Badge>
+                </Button>
+              ))}
+              {canEdit && (
+                <Button variant="outline" size="sm" onClick={() => setSelector({ audience: null })}>
+                  <Plus className="w-4 h-4 mr-1" />
+                  Nouveau modèle
+                </Button>
+              )}
+            </div>
+          )}
+
+          {framework && canEdit && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Public visé :</span>
+              <Select value={audienceToSelect(framework.audience)} onValueChange={handleAudienceChange}>
+                <SelectTrigger className="h-8 w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AUDIENCE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {framework && canEdit && (
             <div className="mt-4 rounded-lg border border-border bg-muted/30 px-3 py-2 inline-flex max-w-full">
@@ -355,7 +460,7 @@ export default function ClubFrameworkEditor() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
+                        <AlertDialogTitle>Supprimer ce modèle de référentiel ?</AlertDialogTitle>
                         <AlertDialogDescription>
                           Le référentiel <strong>{frameworkName}</strong> et ses{" "}
                           <strong>{themes.length} thématique{themes.length > 1 ? "s" : ""}</strong>{" "}
@@ -364,7 +469,9 @@ export default function ClubFrameworkEditor() {
                             {themes.reduce((acc, t) => acc + t.skills.length, 0)} compétence
                             {themes.reduce((acc, t) => acc + t.skills.length, 0) > 1 ? "s" : ""}
                           </strong>{" "}
-                          seront archivés. Cette action est réversible depuis l'historique des versions.
+                          seront archivés. Les référentiels déjà copiés dans les équipes ne changent pas.
+                          Vous pourrez le restaurer depuis la fiche du club (« Nouveau modèle » ›
+                          « Restaurer depuis l'historique »).
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -443,6 +550,7 @@ export default function ClubFrameworkEditor() {
         onOpenChange={setShowHistory}
         entityId={clubId!}
         entityType="club"
+        modelKey={framework?.model_key ?? null}
         activeFrameworkId={framework?.id || null}
         onRestored={() => fetchData()}
       />
@@ -452,7 +560,7 @@ export default function ClubFrameworkEditor() {
         <PrintableFramework
           ref={printRef}
           frameworkName={frameworkName}
-          teamName="Modèle du club"
+          teamName={`Modèle du club — ${audienceLabel(framework?.audience)}`}
           clubName={club?.name || ""}
           clubLogoUrl={club?.logo_url}
           themes={themes}

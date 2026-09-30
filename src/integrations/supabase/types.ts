@@ -107,11 +107,13 @@ export type Database = {
       competence_frameworks: {
         Row: {
           archived_at: string | null
+          audience: string | null
           club_id: string | null
           created_at: string
           id: string
           is_archived: boolean
           is_template: boolean
+          model_key: string
           name: string
           talent_enabled: boolean
           team_id: string | null
@@ -119,11 +121,13 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          audience?: string | null
           club_id?: string | null
           created_at?: string
           id?: string
           is_archived?: boolean
           is_template?: boolean
+          model_key?: string
           name: string
           talent_enabled?: boolean
           team_id?: string | null
@@ -131,11 +135,13 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          audience?: string | null
           club_id?: string | null
           created_at?: string
           id?: string
           is_archived?: boolean
           is_template?: boolean
+          model_key?: string
           name?: string
           talent_enabled?: boolean
           team_id?: string | null

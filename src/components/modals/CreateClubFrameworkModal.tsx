@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
+import { AUDIENCE_OPTIONS, audienceFromSelect } from "@/lib/framework-audience";
 
 interface Team {
   id: string;
@@ -75,6 +76,8 @@ export function CreateClubFrameworkModal({
   const [matchsStats, setMatchsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [cpsStats, setCpsStats] = useState<{ themes: number; skills: number } | null>(null);
   const [childStats, setChildStats] = useState<{ themes: number; skills: number } | null>(null);
+  // Un club peut avoir plusieurs modèles (adultes, jeunes…) : public visé.
+  const [audience, setAudience] = useState<"all" | "adult" | "youth">("all");
 
   const fetchFrameworkStats = useCallback(async (frameworkId: string) => {
     const { data: themes } = await supabase
@@ -108,6 +111,7 @@ export function CreateClubFrameworkModal({
       setSelectedOption(null);
       setSelectedTeamId("");
       setSelectedArchivedId("");
+      setAudience("all");
     }
   }, [open, clubId, fetchFrameworkStats]);
 
@@ -214,10 +218,15 @@ export function CreateClubFrameworkModal({
       } else if (selectedOption === "child") {
         sourceFrameworkId = CHILD_TEMPLATE_ID;
       } else if (selectedOption === "team" && selectedTeamId) {
+        // Version active seulement : les versions archivées de l'équipe
+        // faisaient échouer maybeSingle() (plusieurs lignes).
         const { data: teamFramework } = await supabase
           .from("competence_frameworks")
           .select("id, name")
           .eq("team_id", selectedTeamId)
+          .eq("is_archived", false)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (teamFramework) {
@@ -228,7 +237,23 @@ export function CreateClubFrameworkModal({
           return;
         }
       } else if (selectedOption === "history" && selectedArchivedId) {
-        // Restore archived framework
+        // Restore archived framework. Si une autre version du même modèle est
+        // active, elle est archivée d'abord (une seule version active par modèle).
+        const { data: archivedRow } = await supabase
+          .from("competence_frameworks")
+          .select("model_key")
+          .eq("id", selectedArchivedId)
+          .maybeSingle();
+        if (archivedRow?.model_key) {
+          const { error: archiveError } = await supabase
+            .from("competence_frameworks")
+            .update({ is_archived: true, archived_at: new Date().toISOString() })
+            .eq("club_id", clubId)
+            .is("team_id", null)
+            .eq("model_key", archivedRow.model_key)
+            .eq("is_archived", false);
+          if (archiveError) throw archiveError;
+        }
         const { error } = await supabase
           .from("competence_frameworks")
           .update({ is_archived: false, archived_at: null })
@@ -245,6 +270,7 @@ export function CreateClubFrameworkModal({
           team_id: null,
           name: frameworkName,
           is_template: true,
+          audience: audienceFromSelect(audience),
         });
 
         if (error) throw error;
@@ -260,6 +286,7 @@ export function CreateClubFrameworkModal({
             sourceFrameworkId,
             targetClubId: clubId,
             frameworkName,
+            audience: audienceFromSelect(audience),
           },
         });
 
@@ -370,9 +397,10 @@ export function CreateClubFrameworkModal({
               <BookOpen className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <DialogTitle>Créer le référentiel du club</DialogTitle>
+              <DialogTitle>Nouveau modèle de référentiel</DialogTitle>
               <DialogDescription>
-                Ce référentiel servira de modèle pour toutes les équipes du club
+                Ce modèle servira de base aux équipes du club. Un club peut en avoir plusieurs,
+                par exemple un pour les adultes et un pour les jeunes.
               </DialogDescription>
             </div>
           </div>
@@ -452,6 +480,24 @@ export function CreateClubFrameworkModal({
                   {archivedFrameworks.map((fw) => (
                     <SelectItem key={fw.id} value={fw.id}>
                       {fw.name} — {formatDate(fw.archived_at)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {selectedOption && selectedOption !== "history" && (
+            <div className="p-4 rounded-lg border border-border bg-muted/30">
+              <label className="text-sm font-medium mb-2 block">Public visé par ce modèle</label>
+              <Select value={audience} onValueChange={(v) => setAudience(v as "all" | "adult" | "youth")}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AUDIENCE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

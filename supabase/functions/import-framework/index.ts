@@ -6,6 +6,10 @@ interface ImportTemplateRequest {
   targetTeamId?: string;
   targetClubId?: string;
   frameworkName: string;
+  /** Club : modèle à remplacer (absent = nouveau modèle). */
+  targetModelKey?: string;
+  /** Club : public visé du modèle ("adult" | "youth"). */
+  audience?: "adult" | "youth" | null;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -38,7 +42,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const body: ImportTemplateRequest = await req.json();
-    const { sourceFrameworkId, targetTeamId, targetClubId, frameworkName } = body;
+    const { sourceFrameworkId, targetTeamId, targetClubId, frameworkName, targetModelKey, audience } = body;
 
     // Determine if we're importing to a team or a club
     const isClubImport = !!targetClubId && !targetTeamId;
@@ -144,6 +148,8 @@ const handler = async (req: Request): Promise<Response> => {
         p_target_team_id: isClubImport ? null : targetTeamId,
         p_target_club_id: isClubImport ? targetClubId : null,
         p_framework_name: frameworkName,
+        p_target_model_key: isClubImport ? targetModelKey ?? null : null,
+        p_audience: isClubImport && (audience === "adult" || audience === "youth") ? audience : null,
       },
     );
 

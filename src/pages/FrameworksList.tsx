@@ -51,6 +51,7 @@ type FrameworkRow = {
   is_template: boolean;
   team_id: string | null;
   club_id: string | null;
+  model_key: string;
   created_at: string;
   updated_at: string;
   club: { id: string; name: string } | null;
@@ -91,7 +92,7 @@ export default function FrameworksList() {
         .from("competence_frameworks")
         .select(
           `
-          id, name, is_template, team_id, club_id, created_at, updated_at,
+          id, name, is_template, team_id, club_id, model_key, created_at, updated_at,
           club:clubs(id, name),
           team:teams(id, name, club_id),
           themes(id, skills(id))
@@ -156,7 +157,8 @@ export default function FrameworksList() {
   // équipe ouvrent l'éditeur équipe.
   const getOpenPath = (f: FrameworkRow): string | null => {
     if (f.team_id) return `/teams/${f.team_id}/framework`;
-    if (f.club_id) return `/clubs/${f.club_id}/framework`;
+    // Un club peut avoir plusieurs modèles : on ouvre celui-ci.
+    if (f.club_id) return `/clubs/${f.club_id}/framework?model=${f.model_key}`;
     return null;
   };
 

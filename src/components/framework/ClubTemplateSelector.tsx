@@ -1,7 +1,8 @@
 /**
  * @component ClubTemplateSelector
- * @description Sélecteur de modèle pour initialiser le référentiel d'une équipe.
- *              Restreint aux modèles actifs du club parent (règle métier).
+ * @description Sélecteur de source pour créer (ou réinitialiser) un modèle de
+ *              référentiel du club. Un club peut avoir plusieurs modèles
+ *              (par exemple adultes / jeunes) : chacun a son public visé.
  * @access Coach Référent, Responsable Club, Super Admin (depuis page équipe)
  * @features
  *  - Liste filtrée : référentiels du club non archivés uniquement
@@ -21,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FrameworkNameModal } from "@/components/modals/FrameworkNameModal";
 import { TemplatePreviewDialog } from "@/components/framework/TemplatePreviewDialog";
+import { AUDIENCE_OPTIONS, audienceFromSelect, audienceToSelect, type FrameworkAudience } from "@/lib/framework-audience";
 
 interface Team {
   id: string;
@@ -30,8 +32,14 @@ interface Team {
 
 interface ClubTemplateSelectorProps {
   clubId: string;
-  onSelected: () => void;
+  /** Reçoit l'identifiant du modèle créé (ou réinitialisé), si connu. */
+  onSelected: (frameworkId?: string) => void;
   onCancel: () => void;
+  /** Modèle à réinitialiser (lignée conservée) ; absent = nouveau modèle. */
+  targetModelKey?: string;
+  initialAudience?: FrameworkAudience;
+  /** Le club a déjà au moins un modèle : titre « Nouveau modèle ». */
+  hasOtherModels?: boolean;
 }
 
 const STANDARD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000001";
@@ -40,8 +48,16 @@ const CPS_TEMPLATE_ID = "00000000-0000-0000-0000-000000000003";
 const CHILD_TEMPLATE_ID = "00000000-0000-0000-0000-000000000004";
 const ACADEMY_TEMPLATE_ID = "00000000-0000-0000-0000-000000000005";
 
-export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTemplateSelectorProps) => {
+export const ClubTemplateSelector = ({
+  clubId,
+  onSelected,
+  onCancel,
+  targetModelKey,
+  initialAudience = null,
+  hasOtherModels = false,
+}: ClubTemplateSelectorProps) => {
   const [loading, setLoading] = useState(false);
+  const [audience, setAudience] = useState<"all" | "adult" | "youth">(audienceToSelect(initialAudience));
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
@@ -214,14 +230,20 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           sourceFrameworkId = teamFramework.id;
         }
       } else if (selectedOption === "empty") {
-        const { error } = await supabase.from("competence_frameworks").insert({
-          club_id: clubId,
-          name: frameworkName,
-          is_template: true,
-        });
-        
+        const { data: created, error } = await supabase
+          .from("competence_frameworks")
+          .insert({
+            club_id: clubId,
+            name: frameworkName,
+            is_template: true,
+            audience: audienceFromSelect(audience),
+            ...(targetModelKey ? { model_key: targetModelKey } : {}),
+          })
+          .select("id")
+          .single();
+
         if (error) throw error;
-        onSelected();
+        onSelected(created?.id);
         return;
       }
 
@@ -231,11 +253,15 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
             sourceFrameworkId,
             targetClubId: clubId,
             frameworkName,
+            targetModelKey,
+            audience: audienceFromSelect(audience),
           },
         });
 
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
+        onSelected(data?.frameworkId);
+        return;
       }
 
       onSelected();
@@ -332,9 +358,16 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
           <BookOpen className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-display font-bold">Initialiser le référentiel du club</h1>
+        <h1 className="text-3xl font-display font-bold">
+          {targetModelKey
+            ? "Réinitialiser le modèle"
+            : hasOtherModels
+              ? "Nouveau modèle de référentiel"
+              : "Initialiser le référentiel du club"}
+        </h1>
         <p className="text-muted-foreground mt-2">
-          Ce référentiel servira de modèle pour les équipes du club
+          Ce modèle servira de base aux équipes du club. Vous pouvez en créer plusieurs, par
+          exemple un pour les adultes et un pour les jeunes.
         </p>
       </div>
 
@@ -399,6 +432,25 @@ export const ClubTemplateSelector = ({ clubId, onSelected, onCancel }: ClubTempl
           </Select>
         </div>
       )}
+
+      <div className="glass-card p-4 mb-8 max-w-sm">
+        <label className="text-sm font-medium mb-2 block">Public visé par ce modèle</label>
+        <Select value={audience} onValueChange={(v) => setAudience(v as "all" | "adult" | "youth")}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {AUDIENCE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground mt-2">
+          Sert à proposer le bon modèle quand une équipe crée son référentiel.
+        </p>
+      </div>
 
       {/* Barre d'actions collante : reste visible quelle que soit la position
           de défilement, y compris avec une longue liste de modèles. */}

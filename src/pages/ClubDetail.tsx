@@ -31,9 +31,9 @@
  * Création de club = transactionnel côté client : si l'invitation Club Admin
  * échoue, rollback. Voir mem://features/admin/club-management.
  */
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, History, UserPlus, Heart, Printer, Shield, Building2, UserCircle } from "lucide-react";
+import { Plus, Users, Settings, Edit, UserCog, Trash2, RotateCcw, Archive, BookOpen, UserPlus, Heart, Shield, Building2, UserCircle } from "lucide-react";
 import { ClubDashboardSections } from "@/components/club/ClubDashboardSections";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CircleAvatar } from "@/components/shared/CircleAvatar";
@@ -55,11 +55,7 @@ import { DeleteClubDialog } from "@/components/modals/DeleteClubDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FrameworkHistorySheet } from "@/components/framework/FrameworkHistorySheet";
-import { ProFeatureLock } from "@/components/subscription/ProFeatureLock";
-import { usePlan } from "@/hooks/usePlan";
-import { PrintableFramework } from "@/components/framework/PrintableFramework";
-import { useReactToPrint } from "react-to-print";
+import { audienceLabel } from "@/lib/framework-audience";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -94,9 +90,12 @@ interface Team {
   referentCoachName?: string;
 }
 
-interface ClubFramework {
+/** Modèle de référentiel du club (un club peut en avoir plusieurs). */
+interface ClubModel {
   id: string;
   name: string;
+  model_key: string;
+  audience: string | null;
   themes_count: number;
   skills_count: number;
 }
@@ -116,12 +115,10 @@ export default function ClubDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, profile, currentRole, loading: authLoading, isAdmin, roles } = useAuth();
   const navigate = useNavigate();
-  const { canDo, loading: planLoading } = usePlan();
-  const canVersionFramework = planLoading ? true : canDo("can_version_framework");
   const [club, setClub] = useState<Club | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [archivedTeams, setArchivedTeams] = useState<Team[]>([]);
-  const [clubFramework, setClubFramework] = useState<ClubFramework | null>(null);
+  const [clubModels, setClubModels] = useState<ClubModel[]>([]);
   const [coachCount, setCoachCount] = useState(0);
   const [playerCount, setPlayerCount] = useState(0);
   const [supporterCount, setSupporterCount] = useState(0);
@@ -137,16 +134,6 @@ export default function ClubDetail() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
-  const [showFrameworkHistory, setShowFrameworkHistory] = useState(false);
-  const [frameworkThemes, setFrameworkThemes] = useState<any[]>([]);
-  const printRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: clubFramework?.name || "Référentiel du Club",
-  });
 
   const isClubAdmin = roles.some(r => r.role === "club_admin" && r.club_id === id);
   const canManageClub = isAdmin || isClubAdmin;
@@ -264,41 +251,29 @@ export default function ClubDetail() {
         .eq("club_id", id!);
       setSupporterCount(supporters || 0);
 
-      // Fetch club framework
-      const { data: frameworkData } = await supabase
+      // Modèles de référentiel du club (un par public : adultes, jeunes…)
+      const { data: modelsData } = await supabase
         .from("competence_frameworks")
-        .select("id, name, themes:themes(id, skills(count))")
+        .select("id, name, model_key, audience, themes:themes(id, skills(count))")
         .eq("club_id", id)
+        .is("team_id", null)
         .eq("is_template", true)
         .eq("is_archived", false)
-        .maybeSingle();
-      
-      if (frameworkData) {
-        const themesArr = (frameworkData.themes as any[]) || [];
-        const skillsTotal = themesArr.reduce((sum: number, t: any) => sum + (t.skills?.[0]?.count || 0), 0);
-        setClubFramework({
-          id: frameworkData.id,
-          name: frameworkData.name,
-          themes_count: themesArr.length,
-          skills_count: skillsTotal,
-        });
+        .order("created_at", { ascending: true });
 
-        // Fetch full themes with skills for printing
-        const { data: fullThemes } = await supabase
-          .from("themes")
-          .select("*, skills(*)")
-          .eq("framework_id", frameworkData.id)
-          .order("order_index");
-        if (fullThemes) {
-          setFrameworkThemes(fullThemes.map(t => ({
-            ...t,
-            skills: (t.skills || []).sort((a: any, b: any) => a.order_index - b.order_index),
-          })));
-        }
-      } else {
-        setClubFramework(null);
-        setFrameworkThemes([]);
-      }
+      setClubModels(
+        (modelsData ?? []).map((m) => {
+          const themesArr = (m.themes as unknown as { skills?: { count: number }[] }[]) || [];
+          return {
+            id: m.id,
+            name: m.name,
+            model_key: m.model_key,
+            audience: m.audience,
+            themes_count: themesArr.length,
+            skills_count: themesArr.reduce((sum, t) => sum + (t.skills?.[0]?.count || 0), 0),
+          };
+        }),
+      );
     } catch (error: any) {
       console.error("Error fetching club:", error);
       toast.error("Erreur lors du chargement du club");
@@ -327,27 +302,6 @@ export default function ClubDetail() {
     } finally {
       setIsDeleting(false);
       setTeamToDelete(null);
-    }
-  };
-
-  const handleResetFramework = async () => {
-    if (!clubFramework) return;
-    setIsResetting(true);
-    try {
-      await supabase
-        .from("competence_frameworks")
-        .update({ is_archived: true, archived_at: new Date().toISOString() })
-        .eq("id", clubFramework.id);
-      
-      setClubFramework(null);
-      toast.success("Référentiel archivé — récupérable via l'historique");
-      fetchClubData();
-    } catch (error: any) {
-      console.error("Error resetting framework:", error);
-      toast.error("Erreur lors de la réinitialisation");
-    } finally {
-      setIsResetting(false);
-      setShowResetConfirm(false);
     }
   };
 
@@ -488,82 +442,42 @@ export default function ClubDetail() {
       {canManageClub && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-display font-semibold">Référentiel du Club</h2>
+            <h2 className="text-xl font-display font-semibold">
+              {clubModels.length > 1 ? "Référentiels du Club" : "Référentiel du Club"}
+            </h2>
+            {clubModels.length > 0 && (
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setShowFrameworkModal(true)}>
+                <Plus className="w-4 h-4" />
+                Nouveau modèle
+              </Button>
+            )}
           </div>
           
-          {clubFramework ? (
-            <Card 
-              className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
-              onClick={() => navigate(`/clubs/${club.id}/framework`)}
-            >
-              <CardHeader className="py-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-primary" />
+          {clubModels.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {clubModels.map((m) => (
+                <Card
+                  key={m.id}
+                  className="border-primary/20 bg-primary/5 cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
+                  onClick={() => navigate(`/clubs/${club.id}/framework?model=${m.model_key}`)}
+                >
+                  <CardHeader className="py-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <BookOpen className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base truncate">{m.name}</CardTitle>
+                        <CardDescription className="truncate">
+                          {audienceLabel(m.audience)} • {m.themes_count} thématique{m.themes_count > 1 ? "s" : ""} • {m.skills_count} compétence{m.skills_count > 1 ? "s" : ""}
+                        </CardDescription>
+                      </div>
+                      <Edit className="w-4 h-4 text-accent shrink-0" aria-hidden="true" />
                     </div>
-                    <div className="min-w-0">
-                      <CardTitle className="text-base truncate">{clubFramework.name}</CardTitle>
-                      <CardDescription className="truncate">
-                        {clubFramework.themes_count} thématique{clubFramework.themes_count > 1 ? "s" : ""} • {clubFramework.skills_count} compétence{clubFramework.skills_count > 1 ? "s" : ""}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/clubs/${club.id}/framework`);
-                      }}
-                    >
-                      <Edit className="w-4 h-4 mr-2 text-accent" />
-                      Modifier
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePrint();
-                      }}
-                    >
-                      <Printer className="w-4 h-4 mr-2 text-accent" />
-                      Imprimer
-                    </Button>
-                    <ProFeatureLock
-                      locked={!canVersionFramework}
-                      label="Historique des versions réservé au plan Pro"
-                    >
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowFrameworkHistory(true);
-                        }}
-                      >
-                        <History className="w-4 h-4 mr-2 text-accent" />
-                        Historique
-                      </Button>
-                    </ProFeatureLock>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowResetConfirm(true);
-                      }}
-                    >
-                      <RotateCcw className="w-4 h-4 mr-2" />
-                      Supprimer
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
           ) : (
             <Card className="border-dashed">
               <CardContent className="flex flex-col items-center justify-center py-8 text-center">
@@ -701,56 +615,6 @@ export default function ClubDetail() {
           redirectTo="/clubs"
         />
       )}
-
-      <FrameworkHistorySheet
-        open={showFrameworkHistory}
-        onOpenChange={setShowFrameworkHistory}
-        entityId={id!}
-        entityType="club"
-        activeFrameworkId={clubFramework?.id || null}
-        onRestored={() => fetchClubData()}
-      />
-
-      {/* Reset Framework Confirmation */}
-      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le référentiel du club ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Le référentiel <strong>{clubFramework?.name ?? "du club"}</strong> et ses{" "}
-              <strong>{frameworkThemes.length} thématique{frameworkThemes.length > 1 ? "s" : ""}</strong>{" "}
-              /{" "}
-              <strong>
-                {frameworkThemes.reduce((acc, t) => acc + (t.skills?.length ?? 0), 0)} compétence
-                {frameworkThemes.reduce((acc, t) => acc + (t.skills?.length ?? 0), 0) > 1 ? "s" : ""}
-              </strong>{" "}
-              seront archivés. Cette action est réversible depuis l'historique des versions.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleResetFramework}
-              disabled={isResetting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isResetting ? "Suppression..." : "Supprimer"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Hidden printable component */}
-      <div style={{ position: "fixed", left: "-9999px", top: 0 }}>
-        <PrintableFramework
-          ref={printRef}
-          frameworkName={clubFramework?.name || "Référentiel du Club"}
-          teamName="Modèle du club"
-          clubName={club?.name || ""}
-          clubLogoUrl={club?.logo_url}
-          themes={frameworkThemes}
-        />
-      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!teamToDelete} onOpenChange={(open) => !open && setTeamToDelete(null)}>
