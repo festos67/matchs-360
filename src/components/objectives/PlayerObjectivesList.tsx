@@ -380,7 +380,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
         if (insertError) throw insertError;
       }
 
-      toast.success(objective ? "Objectif mis à jour" : "Objectif créé");
+      toast.success(objective ? "Objectif individuel mis à jour" : "Objectif individuel créé");
       handleModalSuccess();
     } catch (error: any) {
       console.error("Error saving player objective:", error);
@@ -408,7 +408,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
           </h3>
           {canEdit && (
             <Button className="gap-2" onClick={() => { setEditingObjective(null); setShowModal(true); }}>
-              <Plus className="w-4 h-4" /> Nouvel objectif
+              <Plus className="w-4 h-4" /> Nouvel objectif individuel
             </Button>
           )}
         </div>
@@ -423,7 +423,7 @@ export function PlayerObjectivesList({ playerId, teamId, canEdit }: PlayerObject
             </p>
             {canEdit && (
               <Button size="sm" className="gap-2" onClick={() => { setEditingObjective(null); setShowModal(true); }}>
-                <Plus className="w-4 h-4" /> Créer un objectif
+                <Plus className="w-4 h-4" /> Créer un objectif individuel
               </Button>
             )}
           </div>
@@ -568,6 +568,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { useRef } from "react";
+import { ATTACHMENT_ACCEPT, ATTACHMENT_FORMATS_HINT, splitValidAttachments } from "@/lib/upload-validation";
 
 function PlayerObjectiveModal({
   open, onOpenChange, objective, onSave,
@@ -611,7 +612,7 @@ function PlayerObjectiveModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{objective ? "Modifier l'objectif" : "Nouvel objectif individuel"}</DialogTitle>
+          <DialogTitle>{objective ? "Modifier l'objectif individuel" : "Nouvel objectif individuel"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -653,11 +654,20 @@ function PlayerObjectiveModal({
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNewFiles(prev => prev.filter((_, j) => j !== i))}><X className="w-3 h-3" /></Button>
                 </div>
               ))}
-              <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx" className="hidden"
-                onChange={(e) => { if (e.target.files) setNewFiles(prev => [...prev, ...Array.from(e.target.files!)]); }} />
+              <input ref={fileInputRef} type="file" multiple accept={ATTACHMENT_ACCEPT} className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    // Format ou taille refusés : signalé dès le choix, avant l'enregistrement.
+                    const { valid, rejected } = splitValidAttachments(Array.from(e.target.files));
+                    rejected.forEach((r) => toast.error(`« ${r.name} » refusé`, { description: r.reason, duration: 8000 }));
+                    if (valid.length > 0) setNewFiles(prev => [...prev, ...valid]);
+                  }
+                  e.target.value = "";
+                }} />
               <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
                 <Paperclip className="w-3.5 h-3.5" /> Ajouter un fichier
               </Button>
+              <p className="text-xs text-muted-foreground">{ATTACHMENT_FORMATS_HINT}</p>
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">

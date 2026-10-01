@@ -37,6 +37,12 @@ const ATTACHMENT_EXT_WHITELIST = [
   "pdf", "doc", "docx", "xls", "xlsx", "txt", "csv",
 ] as const;
 
+/** Pièces jointes : valeur de l'attribut `accept` du champ fichier. */
+export const ATTACHMENT_ACCEPT = ATTACHMENT_EXT_WHITELIST.map((e) => `.${e}`).join(",");
+/** Pièces jointes : formats acceptés, en clair pour l'utilisateur. */
+export const ATTACHMENT_FORMATS_HINT =
+  "Formats acceptés : PDF, Word, Excel, images (JPG, PNG, WebP, GIF), texte ou CSV — 25 Mo maximum par fichier.";
+
 const IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024; // 25 MB
 
@@ -82,7 +88,7 @@ export function validateUpload(file: File, kind: UploadKind): ValidatedUpload {
     throw new UploadValidationError(
       kind === "image"
         ? "Format non supporté. Utilisez JPEG, PNG ou WebP."
-        : "Format de fichier non autorisé."
+        : `Format de fichier non accepté. ${ATTACHMENT_FORMATS_HINT}`
     );
   }
   const safeExt = getSafeExtension(file.name, extWhitelist);
@@ -109,4 +115,25 @@ export function validateUpload(file: File, kind: UploadKind): ValidatedUpload {
   }
 
   return { contentType: mime, safeExt };
+}
+
+/**
+ * Tri des pièces jointes au moment du choix (avant tout enregistrement) :
+ * les fichiers refusés sont signalés tout de suite avec la raison.
+ */
+export function splitValidAttachments(files: File[]): {
+  valid: File[];
+  rejected: { name: string; reason: string }[];
+} {
+  const valid: File[] = [];
+  const rejected: { name: string; reason: string }[] = [];
+  for (const file of files) {
+    try {
+      validateUpload(file, "attachment");
+      valid.push(file);
+    } catch (e) {
+      rejected.push({ name: file.name, reason: e instanceof Error ? e.message : "Fichier refusé." });
+    }
+  }
+  return { valid, rejected };
 }

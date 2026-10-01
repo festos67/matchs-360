@@ -156,7 +156,7 @@ function SortableObjectiveCard({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                      <AlertDialogTitle>Supprimer cet objectif collectif ?</AlertDialogTitle>
                       <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -242,7 +242,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-objectives", teamId] });
-      toast.success("Objectif finalisé");
+      toast.success("Objectif collectif finalisé");
     },
     onError: () => toast.error("Erreur lors de la mise à jour"),
   });
@@ -260,7 +260,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-objectives", teamId] });
-      toast.success("Objectif supprimé");
+      toast.success("Objectif collectif supprimé");
     },
     onError: () => toast.error("Erreur lors de la suppression"),
   });
@@ -284,7 +284,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-objectives", teamId] });
-      toast.success("Objectif dupliqué");
+      toast.success("Objectif collectif dupliqué");
     },
     onError: () => toast.error("Erreur lors de la duplication"),
   });
@@ -349,28 +349,34 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
 
   return (
     <div className="space-y-6">
-      {canEdit && (
-        <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-display font-semibold">Objectifs collectifs</h2>
+          <p className="text-sm text-muted-foreground">
+            Objectifs de toute l'équipe. Les objectifs individuels se fixent depuis la fiche de chaque joueur.
+          </p>
+        </div>
+        {canEdit && (
           <Button className="gap-2" onClick={() => { setEditingObjective(null); setShowModal(true); }}>
             <Plus className="w-4 h-4" />
-            Nouvel objectif
+            Nouvel objectif collectif
           </Button>
-        </div>
-      )}
+        )}
+      </div>
 
       {objectives.length === 0 ? (
         <div className="glass-card p-8 flex flex-col items-center justify-center text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <Target className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-xl font-display font-semibold mb-2">Aucun objectif</h2>
+          <h2 className="text-xl font-display font-semibold mb-2">Aucun objectif collectif</h2>
           <p className="text-muted-foreground mb-4">
-            {canEdit ? "Créez un premier objectif collectif pour votre équipe." : "Aucun objectif n'a encore été défini pour cette équipe."}
+            {canEdit ? "Créez un premier objectif collectif pour votre équipe." : "Aucun objectif collectif n'a encore été défini pour cette équipe."}
           </p>
           {canEdit && (
             <Button className="gap-2" onClick={() => { setEditingObjective(null); setShowModal(true); }}>
               <Plus className="w-4 h-4" />
-              Créer un objectif
+              Créer un objectif collectif
             </Button>
           )}
         </div>
@@ -379,7 +385,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
           {/* Active objectives with drag-and-drop */}
           {activeObjectives.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Objectifs en cours</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Objectifs collectifs en cours</h3>
               {canEdit ? (
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={activeObjectives.map(o => o.id)} strategy={verticalListSortingStrategy}>
@@ -419,7 +425,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
           {/* Finalized objectives */}
           {finalizedObjectives.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Objectifs finalisés</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Objectifs collectifs finalisés</h3>
               <div className="space-y-2">
                 {finalizedObjectives.map((obj) => (
                   <div key={obj.id} className={`glass-card p-3 transition-all border-l-4 ${obj.status === "succeeded" ? "border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/10" : "border-l-red-500 bg-red-50/30 dark:bg-red-950/10"}`}>
@@ -458,7 +464,7 @@ export function ObjectivesList({ teamId, canEdit }: ObjectivesListProps) {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer cet objectif ?</AlertDialogTitle>
+                                <AlertDialogTitle>Supprimer cet objectif collectif ?</AlertDialogTitle>
                                 <AlertDialogDescription>Cette action est irréversible.</AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

@@ -16,7 +16,7 @@
  *  - Pièces jointes : table objective_attachments / player_objective_attachments
  */
 import { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { usePlanLimitHandler } from "@/hooks/usePlanLimitHandler";
+import { ATTACHMENT_ACCEPT, ATTACHMENT_FORMATS_HINT, splitValidAttachments } from "@/lib/upload-validation";
 
 interface Attachment {
   id: string;
@@ -81,8 +82,12 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setNewFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+      // Format ou taille refusés : signalé dès le choix, avant l'enregistrement.
+      const { valid, rejected } = splitValidAttachments(Array.from(e.target.files));
+      rejected.forEach((r) => toast.error(`« ${r.name} » refusé`, { description: r.reason, duration: 8000 }));
+      if (valid.length > 0) setNewFiles(prev => [...prev, ...valid]);
     }
+    e.target.value = "";
   };
 
   const removeNewFile = (index: number) => {
@@ -166,7 +171,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
         if (insertError) throw insertError;
       }
 
-      toast.success(objective ? "Objectif mis à jour" : "Objectif créé");
+      toast.success(objective ? "Objectif collectif mis à jour" : "Objectif collectif créé");
       onSuccess();
     } catch (error: any) {
       console.error("Error saving objective:", error);
@@ -182,7 +187,8 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{objective ? "Modifier l'objectif" : "Nouvel objectif"}</DialogTitle>
+          <DialogTitle>{objective ? "Modifier l'objectif collectif" : "Nouvel objectif collectif"}</DialogTitle>
+          <DialogDescription>Objectif de toute l'équipe, visible par tous ses joueurs.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -192,7 +198,7 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
               id="obj-title"
               value={title}
               onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null); }}
-              placeholder="Titre de l'objectif"
+              placeholder="Titre de l'objectif collectif"
               aria-invalid={!!titleError}
             />
             {titleError && <p className="text-sm text-destructive mt-1">{titleError}</p>}
@@ -229,11 +235,12 @@ export function ObjectiveModal({ open, onOpenChange, teamId, objective, nextOrde
                   </Button>
                 </div>
               ))}
-              <input ref={fileInputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.xls,.xlsx" className="hidden" onChange={handleFileChange} />
+              <input ref={fileInputRef} type="file" multiple accept={ATTACHMENT_ACCEPT} className="hidden" onChange={handleFileChange} />
               <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
                 <Paperclip className="w-3.5 h-3.5" />
                 Ajouter un fichier
               </Button>
+              <p className="text-xs text-muted-foreground">{ATTACHMENT_FORMATS_HINT}</p>
             </div>
           </div>
 
