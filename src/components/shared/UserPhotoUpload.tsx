@@ -30,6 +30,11 @@ interface UserPhotoUploadProps {
   onFileSelected: (file: File, preview: string) => void;
   onRemovePhoto: () => void;
   label?: string;
+  /**
+   * Ajout de photo refusé (mineur sans autorisation du représentant légal) :
+   * le message s'affiche dès le clic, avant tout choix de fichier ou envoi.
+   */
+  blockedReason?: string | null;
 }
 
 export function UserPhotoUpload({
@@ -38,10 +43,19 @@ export function UserPhotoUpload({
   onFileSelected,
   onRemovePhoto,
   label = "Cliquez pour ajouter une photo",
+  blockedReason = null,
 }: UserPhotoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  const openPicker = () => {
+    if (blockedReason) {
+      toast.error("Photo non autorisée", { description: blockedReason, duration: 8000 });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,7 +109,8 @@ export function UserPhotoUpload({
         </Avatar>
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={openPicker}
+          aria-label={blockedReason ? "Photo non autorisée" : "Ajouter une photo"}
           className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
         >
           <Camera className="w-5 h-5 text-white" />
@@ -120,7 +135,13 @@ export function UserPhotoUpload({
         className="hidden"
         onChange={handlePhotoChange}
       />
-      <p className="text-xs text-muted-foreground">{label}</p>
+      {blockedReason ? (
+        <p role="alert" className="text-xs text-destructive text-center max-w-xs">
+          {blockedReason}
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">{label}</p>
+      )}
       {cropSrc && (
         <PhotoCropModal
           open={!!cropSrc}

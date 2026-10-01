@@ -19,6 +19,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
+import { photoBlockedReason } from "@/lib/photo-consent";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -126,6 +127,24 @@ export function EditUserModal({ user, onClose, onUpdate, showNickname = true }: 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(user.photo_url || null);
   const [removePhoto, setRemovePhoto] = useState(false);
+  // Mineur sans autorisation photo du représentant légal : ajout refusé dès
+  // le choix de la photo.
+  const [photoBlocked, setPhotoBlocked] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("profiles")
+      .select("birthdate, image_rights_consent_at")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data) setPhotoBlocked(photoBlockedReason(data.birthdate, data.image_rights_consent_at));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user.id]);
 
   // For adding new roles
   const [showAddRole, setShowAddRole] = useState(false);
@@ -246,6 +265,10 @@ export function EditUserModal({ user, onClose, onUpdate, showNickname = true }: 
   };
 
   const handleSaveProfile = async () => {
+    if (photoFile && photoBlocked) {
+      toast.error("Photo non autorisée", { description: photoBlocked, duration: 8000 });
+      return;
+    }
     try {
       setSaving(true);
 
@@ -460,6 +483,7 @@ export function EditUserModal({ user, onClose, onUpdate, showNickname = true }: 
             <UserPhotoUpload
               photoPreview={photoPreview}
               initials={getInitials()}
+              blockedReason={photoBlocked}
               onFileSelected={(file, preview) => {
                 setPhotoFile(file);
                 setPhotoPreview(preview);

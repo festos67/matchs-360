@@ -115,6 +115,14 @@ export default function Profile() {
   const selfIsUnder15 = requiresParentalConsent(selfBirthdate);
   const selfIsMinor = isMinorPhase0(selfBirthdate);
   const selfImageConsentAt = (profile?.image_rights_consent_at as string | null) ?? null;
+  // Mineur sans autorisation du représentant légal : ajout de photo refusé
+  // dès le clic, avant tout envoi (la photo resterait masquée).
+  const selfPhotoBlocked =
+    selfIsMinor && !selfImageConsentAt
+      ? selfIsUnder15
+        ? "Ta photo ne peut pas être ajoutée : ton représentant légal n'a pas autorisé l'utilisation de ton image."
+        : "Ta photo ne peut pas être ajoutée : le club doit d'abord enregistrer l'autorisation écrite de ton représentant légal."
+      : null;
 
   // RG2-001 / RG2-002 — droits RGPD adultes (export / effacement self).
   const [erasureReason, setErasureReason] = useState("");
@@ -458,7 +466,14 @@ export default function Profile() {
                 </Avatar>
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    if (selfPhotoBlocked) {
+                      toast.error("Photo non autorisée", { description: selfPhotoBlocked, duration: 8000 });
+                      return;
+                    }
+                    fileInputRef.current?.click();
+                  }}
+                  aria-label={selfPhotoBlocked ? "Photo non autorisée" : "Modifier ma photo"}
                   className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                 >
                   <Camera className="w-6 h-6 text-white" />
@@ -480,9 +495,15 @@ export default function Profile() {
                 className="hidden"
                 onChange={handlePhotoChange}
               />
-              <p className="text-xs text-muted-foreground">
-                Cliquez pour modifier votre photo
-              </p>
+              {selfPhotoBlocked ? (
+                <p role="alert" className="text-xs text-destructive text-center max-w-xs">
+                  {selfPhotoBlocked}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Cliquez pour modifier votre photo
+                </p>
+              )}
             </div>
 
             {/* Fields */}

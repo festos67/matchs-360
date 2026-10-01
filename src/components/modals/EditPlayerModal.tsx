@@ -47,6 +47,7 @@ import { ShieldCheck, AlertTriangle } from "lucide-react";
 import { isMinorPhase0, requiresParentalConsent } from "@/lib/age-policy";
 import { AddRoleSection } from "@/components/shared/AddRoleSection";
 import { UserPhotoUpload } from "@/components/shared/UserPhotoUpload";
+import { photoBlockedReason } from "@/lib/photo-consent";
 import { validateUpload, UploadValidationError } from "@/lib/upload-validation";
 import {
   removePublicProfilePhoto,
@@ -126,6 +127,15 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
   const [imageConsentAt, setImageConsentAt] = useState<string | null>(null);
   const [paperReceivedOn, setPaperReceivedOn] = useState(() => new Date().toISOString().slice(0, 10));
   const [savingImageConsent, setSavingImageConsent] = useState(false);
+
+  // Mineur sans autorisation photo du représentant légal : ajout refusé dès
+  // le choix de la photo (la date affichée fait foi, y compris corrigée ici).
+  // Passage sous 15 ans : l'autorisation existante est retirée par la base.
+  const photoBlocked = photoBlockedReason(
+    birthdate,
+    crossesUnder15 ? null : imageConsentAt,
+    isMinor15to17 ? "below" : "player-profile",
+  );
 
   const saveImageConsent = async (granted: boolean) => {
     setSavingImageConsent(true);
@@ -304,6 +314,12 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
   };
 
   const handleSave = async () => {
+    // Photo choisie avant que la date ne la rende interdite : rien n'est
+    // enregistré, l'utilisateur retire la photo ou régularise d'abord.
+    if (photoFile && photoBlocked) {
+      toast.error("Photo non autorisée", { description: photoBlocked, duration: 8000 });
+      return;
+    }
     if (needsGuardianWithBirthdate && !guardianFormValid) {
       setEditingGuardian(true);
       toast.error("Représentant légal requis", {
@@ -431,6 +447,7 @@ export function EditPlayerModal({ open, onOpenChange, player, onSuccess }: EditP
           <UserPhotoUpload
             photoPreview={photoPreview}
             initials={getInitials()}
+            blockedReason={photoBlocked}
             onFileSelected={(file, preview) => {
               setPhotoFile(file);
               setPhotoPreview(preview);

@@ -63,7 +63,8 @@ import {
 } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { uploadProfilePhoto } from "@/lib/photo-storage";
+import { isBirthdateMinor, uploadProfilePhoto } from "@/lib/photo-storage";
+import { NEW_MINOR_PHOTO_REASON } from "@/lib/photo-consent";
 import { cn } from "@/lib/utils";
 import { getEdgeFunctionErrorInfo } from "@/lib/edge-function-errors";
 import { toastInvitationError } from "@/lib/invitation-error-toast";
@@ -298,6 +299,12 @@ export const CreatePlayerModal = ({
   };
 
   const onSubmit = async (data: PlayerFormData, force = false) => {
+    // Photo choisie puis date de naissance de mineur saisie : on refuse avant
+    // tout envoi (aucune autorisation du représentant légal n'existe encore).
+    if (photoFile && isBirthdateMinor(data.birthdate)) {
+      toast.error("Photo non autorisée", { description: NEW_MINOR_PHOTO_REASON, duration: 8000 });
+      return;
+    }
     setLoading(true);
     try {
       const { data: result, error } = await supabase.functions.invoke("send-invitation", {
@@ -601,6 +608,7 @@ export const CreatePlayerModal = ({
                 {/* Photo */}
                 <UserPhotoUpload
                   photoPreview={photoPreview}
+                  blockedReason={isBirthdateMinor(watch("birthdate")) ? NEW_MINOR_PHOTO_REASON : null}
                   initials={(() => {
                     const f = watch("firstName")?.charAt(0) || "";
                     const l = watch("lastName")?.charAt(0) || "";
