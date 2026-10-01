@@ -43,7 +43,9 @@ export default function MySupporters() {
       const { data, error } = await supabase
         .from("supporters_link")
         .select("id, supporter_id, profiles!supporters_link_supporter_id_fkey(id, first_name, last_name, nickname, photo_url, photo_is_minor, image_rights_consent_at, birthdate, email)")
-        .eq("player_id", user.id);
+        .eq("player_id", user.id)
+        // Supporters ayant accepté : une invitation en attente n'a aucun accès.
+        .eq("status", "accepted");
 
       if (error) throw error;
 

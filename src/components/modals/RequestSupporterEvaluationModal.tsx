@@ -82,7 +82,9 @@ export function RequestSupporterEvaluationModal({
             email
           )
         `)
-        .eq("player_id", playerId);
+        .eq("player_id", playerId)
+        // Seuls les supporters ayant accepté leur participation.
+        .eq("status", "accepted");
 
       if (linksError) throw linksError;
 

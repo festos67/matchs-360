@@ -223,7 +223,8 @@ export default function TeamDetail() {
       const { count } = await supabase
         .from("supporters_link")
         .select("id", { count: "exact", head: true })
-        .in("player_id", playerUserIds);
+        .in("player_id", playerUserIds)
+        .eq("status", "accepted");
       return count || 0;
     },
     enabled: playerUserIds.length > 0,

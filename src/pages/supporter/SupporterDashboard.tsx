@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { useSupporterInvitations } from "@/hooks/useSupporterInvitations";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatsCard } from "@/components/shared/StatsCard";
@@ -70,6 +71,7 @@ interface EvaluationRequest {
 const SupporterDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, currentRole, profile } = useAuth();
+  const { invitations: pendingInvitations } = useSupporterInvitations();
   const queryClient = useQueryClient();
   const [requestToDelete, setRequestToDelete] = useState<EvaluationRequest | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -119,7 +121,9 @@ const SupporterDashboard = () => {
       const { data: links, error } = await supabase
         .from("supporters_link")
         .select("player_id")
-        .eq("supporter_id", user.id);
+        .eq("supporter_id", user.id)
+        // Lien accepté seulement : une invitation en attente n'ouvre aucun accès.
+        .eq("status", "accepted");
       if (error) throw error;
       if (!links || links.length === 0) return [];
 
@@ -308,6 +312,26 @@ const SupporterDashboard = () => {
           <p className="text-muted-foreground mt-1">Mes joueurs</p>
         </div>
 
+        {/* Invitations en attente de son accord : aucun accès avant de répondre */}
+        {pendingInvitations.length > 0 && (
+          <div className="rounded-lg border border-primary/40 bg-primary/5 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <Heart className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold">
+                {pendingInvitations.length === 1
+                  ? `Invitation à suivre ${pendingInvitations[0].player_name}`
+                  : `${pendingInvitations.length} invitations de supporter en attente`}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Confirmez votre participation pour accéder aux débriefs.
+              </p>
+            </div>
+            <Button asChild size="sm">
+              <Link to="/supporter/invitations">Répondre</Link>
+            </Button>
+          </div>
+        )}
+
         {myChildren && myChildren.length > 0 && (
           <div className="rounded-lg border border-pink-500/30 bg-pink-500/5 p-4 flex items-start gap-3">
             <Shield className="h-5 w-5 text-pink-500 shrink-0 mt-0.5" />
@@ -457,7 +481,11 @@ const SupporterDashboard = () => {
           ) : (
             <div className="flex flex-col items-center justify-center h-48 glass-card">
               <Heart className="w-12 h-12 text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">Aucun joueur lié à votre compte</p>
+              <p className="text-muted-foreground">
+                {pendingInvitations.length > 0
+                  ? "Acceptez votre invitation pour suivre un joueur"
+                  : "Aucun joueur lié à votre compte"}
+              </p>
             </div>
           )}
         </div>

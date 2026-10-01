@@ -38,6 +38,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Plus, X, ShieldCheck, Check, ChevronsUpDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,6 +112,8 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
   const [players, setPlayers] = useState<PlayerOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Supporter : confirmation avant l'envoi de l'invitation (e-mail).
+  const [confirmSupporter, setConfirmSupporter] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -322,15 +334,32 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           .maybeSingle();
 
         if (!existingLink) {
-          const { error: linkErr } = await supabase.from("supporters_link").insert({
-            supporter_id: userId,
-            player_id: selectedPlayer,
-          });
+          // Lien créé « en attente » par la base : la personne reçoit la demande
+          // d'accord par e-mail et n'accède au joueur qu'après avoir accepté.
+          const { data: insertedLink, error: linkErr } = await supabase
+            .from("supporters_link")
+            .insert({ supporter_id: userId, player_id: selectedPlayer })
+            .select("id")
+            .single();
           if (linkErr) throw linkErr;
+          const { error: notifyErr } = await supabase.functions.invoke("notify-supporter-invitation", {
+            body: { linkId: insertedLink.id },
+          });
+          if (notifyErr) {
+            console.error("notify-supporter-invitation failed", notifyErr);
+            toast.warning("Invitation créée, mais l'e-mail n'a pas pu partir", {
+              description: "La personne la verra dans ses notifications à sa prochaine connexion.",
+            });
+          }
         }
       }
 
-      toast.success(`Rôle "${roleLabels[newRole] || newRole}" ajouté`);
+      toast.success(
+        newRole === "supporter" ? "Invitation de supporter envoyée" : `Rôle "${roleLabels[newRole] || newRole}" ajouté`,
+        newRole === "supporter"
+          ? { description: "La personne doit confirmer sa participation avant d'accéder aux débriefs." }
+          : undefined,
+      );
       // L'email de felicitations + la notification in-app sont declenches
       // automatiquement par le trigger SQL trg_user_role_assigned sur user_roles.
       resetForm();
@@ -508,7 +537,7 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
             <Button
               type="button"
               size="sm"
-              onClick={handleAddRole}
+              onClick={() => (newRole === "supporter" ? setConfirmSupporter(true) : handleAddRole())}
               disabled={saving || !canSubmit}
             >
               {saving ? "Ajout..." : "Ajouter"}
@@ -524,6 +553,30 @@ export function AddRoleSection({ userId, clubId, currentRole, onRoleAdded }: Add
           </div>
         </div>
       )}
+
+      <AlertDialog open={confirmSupporter} onOpenChange={setConfirmSupporter}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Inviter cette personne comme supporter ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Elle recevra un e-mail l'invitant à suivre{" "}
+              <strong>{players.find((p) => p.id === selectedPlayer)?.name || "le joueur sélectionné"}</strong>.
+              Elle n'aura accès aux débriefs qu'après avoir accepté.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmSupporter(false);
+                void handleAddRole();
+              }}
+            >
+              Envoyer l'invitation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

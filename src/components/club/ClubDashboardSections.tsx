@@ -141,7 +141,8 @@ export const ClubDashboardSections = ({ clubId, onCreateTeam, onCreateCoach }: C
       const { data: links } = await supabase
         .from("supporters_link")
         .select("supporter_id")
-        .in("player_id", playerIds);
+        .in("player_id", playerIds)
+        .eq("status", "accepted");
       return new Set((links || []).map((l) => l.supporter_id)).size;
     },
     enabled: !!clubTeamIds && clubTeamIds.length > 0,

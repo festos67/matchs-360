@@ -65,7 +65,8 @@ const SupporterDebriefs = () => {
       const { data: links } = await supabase
         .from("supporters_link")
         .select("player_id")
-        .eq("supporter_id", user.id);
+        .eq("supporter_id", user.id)
+        .eq("status", "accepted");
       if (!links || links.length === 0) return [];
 
       const playerIds = links.map(l => l.player_id);

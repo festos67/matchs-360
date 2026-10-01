@@ -214,7 +214,8 @@ export default function Evaluations() {
         const { data } = await supabase
           .from("supporters_link")
           .select("player_id")
-          .eq("supporter_id", user.id);
+          .eq("supporter_id", user.id)
+          .eq("status", "accepted");
         return [...new Set((data || []).map((l: { player_id: string }) => l.player_id))];
       }
       case "coach": {

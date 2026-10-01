@@ -38,6 +38,7 @@ export default function MyTeamRedirect() {
           .from("supporters_link")
           .select("player_id")
           .eq("supporter_id", user.id)
+          .eq("status", "accepted")
           .limit(1)
           .maybeSingle();
 

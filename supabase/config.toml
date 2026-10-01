@@ -94,3 +94,8 @@ verify_jwt = false
 # verify_jwt = false : auth applicative en code (getUser + vérif des droits).
 [functions.remind-pending-invitation]
 verify_jwt = false
+
+# Demande d'accord envoyée au supporter (lien créé depuis le navigateur).
+# verify_jwt = false : auth applicative en code (getUser + auteur de l'invitation).
+[functions.notify-supporter-invitation]
+verify_jwt = false

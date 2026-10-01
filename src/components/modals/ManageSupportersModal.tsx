@@ -62,7 +62,25 @@ interface Supporter {
   last_name: string | null;
   nickname: string | null;
   email: string;
+  /** Accord de la personne : pending (en attente), accepted, declined. */
+  status: "pending" | "accepted" | "declined";
+  invited_at: string;
+  responded_at: string | null;
 }
+
+const fmtDate = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "";
+
+/** Libellé et couleur du statut d'accord d'un supporter. */
+const statusBadge = (s: Supporter) => {
+  if (s.status === "accepted") {
+    return { label: `A accepté${s.responded_at ? ` le ${fmtDate(s.responded_at)}` : ""}`, cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" };
+  }
+  if (s.status === "declined") {
+    return { label: `A refusé le ${fmtDate(s.responded_at)}`, cls: "bg-destructive/15 text-destructive" };
+  }
+  return { label: `Invité le ${fmtDate(s.invited_at)} — en attente de son accord`, cls: "bg-amber-500/15 text-amber-700 dark:text-amber-300" };
+};
 
 /** Personne déjà inscrite sur la plateforme, proposée à la liaison. */
 interface SupporterCandidate {
@@ -112,6 +130,8 @@ export const ManageSupportersModal = ({
   // Supporter dont le retrait est en attente de confirmation. La suppression du
   // lien est immédiate et définitive : elle ne doit pas tenir à un seul clic.
   const [pendingRemoval, setPendingRemoval] = useState<Supporter | null>(null);
+  // Invitation par e-mail en attente de confirmation (même garde-fou que la liste).
+  const [pendingEmailInvite, setPendingEmailInvite] = useState<SupporterFormData | null>(null);
   const queryClient = useQueryClient();
 
   const {
@@ -125,6 +145,9 @@ export const ManageSupportersModal = ({
 
   interface SupporterLinkRow {
     id: string;
+    status: "pending" | "accepted" | "declined";
+    created_at: string;
+    responded_at: string | null;
     supporter: {
       id: string;
       first_name: string | null;
@@ -141,6 +164,9 @@ export const ManageSupportersModal = ({
         .from("supporters_link")
         .select(`
           id,
+          status,
+          created_at,
+          responded_at,
           supporter:profiles!supporters_link_supporter_id_fkey(
             id,
             first_name,
@@ -160,6 +186,9 @@ export const ManageSupportersModal = ({
         last_name: item.supporter.last_name,
         nickname: item.supporter.nickname,
         email: item.supporter.email,
+        status: item.status,
+        invited_at: item.created_at,
+        responded_at: item.responded_at,
       })) as Supporter[];
     },
     enabled: open && !!playerId,
@@ -217,7 +246,9 @@ export const ManageSupportersModal = ({
       if (error) throw error;
       if (result?.error) throw new Error(result.error);
 
-      toast.success("Supporter lié au joueur");
+      toast.success("Invitation envoyée", {
+        description: `${candidateLabel(candidate)} doit confirmer sa participation par e-mail avant d'accéder aux débriefs.`,
+      });
       queryClient.invalidateQueries({ queryKey: ["manage-supporters", playerId] });
       queryClient.invalidateQueries({ queryKey: ["platform-users-search"] });
       onSuccess?.();
@@ -267,11 +298,13 @@ export const ManageSupportersModal = ({
 
       // Adresse déjà connue : compte existant rattaché, aucune invitation.
       if (result?.message === "Rôle ajouté avec succès") {
-        toast.success("Supporter rattaché", {
-          description: `${data.email} avait déjà un compte : il suit désormais ${playerName}.`,
+        toast.success("Invitation envoyée", {
+          description: `${data.email} a déjà un compte : il doit confirmer sa participation avant d'accéder aux débriefs de ${playerName}.`,
         });
       } else {
-        toast.success(`Invitation envoyée à ${data.email}`);
+        toast.success(`Invitation envoyée à ${data.email}`, {
+          description: "La personne crée son compte puis confirme sa participation.",
+        });
       }
       reset();
       setActiveTab("list");
@@ -341,6 +374,9 @@ export const ManageSupportersModal = ({
                       <p className="text-sm text-muted-foreground truncate">
                         {supporter.email}
                       </p>
+                      <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[11px] font-medium ${statusBadge(supporter).cls}`}>
+                        {statusBadge(supporter).label}
+                      </span>
                     </div>
                     <Button
                       variant="ghost"
@@ -445,7 +481,7 @@ export const ManageSupportersModal = ({
                 joueur ; sinon, elle reçoit une invitation par e-mail.
               </p>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit((d) => setPendingEmailInvite(d))} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">Prénom</Label>
@@ -491,8 +527,8 @@ export const ManageSupportersModal = ({
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Une invitation sera envoyée par email au supporter pour qu'il
-                puisse créer son compte et suivre les évaluations de {playerName}.
+                La personne reçoit un e-mail et doit confirmer sa participation avant
+                de pouvoir suivre les débriefs de {playerName}.
               </p>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-border">
@@ -541,13 +577,14 @@ export const ManageSupportersModal = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Lier ce supporter au joueur ?</AlertDialogTitle>
+            <AlertDialogTitle>Inviter cette personne comme supporter ?</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingCandidate && (
                 <>
                   <strong>{candidateLabel(pendingCandidate)}</strong> ({pendingCandidate.email})
-                  pourra suivre les débriefs de <strong>{playerName}</strong> et recevra un
-                  email l'en informant. Vous pourrez retirer ce lien à tout moment.
+                  recevra un e-mail l'invitant à suivre <strong>{playerName}</strong>. Il
+                  n'aura accès aux débriefs qu'après avoir accepté. Vous pourrez retirer ce
+                  lien à tout moment.
                 </>
               )}
             </AlertDialogDescription>
@@ -562,6 +599,45 @@ export const ManageSupportersModal = ({
               }}
             >
               Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirmation avant d'inviter par e-mail : un supporter invité par
+          erreur recevrait un e-mail. */}
+      <AlertDialog
+        open={!!pendingEmailInvite}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setPendingEmailInvite(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Inviter cette personne comme supporter ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingEmailInvite && (
+                <>
+                  <strong>
+                    {pendingEmailInvite.firstName} {pendingEmailInvite.lastName}
+                  </strong>{" "}
+                  ({pendingEmailInvite.email}) recevra un e-mail l'invitant à suivre{" "}
+                  <strong>{playerName}</strong>. Il n'aura accès aux débriefs qu'après avoir
+                  accepté. Vérifiez l'adresse avant de confirmer.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const data = pendingEmailInvite;
+                setPendingEmailInvite(null);
+                if (data) void onSubmit(data);
+              }}
+            >
+              Envoyer l'invitation
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -582,9 +658,12 @@ export const ManageSupportersModal = ({
             <AlertDialogDescription>
               {pendingRemoval && (
                 <>
-                  <strong>{getSupporterName(pendingRemoval)}</strong> n'aura plus accès aux
-                  débriefs de <strong>{playerName}</strong>. L'effet est immédiat ; il faudra
-                  le lier à nouveau pour rétablir cet accès.
+                  <strong>{getSupporterName(pendingRemoval)}</strong>{" "}
+                  {pendingRemoval.status === "accepted"
+                    ? "n'aura plus accès aux débriefs de "
+                    : "ne sera plus invité à suivre "}
+                  <strong>{playerName}</strong>. L'effet est immédiat ; il faudra l'inviter à
+                  nouveau pour rétablir ce lien.
                 </>
               )}
             </AlertDialogDescription>

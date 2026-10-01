@@ -3,6 +3,7 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
+import { sendSupporterInvitationEmails } from "../_shared/supporter-invitation-email.ts";
 import {
   buildIdentifierBase,
   identifierFromEmail,
@@ -882,6 +883,23 @@ const handler = async (req: Request): Promise<Response> => {
         supporter: "Supporter",
       };
 
+      // Nouveau supporter : nommer le(s) joueur(s) et annoncer la
+      // confirmation de participation demandée après la création du compte.
+      let newSupporterParagraph = "";
+      if (intendedRole === "supporter" && playerIds && playerIds.length > 0) {
+        const { data: followed } = await supabaseAdmin
+          .from("profiles")
+          .select("first_name, last_name")
+          .in("id", playerIds);
+        const names = (followed ?? [])
+          .map((p: { first_name?: string | null; last_name?: string | null }) => [p.first_name, p.last_name].filter(Boolean).join(" "))
+          .filter(Boolean)
+          .join(", ");
+        newSupporterParagraph = `<br><br>Vous êtes invité(e) à suivre <strong>${escapeHtml(names || "un joueur")}</strong> comme supporter.
+          Après la création de votre compte, il vous sera demandé de confirmer votre participation ;
+          rien n'est partagé avec vous avant votre accord.`;
+      }
+
       let emailDeliveryError: EmailProviderError | null = null;
       // BUG-AGE-002 — Pour un mineur < 15, NE PAS envoyer d'email à
       // l'enfant. L'email part au guardian plus bas (après création de
@@ -909,7 +927,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="color: #3f3f46; line-height: 1.6; margin-bottom: 24px;">
                 Bonjour${firstName ? ` ${escapeHtml(firstName)}` : ""},<br><br>
                 Vous avez été invité(e) à rejoindre <strong>${escapeHtml(club?.name || "MATCHS360")}</strong> 
-                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.
+                en tant que <strong>${escapeHtml(roleLabels[intendedRole] || intendedRole)}</strong>.${newSupporterParagraph}
               </p>
               
               <a href="${inviteLink}" style="display: block; background-color: #2563eb; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 24px;">
@@ -1221,20 +1239,40 @@ const handler = async (req: Request): Promise<Response> => {
 
     // If supporter, create links to players — DÉDUP : ne (re)crée que les liens
     // manquants (le supporter peut déjà suivre d'autres joueurs du club).
+    // Le lien est créé « en attente » : la personne doit donner son accord
+    // (e-mail « Répondre à l'invitation ») avant d'accéder aux débriefs.
+    const pendingSupporterLinkIds: string[] = [];
     if (intendedRole === "supporter" && playerIds && playerIds.length > 0) {
       const { data: existingLinks } = await supabaseAdmin
         .from("supporters_link")
-        .select("player_id")
+        .select("id, player_id, status")
         .eq("supporter_id", userId)
         .in("player_id", playerIds);
-      const alreadyLinked = new Set((existingLinks ?? []).map((l: { player_id: string }) => l.player_id));
+      const existingByPlayer = new Map(
+        (existingLinks ?? []).map((l: { id: string; player_id: string; status: string }) => [l.player_id, l]),
+      );
       const links = playerIds
-        .filter((playerId) => !alreadyLinked.has(playerId))
-        .map((playerId) => ({ supporter_id: userId, player_id: playerId }));
+        .filter((playerId) => !existingByPlayer.has(playerId))
+        .map((playerId) => ({ supporter_id: userId, player_id: playerId, invited_by: user.id, status: "pending" }));
       if (links.length > 0) {
-        await supabaseAdmin
+        const { data: inserted } = await supabaseAdmin
           .from("supporters_link")
-          .insert(links);
+          .insert(links)
+          .select("id");
+        for (const l of inserted ?? []) pendingSupporterLinkIds.push((l as { id: string }).id);
+      }
+      for (const l of existingByPlayer.values()) {
+        const link = l as { id: string; status: string };
+        if (link.status === "declined") {
+          // Nouvelle invitation après un refus : on redemande l'accord.
+          await supabaseAdmin
+            .from("supporters_link")
+            .update({ status: "pending", responded_at: null, invited_by: user.id, invite_email_sent_at: null })
+            .eq("id", link.id);
+          pendingSupporterLinkIds.push(link.id);
+        } else if (link.status === "pending") {
+          pendingSupporterLinkIds.push(link.id);
+        }
       }
     }
 
@@ -1256,7 +1294,15 @@ const handler = async (req: Request): Promise<Response> => {
     let notificationEmailSent = false;
     let notificationEmailError: string | null = null;
 
-    if (!isNewUser && resend) {
+    // Supporter déjà inscrit : un seul e-mail, la demande d'accord (pas de
+    // « Vous suivez désormais… », l'accès n'est ouvert qu'après son accord).
+    const isExistingSupporterInvite = !isNewUser && intendedRole === "supporter" && !!playerIds && playerIds.length > 0;
+    if (isExistingSupporterInvite) {
+      const sent = await sendSupporterInvitationEmails(supabaseAdmin, resend, pendingSupporterLinkIds, origin);
+      notificationEmailSent = sent > 0;
+    }
+
+    if (!isNewUser && resend && !isExistingSupporterInvite) {
       const roleLabels: Record<string, string> = {
         club_admin: "Administrateur de club",
         coach: "Coach",

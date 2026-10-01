@@ -1505,6 +1505,10 @@ export type Database = {
       }
       supporters_link: {
         Row: {
+          invite_email_sent_at: string | null
+          invited_by: string | null
+          responded_at: string | null
+          status: string
           created_at: string
           id: string
           is_legal_guardian: boolean
@@ -1515,6 +1519,10 @@ export type Database = {
           supporter_id: string
         }
         Insert: {
+          invite_email_sent_at?: string | null
+          invited_by?: string | null
+          responded_at?: string | null
+          status?: string
           created_at?: string
           id?: string
           is_legal_guardian?: boolean
@@ -1525,6 +1533,10 @@ export type Database = {
           supporter_id: string
         }
         Update: {
+          invite_email_sent_at?: string | null
+          invited_by?: string | null
+          responded_at?: string | null
+          status?: string
           created_at?: string
           id?: string
           is_legal_guardian?: boolean

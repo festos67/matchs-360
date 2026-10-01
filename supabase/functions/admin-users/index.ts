@@ -4,6 +4,7 @@ import { buildCorsHeaders, handleCorsPreflight } from "../_shared/cors.ts";
 import { getFromEmail } from "../_shared/email-config.ts";
 import { sendEmail } from "../_shared/send-email.ts";
 import { isTechnicalAddress } from "../_shared/technical-identity.ts";
+import { sendSupporterInvitationEmails } from "../_shared/supporter-invitation-email.ts";
 
 /**
  * Politique mot de passe — miroir de src/lib/password-policy.ts.
@@ -641,11 +642,19 @@ Deno.serve(async (req) => {
             .maybeSingle();
 
           if (!existingLink) {
-            const { error: supporterError } = await supabaseAdmin
+            // Lien « en attente » : la personne reçoit la demande d'accord par
+            // e-mail et n'accède au joueur qu'après avoir accepté.
+            const { data: insertedLink, error: supporterError } = await supabaseAdmin
               .from("supporters_link")
-              .insert({ supporter_id: userId, player_id: playerId });
+              .insert({ supporter_id: userId, player_id: playerId, invited_by: user.id, status: "pending" })
+              .select("id")
+              .single();
 
             if (supporterError) throw supporterError;
+            const resendKey = Deno.env.get("RESEND_API_KEY");
+            if (insertedLink?.id && resendKey) {
+              await sendSupporterInvitationEmails(supabaseAdmin, new Resend(resendKey), [insertedLink.id], getSafeOrigin(req));
+            }
           }
         }
 

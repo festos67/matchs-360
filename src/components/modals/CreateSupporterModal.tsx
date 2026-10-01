@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -126,6 +128,11 @@ export const CreateSupporterModal = ({
   const [selectedExisting, setSelectedExisting] = useState<ClubMember | null>(null);
   const [existingPickerOpen, setExistingPickerOpen] = useState(false);
   const [existingPlayerIds, setExistingPlayerIds] = useState<string[]>([]);
+  // Confirmation avant tout envoi : la personne reçoit un e-mail d'invitation,
+  // une erreur de sélection ne doit pas tenir à un clic.
+  const [confirmInvite, setConfirmInvite] = useState<
+    { kind: "new"; data: SupporterFormData } | { kind: "existing" } | null
+  >(null);
 
   const {
     register,
@@ -388,16 +395,14 @@ export const CreateSupporterModal = ({
         }
       }
 
-      // Adresse déjà connue : compte existant rattaché, aucune invitation.
+      // Adresse déjà connue : compte existant, demande d'accord envoyée.
       if (result?.message === "Rôle ajouté avec succès") {
-        toast.success("Supporter rattaché", {
-          description: `${data.email} avait déjà un compte : il suit désormais ${
-            data.playerIds.length > 1 ? "les joueurs sélectionnés" : "le joueur sélectionné"
-          }.`,
+        toast.success("Invitation envoyée", {
+          description: `${data.email} a déjà un compte : il doit confirmer sa participation avant d'accéder aux débriefs.`,
         });
       } else {
         toast.success(`Supporter invité avec succès !`, {
-          description: `Une invitation a été envoyée à ${data.email}`,
+          description: `Une invitation a été envoyée à ${data.email}. Il confirmera sa participation après la création de son compte.`,
         });
       }
 
@@ -438,10 +443,8 @@ export const CreateSupporterModal = ({
       if (result?.error) throw new Error(result.error);
 
       const who = `${selectedExisting.first_name || ""} ${selectedExisting.last_name || ""}`.trim();
-      toast.success(selectedExisting.already_supporter ? "Joueurs suivis ajoutés !" : "Rôle supporter ajouté !", {
-        description: selectedExisting.already_supporter
-          ? `${who} suit désormais ${existingPlayerIds.length > 1 ? "les joueurs sélectionnés" : "le joueur sélectionné"}.`
-          : `${who} est maintenant supporter.`,
+      toast.success("Invitation envoyée", {
+        description: `${who || selectedExisting.email} doit confirmer sa participation par e-mail avant d'accéder aux débriefs.`,
       });
       onOpenChange(false);
       onSuccess?.();
@@ -498,7 +501,7 @@ export const CreateSupporterModal = ({
           supporter d'un autre joueur), elle est simplement rattachée aux joueurs
           choisis ; sinon, elle reçoit une invitation par e-mail.
         </p>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit((d) => setConfirmInvite({ kind: "new", data: d }))} className="space-y-6">
           {/* Photo */}
           <UserPhotoUpload
             photoPreview={photoPreview}
@@ -681,13 +684,13 @@ export const CreateSupporterModal = ({
                 </Button>
                 <Button
                   type="button"
-                  onClick={onSubmitExisting}
+                  onClick={() => setConfirmInvite({ kind: "existing" })}
                   disabled={loading || !selectedExisting || existingPlayerIds.length === 0}
                 >
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                   ) : (
-                    "Ajouter le rôle supporter"
+                    "Inviter comme supporter"
                   )}
                 </Button>
               </div>
@@ -696,6 +699,51 @@ export const CreateSupporterModal = ({
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={!!confirmInvite} onOpenChange={(o) => !o && setConfirmInvite(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Inviter cette personne comme supporter ?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {(() => {
+              if (!confirmInvite) return null;
+              const ids = confirmInvite.kind === "new" ? confirmInvite.data.playerIds : existingPlayerIds;
+              const followed = players
+                .filter((p) => ids.includes(p.id))
+                .map((p) => [p.first_name, p.last_name].filter(Boolean).join(" "))
+                .filter(Boolean)
+                .join(", ");
+              const who =
+                confirmInvite.kind === "new"
+                  ? `${confirmInvite.data.firstName} ${confirmInvite.data.lastName} (${confirmInvite.data.email})`
+                  : selectedExisting
+                    ? `${[selectedExisting.first_name, selectedExisting.last_name].filter(Boolean).join(" ")} (${selectedExisting.email})`
+                    : "";
+              return (
+                <>
+                  <strong>{who}</strong> recevra un e-mail l'invitant à suivre{" "}
+                  <strong>{followed || "le joueur sélectionné"}</strong>. Il n'aura accès aux débriefs
+                  qu'après avoir accepté. Vérifiez la personne et l'adresse avant de confirmer.
+                </>
+              );
+            })()}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => {
+              const c = confirmInvite;
+              setConfirmInvite(null);
+              if (c?.kind === "new") void onSubmit(c.data);
+              else if (c?.kind === "existing") void onSubmitExisting();
+            }}
+          >
+            Envoyer l'invitation
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
       <AlertDialogContent>
