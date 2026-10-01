@@ -727,7 +727,8 @@ export default function PlayerDetail() {
             onToggleSelfEvalLayer={setShowSelfEvalLayer}
             onToggleSupporterLayer={setShowSupporterLayer}
             currentUserId={isSupporterViewer ? user?.id : undefined}
-            showAudienceNote={isPlayerViewingOwnProfile}
+            // Au joueur seulement : isPlayerViewingOwnProfile couvre aussi le supporter.
+            showAudienceNote={isPlayerViewingOwnProfile && currentRole?.role === "player"}
           />
         </TabsContent>
 
