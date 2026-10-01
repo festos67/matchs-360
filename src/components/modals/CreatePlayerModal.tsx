@@ -140,7 +140,6 @@ interface TransferablePlayer {
   id: string;
   firstName: string | null;
   lastName: string | null;
-  nickname: string | null;
   teamId: string;
   teamName: string;
 }
@@ -253,7 +252,7 @@ export const CreatePlayerModal = ({
           user_id,
           team_id,
           teams!inner(id, name, club_id),
-          profiles!inner(id, first_name, last_name, nickname, deleted_at)
+          profiles!inner(id, first_name, last_name, deleted_at)
         `)
         .eq("member_type", "player")
         .eq("is_active", true)
@@ -267,7 +266,6 @@ export const CreatePlayerModal = ({
         id: item.profiles.id,
         firstName: item.profiles.first_name,
         lastName: item.profiles.last_name,
-        nickname: item.profiles.nickname,
         teamId: item.team_id,
         teamName: item.teams.name,
       }));
@@ -535,8 +533,7 @@ export const CreatePlayerModal = ({
         if (insertError) throw insertError;
       }
 
-      const playerName = selectedPlayer.nickname || 
-        `${selectedPlayer.firstName} ${selectedPlayer.lastName}`;
+      const playerName = `${selectedPlayer.firstName || ""} ${selectedPlayer.lastName || ""}`.trim();
 
       toast.success("Transfert effectué !", {
         description: `${playerName} a été transféré depuis ${selectedPlayer.teamName}`,
@@ -567,7 +564,7 @@ export const CreatePlayerModal = ({
   const currentTeam = teams.find((t) => t.id === defaultTeamId);
 
   const getPlayerDisplayName = (player: TransferablePlayer) => {
-    const name = player.nickname || `${player.firstName || ""} ${player.lastName || ""}`.trim();
+    const name = `${player.firstName || ""} ${player.lastName || ""}`.trim();
     return `${name} (${player.teamName})`;
   };
 
@@ -882,7 +879,7 @@ export const CreatePlayerModal = ({
                             {transferablePlayers.map((player) => (
                               <CommandItem
                                 key={player.id}
-                                value={`${player.firstName} ${player.lastName} ${player.nickname} ${player.teamName}`}
+                                value={`${player.firstName} ${player.lastName} ${player.teamName}`}
                                 onSelect={() => {
                                   setSelectedPlayer(player);
                                   setPlayerSelectOpen(false);
@@ -896,7 +893,7 @@ export const CreatePlayerModal = ({
                                 />
                                 <div className="flex flex-col">
                                   <span>
-                                    {player.nickname || `${player.firstName} ${player.lastName}`}
+                                    {`${player.firstName || ""} ${player.lastName || ""}`.trim()}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
                                     Actuellement : {player.teamName}
@@ -923,7 +920,7 @@ export const CreatePlayerModal = ({
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">
-                          {selectedPlayer.nickname || `${selectedPlayer.firstName} ${selectedPlayer.lastName}`}
+                          {`${selectedPlayer.firstName || ""} ${selectedPlayer.lastName || ""}`.trim()}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <span>{selectedPlayer.teamName}</span>
