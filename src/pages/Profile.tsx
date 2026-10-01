@@ -91,6 +91,8 @@ export default function Profile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [nickname, setNickname] = useState("");
+  // Pas de surnom pour le responsable de club (profil actif).
+  const hideNickname = currentRole?.role === "club_admin";
   const [saving, setSaving] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -300,7 +302,8 @@ export default function Profile() {
       const updateData: Record<string, unknown> = {
         first_name: firstName.trim() || null,
         last_name: lastName.trim() || null,
-        nickname: nickname.trim() || null,
+        // Champ masqué (responsable de club) : surnom existant inchangé.
+        ...(hideNickname ? {} : { nickname: nickname.trim() || null }),
       };
       if (photoUrl !== undefined) {
         updateData.photo_url = photoUrl;
@@ -528,15 +531,17 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="nickname">Surnom</Label>
-              <Input
-                id="nickname"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                placeholder="Surnom (optionnel)"
-              />
-            </div>
+            {!hideNickname && (
+              <div className="space-y-2">
+                <Label htmlFor="nickname">Surnom</Label>
+                <Input
+                  id="nickname"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  placeholder="Surnom (optionnel)"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Email</Label>
